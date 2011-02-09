@@ -41,11 +41,10 @@ Finished in 0.0 seconds
 
 3 examples, 0 failures
 
-Step 6, rejoyce!
 
 
 
-Here's the output of hspec's specs:
+Here's the report of hspec's specs:
 
 
 describe
