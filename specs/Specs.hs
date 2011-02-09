@@ -22,8 +22,57 @@ main :: IO ()
 main = do
   ar <- getArgs
   case ar of
+    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
     [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
     _          -> hHspec stdout specs
+
+preable :: String
+preable = unlines [ "hspec aims to be a simple, extendable, and useful tool for Behavior Driven",
+                    "Development in Haskell.", "",
+                    "Step 1, write your specs",
+                    "> specs = describe \"myabs\" [",
+                    ">   it \"returns the original number when given a positive input\"",
+                    ">     (myabs 1 == 1),",
+                    "> ",
+                    ">   it \"returns a positive number when given a negative input\"",
+                    ">     (myabs (-1) == 1),",
+                    "> ",
+                    ">   it \"returns zero when given zero\"",
+                    ">     (myabs 0 == 0)",
+                    ">   ]",
+                    "",
+                    "Step 2, write your dummy function",
+                    "> myabs n = 0",
+                    "",
+                    "Step 3, watch them fail",
+                    "> hspec specs",
+                    "myabs",
+                    " x returns the original number when given a positive input",
+                    " x returns a positive number when given a negative input",
+                    " - returns zero when given zero",
+                    "",
+                    "Finished in 0.0 seconds",
+                    "",
+                    "3 examples, 2 failures",
+                    "",
+                    "Step 4, implement your requirements",
+                    "> myabs n = if n < 0 then negate n else n", "",
+                    "Step 5, watch them pass",
+                    "> hspec specs",
+                    "myabs",
+                    " - returns the original number when given a positive input",
+                    " - returns a positive number when given a negative input",
+                    " - returns zero when given zero",
+                    "",
+                    "Finished in 0.0 seconds",
+                    "",
+                    "3 examples, 0 failures",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "Here's the report of hspec's specs:" ]
+
 
 specs :: [Spec]
 specs = let spec = Spec "Example" "example"
@@ -37,8 +86,11 @@ specs = let spec = Spec "Example" "example"
     it "contains the description of the spec"
         (requirement (spec Success) == "example" ),
 
-    it "contains the validation that the spec was implemented"
-        (result (spec Fail) == Fail )
+    it "contains the verification that the spec was implemented"
+        (result (spec Fail) == Fail ),
+
+    it "catches 'undefined' exception"
+        (Fail)
   ]
   ++ describe "hspec" [
     it "displays the spec categories as a headers"
@@ -50,7 +102,7 @@ specs = let spec = Spec "Example" "example"
     it "displays a '-' for successfully implemented specs"
         (documentSpec (spec Success) == " - example"),
 
-    it "displays a 'x' for unsuccessfully implmented specs"
+    it "displays an 'x' for unsuccessfully implmented specs"
         (documentSpec (spec Fail) == " x example" ),
 
     it "displays a '-' for pending specs"
@@ -63,16 +115,16 @@ specs = let spec = Spec "Example" "example"
         True,
 
     it "can output to stdout in color"
-        (pending "near future, perhaps using System.Console.ANSI?"),
+        (pending "TODO in near future, perhaps using System.Console.ANSI?"),
 
     it "can output to an ascii text file"
-        (pending "near future"),
+        True,
 
     it "can output as xml"
-        (pending "not so near future"),
+        (pending "TODO in not so near future"),
 
     it "can output as html"
-        (pending "not so near future"),
+        (pending "TODO in not so near future"),
 
     it "summarizes the time it takes to finish"
         (any (=="Finished in 0.0 seconds") (hspec testSpecs)),

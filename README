@@ -1,27 +1,76 @@
+hspec aims to be a simple, extendable, and useful tool for Behavior Driven
+Development in Haskell.
+
+Step 1, write your specs
+> specs = describe "myabs" [
+>   it "returns the original number when given a positive input"
+>     (myabs 1 == 1),
+> 
+>   it "returns a positive number when given a negative input"
+>     (myabs (-1) == 1),
+> 
+>   it "returns zero when given zero"
+>     (myabs 0 == 0)
+>   ]
+
+Step 2, write your dummy function
+> myabs n = 0
+
+Step 3, watch them fail
+> hspec specs
+myabs
+ x returns the original number when given a positive input
+ x returns a positive number when given a negative input
+ - returns zero when given zero
+
+Finished in 0.0 seconds
+
+3 examples, 2 failures
+
+Step 4, implement your requirements
+> myabs n = if n < 0 then negate n else n
+
+Step 5, watch them pass
+> hspec specs
+myabs
+ - returns the original number when given a positive input
+ - returns a positive number when given a negative input
+ - returns zero when given zero
+
+Finished in 0.0 seconds
+
+3 examples, 0 failures
+
+Step 6, rejoyce!
+
+
+
+Here's the output of hspec's specs:
+
 
 describe
  - groups specs into the same category
 
 it
  - contains the description of the spec
- - contains the validation that the spec was implemented
+ - contains the verification that the spec was implemented
+ x catches 'undefined' exception
 
 hspec
  - displays the spec categories as a headers
  - displays one row for each spec
  - displays a '-' for successfully implemented specs
- - displays a 'x' for unsuccessfully implmented specs
+ - displays an 'x' for unsuccessfully implmented specs
  - displays a '-' for pending specs
  - displays a '#' and an additional message for pending specs
  - can output to stdout
  - can output to stdout in color
-     # near future, perhaps using System.Console.ANSI?
+     # TODO in near future, perhaps using System.Console.ANSI?
  - can output to an ascii text file
-     # near future
  - can output as xml
-     # not so near future
+     # TODO in not so near future
  - can output as html
-     # not so near future
+     # TODO in not so near future
  - summarizes the time it takes to finish
  - summarizes the number of examples and failures
 
@@ -35,4 +84,4 @@ quantify (internal)
 
 Finished in 0.0 seconds
 
-21 examples, 0 failures
+22 examples, 1 failure

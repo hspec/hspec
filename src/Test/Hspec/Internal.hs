@@ -130,6 +130,8 @@ hHspec h ss = do
   t1 <- getCPUTime
   mapM_ (hPutStrLn h) [ "", timingSummary (fromIntegral $ t1 - t0), "", successSummary ss]
 
+
+
 -- | Create a more readable display of a quantity of something.
 quantify :: Num a => a -> String -> String
 quantify 1 s = "1 " ++ s
