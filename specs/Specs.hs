@@ -16,6 +16,7 @@ module Specs where
 
 import Test.Hspec.Internal
 import System.IO
+import System.Exit
 import System.Environment
 
 main :: IO ()
@@ -25,6 +26,8 @@ main = do
     ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
     [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
     _          -> hHspec stdout specs
+  let failures = length $ filter ((==Fail).result) specs
+  exitWith $ if failures == 0 then ExitSuccess else ExitFailure 1
 
 preable :: String
 preable = unlines [ "hspec aims to be a simple, extendable, and useful tool for Behavior Driven",

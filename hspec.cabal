@@ -1,7 +1,7 @@
 name: hspec
 version: 0.1.0
 cabal-version: -any
-build-type: Simple
+build-type: Custom
 license: BSD3
 license-file: LICENSE
 copyright: (c) Trystan Spangler 2011
