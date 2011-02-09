@@ -1,10 +1,9 @@
-
 describe
  - groups specs into the same category
 
 it
  - contains the description of the spec
- - contains the validation that the spec was implemented
+ - contains the verification that the spec was implemented
 
 hspec
  - displays the spec categories as a headers
