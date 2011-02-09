@@ -1,0 +1,38 @@
+
+describe
+ - groups specs into the same category
+
+it
+ - contains the description of the spec
+ - contains the validation that the spec was implemented
+
+hspec
+ - displays the spec categories as a headers
+ - displays one row for each spec
+ - displays a '-' for successfully implemented specs
+ - displays a 'x' for unsuccessfully implmented specs
+ - displays a '-' for pending specs
+ - displays a '#' and an additional message for pending specs
+ - can output to stdout
+ - can output to stdout in color
+     # near future, perhaps using System.Console.ANSI?
+ - can output to an ascii text file
+     # near future
+ - can output as xml
+     # not so near future
+ - can output as html
+     # not so near future
+ - summarizes the time it takes to finish
+ - summarizes the number of examples and failures
+
+quantify (internal)
+ - returns an amount and a description given an amount and description
+ - returns a singular description given the number 1
+ - returns a plural description given a number greater than 1
+ - returns a plural description given the number 0
+ - handles describing the plural of words that end with an 'x'
+     # no need for this yet
+
+Finished in 0.0 seconds
+
+21 examples, 0 failures

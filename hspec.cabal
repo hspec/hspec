@@ -1,0 +1,46 @@
+name: hspec
+version: 0.1.0
+cabal-version: -any
+build-type: Simple
+license: BSD3
+license-file: LICENSE
+copyright: (c) Trystan Spangler 2011
+maintainer: trystan.s@comcast.net
+build-depends: base -any
+stability: experimental
+homepage:
+package-url:
+bug-reports:
+synopsis: Behavior Driven Development for Haskell
+description: Behavior Driven Development for Haskell
+category: Testing
+author: Trystan Spangler
+tested-with:
+data-files:
+data-dir: ""
+extra-source-files: .\specs\Specs.hs .\src\Test\Hspec\Internal.hs
+extra-tmp-files:
+exposed-modules: Test.Hspec Test.Hspec.Internal
+exposed: True
+buildable: True
+build-tools:
+cpp-options:
+cc-options:
+ld-options:
+pkgconfig-depends:
+frameworks:
+c-sources:
+extensions:
+extra-libraries:
+extra-lib-dirs:
+includes:
+install-includes:
+include-dirs:
+hs-source-dirs: specs src
+other-modules: Specs
+ghc-prof-options:
+ghc-shared-options:
+ghc-options: -Wall
+hugs-options:
+nhc98-options:
+jhc-options:
