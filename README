@@ -17,7 +17,7 @@ Step 2, write your dummy function
 > myabs n = 0
 
 Step 3, watch them fail
-> hspec specs
+> hHspec stdout specs
 myabs
  x returns the original number when given a positive input
  x returns a positive number when given a negative input
@@ -31,7 +31,7 @@ Step 4, implement your requirements
 > myabs n = if n < 0 then negate n else n
 
 Step 5, watch them pass
-> hspec specs
+> hHspec stdout specs
 myabs
  - returns the original number when given a positive input
  - returns a positive number when given a negative input
