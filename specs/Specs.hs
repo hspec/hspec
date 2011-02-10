@@ -17,20 +17,16 @@ module Specs where
 import Test.Hspec.Internal
 import Test.Hspec.QuickCheck
 import System.IO
-import System.Exit
 import System.Environment
 import Control.Monad (liftM)
 
 main :: IO ()
 main = do
   ar <- getArgs
-  s <- specs
   case ar of
-    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h s)
-    [filename] -> withFile filename WriteMode (\ h -> hHspec h s)
-    _          -> hHspec stdout s
-  let failures = length $ filter ((==Fail).result) s
-  exitWith $ if failures == 0 then ExitSuccess else ExitFailure 1
+    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
+    [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
+    _          -> hHspec stdout specs
 
 preable :: String
 preable = unlines [ "hspec aims to be a simple, extendable, and useful tool for Behavior Driven",

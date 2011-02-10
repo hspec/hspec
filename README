@@ -84,6 +84,6 @@ quantify (internal)
  - handles describing the plural of words that end with an 'x'
      # no need for this yet
 
-Finished in 1.56001e-2 seconds
+Finished in 3.12002e-2 seconds
 
 25 examples, 1 failure

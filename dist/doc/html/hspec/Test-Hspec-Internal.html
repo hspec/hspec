@@ -1,0 +1,992 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--Rendered using the Haskell Html Library v0.2-->
+<HTML
+><HEAD
+><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
+><TITLE
+>Test.Hspec.Internal</TITLE
+><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
+><SCRIPT SRC="haddock-util.js" TYPE="text/javascript"
+></SCRIPT
+><SCRIPT TYPE="text/javascript"
+>window.onload = function () {setSynopsis("mini_Test-Hspec-Internal.html")};</SCRIPT
+></HEAD
+><BODY
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="topbar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
+></TD
+><TD CLASS="title"
+>hspec-0.1.0: Behavior Driven Development for Haskell</TD
+><TD CLASS="topbut"
+><A HREF="index.html"
+>Contents</A
+></TD
+><TD CLASS="topbut"
+><A HREF="doc-index.html"
+>Index</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="modulebar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><FONT SIZE="6"
+>Test.Hspec.Internal</FONT
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Description</TD
+></TR
+><TR
+><TD CLASS="doc"
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Synopsis</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+>  <A HREF="#t%3AResult"
+>Result</A
+>  </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+>= <A HREF="#v%3ASuccess"
+>Success</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3AFail"
+>Fail</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3APending"
+>Pending</A
+> String</TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+>  <A HREF="#t%3ASpec"
+>Spec</A
+>  = <A HREF="#v%3ASpec"
+>Spec</A
+> {<TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="recfield"
+><A HREF="#v%3Aname"
+>name</A
+> :: String</TD
+></TR
+><TR
+><TD CLASS="recfield"
+><A HREF="#v%3Arequirement"
+>requirement</A
+> :: String</TD
+></TR
+><TR
+><TD CLASS="recfield"
+><A HREF="#v%3Aresult"
+>result</A
+> :: <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+></TD
+></TR
+></TABLE
+>}</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Adescribe"
+>describe</A
+> :: String -&gt; [IO (String, <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+>)] -&gt; IO [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>]</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+>  <A HREF="#t%3ASpecResult"
+>SpecResult</A
+> a  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Ait"
+>it</A
+> :: String -&gt; a -&gt; IO (String, <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+>)</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Apending"
+>pending</A
+> :: String -&gt; <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdocumentSpecs"
+>documentSpecs</A
+> :: [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>] -&gt; [String]</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdocumentGroup"
+>documentGroup</A
+> :: [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>] -&gt; [String]</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdocumentSpec"
+>documentSpec</A
+> :: <A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+> -&gt; String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AtimingSummary"
+>timingSummary</A
+> :: Double -&gt; String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsuccessSummary"
+>successSummary</A
+> :: [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>] -&gt; String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Ahspec"
+>hspec</A
+> :: [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>] -&gt; [String]</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AhHspec"
+>hHspec</A
+> :: Handle -&gt; IO [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>] -&gt; IO ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aquantify"
+>quantify</A
+> :: Num a =&gt; a -&gt; String -&gt; String</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Documentation</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+>  <A NAME="t:Result"
+><A NAME="t%3AResult"
+></A
+></A
+><B
+>Result</B
+>  </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>The result of running a test.
+</TD
+></TR
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v:Success"
+><A NAME="v%3ASuccess"
+></A
+></A
+><B
+>Success</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v:Fail"
+><A NAME="v%3AFail"
+></A
+></A
+><B
+>Fail</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v:Pending"
+><A NAME="v%3APending"
+></A
+></A
+><B
+>Pending</B
+> String</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:Result')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:Result" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+>Eq <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Test-Hspec-Internal.html#t%3ASpecResult"
+>SpecResult</A
+> <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+>  <A NAME="t:Spec"
+><A NAME="t%3ASpec"
+></A
+></A
+><B
+>Spec</B
+>  </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>Everything needed to specify and test a specific behavior.
+</TD
+></TR
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="5" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v:Spec"
+><A NAME="v%3ASpec"
+></A
+></A
+><B
+>Spec</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="body" COLSPAN="2"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v:name"
+><A NAME="v%3Aname"
+></A
+></A
+><B
+>name</B
+> :: String</TD
+><TD CLASS="rdoc"
+>What is being tested, usually the name of a type.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v:requirement"
+><A NAME="v%3Arequirement"
+></A
+></A
+><B
+>requirement</B
+> :: String</TD
+><TD CLASS="rdoc"
+>The specific requirement being tested.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v:result"
+><A NAME="v%3Aresult"
+></A
+></A
+><B
+>result</B
+> :: <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+></TD
+><TD CLASS="rdoc"
+>The status of this requirement.
+</TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:describe"
+><A NAME="v%3Adescribe"
+></A
+></A
+><B
+>describe</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: String</TD
+><TD CLASS="rdoc"
+>The name of what is being described, usually a function or type.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; [IO (String, <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+>)]</TD
+><TD CLASS="rdoc"
+>A list of requirements and validations, created by a list of <TT
+><A HREF="Test-Hspec-Internal.html#v%3Ait"
+>it</A
+></TT
+>.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>]</TD
+><TD CLASS="rdoc"
+>Specs
+</TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+><P
+>Create a set of specifications for a specific type being described.
+   Once you know what you want specs for, use this.
+</P
+><PRE
+> describe &quot;abs&quot; [
+   it &quot;returns a positive number given a negative number&quot;
+     (abs (-1) == 1)
+   ]
+</PRE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+>  <A NAME="t:SpecResult"
+><A NAME="t%3ASpecResult"
+></A
+></A
+><B
+>SpecResult</B
+> a  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>Anything that can be used as validation that a spec is met.
+</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v:it"
+><A NAME="v%3Ait"
+></A
+></A
+><B
+>it</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: String</TD
+><TD CLASS="rdoc"
+>A description of this spec.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; a</TD
+><TD CLASS="rdoc"
+>A validator for this spec.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO (String, <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+>)</TD
+><TD CLASS="rdoc"
+>The combined description and result of validation.
+</TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+><P
+>Create a description and validation of a spec, a list of these is used by <TT
+><A HREF="Test-Hspec-Internal.html#v%3Adescribe"
+>describe</A
+></TT
+>.
+   Once you know what you want to specify, use this.
+</P
+><PRE
+> describe &quot;closeEnough&quot; [
+   it &quot;is true if two numbers are almost the same&quot;
+     (1.001 `closeEnough` 1.002),
+
+   it &quot;is false if two numbers are not almost the same&quot;
+     (not $ 1.001 `closeEnough` 1.003),
+
+   it &quot;can also detect infinite loops&quot;
+     (pending &quot;still figuring this one out&quot;)
+   ]
+</PRE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:SpecResult')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:SpecResult" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Test-Hspec-Internal.html#t%3ASpecResult"
+>SpecResult</A
+> Bool</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Test-Hspec-Internal.html#t%3ASpecResult"
+>SpecResult</A
+> <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>Testable t =&gt; <A HREF="Test-Hspec-Internal.html#t%3ASpecResult"
+>SpecResult</A
+> (QuickCheckProperty t)</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:pending"
+><A NAME="v%3Apending"
+></A
+></A
+><B
+>pending</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: String</TD
+><TD CLASS="rdoc"
+>An explination for why this spec is pending.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Test-Hspec-Internal.html#t%3AResult"
+>Result</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+><P
+>Declare a spec as not successful or failing but pending some other work.
+   If you want to track a specification but don't expect it to succeed or fail yet, use this.
+</P
+><PRE
+> describe &quot;fancyFormatter&quot; [
+   it &quot;can format text in a way that everyone likes&quot;
+     (pending &quot;waiting for clarification from the designers&quot;)
+   ]
+</PRE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:documentSpecs"
+><A NAME="v%3AdocumentSpecs"
+></A
+></A
+><B
+>documentSpecs</B
+> :: [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>] -&gt; [String]</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Create a document of the given specs.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:documentGroup"
+><A NAME="v%3AdocumentGroup"
+></A
+></A
+><B
+>documentGroup</B
+> :: [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>] -&gt; [String]</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Create a document of the given group of specs.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:documentSpec"
+><A NAME="v%3AdocumentSpec"
+></A
+></A
+><B
+>documentSpec</B
+> :: <A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+> -&gt; String</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Create a document of the given spec.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:timingSummary"
+><A NAME="v%3AtimingSummary"
+></A
+></A
+><B
+>timingSummary</B
+> :: Double -&gt; String</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Create a summary of how long it took to validate the specs.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:successSummary"
+><A NAME="v%3AsuccessSummary"
+></A
+></A
+><B
+>successSummary</B
+> :: [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>] -&gt; String</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Create a sumary of how many specs exist and how many failed validation.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:hspec"
+><A NAME="v%3Ahspec"
+></A
+></A
+><B
+>hspec</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>]</TD
+><TD CLASS="rdoc"
+>The specs you are interested in.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; [String]</TD
+><TD CLASS="rdoc"
+>A human-readable summary of the specs and which are successfully implemented.
+</TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+>Create a document of the given specs.
+   This does not track how much time it took to validate the specs.
+   If you want a description of each spec and don't need to know how long it tacks to
+  check, use this.
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:hHspec"
+><A NAME="v%3AhHspec"
+></A
+></A
+><B
+>hHspec</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: Handle</TD
+><TD CLASS="rdoc"
+>A handle for the stream you want to write to, usually stdout.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO [<A HREF="Test-Hspec-Internal.html#t%3ASpec"
+>Spec</A
+>]</TD
+><TD CLASS="rdoc"
+>The specs you are interested in.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO ()</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+><P
+>Create a document of the given specs and write it to the given handle.
+   This does track how much time it took to validate the specs.
+   If you want a description of each spec and do need to know how long it tacks to check
+ or want to write to a handle, use this.
+</P
+><PRE
+> writeReport filename specs = withFile filename WriteMode (\ h -&gt; hHspec h specs)
+</PRE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v:quantify"
+><A NAME="v%3Aquantify"
+></A
+></A
+><B
+>quantify</B
+> :: Num a =&gt; a -&gt; String -&gt; String</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Create a more readable display of a quantity of something.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="botbar"
+>Produced by <A HREF="http://www.haskell.org/haddock/"
+>Haddock</A
+> version 2.6.1</TD
+></TR
+></TABLE
+></BODY
+></HTML
+>

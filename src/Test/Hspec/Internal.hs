@@ -124,14 +124,15 @@ hspec ss = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
 --
 -- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
 --
-hHspec :: Handle  -- ^ A handle for the stream you want to write to, usually stdout.
-       -> [Spec]  -- ^ The specs you are interested in.
+hHspec :: Handle     -- ^ A handle for the stream you want to write to, usually stdout.
+       -> IO [Spec]  -- ^ The specs you are interested in.
        -> IO ()
 hHspec h ss = do
   t0 <- getCPUTime
-  mapM_ (hPutStrLn h) $ documentSpecs ss
+  ss' <- ss
+  mapM_ (hPutStrLn h) $ documentSpecs ss'
   t1 <- getCPUTime
-  mapM_ (hPutStrLn h) [ "", timingSummary (fromIntegral $ t1 - t0), "", successSummary ss]
+  mapM_ (hPutStrLn h) [ "", timingSummary (fromIntegral $ t1 - t0), "", successSummary ss']
 
 
 
