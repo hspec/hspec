@@ -41,15 +41,15 @@ data Spec = Spec {
 -- >   ]
 --
 describe :: String             -- ^ The name of what is being described, usually a function or type.
-         -> [IO (String, Result)] -- ^ A list of requirements and validations, created by a list of 'it'.
+         -> [IO (String, Result)] -- ^ A list of requirements and verifiers, created by a list of 'it'.
          -> IO [Spec]             -- ^ Specs
 describe n ss = do
   ss' <- sequence ss
   return $ map (\ (req, res) -> Spec n req res) ss'
 
--- | Anything that can be used as validation that a spec is met.
+-- | Anything that can be used as verification that a spec is met.
 class SpecResult a where
-  -- | Create a description and validation of a spec, a list of these is used by 'describe'.
+  -- | Create a description and verification of a spec, a list of these is used by 'describe'.
   --   Once you know what you want to specify, use this.
   --
   -- > describe "closeEnough" [
@@ -64,8 +64,8 @@ class SpecResult a where
   -- >   ]
   --
   it :: String           -- ^ A description of this spec.
-     -> a                -- ^ A validator for this spec.
-     -> IO (String, Result) -- ^ The combined description and result of validation.
+     -> a                -- ^ A verifier for this spec.
+     -> IO (String, Result) -- ^ The combined description and result of verification.
 
 instance SpecResult Bool where
   it n b = return (n, if b then Success else Fail)
@@ -81,7 +81,7 @@ instance SpecResult Result where
 -- >     (pending "waiting for clarification from the designers")
 -- >   ]
 --
-pending :: String  -- ^ An explination for why this spec is pending.
+pending :: String  -- ^ An explanation for why this spec is pending.
         -> Result
 pending = Pending
 
@@ -100,17 +100,17 @@ documentSpec spec  = case result spec of
                 Fail       -> " x " ++ requirement spec
                 Pending s  -> " - " ++ requirement spec ++ "\n     # " ++ s
 
--- | Create a summary of how long it took to validate the specs.
+-- | Create a summary of how long it took to verify the specs.
 timingSummary :: Double -> String
 timingSummary t = "Finished in " ++ quantify (t / (10.0^(12::Integer))) "second"
 
--- | Create a sumary of how many specs exist and how many failed validation.
+-- | Create a summary of how many specs exist and how many failed verification.
 successSummary :: [Spec] -> String
 successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify failed "failure"
     where failed = length $ filter ((==Fail).result) ss
 
 -- | Create a document of the given specs.
---   This does not track how much time it took to validate the specs.
+--   This does not track how much time it took to verify the specs.
 --   If you want a description of each spec and don't need to know how long it tacks to
 --  check, use this.
 hspec :: [Spec]   -- ^ The specs you are interested in.
@@ -118,7 +118,7 @@ hspec :: [Spec]   -- ^ The specs you are interested in.
 hspec ss = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
 
 -- | Create a document of the given specs and write it to the given handle.
---   This does track how much time it took to validate the specs.
+--   This does track how much time it took to verify the specs.
 --   If you want a description of each spec and do need to know how long it tacks to check
 -- or want to write to a handle, use this.
 --
