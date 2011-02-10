@@ -1,3 +1,4 @@
+{-# OPTIONS -XFlexibleInstances #-}
 -----------------------------------------------------------------------------
 --
 -- Module      :  Test.Hspec.Internal
@@ -40,9 +41,11 @@ data Spec = Spec {
 -- >   ]
 --
 describe :: String             -- ^ The name of what is being described, usually a function or type.
-         -> [(String, Result)] -- ^ A list of requirements and validations, created by a list of 'it'.
-         -> [Spec]             -- ^ Specs
-describe n = map (\ (req, res) -> Spec n req res)
+         -> [IO (String, Result)] -- ^ A list of requirements and validations, created by a list of 'it'.
+         -> IO [Spec]             -- ^ Specs
+describe n ss = do
+  ss' <- sequence ss
+  return $ map (\ (req, res) -> Spec n req res) ss'
 
 -- | Anything that can be used as validation that a spec is met.
 class SpecResult a where
@@ -62,13 +65,13 @@ class SpecResult a where
   --
   it :: String           -- ^ A description of this spec.
      -> a                -- ^ A validator for this spec.
-     -> (String, Result) -- ^ The combined description and result of validation.
+     -> IO (String, Result) -- ^ The combined description and result of validation.
 
 instance SpecResult Bool where
-  it n b = (n, if b then Success else Fail)
+  it n b = return (n, if b then Success else Fail)
 
 instance SpecResult Result where
-  it n r = (n, r)
+  it n r = return (n, r)
 
 -- | Declare a spec as not successful or failing but pending some other work.
 --   If you want to track a specification but don't expect it to succeed or fail yet, use this.

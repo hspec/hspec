@@ -15,18 +15,21 @@
 module Specs where
 
 import Test.Hspec.Internal
+import Test.Hspec.QuickCheck
 import System.IO
 import System.Exit
 import System.Environment
+import Control.Monad (liftM)
 
 main :: IO ()
 main = do
   ar <- getArgs
+  s <- specs
   case ar of
-    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
-    [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
-    _          -> hHspec stdout specs
-  let failures = length $ filter ((==Fail).result) specs
+    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h s)
+    [filename] -> withFile filename WriteMode (\ h -> hHspec h s)
+    _          -> hHspec stdout s
+  let failures = length $ filter ((==Fail).result) s
   exitWith $ if failures == 0 then ExitSuccess else ExitFailure 1
 
 preable :: String
@@ -76,26 +79,35 @@ preable = unlines [ "hspec aims to be a simple, extendable, and useful tool for 
                     "",
                     "Here's the report of hspec's specs:" ]
 
-
-specs :: [Spec]
+specs :: IO [Spec]
 specs = let spec = Spec "Example" "example"
-            testSpecs = describe "group" [it "a" False, it "b" False, it "c" False]
-        in
+            testSpecs = [spec Success, spec Fail, spec (Pending "")]
+        in liftM concat $ sequence [
+
   describe "describe" [
     it "groups specs into the same category"
         (all ((=="group").name) testSpecs)
-  ]
-  ++ describe "it" [
+  ],
+  describe "it" [
     it "contains the description of the spec"
         (requirement (spec Success) == "example" ),
 
     it "contains the verification that the spec was implemented"
         (result (spec Fail) == Fail ),
 
+    it "allows a boolean expression to act as verification"
+        (True),
+
+    it "allows a verification to be pending"
+        (True),
+
+    it "allows a QuickCheck property to act as verification"
+        (property quickCheckProperty),
+
     it "catches 'undefined' exception"
         (Fail)
-  ]
-  ++ describe "hspec" [
+  ],
+  describe "hspec" [
     it "displays the spec categories as a headers"
         (documentGroup [spec Success] !! 1 == "Example"),
 
@@ -134,8 +146,8 @@ specs = let spec = Spec "Example" "example"
 
     it "summarizes the number of examples and failures"
         (any (=="3 examples, 3 failures") (hspec testSpecs))
-  ]
-  ++ describe "quantify (internal)" [
+  ],
+  describe "quantify (internal)" [
     it "returns an amount and a description given an amount and description"
         (quantify (1::Int) "thing" == "1 thing"),
 
@@ -150,5 +162,7 @@ specs = let spec = Spec "Example" "example"
 
     it "handles describing the plural of words that end with an 'x'"
         (pending "no need for this yet")
-  ]
+  ]]
 
+quickCheckProperty :: Int -> Bool
+quickCheckProperty _ = True

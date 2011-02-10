@@ -13,7 +13,9 @@
 -----------------------------------------------------------------------------
 
 module Test.Hspec (
-  Spec(), Result(), describe, it, pending, hspec, hHspec
+  Spec(), Result(), describe, it, pending, property, hspec, hHspec
 ) where
 
 import Test.Hspec.Internal
+
+import Test.Hspec.QuickCheck

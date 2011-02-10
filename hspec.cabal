@@ -6,7 +6,7 @@ license: BSD3
 license-file: LICENSE
 copyright: (c) Trystan Spangler 2011
 maintainer: trystan.s@comcast.net
-build-depends: base -any
+build-depends: QuickCheck -any, base -any
 stability: experimental
 homepage:
 package-url:
@@ -19,8 +19,10 @@ tested-with:
 data-files:
 data-dir: ""
 extra-source-files: .\specs\Specs.hs .\src\Test\Hspec\Internal.hs
+                    .\src\Test\Hspec\QuickCheck.hs
 extra-tmp-files:
-exposed-modules: Test.Hspec Test.Hspec.Internal
+exposed-modules: Test.Hspec Test.Hspec.QuickCheck
+                 Test.Hspec.Internal
 exposed: True
 buildable: True
 build-tools:
