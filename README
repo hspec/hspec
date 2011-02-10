@@ -48,11 +48,14 @@ Here's the report of hspec's specs:
 
 
 describe
- - groups specs into the same category
+ x groups specs into the same category
 
 it
  - contains the description of the spec
  - contains the verification that the spec was implemented
+ - allows a boolean expression to act as verification
+ - allows a verification to be pending
+ - allows a QuickCheck property to act as verification
  x catches 'undefined' exception
 
 hspec
@@ -71,7 +74,7 @@ hspec
  - can output as html
      # TODO in not so near future
  - summarizes the time it takes to finish
- - summarizes the number of examples and failures
+ x summarizes the number of examples and failures
 
 quantify (internal)
  - returns an amount and a description given an amount and description
@@ -83,4 +86,4 @@ quantify (internal)
 
 Finished in 0.0 seconds
 
-22 examples, 1 failure
+25 examples, 3 failures
