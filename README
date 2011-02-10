@@ -48,7 +48,7 @@ Here's the report of hspec's specs:
 
 
 describe
- x groups specs into the same category
+ - groups specs into the same category
 
 it
  - contains the description of the spec
@@ -74,7 +74,7 @@ hspec
  - can output as html
      # TODO in not so near future
  - summarizes the time it takes to finish
- x summarizes the number of examples and failures
+ - summarizes the number of examples and failures
 
 quantify (internal)
  - returns an amount and a description given an amount and description
@@ -84,6 +84,6 @@ quantify (internal)
  - handles describing the plural of words that end with an 'x'
      # no need for this yet
 
-Finished in 0.0 seconds
+Finished in 1.56001e-2 seconds
 
-25 examples, 3 failures
+25 examples, 1 failure

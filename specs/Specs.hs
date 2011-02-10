@@ -86,7 +86,7 @@ specs = let spec = Spec "Example" "example"
 
   describe "describe" [
     it "groups specs into the same category"
-        (all ((=="group").name) testSpecs)
+        (all ((=="Example").name) testSpecs)
   ],
   describe "it" [
     it "contains the description of the spec"
@@ -145,7 +145,7 @@ specs = let spec = Spec "Example" "example"
         (any (=="Finished in 0.0 seconds") (hspec testSpecs)),
 
     it "summarizes the number of examples and failures"
-        (any (=="3 examples, 3 failures") (hspec testSpecs))
+        (any (=="3 examples, 1 failure") (hspec testSpecs))
   ],
   describe "quantify (internal)" [
     it "returns an amount and a description given an amount and description"
