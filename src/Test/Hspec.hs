@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 
 module Test.Hspec (
-  Spec(), Result(), describe, it, pending, property, hspec, hHspec
+  Spec(), Result(), describe, it, pending, property, pureHspec, hHspec, hspec
 ) where
 
 import Test.Hspec.Internal

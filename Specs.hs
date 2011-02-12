@@ -47,7 +47,7 @@ preable = unlines [ "hspec aims to be a simple, extendable, and useful tool for 
                     "> myabs n = 0",
                     "",
                     "Step 3, watch them fail",
-                    "> hHspec stdout specs",
+                    "> hspec specs",
                     "myabs",
                     " x returns the original number when given a positive input",
                     " x returns a positive number when given a negative input",
@@ -60,7 +60,7 @@ preable = unlines [ "hspec aims to be a simple, extendable, and useful tool for 
                     "Step 4, implement your requirements",
                     "> myabs n = if n < 0 then negate n else n", "",
                     "Step 5, watch them pass",
-                    "> hHspec stdout specs",
+                    "> hspec specs",
                     "myabs",
                     " - returns the original number when given a positive input",
                     " - returns a positive number when given a negative input",
@@ -138,10 +138,10 @@ specs = let spec = Spec "Example" "example"
         (pending "TODO in not so near future"),
 
     it "summarizes the time it takes to finish"
-        (any (=="Finished in 0.0 seconds") (hspec testSpecs)),
+        (any (=="Finished in 0.0 seconds") (pureHspec testSpecs)),
 
     it "summarizes the number of examples and failures"
-        (any (=="3 examples, 1 failure") (hspec testSpecs))
+        (any (=="3 examples, 1 failure") (pureHspec testSpecs))
   ],
   describe "quantify (internal)" [
     it "returns an amount and a description given an amount and description"

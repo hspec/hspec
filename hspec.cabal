@@ -6,9 +6,9 @@ license: BSD3
 license-file: LICENSE
 copyright: (c) Trystan Spangler 2011
 maintainer: trystan.s@comcast.net
-build-depends: QuickCheck -any, base -any
+build-depends: QuickCheck 2.4, base >= 4.2 && <= 4.3
 stability: experimental
-homepage:
+homepage: https://github.com/trystan/hspec
 package-url:
 bug-reports:
 synopsis: Behavior Driven Development for Haskell
@@ -18,7 +18,7 @@ author: Trystan Spangler
 tested-with:
 data-files:
 data-dir: ""
-extra-source-files: .\specs\Specs.hs .\src\Test\Hspec\Internal.hs
+extra-source-files: .\Specs.hs .\src\Test\Hspec\Internal.hs
                     .\src\Test\Hspec\QuickCheck.hs
 extra-tmp-files:
 exposed-modules: Test.Hspec Test.Hspec.QuickCheck
@@ -38,7 +38,7 @@ extra-lib-dirs:
 includes:
 install-includes:
 include-dirs:
-hs-source-dirs: specs src
+hs-source-dirs: . src
 other-modules: Specs
 ghc-prof-options:
 ghc-shared-options:

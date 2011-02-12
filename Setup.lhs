@@ -11,4 +11,4 @@
 >   where hooks = simpleUserHooks { runTests = runspecs }
 >
 > runspecs :: Args -> Bool -> PackageDescription -> LocalBuildInfo -> IO ()
-> runspecs _ _ _ lbi = system ( "runhaskell ./specs/specs.hs") >> return ()
+> runspecs _ _ _ lbi = system ( "runhaskell ./Specs.hs") >> return ()

@@ -12,7 +12,7 @@ data QuickCheckProperty a = QuickCheckProperty a
 property :: QC.Testable a => a -> QuickCheckProperty a
 property p = QuickCheckProperty p
 
-instance QC.Testable t => SpecResult (QuickCheckProperty t) where
+instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
   it n (QuickCheckProperty p) = do
     r <- QC.quickCheckResult p
     case r of
