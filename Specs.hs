@@ -26,7 +26,7 @@ main = do
   case ar of
     ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
     [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
-    _          -> hHspec stdout specs
+    _          -> hspec specs
 
 preable :: String
 preable = unlines [ "hspec aims to be a simple, extendable, and useful tool for Behavior Driven",
@@ -81,61 +81,55 @@ specs = let spec = Spec "Example" "example"
         in liftM concat $ sequence [
 
   describe "describe" [
-    it "groups specs into the same category"
+    it "takes a description of what the requirements are for"
+        (True),
+
+    it "groups requirements for what's being described"
         (all ((=="Example").name) testSpecs)
   ],
   describe "it" [
-    it "contains the description of the spec"
+    it "takes the description of the requirement"
         (requirement (spec Success) == "example" ),
 
-    it "contains the verification that the spec was implemented"
+    it "takes the verification that the requirement was implemented"
         (result (spec Fail) == Fail ),
 
     it "allows a boolean expression to act as verification"
         (True),
 
     it "allows a verification to be pending"
-        (True),
+        (if pending "message" == Pending "message" then Success else Fail),
 
     it "allows a QuickCheck property to act as verification"
-        (property quickCheckProperty),
+        (property $ \ b -> b || True),
 
-    it "catches 'undefined' exception"
+    it "catches 'undefined' exceptions"
         (Fail)
   ],
   describe "hspec" [
-    it "displays the spec categories as a headers"
+    it "displays each thing being described as a header"
         (documentGroup [spec Success] !! 1 == "Example"),
 
-    it "displays one row for each spec"
+    it "displays one row for each requirement"
         (length (documentGroup testSpecs) == 5),
 
-    it "displays a '-' for successfully implemented specs"
+    it "displays a '-' for successfully implemented requirements"
         (documentSpec (spec Success) == " - example"),
 
-    it "displays an 'x' for unsuccessfully implmented specs"
+    it "displays an 'x' for unsuccessfully implmented requirements"
         (documentSpec (spec Fail) == " x example" ),
 
-    it "displays a '-' for pending specs"
+    it "displays a '-' for pending requirements"
         (documentSpec (spec (Pending "pending")) == " - example\n     # pending" ),
 
-    it "displays a '#' and an additional message for pending specs"
+    it "displays a '#' and an additional message for pending requirements"
         (documentSpec (spec (Pending "pending")) == " - example\n     # pending" ),
 
     it "can output to stdout"
-        True,
+        (True),
 
     it "can output to stdout in color"
         (pending "TODO in near future, perhaps using System.Console.ANSI?"),
-
-    it "can output to an ascii text file"
-        True,
-
-    it "can output as xml"
-        (pending "TODO in not so near future"),
-
-    it "can output as html"
-        (pending "TODO in not so near future"),
 
     it "summarizes the time it takes to finish"
         (any (=="Finished in 0.0 seconds") (pureHspec testSpecs)),
@@ -143,22 +137,29 @@ specs = let spec = Spec "Example" "example"
     it "summarizes the number of examples and failures"
         (any (=="3 examples, 1 failure") (pureHspec testSpecs))
   ],
+  describe "hHspec" [
+    it "can output to stdout"
+        (True),
+
+    it "can output to stdout in color"
+        (pending "TODO in near future, perhaps using System.Console.ANSI?"),
+
+    it "can output to an ascii text file"
+        (True)
+  ],
   describe "quantify (internal)" [
-    it "returns an amount and a description given an amount and description"
+    it "returns an amount and a word given an amount and word"
         (quantify (1::Int) "thing" == "1 thing"),
 
-    it "returns a singular description given the number 1"
+    it "returns a singular word given the number 1"
         (quantify (1::Int) "thing" == "1 thing"),
 
-    it "returns a plural description given a number greater than 1"
+    it "returns a plural word given a number greater than 1"
         (quantify (2::Int) "thing" == "2 things"),
 
-    it "returns a plural description given the number 0"
+    it "returns a plural word given the number 0"
         (quantify (0::Int) "thing" == "0 things"),
 
     it "handles describing the plural of words that end with an 'x'"
         (pending "no need for this yet")
   ]]
-
-quickCheckProperty :: Int -> Bool
-quickCheckProperty _ = True

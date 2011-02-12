@@ -6,7 +6,7 @@ license: BSD3
 license-file: LICENSE
 copyright: (c) Trystan Spangler 2011
 maintainer: trystan.s@comcast.net
-build-depends: QuickCheck 2.4, base >= 4.2 && <= 4.3
+build-depends: QuickCheck >= 2.4, base >= 4.2
 stability: experimental
 homepage: https://github.com/trystan/hspec
 package-url:
