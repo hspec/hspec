@@ -131,7 +131,7 @@ specs = let spec = Spec "Example" "example"
         (property $ \ b -> b || True)
   ],
   describe "pending example" [
-    it "is specified with the \"pending\" function and an explination"
+    it "is specified with the \"pending\" function and an explanation"
         (pending "message" == Pending "message"),
 
     it "accepts a message to display in the report"

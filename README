@@ -52,28 +52,25 @@ describe
  - groups requirements for what's being described
 
 it
- - takes the description of the requirement
- - takes the verification that the description was implemented
- - can use a Bool, HUnit Test, QuickCheck propertie, or "pending" as a verifier
+ - takes a description of the requirement
+ - takes an example of the requirement
+ - can use a Bool, HUnit Test, QuickCheck property, or "pending" as an example
  - will treat exceptions as failures
- - allows failures to have details
+ - allows failed examples to have details
 
-Bool verifier
+Bool example
  - is just an expression that evaluates to a Bool
 
-HUnit verifier
- - allows an HUnit test case with assertions to act as verification
+HUnit example
  - is specified with the HUnit "TestCase" data constructor
- - is the assumed verifier for IO() actions
+ - is the assumed example for IO() actions
  - will show the assertion text if it fails
 
-QuickCheck verifier
- - allows a QuickCheck property to act as verification
+QuickCheck example
  - is specified with the "property" function
 
-pending verifier
- - allows a requirement to be pending verification
- - is specified with the "pending" function and an explination
+pending example
+ - is specified with the "pending" function and an explanation
  - accepts a message to display in the report
 
 hspec
@@ -82,8 +79,8 @@ hspec
  - displays a '-' for successfully implemented requirements
  - displays an 'x' for unsuccessfully implmented requirements
  - displays optional details for unsuccessfully implmented requirements
- - displays a '-' for pending requirements
- - displays a '#' and an additional message for pending requirements
+ - displays a '-' for requirements that are pending an example
+ - displays a '#' and an additional message for pending examples
  - can output to stdout
  - can output to stdout in color
      # TODO in the near future, perhaps using System.Console.ANSI?
@@ -96,6 +93,6 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-Finished in 0.0472 seconds
+Finished in 0.0457 seconds
 
-32 examples, 0 failures
+29 examples, 0 failures
