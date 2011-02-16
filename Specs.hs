@@ -16,9 +16,11 @@ module Specs where
 
 import Test.Hspec.Internal
 import Test.Hspec.QuickCheck
+import Test.Hspec.HUnit ()
 import System.IO
 import System.Environment
 import Control.Monad (liftM)
+import qualified Test.HUnit as Hunit
 
 main :: IO ()
 main = do
@@ -82,14 +84,14 @@ specs = let spec = Spec "Example" "example"
 
   describe "describe" [
     it "takes a description of what the requirements are for"
-        (True),
+        ((=="Example") . name . head $ testSpecs),
 
     it "groups requirements for what's being described"
         (all ((=="Example").name) testSpecs)
   ],
   describe "it" [
     it "takes the description of the requirement"
-        (requirement (spec Success) == "example" ),
+        (requirement (Spec "Example" "whatever" Success) == "whatever" ),
 
     it "takes the verification that the requirement was implemented"
         (result (spec Fail) == Fail ),
@@ -97,14 +99,31 @@ specs = let spec = Spec "Example" "example"
     it "allows a boolean expression to act as verification"
         (True),
 
-    it "allows a verification to be pending"
-        (if pending "message" == Pending "message" then Success else Fail),
+    it "allows an IO() action to act as verification"
+        (Hunit.assertBool "trivial test is trivial" True),
 
-    it "allows a QuickCheck property to act as verification"
+    it "allows an HUnit Test to act as verification"
+        (Hunit.TestCase $ Hunit.assertBool "trivial test is trivial" True),
+
+    it "allows a QuickCheck property to act as verification (see \"property\")"
         (property $ \ b -> b || True),
 
+    it "allows a verification to be pending (see \"pending\")"
+        (if pending "message" == Pending "message" then Success else Fail),
+
     it "catches 'undefined' exceptions"
-        (Fail)
+        (False)
+  ],
+  describe "property" [
+    it "allows a QuickCheck property to act as verification"
+        (property $ \ b -> b || True)
+  ],
+  describe "pending" [
+    it "marks a requirement as pending"
+        (pending "message" == Pending "message"),
+
+    it "accepts a message to display in the report"
+        (documentSpec (spec (Pending "t")) == " - example\n     # t")
   ],
   describe "hspec" [
     it "displays each thing being described as a header"
@@ -129,10 +148,10 @@ specs = let spec = Spec "Example" "example"
         (True),
 
     it "can output to stdout in color"
-        (pending "TODO in near future, perhaps using System.Console.ANSI?"),
+        (pending "TODO in the near future, perhaps using System.Console.ANSI?"),
 
     it "summarizes the time it takes to finish"
-        (any (=="Finished in 0.0 seconds") (pureHspec testSpecs)),
+        (any (=="Finished in 0.0000 seconds") (pureHspec testSpecs)),
 
     it "summarizes the number of examples and failures"
         (any (=="3 examples, 1 failure") (pureHspec testSpecs))
@@ -142,7 +161,7 @@ specs = let spec = Spec "Example" "example"
         (True),
 
     it "can output to stdout in color"
-        (pending "TODO in near future, perhaps using System.Console.ANSI?"),
+        (pending "TODO in the near future, perhaps using System.Console.ANSI?"),
 
     it "can output to an ascii text file"
         (True)

@@ -55,9 +55,18 @@ it
  - takes the description of the requirement
  - takes the verification that the requirement was implemented
  - allows a boolean expression to act as verification
- - allows a verification to be pending
- - allows a QuickCheck property to act as verification
+ - allows an IO() action to act as verification
+ - allows an HUnit Test to act as verification
+ - allows a QuickCheck property to act as verification (see "property")
+ - allows a verification to be pending (see "pending")
  x catches 'undefined' exceptions
+
+property
+ - allows a QuickCheck property to act as verification
+
+pending
+ - marks a requirement as pending
+ - accepts a message to display in the report
 
 hspec
  - displays each thing being described as a header
@@ -68,14 +77,14 @@ hspec
  - displays a '#' and an additional message for pending requirements
  - can output to stdout
  - can output to stdout in color
-     # TODO in near future, perhaps using System.Console.ANSI?
+     # TODO in the near future, perhaps using System.Console.ANSI?
  - summarizes the time it takes to finish
  - summarizes the number of examples and failures
 
 hHspec
  - can output to stdout
  - can output to stdout in color
-     # TODO in near future, perhaps using System.Console.ANSI?
+     # TODO in the near future, perhaps using System.Console.ANSI?
  - can output to an ascii text file
 
 quantify (internal)
@@ -86,6 +95,6 @@ quantify (internal)
  - handles describing the plural of words that end with an 'x'
      # no need for this yet
 
-Finished in 4.68003e-2 seconds
+Finished in 0.0826 seconds
 
-26 examples, 1 failure
+31 examples, 1 failure
