@@ -35,8 +35,10 @@ instance SpecVerifier (IO ()) where
 instance SpecVerifier HU.Test where
   it n t = do
     -- runTestText :: PutText st -> Test -> IO (Counts, st)
-    (counts, _) <- HU.runTestText (HU.PutText (\ _ _ st -> return st) ()) t
+    -- (counts, _) <- HU.runTestText (HU.PutText (\ _ _ st -> return st) ()) t
+    (counts, fails) <- HU.runTestText HU.putTextToShowS t
+    let rows = lines (fails "")
     if HU.errors counts + HU.failures counts == 0
       then return (n, Success)
-      else return (n, Fail)
+      else return (n, Fail (rows !! 1))
 

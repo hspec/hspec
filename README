@@ -1,5 +1,5 @@
-hspec aims to be a simple, extendable, and useful tool for Behavior Driven
-Development in Haskell.
+hspec aims to be a simple, extendable, and useful tool for Behavior Driven Development in Haskell.
+
 
 Step 1, write your specs
 > specs = describe "myabs" [
@@ -14,18 +14,18 @@ Step 1, write your specs
 >   ]
 
 Step 2, write your dummy function
-> myabs n = 0
+> myabs n = undefined
 
 Step 3, watch them fail
 > hspec specs
 myabs
- x returns the original number when given a positive input
- x returns a positive number when given a negative input
- - returns zero when given zero
+ x returns the original number when given a positive input (Prelude.undefined)
+ x returns a positive number when given a negative input (Prelude.undefined)
+ x returns zero when given zero (Prelude.undefined)
 
-Finished in 0.0 seconds
+Finished in 0.0002 seconds
 
-3 examples, 2 failures
+3 examples, 3 failures
 
 Step 4, implement your requirements
 > myabs n = if n < 0 then negate n else n
@@ -37,7 +37,7 @@ myabs
  - returns a positive number when given a negative input
  - returns zero when given zero
 
-Finished in 0.0 seconds
+Finished in 0.0000 seconds
 
 3 examples, 0 failures
 
@@ -53,19 +53,27 @@ describe
 
 it
  - takes the description of the requirement
- - takes the verification that the requirement was implemented
- - allows a boolean expression to act as verification
- - allows an IO() action to act as verification
- - allows an HUnit Test to act as verification
- - allows a QuickCheck property to act as verification (see "property")
- - allows a verification to be pending (see "pending")
- x catches 'undefined' exceptions
+ - takes the verification that the description was implemented
+ - can use a Bool, HUnit Test, QuickCheck propertie, or "pending" as a verifier
+ - will treat exceptions as failures
+ - allows failures to have details
 
-property
+Bool verifier
+ - is just an expression that evaluates to a Bool
+
+HUnit verifier
+ - allows an HUnit test case with assertions to act as verification
+ - is specified with the HUnit "TestCase" data constructor
+ - is the assumed verifier for IO() actions
+ - will show the assertion text if it fails
+
+QuickCheck verifier
  - allows a QuickCheck property to act as verification
+ - is specified with the "property" function
 
-pending
- - marks a requirement as pending
+pending verifier
+ - allows a requirement to be pending verification
+ - is specified with the "pending" function and an explination
  - accepts a message to display in the report
 
 hspec
@@ -73,6 +81,7 @@ hspec
  - displays one row for each requirement
  - displays a '-' for successfully implemented requirements
  - displays an 'x' for unsuccessfully implmented requirements
+ - displays optional details for unsuccessfully implmented requirements
  - displays a '-' for pending requirements
  - displays a '#' and an additional message for pending requirements
  - can output to stdout
@@ -81,20 +90,12 @@ hspec
  - summarizes the time it takes to finish
  - summarizes the number of examples and failures
 
-hHspec
- - can output to stdout
- - can output to stdout in color
-     # TODO in the near future, perhaps using System.Console.ANSI?
- - can output to an ascii text file
-
-quantify (internal)
+quantify (an internal function)
  - returns an amount and a word given an amount and word
  - returns a singular word given the number 1
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
- - handles describing the plural of words that end with an 'x'
-     # no need for this yet
 
-Finished in 0.0826 seconds
+Finished in 0.0472 seconds
 
-31 examples, 1 failure
+32 examples, 0 failures

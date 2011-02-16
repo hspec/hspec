@@ -41,4 +41,4 @@ instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
     r <- QC.quickCheckResult p
     case r of
       QC.Success {} -> return (n, Success)
-      _             -> return (n, Fail)
+      _             -> return (n, Fail "")

@@ -19,9 +19,10 @@ import System.IO
 import Data.List (groupBy)
 import System.CPUTime (getCPUTime)
 import Text.Printf
+import Control.Exception
 
 -- | The result of running a test.
-data Result = Success | Fail | Pending String
+data Result = Success | Fail String | Pending String
   deriving Eq
 
 -- | Everything needed to specify and test a specific behavior.
@@ -48,6 +49,13 @@ describe n ss = do
   ss' <- sequence ss
   return $ map (\ (req, res) -> Spec n req res) ss'
 
+
+safely :: Result -> IO Result
+safely f = Control.Exception.catch ok failed
+  where ok = f `seq` return f
+        failed e = return $ Fail (show (e :: SomeException))
+
+
 -- | Anything that can be used as verification that a spec is met.
 class SpecVerifier a where
   -- | Create a description and verification of a spec, a list of these is used by 'describe'.
@@ -66,7 +74,9 @@ class SpecVerifier a where
      -> IO (String, Result) -- ^ The combined description and result of verification.
 
 instance SpecVerifier Bool where
-  it n b = return (n, if b then Success else Fail)
+  it n b = do
+    r <- safely (if b then Success else Fail "")
+    return (n, r)
 
 instance SpecVerifier Result where
   it n r = return (n, r)
@@ -95,7 +105,8 @@ documentGroup specGroup = "" : name (head specGroup) : map documentSpec specGrou
 documentSpec :: Spec -> String
 documentSpec spec  = case result spec of
                 Success    -> " - " ++ requirement spec
-                Fail       -> " x " ++ requirement spec
+                Fail ""    -> " x " ++ requirement spec
+                Fail s     -> " x " ++ requirement spec ++ " (" ++ s ++ ")"
                 Pending s  -> " - " ++ requirement spec ++ "\n     # " ++ s
 
 -- | Create a summary of how long it took to verify the specs.
@@ -105,7 +116,9 @@ timingSummary t = printf "Finished in %1.4f seconds" (t / (10.0^(12::Integer)) :
 -- | Create a summary of how many specs exist and how many failed verification.
 successSummary :: [Spec] -> String
 successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify failed "failure"
-    where failed = length $ filter ((==Fail).result) ss
+    where failed = length $ filter (isFailure.result) ss
+          isFailure (Fail _) = True
+          isFailure _        = False
 
 -- | Create a document of the given specs.
 --   This does not track how much time it took to verify the specs.

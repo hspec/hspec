@@ -18,8 +18,8 @@ author: Trystan Spangler
 tested-with:
 data-files:
 data-dir: ""
-extra-source-files: ./src/Test/Hspec/HUnit.hs .\Specs.hs
-                    .\src\Test\Hspec\Internal.hs .\src\Test\Hspec\QuickCheck.hs
+extra-source-files: ./Specs.hs ./src/Test/Hspec/HUnit.hs
+                    ./src/Test/Hspec/Internal.hs ./src/Test/Hspec/QuickCheck.hs
 extra-tmp-files:
 exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Internal
                  Test.Hspec.QuickCheck

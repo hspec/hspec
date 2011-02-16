@@ -31,55 +31,56 @@ main = do
     _          -> hspec specs
 
 preable :: String
-preable = unlines [ "hspec aims to be a simple, extendable, and useful tool for Behavior Driven",
-                    "Development in Haskell.", "",
-                    "Step 1, write your specs",
-                    "> specs = describe \"myabs\" [",
-                    ">   it \"returns the original number when given a positive input\"",
-                    ">     (myabs 1 == 1),",
-                    "> ",
-                    ">   it \"returns a positive number when given a negative input\"",
-                    ">     (myabs (-1) == 1),",
-                    "> ",
-                    ">   it \"returns zero when given zero\"",
-                    ">     (myabs 0 == 0)",
-                    ">   ]",
-                    "",
-                    "Step 2, write your dummy function",
-                    "> myabs n = 0",
-                    "",
-                    "Step 3, watch them fail",
-                    "> hspec specs",
-                    "myabs",
-                    " x returns the original number when given a positive input",
-                    " x returns a positive number when given a negative input",
-                    " - returns zero when given zero",
-                    "",
-                    "Finished in 0.0 seconds",
-                    "",
-                    "3 examples, 2 failures",
-                    "",
-                    "Step 4, implement your requirements",
-                    "> myabs n = if n < 0 then negate n else n", "",
-                    "Step 5, watch them pass",
-                    "> hspec specs",
-                    "myabs",
-                    " - returns the original number when given a positive input",
-                    " - returns a positive number when given a negative input",
-                    " - returns zero when given zero",
-                    "",
-                    "Finished in 0.0 seconds",
-                    "",
-                    "3 examples, 0 failures",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "Here's the report of hspec's specs:" ]
+preable = unlines [
+    "hspec aims to be a simple, extendable, and useful tool for Behavior Driven Development in Haskell.", "",
+    "",
+    "Step 1, write your specs",
+    "> specs = describe \"myabs\" [",
+    ">   it \"returns the original number when given a positive input\"",
+    ">     (myabs 1 == 1),",
+    "> ",
+    ">   it \"returns a positive number when given a negative input\"",
+    ">     (myabs (-1) == 1),",
+    "> ",
+    ">   it \"returns zero when given zero\"",
+    ">     (myabs 0 == 0)",
+    ">   ]",
+    "",
+    "Step 2, write your dummy function",
+    "> myabs n = undefined",
+    "",
+    "Step 3, watch them fail",
+    "> hspec specs",
+    "myabs",
+    " x returns the original number when given a positive input (Prelude.undefined)",
+    " x returns a positive number when given a negative input (Prelude.undefined)",
+    " x returns zero when given zero (Prelude.undefined)",
+    "",
+    "Finished in 0.0002 seconds",
+    "",
+    "3 examples, 3 failures",
+    "",
+    "Step 4, implement your requirements",
+    "> myabs n = if n < 0 then negate n else n", "",
+    "Step 5, watch them pass",
+    "> hspec specs",
+    "myabs",
+    " - returns the original number when given a positive input",
+    " - returns a positive number when given a negative input",
+    " - returns zero when given zero",
+    "",
+    "Finished in 0.0000 seconds",
+    "",
+    "3 examples, 0 failures",
+    "",
+    "",
+    "",
+    "",
+    "Here's the report of hspec's specs:" ]
 
 specs :: IO [Spec]
 specs = let spec = Spec "Example" "example"
-            testSpecs = [spec Success, spec Fail, spec (Pending "")]
+            testSpecs = [spec Success, spec (Fail ""), spec (Pending "")]
         in liftM concat $ sequence [
 
   describe "describe" [
@@ -93,33 +94,53 @@ specs = let spec = Spec "Example" "example"
     it "takes the description of the requirement"
         (requirement (Spec "Example" "whatever" Success) == "whatever" ),
 
-    it "takes the verification that the requirement was implemented"
-        (result (spec Fail) == Fail ),
+    it "takes the verification that the description was implemented"
+        (result (spec Success) == Success),
 
-    it "allows a boolean expression to act as verification"
+    it "can use a Bool, HUnit Test, QuickCheck propertie, or \"pending\" as a verifier"
         (True),
 
-    it "allows an IO() action to act as verification"
-        (Hunit.assertBool "trivial test is trivial" True),
+    it "will treat exceptions as failures"
+        (Hunit.TestCase $ do
+          innerSpecs <- describe "" [ it "exceptions" (True && undefined)]
+          let found = pureHspec innerSpecs !! 2
+          Hunit.assertEqual (unlines $ pureHspec innerSpecs) " x exceptions (Prelude.undefined)" found),
 
-    it "allows an HUnit Test to act as verification"
-        (Hunit.TestCase $ Hunit.assertBool "trivial test is trivial" True),
-
-    it "allows a QuickCheck property to act as verification (see \"property\")"
-        (property $ \ b -> b || True),
-
-    it "allows a verification to be pending (see \"pending\")"
-        (if pending "message" == Pending "message" then Success else Fail),
-
-    it "catches 'undefined' exceptions"
-        (False)
+    it "allows failures to have details"
+        (const True (Fail "details"))
   ],
-  describe "property" [
+  describe "Bool verifier" [
+    it "is just an expression that evaluates to a Bool"
+        (True)
+  ],
+  describe "HUnit verifier" [
+    it "allows an HUnit test case with assertions to act as verification"
+        (True),
+
+    it "is specified with the HUnit \"TestCase\" data constructor"
+        (Hunit.TestCase $ Hunit.assertBool "example" True),
+
+    it "is the assumed verifier for IO() actions"
+        (Hunit.assertBool "example" True),
+
+    it "will show the assertion text if it fails"
+        (Hunit.TestCase $ do
+          innerSpecs <- describe "" [ it "fails" (Hunit.assertBool "trivial" False)]
+          let found = pureHspec innerSpecs !! 2
+          Hunit.assertEqual found " x fails (trivial)" found)
+  ],
+  describe "QuickCheck verifier" [
     it "allows a QuickCheck property to act as verification"
+        (True),
+
+    it "is specified with the \"property\" function"
         (property $ \ b -> b || True)
   ],
-  describe "pending" [
-    it "marks a requirement as pending"
+  describe "pending verifier" [
+    it "allows a requirement to be pending verification"
+        (True),
+
+    it "is specified with the \"pending\" function and an explination"
         (pending "message" == Pending "message"),
 
     it "accepts a message to display in the report"
@@ -136,7 +157,10 @@ specs = let spec = Spec "Example" "example"
         (documentSpec (spec Success) == " - example"),
 
     it "displays an 'x' for unsuccessfully implmented requirements"
-        (documentSpec (spec Fail) == " x example" ),
+        (documentSpec (spec $ Fail "whatever") == " x example (whatever)" ),
+
+    it "displays optional details for unsuccessfully implmented requirements"
+        (documentSpec (spec $ Fail "whatever") == " x example (whatever)" ),
 
     it "displays a '-' for pending requirements"
         (documentSpec (spec (Pending "pending")) == " - example\n     # pending" ),
@@ -156,17 +180,7 @@ specs = let spec = Spec "Example" "example"
     it "summarizes the number of examples and failures"
         (any (=="3 examples, 1 failure") (pureHspec testSpecs))
   ],
-  describe "hHspec" [
-    it "can output to stdout"
-        (True),
-
-    it "can output to stdout in color"
-        (pending "TODO in the near future, perhaps using System.Console.ANSI?"),
-
-    it "can output to an ascii text file"
-        (True)
-  ],
-  describe "quantify (internal)" [
+  describe "quantify (an internal function)" [
     it "returns an amount and a word given an amount and word"
         (quantify (1::Int) "thing" == "1 thing"),
 
@@ -177,8 +191,5 @@ specs = let spec = Spec "Example" "example"
         (quantify (2::Int) "thing" == "2 things"),
 
     it "returns a plural word given the number 0"
-        (quantify (0::Int) "thing" == "0 things"),
-
-    it "handles describing the plural of words that end with an 'x'"
-        (pending "no need for this yet")
+        (quantify (0::Int) "thing" == "0 things")
   ]]
