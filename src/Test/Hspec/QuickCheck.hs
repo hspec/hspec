@@ -8,20 +8,11 @@
 -- Stability   : experimental
 -- Portability : portable
 --
--- |
---
 -----------------------------------------------------------------------------
 
-module Test.Hspec.QuickCheck (
-  property
-) where
 
-import Test.Hspec.Internal
-import qualified Test.QuickCheck as QC
-
-data QuickCheckProperty a = QuickCheckProperty a
-
--- | Use a QuickCheck property as verification of a spec.
+-- | Importing this module allows you to use a QuickCheck property as an example
+-- for a requirement. Use the 'property' function to indicate a QuickCkeck property.
 --
 -- > describe "cutTheDeck" [
 -- >   it "puts the first half of a list after the last half"
@@ -33,6 +24,15 @@ data QuickCheckProperty a = QuickCheckProperty a
 -- >      (property $ \ xs -> even (length xs) ==> cutTheDeck (cutTheDeck xs) == xs)
 -- >   ]
 --
+module Test.Hspec.QuickCheck (
+  property
+) where
+
+import Test.Hspec.Internal
+import qualified Test.QuickCheck as QC
+
+data QuickCheckProperty a = QuickCheckProperty a
+
 property :: QC.Testable a => a -> QuickCheckProperty a
 property = QuickCheckProperty
 

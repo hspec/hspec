@@ -91,13 +91,13 @@ specs = let spec = Spec "Example" "example"
         (all ((=="Example").name) testSpecs)
   ],
   describe "it" [
-    it "takes the description of the requirement"
+    it "takes a description of the requirement"
         (requirement (Spec "Example" "whatever" Success) == "whatever" ),
 
-    it "takes the verification that the description was implemented"
+    it "takes an example of the requirement"
         (result (spec Success) == Success),
 
-    it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as a verifier"
+    it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
         (True),
 
     it "will treat exceptions as failures"
@@ -106,21 +106,18 @@ specs = let spec = Spec "Example" "example"
           let found = pureHspec innerSpecs !! 2
           Hunit.assertEqual (unlines $ pureHspec innerSpecs) " x exceptions (Prelude.undefined)" found),
 
-    it "allows failures to have details"
+    it "allows failed examples to have details"
         (const True (Fail "details"))
   ],
-  describe "Bool verifier" [
+  describe "Bool example" [
     it "is just an expression that evaluates to a Bool"
         (True)
   ],
-  describe "HUnit verifier" [
-    it "allows an HUnit test case with assertions to act as verification"
-        (True),
-
+  describe "HUnit example" [
     it "is specified with the HUnit \"TestCase\" data constructor"
         (Hunit.TestCase $ Hunit.assertBool "example" True),
 
-    it "is the assumed verifier for IO() actions"
+    it "is the assumed example for IO() actions"
         (Hunit.assertBool "example" True),
 
     it "will show the assertion text if it fails"
@@ -129,17 +126,11 @@ specs = let spec = Spec "Example" "example"
           let found = pureHspec innerSpecs !! 2
           Hunit.assertEqual found " x fails (trivial)" found)
   ],
-  describe "QuickCheck verifier" [
-    it "allows a QuickCheck property to act as verification"
-        (True),
-
+  describe "QuickCheck example" [
     it "is specified with the \"property\" function"
         (property $ \ b -> b || True)
   ],
-  describe "pending verifier" [
-    it "allows a requirement to be pending verification"
-        (True),
-
+  describe "pending example" [
     it "is specified with the \"pending\" function and an explination"
         (pending "message" == Pending "message"),
 
@@ -162,10 +153,10 @@ specs = let spec = Spec "Example" "example"
     it "displays optional details for unsuccessfully implmented requirements"
         (documentSpec (spec $ Fail "whatever") == " x example (whatever)" ),
 
-    it "displays a '-' for pending requirements"
+    it "displays a '-' for requirements that are pending an example"
         (documentSpec (spec (Pending "pending")) == " - example\n     # pending" ),
 
-    it "displays a '#' and an additional message for pending requirements"
+    it "displays a '#' and an additional message for pending examples"
         (documentSpec (spec (Pending "pending")) == " - example\n     # pending" ),
 
     it "can output to stdout"

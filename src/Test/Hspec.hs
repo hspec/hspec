@@ -8,8 +8,6 @@
 -- Stability   : experimental
 -- Portability : portable
 --
--- |
---
 -----------------------------------------------------------------------------
 
 module Test.Hspec (

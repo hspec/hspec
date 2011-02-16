@@ -9,8 +9,6 @@
 -- Stability   : experimental
 -- Portability : portable
 --
--- |
---
 -----------------------------------------------------------------------------
 
 module Test.Hspec.Internal where
@@ -21,11 +19,12 @@ import System.CPUTime (getCPUTime)
 import Text.Printf
 import Control.Exception
 
--- | The result of running a test.
+-- | The result of running an example.
 data Result = Success | Fail String | Pending String
   deriving Eq
 
--- | Everything needed to specify and test a specific behavior.
+
+-- | Everything needed to specify and show a specific behavior.
 data Spec = Spec {
                  -- | What is being tested, usually the name of a type.
                  name::String,
@@ -34,8 +33,9 @@ data Spec = Spec {
                  -- | The status of this requirement.
                  result::Result }
 
+
 -- | Create a set of specifications for a specific type being described.
---   Once you know what you want specs for, use this.
+-- Once you know what you want specs for, use this.
 --
 -- > describe "abs" [
 -- >   it "returns a positive number given a negative number"
@@ -43,23 +43,24 @@ data Spec = Spec {
 -- >   ]
 --
 describe :: String                -- ^ The name of what is being described, usually a function or type.
-         -> [IO (String, Result)] -- ^ A list of requirements and verifiers, created by a list of 'it'.
-         -> IO [Spec]             -- ^ Specs
+         -> [IO (String, Result)] -- ^ A list of requirements and examples, created by a list of 'it'.
+         -> IO [Spec]
 describe n ss = do
   ss' <- sequence ss
   return $ map (\ (req, res) -> Spec n req res) ss'
 
 
+-- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
 safely :: Result -> IO Result
 safely f = Control.Exception.catch ok failed
   where ok = f `seq` return f
         failed e = return $ Fail (show (e :: SomeException))
 
 
--- | Anything that can be used as verification that a spec is met.
+-- | Anything that can be used as an example of a requirement.
 class SpecVerifier a where
-  -- | Create a description and verification of a spec, a list of these is used by 'describe'.
-  --   Once you know what you want to specify, use this.
+  -- | Create a description and example of a requirement, a list of these
+  -- is used by 'describe'. Once you know what you want to specify, use this.
   --
   -- > describe "closeEnough" [
   -- >   it "is true if two numbers are almost the same"
@@ -69,9 +70,10 @@ class SpecVerifier a where
   -- >     (not $ 1.001 `closeEnough` 1.003)
   -- >   ]
   --
-  it :: String           -- ^ A description of this spec.
-     -> a                -- ^ A verifier for this spec.
-     -> IO (String, Result) -- ^ The combined description and result of verification.
+  it :: String           -- ^ A description of this requirement.
+     -> a                -- ^ A example for this requirement.
+     -> IO (String, Result) -- ^ The combined description and result of the example.
+
 
 instance SpecVerifier Bool where
   it n b = do
@@ -81,25 +83,29 @@ instance SpecVerifier Bool where
 instance SpecVerifier Result where
   it n r = return (n, r)
 
--- | Declare a spec as not successful or failing but pending some other work.
---   If you want to track a specification but don't expect it to succeed or fail yet, use this.
+
+-- | Declare an example as not successful or failing but pending some other work.
+-- If you want to track a requirement but don't expect it to succeed or fail yet, use this.
 --
 -- > describe "fancyFormatter" [
 -- >   it "can format text in a way that everyone likes"
 -- >     (pending "waiting for clarification from the designers")
 -- >   ]
 --
-pending :: String  -- ^ An explanation for why this spec is pending.
+pending :: String  -- ^ An explanation for why this requirement is pending.
         -> Result
 pending = Pending
+
 
 -- | Create a document of the given specs.
 documentSpecs :: [Spec] -> [String]
 documentSpecs = concatMap documentGroup . groupBy (\ a b -> name a == name b)
 
+
 -- | Create a document of the given group of specs.
 documentGroup :: [Spec] -> [String]
 documentGroup specGroup = "" : name (head specGroup) : map documentSpec specGroup
+
 
 -- | Create a document of the given spec.
 documentSpec :: Spec -> String
@@ -109,41 +115,45 @@ documentSpec spec  = case result spec of
                 Fail s     -> " x " ++ requirement spec ++ " (" ++ s ++ ")"
                 Pending s  -> " - " ++ requirement spec ++ "\n     # " ++ s
 
--- | Create a summary of how long it took to verify the specs.
+
+-- | Create a summary of how long it took to run the examples.
 timingSummary :: Double -> String
 timingSummary t = printf "Finished in %1.4f seconds" (t / (10.0^(12::Integer)) :: Double)
 
--- | Create a summary of how many specs exist and how many failed verification.
+
+-- | Create a summary of how many specs exist and how many examples failed.
 successSummary :: [Spec] -> String
 successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify failed "failure"
     where failed = length $ filter (isFailure.result) ss
           isFailure (Fail _) = True
           isFailure _        = False
 
+
 -- | Create a document of the given specs.
---   This does not track how much time it took to verify the specs.
---   If you want a description of each spec and don't need to know how long it tacks to
---  check, use this.
+-- This does not track how much time it took to check the examples. If you want
+-- a description of each spec and don't need to know how long it tacks to check,
+-- use this.
 pureHspec :: [Spec]   -- ^ The specs you are interested in.
-          -> [String] -- ^ A human-readable summary of the specs and which are successfully implemented.
+          -> [String] -- ^ A human-readable summary of the specs and which are unsuccessfully implemented.
 pureHspec ss = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
 
 
 -- | Create a document of the given specs and write it to stdout.
---   This does track how much time it took to verify the specs.
---   If you want a description of each spec and do need to know how long it tacks to check
--- or want to write to stdout.
+-- This does track how much time it took to check the examples. Use this if
+-- you want a description of each spec and do need to know how long it tacks
+-- to check the examples or want to write to stdout.
 hspec :: IO [Spec] -> IO ()
 hspec = hHspec stdout
 
+
 -- | Create a document of the given specs and write it to the given handle.
---   This does track how much time it took to verify the specs.
---   If you want a description of each spec and do need to know how long it tacks to check
--- or want to write to a handle, use this.
+-- This does track how much time it took to check the examples. Use this if
+-- you want a description of each spec and do need to know how long it tacks
+-- to check the examples or want to write to a file or other handle.
 --
 -- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
 --
-hHspec :: Handle     -- ^ A handle for the stream you want to write to, usually stdout.
+hHspec :: Handle     -- ^ A handle for the stream you want to write to.
        -> IO [Spec]  -- ^ The specs you are interested in.
        -> IO ()
 hHspec h ss = do
