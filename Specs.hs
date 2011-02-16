@@ -97,7 +97,7 @@ specs = let spec = Spec "Example" "example"
     it "takes the verification that the description was implemented"
         (result (spec Success) == Success),
 
-    it "can use a Bool, HUnit Test, QuickCheck propertie, or \"pending\" as a verifier"
+    it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as a verifier"
         (True),
 
     it "will treat exceptions as failures"
