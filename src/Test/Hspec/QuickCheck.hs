@@ -40,5 +40,7 @@ instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
   it n (QuickCheckProperty p) = do
     r <- QC.quickCheckResult p
     case r of
-      QC.Success {} -> return (n, Success)
-      _             -> return (n, Fail "")
+      QC.Success {}           -> return (n, Success)
+      f@(QC.Failure {})       -> return (n, Fail (QC.reason f))
+      g@(QC.GaveUp {})        -> return (n, Fail ("Gave up after " ++ quantify (QC.numTests g) "test" ))
+      QC.NoExpectedFailure {} -> return (n, Fail ("No expected failure"))

@@ -20,7 +20,7 @@ import Test.Hspec.HUnit ()
 import System.IO
 import System.Environment
 import Control.Monad (liftM)
-import qualified Test.HUnit as Hunit
+import qualified Test.HUnit as HUnit
 
 main :: IO ()
 main = do
@@ -101,10 +101,10 @@ specs = let spec = Spec "Example" "example"
         (True),
 
     it "will treat exceptions as failures"
-        (Hunit.TestCase $ do
+        (HUnit.TestCase $ do
           innerSpecs <- describe "" [ it "exceptions" (True && undefined)]
           let found = pureHspec innerSpecs !! 2
-          Hunit.assertEqual (unlines $ pureHspec innerSpecs) " x exceptions (Prelude.undefined)" found),
+          HUnit.assertEqual (unlines $ pureHspec innerSpecs) " x exceptions (Prelude.undefined)" found),
 
     it "allows failed examples to have details"
         (const True (Fail "details"))
@@ -115,16 +115,16 @@ specs = let spec = Spec "Example" "example"
   ],
   describe "HUnit example" [
     it "is specified with the HUnit \"TestCase\" data constructor"
-        (Hunit.TestCase $ Hunit.assertBool "example" True),
+        (HUnit.TestCase $ HUnit.assertBool "example" True),
 
     it "is the assumed example for IO() actions"
-        (Hunit.assertBool "example" True),
+        (HUnit.assertBool "example" True),
 
     it "will show the assertion text if it fails"
-        (Hunit.TestCase $ do
-          innerSpecs <- describe "" [ it "fails" (Hunit.assertBool "trivial" False)]
+        (HUnit.TestCase $ do
+          innerSpecs <- describe "" [ it "fails" (HUnit.assertBool "trivial" False)]
           let found = pureHspec innerSpecs !! 2
-          Hunit.assertEqual found " x fails (trivial)" found)
+          HUnit.assertEqual found " x fails (trivial)" found)
   ],
   describe "QuickCheck example" [
     it "is specified with the \"property\" function"
