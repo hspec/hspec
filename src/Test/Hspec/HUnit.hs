@@ -1,4 +1,4 @@
-{-# OPTIONS -XFlexibleInstances #-}
+{-# OPTIONS -XFlexibleInstances -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 --
 -- Module      :  Test.Hspec.HUnit
@@ -13,7 +13,7 @@
 
 
 -- | Importing this module allows you to use an HUnit test case as an example
--- for a requirement. You can use an explicit TestCase data constructor or
+-- for a behavior. You can use an explicit TestCase data constructor or
 -- use an IO() action. For an IO() action, any exception means the example
 -- failed; otherwise, it's successfull.
 --

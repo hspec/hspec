@@ -29,9 +29,9 @@ data Result = Success | Fail String | Pending String
 data Spec = Spec {
                  -- | What is being tested, usually the name of a type.
                  name::String,
-                 -- | The specific requirement being tested.
+                 -- | The specific behavior being tested.
                  requirement::String,
-                 -- | The status of this requirement.
+                 -- | The status of this behavior.
                  result::Result }
 
 
@@ -44,7 +44,7 @@ data Spec = Spec {
 -- >   ]
 --
 describe :: String                -- ^ The name of what is being described, usually a function or type.
-         -> [IO (String, Result)] -- ^ A list of requirements and examples, created by a list of 'it'.
+         -> [IO (String, Result)] -- ^ A list of behaviors and examples, created by a list of 'it'.
          -> IO [Spec]
 describe n ss = do
   ss' <- sequence ss
@@ -58,9 +58,9 @@ safely f = Control.Exception.catch ok failed
         failed e = return $ Fail (show (e :: SomeException))
 
 
--- | Anything that can be used as an example of a requirement.
+-- | Anything that can be used as an example of a behavior.
 class SpecVerifier a where
-  -- | Create a description and example of a requirement, a list of these
+  -- | Create a description and example of a behavior, a list of these
   -- is used by 'describe'. Once you know what you want to specify, use this.
   --
   -- > describe "closeEnough" [
@@ -71,8 +71,8 @@ class SpecVerifier a where
   -- >     (not $ 1.001 `closeEnough` 1.003)
   -- >   ]
   --
-  it :: String           -- ^ A description of this requirement.
-     -> a                -- ^ A example for this requirement.
+  it :: String           -- ^ A description of this behavior.
+     -> a                -- ^ An example for this behavior.
      -> IO (String, Result) -- ^ The combined description and result of the example.
 
 
@@ -86,14 +86,14 @@ instance SpecVerifier Result where
 
 
 -- | Declare an example as not successful or failing but pending some other work.
--- If you want to track a requirement but don't expect it to succeed or fail yet, use this.
+-- If you want to report on a behavior but don't have an example yet, use this.
 --
 -- > describe "fancyFormatter" [
 -- >   it "can format text in a way that everyone likes"
 -- >     (pending "waiting for clarification from the designers")
 -- >   ]
 --
-pending :: String  -- ^ An explanation for why this requirement is pending.
+pending :: String  -- ^ An explanation for why this behavior is pending.
         -> Result
 pending = Pending
 

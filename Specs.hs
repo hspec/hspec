@@ -60,7 +60,7 @@ preable = unlines [
     "",
     "3 examples, 3 failures",
     "",
-    "Step 4, implement your requirements",
+    "Step 4, implement your specs",
     "> myabs n = if n < 0 then negate n else n", "",
     "Step 5, watch them pass",
     "> hspec specs",
@@ -84,17 +84,17 @@ specs = let spec = Spec "Example" "example"
         in liftM concat $ sequence [
 
   describe "describe" [
-    it "takes a description of what the requirements are for"
+    it "takes a description of what the behavior is for"
         ((=="Example") . name . head $ testSpecs),
 
-    it "groups requirements for what's being described"
+    it "groups behaviors for what's being described"
         (all ((=="Example").name) testSpecs)
   ],
   describe "it" [
-    it "takes a description of the requirement"
+    it "takes a description of the behavior"
         (requirement (Spec "Example" "whatever" Success) == "whatever" ),
 
-    it "takes an example of the requirement"
+    it "takes an example of the behavior"
         (result (spec Success) == Success),
 
     it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
@@ -141,19 +141,19 @@ specs = let spec = Spec "Example" "example"
     it "displays each thing being described as a header"
         (documentGroup [spec Success] !! 1 == "Example"),
 
-    it "displays one row for each requirement"
+    it "displays one row for each behavior"
         (length (documentGroup testSpecs) == 5),
 
-    it "displays a '-' for successfully implemented requirements"
+    it "displays a '-' for successfully implemented behaviors"
         (documentSpec (spec Success) == " - example"),
 
-    it "displays an 'x' for unsuccessfully implmented requirements"
+    it "displays an 'x' for unsuccessfully implmented behaviors"
         (documentSpec (spec $ Fail "whatever") == " x example (whatever)" ),
 
-    it "displays optional details for unsuccessfully implmented requirements"
+    it "displays optional details for unsuccessfully implmented behaviors"
         (documentSpec (spec $ Fail "whatever") == " x example (whatever)" ),
 
-    it "displays a '-' for requirements that are pending an example"
+    it "displays a '-' for behaviors that are pending an example"
         (documentSpec (spec (Pending "pending")) == " - example\n     # pending" ),
 
     it "displays a '#' and an additional message for pending examples"

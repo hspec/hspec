@@ -1,18 +1,21 @@
 name: hspec
-version: 0.2.0
+version: 0.3.0
 cabal-version: -any
 build-type: Custom
 license: BSD3
 license-file: LICENSE
-copyright: (c) Trystan Spangler 2011
+copyright: (c) 2011 Trystan Spangler
 maintainer: trystan.s@comcast.net
-build-depends: HUnit >= 1 && <= 2, QuickCheck >= 2.4.0.1 && <= 2.5, base >=4.2 && <=4.3
+build-depends: HUnit >=1 && <=2, QuickCheck >=2.4.0.1 && <=2.5,
+               base >=4.2 && <=4.3
 stability: experimental
 homepage: https://github.com/trystan/hspec
-package-url:
-bug-reports:
+package-url: https://github.com/trystan/hspec
+bug-reports: mailto:trystan.s@comcast.net
 synopsis: Behavior Driven Development for Haskell
 description: Behavior Driven Development for Haskell
+             .
+             Hspec is based on the Ruby library RSpec - so much of what applies to RSpec also applies to Hspec. Hspec ties together /descriptions/ of behavior and /examples/ of that behavior. The examples can then be run as tests and the output summarises what needs to be implemented.
 category: Testing
 author: Trystan Spangler
 tested-with:
@@ -32,7 +35,7 @@ ld-options:
 pkgconfig-depends:
 frameworks:
 c-sources:
-extensions:
+extensions: FlexibleInstances
 extra-libraries:
 extra-lib-dirs:
 includes:
@@ -42,7 +45,7 @@ hs-source-dirs: . src
 other-modules: Specs
 ghc-prof-options:
 ghc-shared-options:
-ghc-options: -Wall
+ghc-options: -Wall -Werror
 hugs-options:
 nhc98-options:
 jhc-options:

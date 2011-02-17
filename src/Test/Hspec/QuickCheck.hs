@@ -12,7 +12,7 @@
 
 
 -- | Importing this module allows you to use a QuickCheck property as an example
--- for a requirement. Use the 'property' function to indicate a QuickCkeck property.
+-- for a behavior. Use the 'property' function to indicate a QuickCkeck property.
 --
 -- > describe "cutTheDeck" [
 -- >   it "puts the first half of a list after the last half"
