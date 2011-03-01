@@ -15,6 +15,7 @@
 module Test.Hspec.Internal where
 
 import System.IO
+import System.Exit
 import Data.List (groupBy)
 import System.CPUTime (getCPUTime)
 import Text.Printf
@@ -121,13 +122,15 @@ documentSpec spec  = case result spec of
 timingSummary :: Double -> String
 timingSummary t = printf "Finished in %1.4f seconds" (t / (10.0^(12::Integer)) :: Double)
 
+failedCount :: [Spec] -> Int
+failedCount ss = length $ filter (isFailure.result) ss
+  where
+    isFailure (Fail _) = True
+    isFailure _        = False
 
 -- | Create a summary of how many specs exist and how many examples failed.
 successSummary :: [Spec] -> String
-successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify failed "failure"
-    where failed = length $ filter (isFailure.result) ss
-          isFailure (Fail _) = True
-          isFailure _        = False
+successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify (failedCount ss) "failure"
 
 
 -- | Create a document of the given specs.
@@ -144,7 +147,10 @@ pureHspec ss = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
 -- you want a description of each spec and do need to know how long it tacks
 -- to check the examples or want to write to stdout.
 hspec :: IO [Spec] -> IO ()
-hspec = hHspec stdout
+hspec ss = hspecB ss >> return ()
+
+hspecB :: IO [Spec] -> IO Bool
+hspecB = hHspec stdout
 
 
 -- | Create a document of the given specs and write it to the given handle.
@@ -156,13 +162,14 @@ hspec = hHspec stdout
 --
 hHspec :: Handle     -- ^ A handle for the stream you want to write to.
        -> IO [Spec]  -- ^ The specs you are interested in.
-       -> IO ()
+       -> IO Bool
 hHspec h ss = do
   t0 <- getCPUTime
   ss' <- ss
   mapM_ (hPutStrLn h) $ documentSpecs ss'
   t1 <- getCPUTime
   mapM_ (hPutStrLn h) [ "", timingSummary (fromIntegral $ t1 - t0), "", successSummary ss']
+  return $ failedCount ss' == 0
 
 
 
@@ -171,6 +178,9 @@ quantify :: Num a => a -> String -> String
 quantify 1 s = "1 " ++ s
 quantify n s = show n ++ " " ++ s ++ "s"
 
+toExitCode :: Bool -> ExitCode
+toExitCode True  = ExitSuccess
+toExitCode False = ExitFailure 1
 
-
-
+hspecX :: IO [Spec] -> IO a
+hspecX ss = hspecB ss >>= exitWith . toExitCode

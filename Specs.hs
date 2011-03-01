@@ -19,16 +19,18 @@ import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
 import System.Environment
+import System.Exit
 import Control.Monad (liftM)
 import qualified Test.HUnit as HUnit
 
 main :: IO ()
 main = do
   ar <- getArgs
-  case ar of
+  b <- case ar of
     ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
     [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
-    _          -> hspec specs
+    _          -> hspecB specs
+  exitWith $ toExitCode b
 
 preable :: String
 preable = unlines [

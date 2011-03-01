@@ -85,6 +85,7 @@
 --
 module Test.Hspec (
   Spec(), Result(), describe, it, pending, pureHspec, hHspec, hspec
+ ,hspecX, hspecB, toExitCode 
 ) where
 
 import Test.Hspec.Internal
