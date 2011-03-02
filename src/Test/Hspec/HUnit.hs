@@ -1,8 +1,8 @@
 {-# OPTIONS -XFlexibleInstances -fno-warn-orphans #-}
 
--- | Importing this module allows you to use an HUnit test case as an example
--- for a behavior. You can use an explicit TestCase data constructor or
--- use an IO() action. For an IO() action, any exception means the example
+-- | Importing this module allows you to use an @HUnit@ test case as an example
+-- for a behavior. You can use an explicit @TestCase@ data constructor or
+-- use an @IO()@ action. For an @IO()@ action, any exception means the example
 -- failed; otherwise, it's successfull.
 --
 -- > describe "cutTheDeck" [

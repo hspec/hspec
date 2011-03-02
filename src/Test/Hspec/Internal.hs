@@ -62,7 +62,7 @@ class SpecVerifier a where
   --
   it :: String           -- ^ A description of this behavior.
      -> a                -- ^ An example for this behavior.
-     -> IO (String, Result) -- ^ The combined description and result of the example.
+     -> IO (String, Result)
 
 
 instance SpecVerifier Bool where
@@ -130,12 +130,12 @@ successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify (failedCo
 -- a description of each spec and don't need to know how long it tacks to check,
 -- use this.
 pureHspec :: [Spec]   -- ^ The specs you are interested in.
-          -> [String] -- ^ A human-readable summary of the specs and which are unsuccessfully implemented.
+          -> [String]
 pureHspec = fst . pureHspecB
 
 
 pureHspecB :: [Spec]   -- ^ The specs you are interested in.
-          -> ([String], Bool) -- ^ A human-readable summary of the specs and which are unsuccessfully implemented and whether no examples failed.
+          -> ([String], Bool)
 pureHspecB ss = (report, failedCount ss == 0)
   where report = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
 
@@ -178,7 +178,6 @@ hHspec h ss = do
   t1 <- getCPUTime
   mapM_ (hPutStrLn h) [ "", timingSummary (fromIntegral $ t1 - t0), "", successSummary ss']
   return $ failedCount ss' == 0
-
 
 
 -- | Create a more readable display of a quantity of something.
