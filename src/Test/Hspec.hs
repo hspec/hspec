@@ -51,7 +51,7 @@
 -- >   it "removes dashes, spaces, and parenthesies"
 -- >       (unformatPhoneNumber "(555) 555-1234" == "5555551234"),
 --
--- The "pending" function marks a behavior as pending an example. It won't Fail.
+-- The "pending" function marks a behavior as pending an example. The example doesn't count as failing.
 --
 -- >   it "handles non-US phone numbers"
 -- >       (pending "need to look up how other cultures format phone numbers"),
@@ -84,8 +84,12 @@
 -- >   vectorOf nums (elements "0123456789")
 --
 module Test.Hspec (
-  Spec(), Result(), describe, it, pending, pureHspec, hHspec, hspec
- ,hspecX, hspecB, toExitCode 
+  -- types
+  Spec(), Result(),
+  -- the main api
+  describe, it, hspec, pending,
+  -- alternate "runner" functions
+  pureHspec, hHspec, hspecX, hspecB, pureHspecB
 ) where
 
 import Test.Hspec.Internal

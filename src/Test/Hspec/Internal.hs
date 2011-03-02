@@ -16,7 +16,7 @@ module Test.Hspec.Internal where
 
 import System.IO
 import System.Exit
-import Data.List (groupBy)
+import Data.List (mapAccumL, groupBy, intersperse)
 import System.CPUTime (getCPUTime)
 import Text.Printf
 import Control.Exception
@@ -101,21 +101,25 @@ pending = Pending
 
 -- | Create a document of the given specs.
 documentSpecs :: [Spec] -> [String]
-documentSpecs = concatMap documentGroup . groupBy (\ a b -> name a == name b)
-
+documentSpecs specs = lines $ unlines $ concat report ++ [""] ++ intersperse "" errors
+  where organize = groupBy (\ a b -> name a == name b)
+        (errors, report) = mapAccumL documentGroup [] $ organize specs
 
 -- | Create a document of the given group of specs.
-documentGroup :: [Spec] -> [String]
-documentGroup specGroup = "" : name (head specGroup) : map documentSpec specGroup
-
+documentGroup :: [String] -> [Spec] -> ([String], [String])
+documentGroup errors specGroup = (errors', "" : name (head specGroup) : report)
+  where (errors', report) = mapAccumL documentSpec errors specGroup
 
 -- | Create a document of the given spec.
-documentSpec :: Spec -> String
-documentSpec spec  = case result spec of
-                Success    -> " - " ++ requirement spec
-                Fail ""    -> " x " ++ requirement spec
-                Fail s     -> " x " ++ requirement spec ++ " (" ++ s ++ ")"
-                Pending s  -> " - " ++ requirement spec ++ "\n     # " ++ s
+documentSpec :: [String] -> Spec -> ([String], String)
+documentSpec errors spec = case result spec of
+                Success    -> (errors, " - " ++ requirement spec)
+                Fail s     -> (errors ++ [errorDetails s], " x " ++ requirement spec ++ errorTag)
+                Pending s  -> (errors, " - " ++ requirement spec ++ "\n     # " ++ s)
+    where errorTag = " [" ++ (show $ length errors + 1) ++ "]"
+          errorDetails s  = concat [ show (length errors + 1), ") ", name spec,
+                                     " ",  requirement spec, " FAILED",
+                                     if null s then "" else "\n" ++ s ]
 
 
 -- | Create a summary of how long it took to run the examples.
@@ -139,7 +143,13 @@ successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify (failedCo
 -- use this.
 pureHspec :: [Spec]   -- ^ The specs you are interested in.
           -> [String] -- ^ A human-readable summary of the specs and which are unsuccessfully implemented.
-pureHspec ss = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
+pureHspec = fst . pureHspecB
+
+
+pureHspecB :: [Spec]   -- ^ The specs you are interested in.
+          -> ([String], Bool) -- ^ A human-readable summary of the specs and which are unsuccessfully implemented and whether no examples failed.
+pureHspecB ss = (report, failedCount ss == 0)
+  where report = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
 
 
 -- | Create a document of the given specs and write it to stdout.
@@ -149,8 +159,18 @@ pureHspec ss = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
 hspec :: IO [Spec] -> IO ()
 hspec ss = hspecB ss >> return ()
 
+-- | Same as 'hspec' except it returns a bool indicating if all examples ran without failures
 hspecB :: IO [Spec] -> IO Bool
 hspecB = hHspec stdout
+
+-- | Same as 'hspec' except the program exits successfull if all examples ran without failures or
+-- with an errorcode of 1 if any examples failed.
+hspecX :: IO [Spec] -> IO a
+hspecX ss = hspecB ss >>= exitWith . toExitCode
+
+toExitCode :: Bool -> ExitCode
+toExitCode True  = ExitSuccess
+toExitCode False = ExitFailure 1
 
 
 -- | Create a document of the given specs and write it to the given handle.
@@ -177,10 +197,3 @@ hHspec h ss = do
 quantify :: Num a => a -> String -> String
 quantify 1 s = "1 " ++ s
 quantify n s = show n ++ " " ++ s ++ "s"
-
-toExitCode :: Bool -> ExitCode
-toExitCode True  = ExitSuccess
-toExitCode False = ExitFailure 1
-
-hspecX :: IO [Spec] -> IO a
-hspecX ss = hspecB ss >>= exitWith . toExitCode

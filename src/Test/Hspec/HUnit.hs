@@ -30,6 +30,7 @@ module Test.Hspec.HUnit (
 
 import Test.Hspec.Internal
 import qualified Test.HUnit as HU
+import Data.List (intersperse)
 
 instance SpecVerifier (IO ()) where
   it n t = it n (HU.TestCase t)
@@ -37,8 +38,9 @@ instance SpecVerifier (IO ()) where
 instance SpecVerifier HU.Test where
   it n t = do
     (counts, fails) <- HU.runTestText HU.putTextToShowS t
-    let rows = lines (fails "")
     if HU.errors counts + HU.failures counts == 0
       then return (n, Success)
-      else return (n, Fail (rows !! 1))
+      else return (n, Fail (details $ fails ""))
 
+details :: String -> String
+details = concat . intersperse "\n" . tail . init . lines
