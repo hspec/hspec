@@ -84,11 +84,13 @@ specs = do
     it "fail 1" (Fail "fail message"),
     it "pending" (Pending "pending message"),
     it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
-    it "exceptions" (undefined :: Bool)]
+    it "exceptions" (undefined :: Bool),
+    it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
 
   let report = pureHspec exampleSpecs
 
-  -- mapM_ putStrLn $ ["-- START example specs --"] ++ report ++ ["-- END example specs --"]
+  -- uncomment the next line to aid in debugging
+  --mapM_ putStrLn $ ["-- START example specs --"] ++ report ++ ["-- END example specs --"]
 
   -- the real specs
   liftM concat $ sequence [
@@ -118,7 +120,7 @@ specs = do
             (any (=="Example") report),
 
         it "displays one row for each behavior"
-            (HUnit.assertEqual "" 23 (length report)),
+            (HUnit.assertEqual "" 29 (length report)),
             -- 19 = group header + behaviors + blank lines + time + error messsages + pending message + example/failures footer
 
         it "displays a '-' for successfull examples"
@@ -143,7 +145,7 @@ specs = do
             (any (=="Finished in 0.0000 seconds") (pureHspec exampleSpecs)),
 
         it "summarizes the number of examples and failures"
-            (any (=="5 examples, 3 failures") (pureHspec exampleSpecs)),
+            (any (=="6 examples, 4 failures") (pureHspec exampleSpecs)),
 
         it "outputs to stdout"
             (True)
@@ -159,13 +161,13 @@ specs = do
         it "is the assumed example for IO() actions"
             (HUnit.assertBool "example" True),
 
-        it "will show the assertion text if available (e.g. assertBool)"
+        it "will show the failed assertion text if available (e.g. assertBool)"
             (HUnit.TestCase $ do
               innerSpecs <- describe "" [ it "" (HUnit.assertBool "trivial" False)]
               let innerReport = pureHspec innerSpecs
               HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport),
 
-        it "will show the expected and actual values if available (e.g. assertEqual)"
+        it "will show the failed assertion expected and actual values if available (e.g. assertEqual)"
             (HUnit.TestCase $ do
               innerSpecs <- describe "" [ it "" (HUnit.assertEqual "trivial" (1::Int) 2)]
               let innerReport = pureHspec innerSpecs
@@ -175,7 +177,10 @@ specs = do
     ],
     describe "QuickCheck property as an example" [
         it "is specified with the \"property\" function"
-            (property $ \ b -> b || True)
+            (property $ \ b -> b || True),
+
+        it "will show what falsified it"
+            (any (=="0") report)
         ],
     describe "pending as an example" [
         it "is specified with the \"pending\" function and an explanation"

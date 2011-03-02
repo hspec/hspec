@@ -25,10 +25,10 @@ property :: QC.Testable a => a -> QuickCheckProperty a
 property = QuickCheckProperty
 
 instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
-  it n (QuickCheckProperty p) = do
-    r <- QC.quickCheckResult p
+  it description (QuickCheckProperty prop) = do
+    r <- QC.quickCheckResult prop
     case r of
-      QC.Success {}           -> return (n, Success)
-      f@(QC.Failure {})       -> return (n, Fail (QC.reason f))
-      g@(QC.GaveUp {})        -> return (n, Fail ("Gave up after " ++ quantify (QC.numTests g) "test" ))
-      QC.NoExpectedFailure {} -> return (n, Fail ("No expected failure"))
+      QC.Success {}           -> return (description, Success)
+      f@(QC.Failure {})       -> return (description, Fail (QC.output f))
+      g@(QC.GaveUp {})        -> return (description, Fail ("Gave up after " ++ quantify (QC.numTests g) "test" ))
+      QC.NoExpectedFailure {} -> return (description, Fail ("No expected failure"))

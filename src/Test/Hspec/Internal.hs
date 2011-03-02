@@ -66,12 +66,12 @@ class SpecVerifier a where
 
 
 instance SpecVerifier Bool where
-  it n b = do
-    r <- safely (if b then Success else Fail "")
-    return (n, r)
+  it description example = do
+    r <- safely (if example then Success else Fail "")
+    return (description, r)
 
 instance SpecVerifier Result where
-  it n r = return (n, r)
+  it description example = return (description, example)
 
 
 -- | Declare an example as not successful or failing but pending some other work.
