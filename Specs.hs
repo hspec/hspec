@@ -139,6 +139,17 @@ specs = let spec = Spec "Example" "example"
     it "accepts a message to display in the report"
         (documentSpec (spec (Pending "t")) == " - example\n     # t")
   ],
+  describe "hspecB" [
+    it "returns true if no examples failed"
+        (HUnit.TestCase $ do
+          passed <- hspecB (describe "" [it "" Success])
+          HUnit.assertEqual "no errors" True passed),
+
+    it "returns false if any examples failed"
+        (HUnit.TestCase $ do
+          failed <- hspecB (describe "" [it "" (Fail "test")])
+          HUnit.assertEqual "one error" False failed)
+  ],
   describe "hspec" [
     it "displays each thing being described as a header"
         (documentGroup [spec Success] !! 1 == "Example"),
