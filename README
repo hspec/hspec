@@ -1,7 +1,7 @@
 hspec aims to be a simple, extendable, and useful tool for Behavior Driven Development in Haskell.
 
 
-Step 1, write your specs
+Step 1, write descriptions and examples of your desired behavior
 > specs = describe "myabs" [
 >   it "returns the original number when given a positive input"
 >     (myabs 1 == 1),
@@ -13,24 +13,33 @@ Step 1, write your specs
 >     (myabs 0 == 0)
 >   ]
 
-Step 2, write your dummy function
+Step 2, write whatever you are describing
 > myabs n = undefined
 
-Step 3, watch them fail
+Step 3, watch your examples fail
 > hspec specs
 myabs
- x returns the original number when given a positive input (Prelude.undefined)
- x returns a positive number when given a negative input (Prelude.undefined)
- x returns zero when given zero (Prelude.undefined)
+ x returns the original number when given a positive input [1]
+ x returns a positive number when given a negative input [2]
+ x returns zero when given zero [3]
+
+1) myabs returns the original number when given a positive input FAILED
+Prelude.undefined
+
+2) myabs returns a positive number when given a negative input FAILED
+Prelude.undefined
+
+3) myabs returns zero when given zero FAILED
+Prelude.undefined
 
 Finished in 0.0002 seconds
 
 3 examples, 3 failures
 
-Step 4, implement your requirements
+Step 4, implement your desired behavior
 > myabs n = if n < 0 then negate n else n
 
-Step 5, watch them pass
+Step 5, watch your examples pass
 > hspec specs
 myabs
  - returns the original number when given a positive input
@@ -44,48 +53,51 @@ Finished in 0.0000 seconds
 
 
 
-Here's the report of hspec's specs:
+Here's the report of hspec's behavior:
 
 
-describe
- - takes a description of what the requirements are for
- - groups requirements for what's being described
+the "describe" function
+ - takes a description of what the behavior is for
+ - groups behaviors for what's being described
 
-it
- - takes a description of the requirement
- - takes an example of the requirement
+the "it" function
+ - takes a description of a desired behavior
+ - takes an example of that behavior
  - can use a Bool, HUnit Test, QuickCheck property, or "pending" as an example
  - will treat exceptions as failures
- - allows failed examples to have details
 
-Bool example
+the "hspec" function
+ - displays a header for each thing being described
+ - displays one row for each behavior
+ - displays a '-' for successfull examples
+ - displays an 'x' for failed examples
+ - displays a list of failed examples
+ - displays available details for failed examples
+ - displays a '-' for pending examples
+ - displays a '#' and an additional message for pending examples
+ - summarizes the time it takes to finish
+ - summarizes the number of examples and failures
+ - outputs to stdout
+
+Bool as an example
  - is just an expression that evaluates to a Bool
 
-HUnit example
+HUnit TestCase as an example
  - is specified with the HUnit "TestCase" data constructor
  - is the assumed example for IO() actions
- - will show the assertion text if it fails
+ - will show the assertion text if available (e.g. assertBool)
+ - will show the expected and actual values if available (e.g. assertEqual)
 
-QuickCheck example
+QuickCheck property as an example
  - is specified with the "property" function
 
-pending example
+pending as an example
  - is specified with the "pending" function and an explanation
  - accepts a message to display in the report
 
-hspec
- - displays each thing being described as a header
- - displays one row for each requirement
- - displays a '-' for successfully implemented requirements
- - displays an 'x' for unsuccessfully implmented requirements
- - displays optional details for unsuccessfully implmented requirements
- - displays a '-' for requirements that are pending an example
- - displays a '#' and an additional message for pending examples
- - can output to stdout
- - can output to stdout in color
-     # TODO in the near future, perhaps using System.Console.ANSI?
- - summarizes the time it takes to finish
- - summarizes the number of examples and failures
+hspecB
+ - returns true if no examples failed
+ - returns false if any examples failed
 
 quantify (an internal function)
  - returns an amount and a word given an amount and word
@@ -93,6 +105,7 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-Finished in 0.0457 seconds
 
-29 examples, 0 failures
+Finished in 0.0434 seconds
+
+31 examples, 0 failures

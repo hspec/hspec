@@ -36,7 +36,7 @@ preable :: String
 preable = unlines [
     "hspec aims to be a simple, extendable, and useful tool for Behavior Driven Development in Haskell.", "",
     "",
-    "Step 1, write your specs",
+    "Step 1, write descriptions and examples of your desired behavior",
     "> specs = describe \"myabs\" [",
     ">   it \"returns the original number when given a positive input\"",
     ">     (myabs 1 == 1),",
@@ -48,23 +48,33 @@ preable = unlines [
     ">     (myabs 0 == 0)",
     ">   ]",
     "",
-    "Step 2, write your dummy function",
+    "Step 2, write whatever you are describing",
     "> myabs n = undefined",
     "",
-    "Step 3, watch them fail",
+    "Step 3, watch your examples fail",
     "> hspec specs",
     "myabs",
-    " x returns the original number when given a positive input (Prelude.undefined)",
-    " x returns a positive number when given a negative input (Prelude.undefined)",
-    " x returns zero when given zero (Prelude.undefined)",
+    " x returns the original number when given a positive input [1]",
+    " x returns a positive number when given a negative input [2]",
+    " x returns zero when given zero [3]",
+    "",
+    "1) myabs returns the original number when given a positive input FAILED",
+    "Prelude.undefined",
+    "",
+    "2) myabs returns a positive number when given a negative input FAILED",
+    "Prelude.undefined",
+    "",
+    "3) myabs returns zero when given zero FAILED",
+    "Prelude.undefined",
     "",
     "Finished in 0.0002 seconds",
     "",
     "3 examples, 3 failures",
     "",
-    "Step 4, implement your specs",
-    "> myabs n = if n < 0 then negate n else n", "",
-    "Step 5, watch them pass",
+    "Step 4, implement your desired behavior",
+    "> myabs n = if n < 0 then negate n else n",
+    "",
+    "Step 5, watch your examples pass",
     "> hspec specs",
     "myabs",
     " - returns the original number when given a positive input",
@@ -78,7 +88,7 @@ preable = unlines [
     "",
     "",
     "",
-    "Here's the report of hspec's specs:" ]
+    "Here's the report of hspec's behavior:" ]
 
 specs :: IO [Spec]
 specs = do
@@ -86,7 +96,8 @@ specs = do
     it "pass" (Success),
     it "fail 1" (Fail "fail message"),
     it "pending" (Pending "pending message"),
-    it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int))]
+    it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
+    it "exceptions" (undefined :: Bool)]
 
   let report = pureHspec exampleSpecs
 
@@ -103,30 +114,24 @@ specs = do
             (all ((=="Example").name) exampleSpecs)
     ],
     describe "the \"it\" function" [
-        it "takes a description of the behavior"
+        it "takes a description of a desired behavior"
             (requirement (Spec "Example" "whatever" Success) == "whatever" ),
 
-        it "takes an example of the behavior"
+        it "takes an example of that behavior"
             (result (Spec "Example" "whatever" Success) == Success),
 
         it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
             (True),
 
         it "will treat exceptions as failures"
-            (HUnit.TestCase $ do
-              innerSpecs <- describe "" [ it "exceptions" (True && undefined)]
-              let found = pureHspec innerSpecs !! 2
-              HUnit.assertEqual (unlines $ pureHspec innerSpecs) " x exceptions [1]" found),
-
-        it "allows failed examples to have details"
-            (const True (Fail "details"))
+            (any (==" x exceptions [3]") report)
     ],
     describe "the \"hspec\" function" [
-        it "displays each thing being described as a header"
+        it "displays a header for each thing being described"
             (any (=="Example") report),
 
         it "displays one row for each behavior"
-            (HUnit.assertEqual "" 19 (length report)),
+            (HUnit.assertEqual "" 23 (length report)),
             -- 19 = group header + behaviors + blank lines + time + error messsages + pending message + example/failures footer
 
         it "displays a '-' for successfull examples"
@@ -147,17 +152,14 @@ specs = do
         it "displays a '#' and an additional message for pending examples"
             (any (=="     # pending message") report ),
 
-        it "can output to stdout"
-            (True),
-
-        it "can output to stdout in color"
-            (pending "TODO in the near future, perhaps using System.Console.ANSI?"),
-
         it "summarizes the time it takes to finish"
             (any (=="Finished in 0.0000 seconds") (pureHspec exampleSpecs)),
 
         it "summarizes the number of examples and failures"
-            (any (=="4 examples, 2 failures") (pureHspec exampleSpecs))
+            (any (=="5 examples, 3 failures") (pureHspec exampleSpecs)),
+
+        it "outputs to stdout"
+            (True)
     ],
     describe "Bool as an example" [
         it "is just an expression that evaluates to a Bool"
