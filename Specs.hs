@@ -7,7 +7,6 @@ import Test.Hspec.HUnit ()
 import System.IO
 import System.Environment
 import System.Exit
-import Control.Monad (liftM)
 import qualified Test.HUnit as HUnit
 
 main :: IO ()
@@ -93,7 +92,7 @@ specs = do
   --mapM_ putStrLn $ ["-- START example specs --"] ++ report ++ ["-- END example specs --"]
 
   -- the real specs
-  liftM concat $ sequence [
+  descriptions [
 
     describe "the \"describe\" function" [
         it "takes a description of what the behavior is for"

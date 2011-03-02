@@ -8,6 +8,7 @@ import Data.List (mapAccumL, groupBy, intersperse)
 import System.CPUTime (getCPUTime)
 import Text.Printf
 import Control.Exception
+import Control.Monad (liftM)
 
 -- | The result of running an example.
 data Result = Success | Fail String | Pending String
@@ -39,6 +40,9 @@ describe n ss = do
   ss' <- sequence ss
   return $ map (\ (req, res) -> Spec n req res) ss'
 
+-- | Combine a list of descriptions.
+descriptions :: [IO [Spec]] -> IO [Spec]
+descriptions = liftM concat . sequence
 
 -- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
 safely :: Result -> IO Result
