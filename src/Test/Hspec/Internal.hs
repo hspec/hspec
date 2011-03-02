@@ -1,16 +1,4 @@
 {-# OPTIONS -XFlexibleInstances #-}
------------------------------------------------------------------------------
---
--- Module      :  Test.Hspec.Internal
--- Copyright   :  (c) Trystan Spangler 2011
--- License     :  modified BSD
---
--- Maintainer  : trystan.s@comcast.net
--- Stability   : experimental
--- Portability : portable
---
------------------------------------------------------------------------------
-
 
 module Test.Hspec.Internal where
 

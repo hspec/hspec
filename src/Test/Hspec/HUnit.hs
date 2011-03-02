@@ -1,16 +1,4 @@
 {-# OPTIONS -XFlexibleInstances -fno-warn-orphans #-}
------------------------------------------------------------------------------
---
--- Module      :  Test.Hspec.HUnit
--- Copyright   :  (c) Trystan Spangler 2011
--- License     :  modified BSD
---
--- Maintainer  : trystan.s@comcast.net
--- Stability   : experimental
--- Portability : portable
---
------------------------------------------------------------------------------
-
 
 -- | Importing this module allows you to use an HUnit test case as an example
 -- for a behavior. You can use an explicit TestCase data constructor or

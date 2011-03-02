@@ -1,15 +1,3 @@
------------------------------------------------------------------------------
---
--- Module      :  Test.Hspec
--- Copyright   :  (c) Trystan Spangler 2011
--- License     :  modified
---
--- Maintainer  : trystan.s@comcast.net
--- Stability   : experimental
--- Portability : portable
---
------------------------------------------------------------------------------
-
 
 -- | Hspec is a Behaviour-Driven Development tool for Haskell programmers. BDD is an approach
 -- to software development that combines Test-Driven Development, Domain Driven Design, and

@@ -1,15 +1,3 @@
------------------------------------------------------------------------------
---
--- Module      :  Test.Hspec.QuickCheck
--- Copyright   :  (c) Trystan Spangler 2011
--- License     :  modified BSD
---
--- Maintainer  : trystan.s@comcast.net
--- Stability   : experimental
--- Portability : portable
---
------------------------------------------------------------------------------
-
 
 -- | Importing this module allows you to use a QuickCheck property as an example
 -- for a behavior. Use the 'property' function to indicate a QuickCkeck property.

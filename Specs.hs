@@ -1,16 +1,3 @@
------------------------------------------------------------------------------
---
--- Module      :  Specs
--- Copyright   :  (c) Trystan Spangler 2011
--- License     :  modified BSD
---
--- Maintainer  : trystan.s@comcast.net
--- Stability   : experimental
--- Portability : portable
---
--- |
---
------------------------------------------------------------------------------
 
 module Specs where
 
