@@ -85,11 +85,12 @@ Bool as an example
 HUnit TestCase as an example
  - is specified with the HUnit "TestCase" data constructor
  - is the assumed example for IO() actions
- - will show the assertion text if available (e.g. assertBool)
- - will show the expected and actual values if available (e.g. assertEqual)
+ - will show the failed assertion text if available (e.g. assertBool)
+ - will show the failed assertion expected and actual values if available (e.g. assertEqual)
 
 QuickCheck property as an example
  - is specified with the "property" function
+ - will show what falsified it
 
 pending as an example
  - is specified with the "pending" function and an explanation
@@ -106,6 +107,6 @@ quantify (an internal function)
  - returns a plural word given the number 0
 
 
-Finished in 0.0434 seconds
+Finished in 0.0477 seconds
 
-31 examples, 0 failures
+32 examples, 0 failures
