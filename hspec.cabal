@@ -11,7 +11,7 @@ build-depends: HUnit >=1 && <=2, QuickCheck >=2.4.0.1 && <=2.5,
 stability: experimental
 homepage: https://github.com/trystan/hspec
 package-url: https://github.com/trystan/hspec
-bug-reports: mailto:trystan.s@comcast.net
+bug-reports: https://github.com/trystan/hspec/issues
 synopsis: Behavior Driven Development for Haskell
 description: Behavior Driven Development for Haskell
              .
