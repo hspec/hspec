@@ -13,7 +13,7 @@
 -- >   ]
 --
 module Test.Hspec.QuickCheck (
-  property
+  property, prop
 ) where
 
 import Test.Hspec.Internal
@@ -23,6 +23,9 @@ data QuickCheckProperty a = QuickCheckProperty a
 
 property :: QC.Testable a => a -> QuickCheckProperty a
 property = QuickCheckProperty
+
+prop :: QC.Testable t => String -> t -> IO (String, Result)
+prop n p = it n (QuickCheckProperty p)
 
 instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
   it description (QuickCheckProperty prop) = do
