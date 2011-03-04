@@ -6,7 +6,9 @@ license: BSD3
 license-file: LICENSE
 copyright: (c) 2011 Trystan Spangler
 maintainer: trystan.s@comcast.net
-build-depends: HUnit >=1 && <=2, QuickCheck >=2.4.0.1 && <=2.5,
+build-depends: HUnit >=1 && <=2,
+               QuickCheck >=2.4.0.1 && <=2.5,
+               transformers,
                base >=4 && <=5
 stability: experimental
 homepage: https://github.com/trystan/hspec
