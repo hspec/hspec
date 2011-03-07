@@ -77,9 +77,7 @@ module Test.Hspec (
   -- the main api
   describe, it, hspec, pending, descriptions,
   -- alternate "runner" functions
-  hHspec, hspecX, hspecB, pureHspec, pureHspecB,
-  -- monadic edsl
-  runSpecM, context, ti
+  hHspec, hspecX, hspecB, pureHspec, pureHspecB
 ) where
 
 import Test.Hspec.Internal

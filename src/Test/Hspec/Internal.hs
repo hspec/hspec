@@ -9,7 +9,6 @@ import System.CPUTime (getCPUTime)
 import Text.Printf
 import Control.Exception
 import Control.Monad (liftM)
-import Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 -- | The result of running an example.
 data Result = Success | Fail String | Pending String
@@ -40,20 +39,6 @@ describe :: String                -- ^ The name of what is being described, usua
 describe n ss = do
   ss' <- sequence ss
   return $ map (\ (req, res) -> Spec n req res) ss'
-
--- fully monadic DSL
-type ItSpec = IO (String, Result)
-type SpecM = Writer [(String, [ItSpec])] ()
-
-runSpecM :: SpecM -> IO [Spec]
-runSpecM specs = do
-  descriptions $ map (\(d, i)-> describe d i) $ execWriter specs
-
-context :: String -> Writer [ItSpec] () -> SpecM
-context label action = tell [(label, execWriter action)]
-
-ti :: SpecVerifier v => String -> v -> Writer [ItSpec] ()
-ti label action = tell [it label action]
 
 -- | Combine a list of descriptions.
 descriptions :: [IO [Spec]] -> IO [Spec]
