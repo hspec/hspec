@@ -16,6 +16,7 @@
 module Test.Hspec.HUnit (
 ) where
 
+import System.IO.Silently
 import Test.Hspec.Internal
 import qualified Test.HUnit as HU
 import Data.List (intersperse)
@@ -25,7 +26,7 @@ instance SpecVerifier (IO ()) where
 
 instance SpecVerifier HU.Test where
   it description example = do
-    (counts, fails) <- HU.runTestText HU.putTextToShowS example
+    (counts, fails) <- silently $ HU.runTestText HU.putTextToShowS example
     if HU.errors counts + HU.failures counts == 0
       then return (description, Success)
       else return (description, Fail (details $ fails ""))

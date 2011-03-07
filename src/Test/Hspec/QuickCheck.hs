@@ -16,6 +16,7 @@ module Test.Hspec.QuickCheck (
   property
 ) where
 
+import System.IO.Silently
 import Test.Hspec.Internal
 import qualified Test.QuickCheck as QC
 
@@ -26,7 +27,7 @@ property = QuickCheckProperty
 
 instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
   it description (QuickCheckProperty prop) = do
-    r <- QC.quickCheckResult prop
+    r <- silently $ QC.quickCheckResult prop
     case r of
       QC.Success {}           -> return (description, Success)
       f@(QC.Failure {})       -> return (description, Fail (QC.output f))

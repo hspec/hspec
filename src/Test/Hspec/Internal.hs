@@ -3,6 +3,7 @@
 module Test.Hspec.Internal where
 
 import System.IO
+import System.IO.Silently
 import System.Exit
 import Data.List (mapAccumL, groupBy, intersperse)
 import System.CPUTime (getCPUTime)
@@ -47,7 +48,7 @@ descriptions = liftM concat . sequence
 -- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
 safely :: Result -> IO Result
 safely f = Control.Exception.catch ok failed
-  where ok = f `seq` return f
+  where ok = silently $ f `seq` return f
         failed e = return $ Fail (show (e :: SomeException))
 
 
@@ -75,7 +76,9 @@ instance SpecVerifier Bool where
     return (description, r)
 
 instance SpecVerifier Result where
-  it description example = return (description, example)
+  it description example = do
+    r <- safely example
+    return (description, r)
 
 
 -- | Declare an example as not successful or failing but pending some other work.
