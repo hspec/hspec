@@ -25,7 +25,6 @@ data Spec = Spec {
                  -- | The status of this behavior.
                  result::Result }
 
-
 -- | Create a set of specifications for a specific type being described.
 -- Once you know what you want specs for, use this.
 --

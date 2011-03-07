@@ -1,7 +1,8 @@
 
 module Specs where
 
-import Test.Hspec.Internal
+import Test.Hspec
+import Test.Hspec.Internal (Spec(..),Result(..),toExitCode,quantify)
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
@@ -78,137 +79,132 @@ preable = unlines [
 
 specs :: IO [Spec]
 specs = do
-  exampleSpecs <- describe "Example" [
-    it "pass" (Success),
-    it "fail 1" (Fail "fail message"),
-    it "pending" (Pending "pending message"),
-    it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
-    it "exceptions" (undefined :: Bool),
-    it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
+  exampleSpecs <- runSpecM $ describe "Example" $ do
+    it "pass" (Success)
+    it "fail 1" (Fail "fail message")
+    it "pending" (Pending "pending message")
+    it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int))
+    it "exceptions" (undefined :: Bool)
+    it "quickcheck" (property $ \ i -> i == (i+1::Integer))
 
   let report = pureHspec exampleSpecs
 
-  -- uncomment the next line to aid in debugging
-  --mapM_ putStrLn $ ["-- START example specs --"] ++ report ++ ["-- END example specs --"]
-
-  -- the real specs
-  descriptions [
-
-    describe "the \"describe\" function" [
+  runSpecM $ do
+    describe "the \"describe\" function" $ do
         it "takes a description of what the behavior is for"
-            ((=="Example") . name . head $ exampleSpecs),
+            ((=="Example") . name . head $ exampleSpecs)
 
         it "groups behaviors for what's being described"
             (all ((=="Example").name) exampleSpecs)
-    ],
-    describe "the \"it\" function" [
+
+    describe "the \"it\" function" $ do
         it "takes a description of a desired behavior"
-            (requirement (Spec "Example" "whatever" Success) == "whatever" ),
+            (requirement (Spec "Example" "whatever" Success) == "whatever")
 
         it "takes an example of that behavior"
-            (result (Spec "Example" "whatever" Success) == Success),
+            (result (Spec "Example" "whatever" Success) == Success)
 
         it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
-            (True),
+            (True)
 
         it "will treat exceptions as failures"
             (any (==" x exceptions [3]") report)
-    ],
-    describe "the \"hspec\" function" [
+
+    describe "the \"hspec\" function" $ do
         it "displays a header for each thing being described"
-            (any (=="Example") report),
+            (any (=="Example") report)
 
         it "displays one row for each behavior"
-            (HUnit.assertEqual "" 29 (length report)),
+            (HUnit.assertEqual "" 29 (length report))
             -- 19 = group header + behaviors + blank lines + time + error messsages + pending message + example/failures footer
 
         it "displays a '-' for successfull examples"
-            (any (==" - pass") report),
+            (any (==" - pass") report)
 
         it "displays an 'x' for failed examples"
-            (any (==" x fail 1 [1]") report),
+            (any (==" x fail 1 [1]") report)
 
         it "displays a list of failed examples"
-            (any (=="1) Example fail 1 FAILED") report),
+            (any (=="1) Example fail 1 FAILED") report)
 
         it "displays available details for failed examples"
-            (any (=="fail message") report),
+            (any (=="fail message") report)
 
         it "displays a '-' for pending examples"
-            (any (==" - pending") report ),
+            (any (==" - pending") report)
 
         it "displays a '#' and an additional message for pending examples"
-            (any (=="     # pending message") report ),
+            (any (=="     # pending message") report )
 
         it "summarizes the time it takes to finish"
-            (any (=="Finished in 0.0000 seconds") (pureHspec exampleSpecs)),
+            (any (=="Finished in 0.0000 seconds") (pureHspec exampleSpecs))
 
         it "summarizes the number of examples and failures"
-            (any (=="6 examples, 4 failures") (pureHspec exampleSpecs)),
+            (any (=="6 examples, 4 failures") (pureHspec exampleSpecs))
 
         it "outputs to stdout"
             (True)
-    ],
-    describe "Bool as an example" [
+
+    describe "Bool as an example" $ do
         it "is just an expression that evaluates to a Bool"
             (True)
-    ],
-    describe "HUnit TestCase as an example" [
+
+    describe "HUnit TestCase as an example" $ do
         it "is specified with the HUnit \"TestCase\" data constructor"
-            (HUnit.TestCase $ HUnit.assertBool "example" True),
+            (HUnit.TestCase $ HUnit.assertBool "example" True)
 
         it "is the assumed example for IO() actions"
-            (HUnit.assertBool "example" True),
+            (HUnit.assertBool "example" True)
 
         it "will show the failed assertion text if available (e.g. assertBool)"
             (HUnit.TestCase $ do
-              innerSpecs <- describe "" [ it "" (HUnit.assertBool "trivial" False)]
+              innerSpecs <- runSpecM $ describe "" (it "" (HUnit.assertBool "trivial" False))
               let innerReport = pureHspec innerSpecs
-              HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport),
+              HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport)
 
         it "will show the failed assertion expected and actual values if available (e.g. assertEqual)"
             (HUnit.TestCase $ do
-              innerSpecs <- describe "" [ it "" (HUnit.assertEqual "trivial" (1::Int) 2)]
+              innerSpecs <- runSpecM $ describe "" (it "" (HUnit.assertEqual "trivial" (1::Int) 2))
               let innerReport = pureHspec innerSpecs
               HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
               HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport
               HUnit.assertBool "should find ' but got: 2'" $ any (==" but got: 2") innerReport)
-    ],
-    describe "QuickCheck property as an example" [
+
+    describe "QuickCheck property as an example" $ do
         it "is specified with the \"property\" function"
-            (property $ \ b -> b || True),
+            (property $ \ b -> b || True)
 
         it "will show what falsified it"
             (any (=="0") report)
-        ],
-    describe "pending as an example" [
+
+    describe "pending as an example" $ do
         it "is specified with the \"pending\" function and an explanation"
-            (pending "message" == Pending "message"),
+            (pending "message" == Pending "message")
 
         it "accepts a message to display in the report"
             (any (== "     # pending message") report)
-        ],
-    describe "hspecB" [
+
+    describe "hspecB" $ do
         it "returns true if no examples failed"
             (HUnit.TestCase $ do
-              ss <- describe "" [it "" Success]
-              HUnit.assertEqual "no errors" True (snd $ pureHspecB ss)),
+              ss <- runSpecM $ describe "" (it "" Success)
+              HUnit.assertEqual "no errors" True (snd $ pureHspecB ss))
 
         it "returns false if any examples failed"
             (HUnit.TestCase $ do
-              ss <- describe "" [it "" (Fail "test")]
+              ss <- runSpecM $ describe "" (it "" (Fail "test"))
               HUnit.assertEqual "one error" False (snd $ pureHspecB ss))
-    ],
-    describe "quantify (an internal function)" [
+
+    describe "quantify (an internal function)" $ do
         it "returns an amount and a word given an amount and word"
-            (quantify (1::Int) "thing" == "1 thing"),
+            (quantify (1::Int) "thing" == "1 thing")
 
         it "returns a singular word given the number 1"
-            (quantify (1::Int) "thing" == "1 thing"),
+            (quantify (1::Int) "thing" == "1 thing")
 
         it "returns a plural word given a number greater than 1"
-            (quantify (2::Int) "thing" == "2 things"),
+            (quantify (2::Int) "thing" == "2 things")
 
         it "returns a plural word given the number 0"
             (quantify (0::Int) "thing" == "0 things")
-    ]]
+

@@ -77,7 +77,28 @@ module Test.Hspec (
   -- the main api
   describe, it, hspec, pending, descriptions,
   -- alternate "runner" functions
-  hHspec, hspecX, hspecB, pureHspec, pureHspecB
+  hHspec, hspecX, hspecB, pureHspec, pureHspecB,runSpecM
 ) where
 
-import Test.Hspec.Internal
+import Test.Hspec.Internal hiding (describe,it)
+import qualified Test.Hspec.Internal as Internal
+import Control.Monad.Trans.Writer (Writer, execWriter, tell)
+
+
+
+
+-- fully monadic DSL
+type ItSpec = IO (String, Result)
+
+type SpecM = Writer [(String, [ItSpec])] ()
+
+runSpecM :: SpecM -> IO [Spec]
+runSpecM specs = descriptions $ map (\(d, i)-> Internal.describe d i) $ execWriter specs
+
+describe :: String -> Writer [ItSpec] () -> SpecM
+describe label action = tell [(label, execWriter action)]
+
+it :: SpecVerifier v => String -> v -> Writer [ItSpec] ()
+it label action = tell [Internal.it label action]
+
+
