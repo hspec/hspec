@@ -6,6 +6,7 @@ import Test.Hspec.Internal (Spec(..),Result(..),toExitCode,quantify)
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
+import System.IO.Silently
 import System.Environment
 import System.Exit
 import qualified Test.HUnit as HUnit
@@ -79,15 +80,20 @@ preable = unlines [
 
 specs :: IO [Spec]
 specs = do
-  exampleSpecs <- runSpecM $ describe "Example" $ do
+  (reportContent1, exampleSpecs) <- capture (runSpecM $ describe "Example" $ do
     it "pass" (Success)
     it "fail 1" (Fail "fail message")
     it "pending" (Pending "pending message")
     it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int))
     it "exceptions" (undefined :: Bool)
-    it "quickcheck" (property $ \ i -> i == (i+1::Integer))
+    it "quickcheck" (property $ \ i -> i == (i+1::Integer)))
 
-  let report = pureHspec exampleSpecs
+  (reportContent2, _) <- capture (hspec $ return exampleSpecs)
+  let report = lines (reportContent1 ++ reportContent2)
+
+  -- putStrLn "--START--"
+  -- mapM_ putStrLn report
+  -- putStrLn "--END--"
 
   runSpecM $ do
     describe "the \"describe\" function" $ do
@@ -116,7 +122,6 @@ specs = do
 
         it "displays one row for each behavior"
             (HUnit.assertEqual "" 29 (length report))
-            -- 19 = group header + behaviors + blank lines + time + error messsages + pending message + example/failures footer
 
         it "displays a '-' for successfull examples"
             (any (==" - pass") report)
@@ -137,10 +142,18 @@ specs = do
             (any (=="     # pending message") report )
 
         it "summarizes the time it takes to finish"
-            (any (=="Finished in 0.0000 seconds") (pureHspec exampleSpecs))
+            (let startsWith text start = take (length start) text == start
+             in any (`startsWith` "Finished in") report)
 
         it "summarizes the number of examples and failures"
-            (any (=="6 examples, 4 failures") (pureHspec exampleSpecs))
+            (any (=="6 examples, 4 failures") report)
+
+        it "will display the result of the examples while the examples are being run"
+            (let fib :: Int -> Int
+                 fib 0 = 0
+                 fib 1 = 1
+                 fib n = fib (n-1) + fib (n-2)
+             in fib 30 == 832040)
 
         it "outputs to stdout"
             (True)
@@ -158,14 +171,14 @@ specs = do
 
         it "will show the failed assertion text if available (e.g. assertBool)"
             (HUnit.TestCase $ do
-              innerSpecs <- runSpecM $ describe "" (it "" (HUnit.assertBool "trivial" False))
-              let innerReport = pureHspec innerSpecs
+              (innerReportContent, _) <- capture $ runSpecM $ describe "" (it "" (HUnit.assertBool "trivial" False))
+              let innerReport = lines innerReportContent
               HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport)
 
         it "will show the failed assertion expected and actual values if available (e.g. assertEqual)"
             (HUnit.TestCase $ do
-              innerSpecs <- runSpecM $ describe "" (it "" (HUnit.assertEqual "trivial" (1::Int) 2))
-              let innerReport = pureHspec innerSpecs
+              (innerReportContent, _) <- capture $ runSpecM $ describe "" (it "" (HUnit.assertEqual "trivial" (1::Int) 2))
+              let innerReport = lines innerReportContent
               HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
               HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport
               HUnit.assertBool "should find ' but got: 2'" $ any (==" but got: 2") innerReport)
@@ -183,17 +196,6 @@ specs = do
 
         it "accepts a message to display in the report"
             (any (== "     # pending message") report)
-
-    describe "hspecB" $ do
-        it "returns true if no examples failed"
-            (HUnit.TestCase $ do
-              ss <- runSpecM $ describe "" (it "" Success)
-              HUnit.assertEqual "no errors" True (snd $ pureHspecB ss))
-
-        it "returns false if any examples failed"
-            (HUnit.TestCase $ do
-              ss <- runSpecM $ describe "" (it "" (Fail "test"))
-              HUnit.assertEqual "one error" False (snd $ pureHspecB ss))
 
     describe "quantify (an internal function)" $ do
         it "returns an amount and a word given an amount and word"

@@ -27,7 +27,7 @@ property = QuickCheckProperty
 
 instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
   it description (QuickCheckProperty prop) = do
-    r <- silently $ QC.quickCheckResult prop
+    r <- silence $ QC.quickCheckResult prop
     case r of
       QC.Success {}           -> return (description, Success)
       f@(QC.Failure {})       -> return (description, Fail (QC.output f))
