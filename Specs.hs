@@ -2,7 +2,7 @@
 module Specs where
 
 import Test.Hspec
-import Test.Hspec.Internal (Spec(..),Result(..),toExitCode,quantify)
+import Test.Hspec.Internal (Spec(..),Result(..),quantify,failedCount)
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
@@ -11,14 +11,18 @@ import System.Environment
 import System.Exit
 import qualified Test.HUnit as HUnit
 
+toExitCode :: Bool -> ExitCode
+toExitCode True  = ExitSuccess
+toExitCode False = ExitFailure 1
+
 main :: IO ()
 main = do
   ar <- getArgs
-  b <- case ar of
+  ss <- case ar of
     ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
     [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
-    _          -> hspecB specs
-  exitWith $ toExitCode b
+    _          -> hHspec stdout specs
+  exitWith $ toExitCode (failedCount ss == 0)
 
 preable :: String
 preable = unlines [
@@ -78,9 +82,9 @@ preable = unlines [
     "",
     "Here's the report of hspec's behavior:" ]
 
-specs :: IO [Spec]
+specs :: Specs
 specs = do
-  (reportContent1, exampleSpecs) <- capture (runSpecM $ describe "Example" $ do
+  (reportContent, exampleSpecs) <- capture (hHspec stdout $ describe "Example" $ do
     it "pass" (Success)
     it "fail 1" (Fail "fail message")
     it "pending" (Pending "pending message")
@@ -88,125 +92,123 @@ specs = do
     it "exceptions" (undefined :: Bool)
     it "quickcheck" (property $ \ i -> i == (i+1::Integer)))
 
-  (reportContent2, _) <- capture (hspec $ return exampleSpecs)
-  let report = lines (reportContent1 ++ reportContent2)
+  let report = lines reportContent
 
   -- putStrLn "--START--"
   -- mapM_ putStrLn report
   -- putStrLn "--END--"
 
-  runSpecM $ do
-    describe "the \"describe\" function" $ do
+  describe "the \"describe\" function" $ do
         it "takes a description of what the behavior is for"
             ((=="Example") . name . head $ exampleSpecs)
 
         it "groups behaviors for what's being described"
             (all ((=="Example").name) exampleSpecs)
 
-    describe "the \"it\" function" $ do
-        it "takes a description of a desired behavior"
-            (requirement (Spec "Example" "whatever" Success) == "whatever")
+  describe "the \"it\" function" $ do
+      it "takes a description of a desired behavior"
+          (requirement (Spec "Example" "whatever" Success) == "whatever")
 
-        it "takes an example of that behavior"
-            (result (Spec "Example" "whatever" Success) == Success)
+      it "takes an example of that behavior"
+          (result (Spec "Example" "whatever" Success) == Success)
 
-        it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
-            (True)
+      it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
+          (True)
 
-        it "will treat exceptions as failures"
-            (any (==" x exceptions [3]") report)
+      it "will treat exceptions as failures"
+          (any (==" x exceptions [3]") report)
 
-    describe "the \"hspec\" function" $ do
-        it "displays a header for each thing being described"
-            (any (=="Example") report)
+  describe "the \"hspec\" function" $ do
+      it "displays a header for each thing being described"
+          (any (=="Example") report)
 
-        it "displays one row for each behavior"
-            (HUnit.assertEqual "" 29 (length report))
+      it "displays one row for each behavior"
+          (HUnit.assertEqual "" 29 (length report))
 
-        it "displays a '-' for successfull examples"
-            (any (==" - pass") report)
+      it "displays a '-' for successfull examples"
+          (any (==" - pass") report)
 
-        it "displays an 'x' for failed examples"
-            (any (==" x fail 1 [1]") report)
+      it "displays an 'x' for failed examples"
+          (any (==" x fail 1 [1]") report)
 
-        it "displays a list of failed examples"
-            (any (=="1) Example fail 1 FAILED") report)
+      it "displays a list of failed examples"
+          (any (=="1) Example fail 1 FAILED") report)
 
-        it "displays available details for failed examples"
-            (any (=="fail message") report)
+      it "displays available details for failed examples"
+          (any (=="fail message") report)
 
-        it "displays a '-' for pending examples"
-            (any (==" - pending") report)
+      it "displays a '-' for pending examples"
+          (any (==" - pending") report)
 
-        it "displays a '#' and an additional message for pending examples"
-            (any (=="     # pending message") report )
+      it "displays a '#' and an additional message for pending examples"
+          (any (=="     # pending message") report )
 
-        it "summarizes the time it takes to finish"
-            (let startsWith text start = take (length start) text == start
-             in any (`startsWith` "Finished in") report)
+      it "summarizes the time it takes to finish"
+          (let startsWith text start = take (length start) text == start
+           in any (`startsWith` "Finished in") report)
 
-        it "summarizes the number of examples and failures"
-            (any (=="6 examples, 4 failures") report)
+      it "summarizes the number of examples and failures"
+          (any (=="6 examples, 4 failures") report)
 
-        it "will display the result of the examples while the examples are being run"
-            (let fib :: Int -> Int
-                 fib 0 = 0
-                 fib 1 = 1
-                 fib n = fib (n-1) + fib (n-2)
-             in fib 30 == 832040)
+      it "will display the result of the examples while the examples are being run"
+          (let fib :: Int -> Int
+               fib 0 = 0
+               fib 1 = 1
+               fib n = fib (n-1) + fib (n-2)
+           in fib 30 == 832040)
 
-        it "outputs to stdout"
-            (True)
+      it "outputs to stdout"
+          (True)
 
-    describe "Bool as an example" $ do
-        it "is just an expression that evaluates to a Bool"
-            (True)
+  describe "Bool as an example" $ do
+      it "is just an expression that evaluates to a Bool"
+          (True)
 
-    describe "HUnit TestCase as an example" $ do
-        it "is specified with the HUnit \"TestCase\" data constructor"
-            (HUnit.TestCase $ HUnit.assertBool "example" True)
+  describe "HUnit TestCase as an example" $ do
+      it "is specified with the HUnit \"TestCase\" data constructor"
+          (HUnit.TestCase $ HUnit.assertBool "example" True)
 
-        it "is the assumed example for IO() actions"
-            (HUnit.assertBool "example" True)
+      it "is the assumed example for IO() actions"
+          (HUnit.assertBool "example" True)
 
-        it "will show the failed assertion text if available (e.g. assertBool)"
-            (HUnit.TestCase $ do
-              (innerReportContent, _) <- capture $ runSpecM $ describe "" (it "" (HUnit.assertBool "trivial" False))
-              let innerReport = lines innerReportContent
-              HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport)
+      it "will show the failed assertion text if available (e.g. assertBool)"
+          (HUnit.TestCase $ do
+            (innerReportContent, _) <- capture $ hspec $ describe "" (it "" (HUnit.assertBool "trivial" False))
+            let innerReport = lines innerReportContent
+            HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport)
 
-        it "will show the failed assertion expected and actual values if available (e.g. assertEqual)"
-            (HUnit.TestCase $ do
-              (innerReportContent, _) <- capture $ runSpecM $ describe "" (it "" (HUnit.assertEqual "trivial" (1::Int) 2))
-              let innerReport = lines innerReportContent
-              HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
-              HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport
-              HUnit.assertBool "should find ' but got: 2'" $ any (==" but got: 2") innerReport)
+      it "will show the failed assertion expected and actual values if available (e.g. assertEqual)"
+          (HUnit.TestCase $ do
+            (innerReportContent, _) <- capture $ hspec $ describe "" (it "" (HUnit.assertEqual "trivial" (1::Int) 2))
+            let innerReport = lines innerReportContent
+            HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
+            HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport
+            HUnit.assertBool "should find ' but got: 2'" $ any (==" but got: 2") innerReport)
 
-    describe "QuickCheck property as an example" $ do
-        it "is specified with the \"property\" function"
-            (property $ \ b -> b || True)
+  describe "QuickCheck property as an example" $ do
+      it "is specified with the \"property\" function"
+          (property $ \ b -> b || True)
 
-        it "will show what falsified it"
-            (any (=="0") report)
+      it "will show what falsified it"
+          (any (=="0") report)
 
-    describe "pending as an example" $ do
-        it "is specified with the \"pending\" function and an explanation"
-            (pending "message" == Pending "message")
+  describe "pending as an example" $ do
+      it "is specified with the \"pending\" function and an explanation"
+          (pending "message" == Pending "message")
 
-        it "accepts a message to display in the report"
-            (any (== "     # pending message") report)
+      it "accepts a message to display in the report"
+          (any (== "     # pending message") report)
 
-    describe "quantify (an internal function)" $ do
-        it "returns an amount and a word given an amount and word"
-            (quantify (1::Int) "thing" == "1 thing")
+  describe "quantify (an internal function)" $ do
+      it "returns an amount and a word given an amount and word"
+          (quantify (1::Int) "thing" == "1 thing")
 
-        it "returns a singular word given the number 1"
-            (quantify (1::Int) "thing" == "1 thing")
+      it "returns a singular word given the number 1"
+          (quantify (1::Int) "thing" == "1 thing")
 
-        it "returns a plural word given a number greater than 1"
-            (quantify (2::Int) "thing" == "2 things")
+      it "returns a plural word given a number greater than 1"
+          (quantify (2::Int) "thing" == "2 things")
 
-        it "returns a plural word given the number 0"
-            (quantify (0::Int) "thing" == "0 things")
+      it "returns a plural word given the number 0"
+          (quantify (0::Int) "thing" == "0 things")
 
