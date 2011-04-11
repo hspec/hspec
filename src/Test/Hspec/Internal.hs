@@ -3,11 +3,13 @@
 module Test.Hspec.Internal where
 
 import System.IO
-import Data.List (mapAccumL, groupBy, intersperse)
+import System.IO.Silently
+import Data.List (intersperse)
 import System.CPUTime (getCPUTime)
 import Text.Printf
 import Control.Exception
 import Control.Monad (liftM)
+
 
 -- | The result of running an example.
 data Result = Success | Fail String | Pending String
@@ -23,7 +25,6 @@ data Spec = Spec {
                  -- | The status of this behavior.
                  result::Result }
 
-
 -- | Create a set of specifications for a specific type being described.
 -- Once you know what you want specs for, use this.
 --
@@ -34,19 +35,17 @@ data Spec = Spec {
 --
 describe :: String                -- ^ The name of what is being described, usually a function or type.
          -> [IO (String, Result)] -- ^ A list of behaviors and examples, created by a list of 'it'.
-         -> IO [Spec]
-describe n ss = do
-  ss' <- sequence ss
-  return $ map (\ (req, res) -> Spec n req res) ss'
+         -> IO [IO Spec]
+describe n = return . map (>>= \ (req, res) -> return (Spec n req res))
 
 -- | Combine a list of descriptions.
-descriptions :: [IO [Spec]] -> IO [Spec]
+descriptions :: [IO [IO Spec]] -> IO [IO Spec]
 descriptions = liftM concat . sequence
 
 -- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
 safely :: Result -> IO Result
 safely f = Control.Exception.catch ok failed
-  where ok = f `seq` return f
+  where ok = silence $ f `seq` return f
         failed e = return $ Fail (show (e :: SomeException))
 
 
@@ -74,7 +73,9 @@ instance SpecVerifier Bool where
     return (description, r)
 
 instance SpecVerifier Result where
-  it description example = return (description, example)
+  it description example = do
+    r <- safely example
+    return (description, r)
 
 
 -- | Declare an example as not successful or failing but pending some other work.
@@ -90,20 +91,29 @@ pending :: String  -- ^ An explanation for why this behavior is pending.
 pending = Pending
 
 
--- | Create a document of the given specs.
-documentSpecs :: [Spec] -> [String]
-documentSpecs specs = lines $ unlines $ concat report ++ [""] ++ intersperse "" errors
-  where organize = groupBy (\ a b -> name a == name b)
-        (errors, report) = mapAccumL documentGroup [] $ organize specs
 
--- | Create a document of the given group of specs.
-documentGroup :: [String] -> [Spec] -> ([String], [String])
-documentGroup errors specGroup = (errors', "" : name (head specGroup) : report)
-  where (errors', report) = mapAccumL documentSpec errors specGroup
+-- | Print the result of checking the spec examples and return the specs.
+printSpecReport :: [IO Spec] -> IO [Spec]
+printSpecReport = printSpecReport' "" []
 
--- | Create a document of the given spec.
-documentSpec :: [String] -> Spec -> ([String], String)
-documentSpec errors spec = case result spec of
+-- Helper function that takes the current group, the errors so far, and the specs.
+printSpecReport' :: String -> [String] -> [IO Spec] -> IO [Spec]
+printSpecReport' _     errors []     = mapM_ putStrLn ([""] ++ intersperse "" errors) >> return []
+printSpecReport' group errors (iospec:ioss) = do
+  spec <- iospec
+  let (strs, errors') = documentSpecLine group errors spec
+  mapM_ putStrLn strs
+  specs <- printSpecReport' (name spec) errors' ioss
+  return $ specs ++ [spec]
+
+documentSpecLine :: String -> [String] -> Spec -> ([String], [String])
+documentSpecLine group errs spec
+  | group == name spec = ([reportLine], errors)
+  | otherwise          = (["", name spec, reportLine], errors)
+    where (errors, reportLine) = documentSpecLine' errs spec
+
+documentSpecLine' :: [String] -> Spec -> ([String], String)
+documentSpecLine' errors spec = case result spec of
                 Success    -> (errors, " - " ++ requirement spec)
                 Fail s     -> (errors ++ [errorDetails s], " x " ++ requirement spec ++ errorTag)
                 Pending s  -> (errors, " - " ++ requirement spec ++ "\n     # " ++ s)
@@ -111,6 +121,7 @@ documentSpec errors spec = case result spec of
           errorDetails s  = concat [ show (length errors + 1), ") ", name spec,
                                      " ",  requirement spec, " FAILED",
                                      if null s then "" else "\n" ++ s ]
+
 
 
 -- | Create a summary of how long it took to run the examples.
@@ -127,12 +138,11 @@ failedCount ss = length $ filter (isFailure.result) ss
 successSummary :: [Spec] -> String
 successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify (failedCount ss) "failure"
 
-
 -- | Create a document of the given specs and write it to stdout.
 -- This does track how much time it took to check the examples. Use this if
 -- you want a description of each spec and do need to know how long it tacks
 -- to check the examples or want to write to stdout.
-hspec :: IO [Spec] -> IO [Spec]
+hspec :: IO [IO Spec] -> IO [Spec]
 hspec ss = hHspec stdout ss
 
 -- | Create a document of the given specs and write it to the given handle.
@@ -143,16 +153,15 @@ hspec ss = hHspec stdout ss
 -- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
 --
 hHspec :: Handle     -- ^ A handle for the stream you want to write to.
-       -> IO [Spec]  -- ^ The specs you are interested in.
+       -> IO [IO Spec]  -- ^ The specs you are interested in.
        -> IO [Spec]
 hHspec h ss = do
   t0 <- getCPUTime
-  ss' <- ss
-  mapM_ (hPutStrLn h) $ documentSpecs ss'
+  ss1 <- ss
+  ss' <- printSpecReport ss1
   t1 <- getCPUTime
   mapM_ (hPutStrLn h) [ "", timingSummary (fromIntegral $ t1 - t0), "", successSummary ss']
   return ss'
-
 
 -- | Create a more readable display of a quantity of something.
 quantify :: Num a => a -> String -> String

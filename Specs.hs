@@ -1,7 +1,8 @@
 
 module Specs where
 
-import Test.Hspec.Internal
+import Test.Hspec
+import Test.Hspec.Internal (Spec(..),Result(..),quantify,failedCount)
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
@@ -11,11 +12,9 @@ import System.Exit
 import Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
 
-
 toExitCode :: Bool -> ExitCode
 toExitCode True  = ExitSuccess
 toExitCode False = ExitFailure 1
-
 
 main :: IO ()
 main = do
@@ -23,7 +22,7 @@ main = do
   ss <- case ar of
     ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
     [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
-    _          -> hHspec stdout specs
+    _          -> hspec specs
   exitWith $ toExitCode (failedCount ss == 0)
 
 preable :: String
@@ -84,24 +83,23 @@ preable = unlines [
     "",
     "Here's the report of hspec's behavior:" ]
 
-specs :: IO [Spec]
+specs :: IO [IO Spec]
 specs = do
   (reportContents, exampleSpecs) <- capture $ hspec $ describe "Example" [
-        it "pass" (Success),
-        it "fail 1" (Fail "fail message"),
-        it "pending" (Pending "pending message"),
-        it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
-        it "exceptions" (undefined :: Bool),
-        it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
+          it "pass" (Success),
+          it "fail 1" (Fail "fail message"),
+          it "pending" (Pending "pending message"),
+          it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
+          it "exceptions" (undefined :: Bool),
+          it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
 
   let report = lines reportContents
 
-  -- uncomment the next line to aid in debugging
-  --mapM_ putStrLn $ ["-- START example specs --"] ++ report ++ ["-- END example specs --"]
+  -- putStrLn "--START--"
+  -- mapM_ putStrLn report
+  -- putStrLn "--END--"
 
-  -- the real specs
   descriptions [
-
     describe "the \"describe\" function" [
         it "takes a description of what the behavior is for"
             ((=="Example") . name . head $ exampleSpecs),
@@ -127,7 +125,7 @@ specs = do
             (any (=="Example") report),
 
         it "displays one row for each behavior"
-            (HUnit.assertEqual "" 31 (length report)),
+            (HUnit.assertEqual "" 29 (length report)),
 
         it "displays a '-' for successfull examples"
             (any (==" - pass") report),
