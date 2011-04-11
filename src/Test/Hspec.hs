@@ -77,7 +77,7 @@ module Test.Hspec (
   -- the main api
   describe, it, hspec, pending, descriptions,
   -- alternate "runner" functions
-  hHspec, hspecX, hspecB, pureHspec, pureHspecB
+  hHspec
 ) where
 
 import Test.Hspec.Internal

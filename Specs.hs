@@ -5,18 +5,26 @@ import Test.Hspec.Internal
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
+import System.IO.Silently
 import System.Environment
 import System.Exit
+import Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
+
+
+toExitCode :: Bool -> ExitCode
+toExitCode True  = ExitSuccess
+toExitCode False = ExitFailure 1
+
 
 main :: IO ()
 main = do
   ar <- getArgs
-  b <- case ar of
+  ss <- case ar of
     ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
     [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
-    _          -> hspecB specs
-  exitWith $ toExitCode b
+    _          -> hHspec stdout specs
+  exitWith $ toExitCode (failedCount ss == 0)
 
 preable :: String
 preable = unlines [
@@ -78,15 +86,15 @@ preable = unlines [
 
 specs :: IO [Spec]
 specs = do
-  exampleSpecs <- describe "Example" [
-    it "pass" (Success),
-    it "fail 1" (Fail "fail message"),
-    it "pending" (Pending "pending message"),
-    it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
-    it "exceptions" (undefined :: Bool),
-    it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
+  (reportContents, exampleSpecs) <- capture $ hspec $ describe "Example" [
+        it "pass" (Success),
+        it "fail 1" (Fail "fail message"),
+        it "pending" (Pending "pending message"),
+        it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
+        it "exceptions" (undefined :: Bool),
+        it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
 
-  let report = pureHspec exampleSpecs
+  let report = lines reportContents
 
   -- uncomment the next line to aid in debugging
   --mapM_ putStrLn $ ["-- START example specs --"] ++ report ++ ["-- END example specs --"]
@@ -119,8 +127,7 @@ specs = do
             (any (=="Example") report),
 
         it "displays one row for each behavior"
-            (HUnit.assertEqual "" 29 (length report)),
-            -- 19 = group header + behaviors + blank lines + time + error messsages + pending message + example/failures footer
+            (HUnit.assertEqual "" 31 (length report)),
 
         it "displays a '-' for successfull examples"
             (any (==" - pass") report),
@@ -141,10 +148,10 @@ specs = do
             (any (=="     # pending message") report ),
 
         it "summarizes the time it takes to finish"
-            (any (=="Finished in 0.0000 seconds") (pureHspec exampleSpecs)),
+            (any ("Finished in " `isPrefixOf`) report),
 
         it "summarizes the number of examples and failures"
-            (any (=="6 examples, 4 failures") (pureHspec exampleSpecs)),
+            (any (=="6 examples, 4 failures") report),
 
         it "outputs to stdout"
             (True)
@@ -162,14 +169,13 @@ specs = do
 
         it "will show the failed assertion text if available (e.g. assertBool)"
             (HUnit.TestCase $ do
-              innerSpecs <- describe "" [ it "" (HUnit.assertBool "trivial" False)]
-              let innerReport = pureHspec innerSpecs
-              HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport),
+              (innerReport, _) <- capture $ hspec $ describe "" [ it "" (HUnit.assertBool "trivial" False)]
+              HUnit.assertBool "should find assertion text" $ any (=="trivial") (lines innerReport)),
 
         it "will show the failed assertion expected and actual values if available (e.g. assertEqual)"
             (HUnit.TestCase $ do
-              innerSpecs <- describe "" [ it "" (HUnit.assertEqual "trivial" (1::Int) 2)]
-              let innerReport = pureHspec innerSpecs
+              (innerReportContents, _) <- capture $ hspec $ describe "" [ it "" (HUnit.assertEqual "trivial" (1::Int) 2)]
+              let innerReport = lines innerReportContents
               HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
               HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport
               HUnit.assertBool "should find ' but got: 2'" $ any (==" but got: 2") innerReport)
@@ -188,17 +194,6 @@ specs = do
         it "accepts a message to display in the report"
             (any (== "     # pending message") report)
         ],
-    describe "hspecB" [
-        it "returns true if no examples failed"
-            (HUnit.TestCase $ do
-              ss <- describe "" [it "" Success]
-              HUnit.assertEqual "no errors" True (snd $ pureHspecB ss)),
-
-        it "returns false if any examples failed"
-            (HUnit.TestCase $ do
-              ss <- describe "" [it "" (Fail "test")]
-              HUnit.assertEqual "one error" False (snd $ pureHspecB ss))
-    ],
     describe "quantify (an internal function)" [
         it "returns an amount and a word given an amount and word"
             (quantify (1::Int) "thing" == "1 thing"),

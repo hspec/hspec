@@ -3,7 +3,6 @@
 module Test.Hspec.Internal where
 
 import System.IO
-import System.Exit
 import Data.List (mapAccumL, groupBy, intersperse)
 import System.CPUTime (getCPUTime)
 import Text.Printf
@@ -129,41 +128,12 @@ successSummary :: [Spec] -> String
 successSummary ss = quantify (length ss) "example" ++ ", " ++ quantify (failedCount ss) "failure"
 
 
--- | Create a document of the given specs.
--- This does not track how much time it took to check the examples. If you want
--- a description of each spec and don't need to know how long it tacks to check,
--- use this.
-pureHspec :: [Spec]   -- ^ The specs you are interested in.
-          -> [String]
-pureHspec = fst . pureHspecB
-
-
-pureHspecB :: [Spec]   -- ^ The specs you are interested in.
-          -> ([String], Bool)
-pureHspecB ss = (report, failedCount ss == 0)
-  where report = documentSpecs ss ++ [ "", timingSummary 0, "", successSummary ss]
-
-
 -- | Create a document of the given specs and write it to stdout.
 -- This does track how much time it took to check the examples. Use this if
 -- you want a description of each spec and do need to know how long it tacks
 -- to check the examples or want to write to stdout.
-hspec :: IO [Spec] -> IO ()
-hspec ss = hspecB ss >> return ()
-
--- | Same as 'hspec' except it returns a bool indicating if all examples ran without failures
-hspecB :: IO [Spec] -> IO Bool
-hspecB = hHspec stdout
-
--- | Same as 'hspec' except the program exits successfull if all examples ran without failures or
--- with an errorcode of 1 if any examples failed.
-hspecX :: IO [Spec] -> IO a
-hspecX ss = hspecB ss >>= exitWith . toExitCode
-
-toExitCode :: Bool -> ExitCode
-toExitCode True  = ExitSuccess
-toExitCode False = ExitFailure 1
-
+hspec :: IO [Spec] -> IO [Spec]
+hspec ss = hHspec stdout ss
 
 -- | Create a document of the given specs and write it to the given handle.
 -- This does track how much time it took to check the examples. Use this if
@@ -174,14 +144,14 @@ toExitCode False = ExitFailure 1
 --
 hHspec :: Handle     -- ^ A handle for the stream you want to write to.
        -> IO [Spec]  -- ^ The specs you are interested in.
-       -> IO Bool
+       -> IO [Spec]
 hHspec h ss = do
   t0 <- getCPUTime
   ss' <- ss
   mapM_ (hPutStrLn h) $ documentSpecs ss'
   t1 <- getCPUTime
   mapM_ (hPutStrLn h) [ "", timingSummary (fromIntegral $ t1 - t0), "", successSummary ss']
-  return $ failedCount ss' == 0
+  return ss'
 
 
 -- | Create a more readable display of a quantity of something.
