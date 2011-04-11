@@ -8,7 +8,6 @@ import Data.List (intersperse)
 import System.CPUTime (getCPUTime)
 import Text.Printf
 import Control.Exception
-import Control.Monad (liftM)
 
 
 -- | The result of running an example.

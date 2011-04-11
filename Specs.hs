@@ -84,13 +84,19 @@ preable = unlines [
 
 specs :: Specs
 specs = do
-  (reportContent, exampleSpecs) <- capture (hHspec stdout $ describe "Example" $ do
-    it "pass" (Success)
-    it "fail 1" (Fail "fail message")
-    it "pending" (Pending "pending message")
-    it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int))
-    it "exceptions" (undefined :: Bool)
-    it "quickcheck" (property $ \ i -> i == (i+1::Integer)))
+  let exampleSpecs0 :: Specs
+      exampleSpecs0 = describe "Example" $ do
+                        it "pass" (Success)
+                        it "fail 1" (Fail "fail message")
+                        it "pending" (Pending "pending message")
+                        it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int))
+                        it "exceptions" (undefined :: Bool)
+                        it "quickcheck" (property $ \ i -> i == (i+1::Integer))
+
+  let rc0 :: IO (String, [Spec])
+      rc0 = capture (hspec exampleSpecs0)
+
+  (reportContent, exampleSpecs) <- rc0
 
   let report = lines reportContent
 

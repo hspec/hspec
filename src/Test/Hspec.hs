@@ -78,21 +78,24 @@ module Test.Hspec (
   describe, it, hspec, pending, hHspec
 ) where
 
-import Test.Hspec.Internal hiding (describe,it,hspec)
+import Test.Hspec.Internal hiding (describe,it,hspec,hHspec)
 import qualified Test.Hspec.Internal as Internal
 import Control.Monad.Trans.Writer.Lazy (Writer, execWriter, tell)
-
+import System.IO (Handle,stdout)
 
 -- fully monadic DSL
 type ItSpec = IO (String, Result)
 type Specs = Writer [IO Spec] ()
 
-hspec :: Specs -> IO ()
-hspec = Internal.hspec . runSpecM
+hHspec :: Handle -> Specs -> IO [Spec]
+hHspec h = Internal.hHspec h . runSpecM
   where runSpecM :: Writer [IO Spec] () -> IO [Spec]
         runSpecM specs = do
           specs' <- printSpecReport $ execWriter specs
           return specs'
+
+hspec :: Specs -> IO [Spec]
+hspec = hHspec stdout
 
 describe :: String -> Writer [ItSpec] () -> Specs
 describe label action = tell (Internal.describe label (execWriter action))
