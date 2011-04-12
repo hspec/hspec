@@ -27,9 +27,10 @@ instance SpecVerifier (IO ()) where
 instance SpecVerifier HU.Test where
   it description example = do
     (counts, fails) <- silence $ HU.runTestText HU.putTextToShowS example
-    if HU.errors counts + HU.failures counts == 0
-      then return (description, Success)
-      else return (description, Fail (details $ fails ""))
+    let r' = if HU.errors counts + HU.failures counts == 0
+             then Success
+             else Fail (details $ fails "")
+    return (description, r')
 
 details :: String -> String
 details = concat . intersperse "\n" . tail . init . lines

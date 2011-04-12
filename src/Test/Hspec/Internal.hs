@@ -93,36 +93,40 @@ pending = Pending
 
 
 -- | Print the result of checking the spec examples and return the specs.
-printSpecReport :: [IO Spec] -> IO [Spec]
-printSpecReport = printSpecReport' "" []
+printSpecReport :: Handle -> [IO Spec] -> IO [Spec]
+printSpecReport h = printSpecReport' h "" []
 
 -- Helper function that takes the current group, the errors so far, and the specs.
-printSpecReport' :: String -> [String] -> [IO Spec] -> IO [Spec]
-printSpecReport' _     errors []     = mapM_ putStrLn ([""] ++ intersperse "" errors) >> return []
-printSpecReport' group errors (iospec:ioss) = do
-  spec <- iospec
-  let (strs, errors') = documentSpecLine group errors spec
-  mapM_ putStrLn strs
-  specs <- printSpecReport' (name spec) errors' ioss
+printSpecReport' :: Handle -> String -> [String] -> [IO Spec] -> IO [Spec]
+printSpecReport' h _     errors []     = mapM_ (hPutStrLn h) ([""] ++ intersperse "" errors) >> return []
+printSpecReport' h group errors (iospec:ioss) = do
+  ~spec@(Spec ~lazyName ~lazyRequirement ~lazyResult) <- iospec
+  hPutStr h $ linePrefix group lazyName
+  hPutStr h $ lineBody lazyRequirement
+  hPutStrLn h $ (lineSuffix lazyResult (length errors))
+  let errors' = if isFailure lazyResult
+                then errorDetails spec (length errors) : errors
+                else errors
+  specs <- printSpecReport' h lazyName errors' ioss
   return $ specs ++ [spec]
 
-documentSpecLine :: String -> [String] -> Spec -> ([String], [String])
-documentSpecLine group errs spec
-  | group == name spec = ([reportLine], errors)
-  | otherwise          = (["", name spec, reportLine], errors)
-    where (errors, reportLine) = documentSpecLine' errs spec
+errorDetails :: Spec -> Int -> String
+errorDetails spec i = case result spec of
+  (Fail s   ) -> concat [ show (i + 1), ") ", name spec, " ",  requirement spec, " FAILED", if null s then "" else "\n" ++ s ]
+  _           -> ""
 
-documentSpecLine' :: [String] -> Spec -> ([String], String)
-documentSpecLine' errors spec = case result spec of
-                Success    -> (errors, " - " ++ requirement spec)
-                Fail s     -> (errors ++ [errorDetails s], " x " ++ requirement spec ++ errorTag)
-                Pending s  -> (errors, " - " ++ requirement spec ++ "\n     # " ++ s)
-    where errorTag = " [" ++ (show $ length errors + 1) ++ "]"
-          errorDetails s  = concat [ show (length errors + 1), ") ", name spec,
-                                     " ",  requirement spec, " FAILED",
-                                     if null s then "" else "\n" ++ s ]
+linePrefix :: String -> String -> String
+linePrefix currentGroup group
+  | currentGroup /= group = '\n' : group ++ "\n"
+  | otherwise             = ""
 
+lineBody :: String -> String
+lineBody req = " - " ++ req
 
+lineSuffix :: Result -> Int -> String
+lineSuffix (Success  ) _ = ""
+lineSuffix (Fail _   ) i = " FAILED [" ++ (show $ i + 1) ++ "]"
+lineSuffix (Pending s) _ = "\n     # " ++ s
 
 -- | Create a summary of how long it took to run the examples.
 timingSummary :: Double -> String
@@ -130,9 +134,10 @@ timingSummary t = printf "Finished in %1.4f seconds" (t / (10.0^(12::Integer)) :
 
 failedCount :: [Spec] -> Int
 failedCount ss = length $ filter (isFailure.result) ss
-  where
-    isFailure (Fail _) = True
-    isFailure _        = False
+
+isFailure :: Result -> Bool
+isFailure (Fail _) = True
+isFailure _        = False
 
 -- | Create a summary of how many specs exist and how many examples failed.
 successSummary :: [Spec] -> String
@@ -158,7 +163,7 @@ hHspec :: Handle     -- ^ A handle for the stream you want to write to.
 hHspec h ss = do
   t0 <- getCPUTime
   ss1 <- ss
-  ss' <- printSpecReport ss1
+  ss' <- printSpecReport h ss1
   t1 <- getCPUTime
   mapM_ (hPutStrLn h) [ "", timingSummary (fromIntegral $ t1 - t0), "", successSummary ss']
   return ss'
