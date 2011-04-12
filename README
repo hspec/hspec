@@ -69,13 +69,15 @@ the "it" function
 the "hspec" function
  - displays a header for each thing being described
  - displays one row for each behavior
- - displays a '#' and an additional message for pending examples
+ - displays a '-' for successfull examples
+ - displays an 'x' for failed examples
  - displays a list of failed examples
  - displays available details for failed examples
+ - displays a '-' for pending examples
+ - displays a '#' and an additional message for pending examples
  - summarizes the time it takes to finish
  - summarizes the number of examples and failures
  - outputs to stdout
- - outputs each example before running it FAILED [1]
  - outputs each example before running it
 
 Bool as an example
@@ -101,9 +103,7 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-1) the "hspec" function outputs each example before running it FAILED
-remove this behvior when the requirement prints, there's a 3 second pause, then the result prints
 
-Finished in 0.0803 seconds
+Finished in 0.0493 seconds
 
-29 examples, 1 failure
+31 examples, 0 failures

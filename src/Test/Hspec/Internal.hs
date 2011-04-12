@@ -10,7 +10,6 @@ import Text.Printf
 import Control.Exception
 import Control.Monad (liftM)
 
-
 -- | The result of running an example.
 data Result = Success | Fail String | Pending String
   deriving Eq
@@ -100,33 +99,30 @@ printSpecReport h = printSpecReport' h "" []
 printSpecReport' :: Handle -> String -> [String] -> [IO Spec] -> IO [Spec]
 printSpecReport' h _     errors []     = mapM_ (hPutStrLn h) ([""] ++ intersperse "" errors) >> return []
 printSpecReport' h group errors (iospec:ioss) = do
-  ~spec@(Spec ~lazyName ~lazyRequirement ~lazyResult) <- iospec
-  hPutStr h $ linePrefix group lazyName
-  hPutStr h $ lineBody lazyRequirement
-  hPutStrLn h $ (lineSuffix lazyResult (length errors))
-  let errors' = if isFailure lazyResult
+  spec <- iospec
+  hPutStr h $ groupHeader group spec
+  lineBody h spec (length errors)
+  let errors' = if isFailure (result spec)
                 then errorDetails spec (length errors) : errors
                 else errors
-  specs <- printSpecReport' h lazyName errors' ioss
+  specs <- printSpecReport' h (name spec) errors' ioss
   return $ specs ++ [spec]
+
+groupHeader :: String -> Spec -> String
+groupHeader group spec
+  | group /= name spec = '\n' : name spec ++ "\n"
+  | otherwise          = ""
+
+lineBody :: Handle -> Spec -> Int -> IO ()
+lineBody h spec i = case result spec of
+                    (Success  ) -> hPutStrLn h $ " - " ++ requirement spec
+                    (Fail _   ) -> hPutStrLn h $ " x " ++ requirement spec ++ " FAILED [" ++ (show $ i + 1) ++ "]"
+                    (Pending s) -> hPutStrLn h $ " - " ++ requirement spec ++ "\n     # " ++ s
 
 errorDetails :: Spec -> Int -> String
 errorDetails spec i = case result spec of
   (Fail s   ) -> concat [ show (i + 1), ") ", name spec, " ",  requirement spec, " FAILED", if null s then "" else "\n" ++ s ]
   _           -> ""
-
-linePrefix :: String -> String -> String
-linePrefix currentGroup group
-  | currentGroup /= group = '\n' : group ++ "\n"
-  | otherwise             = ""
-
-lineBody :: String -> String
-lineBody req = " - " ++ req
-
-lineSuffix :: Result -> Int -> String
-lineSuffix (Success  ) _ = ""
-lineSuffix (Fail _   ) i = " FAILED [" ++ (show $ i + 1) ++ "]"
-lineSuffix (Pending s) _ = "\n     # " ++ s
 
 -- | Create a summary of how long it took to run the examples.
 timingSummary :: Double -> String

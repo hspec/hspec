@@ -10,7 +10,6 @@ import System.IO.Silently
 import System.Environment
 import System.Exit
 import Data.List (isPrefixOf)
-import Control.Concurrent (threadDelay)
 import qualified Test.HUnit as HUnit
 
 toExitCode :: Bool -> ExitCode
@@ -119,7 +118,7 @@ specs = do
             (True),
 
         it "will treat exceptions as failures"
-            (any (==" - exceptions FAILED [3]") report)
+            (any (==" x exceptions FAILED [3]") report)
     ],
     describe "the \"hspec\" function" [
         it "displays a header for each thing being described"
@@ -128,14 +127,23 @@ specs = do
         it "displays one row for each behavior"
             (HUnit.assertEqual "" 29 (length report)),
 
-        it "displays a '#' and an additional message for pending examples"
-            (any (=="     # pending message") report ),
+        it "displays a '-' for successfull examples"
+            (any (==" - pass") report),
+
+        it "displays an 'x' for failed examples"
+            (any (==" x fail 1 FAILED [1]") report),
 
         it "displays a list of failed examples"
             (any (=="1) Example fail 1 FAILED") report),
 
         it "displays available details for failed examples"
             (any (=="fail message") report),
+
+        it "displays a '-' for pending examples"
+            (any (==" - pending") report ),
+
+        it "displays a '#' and an additional message for pending examples"
+            (any (=="     # pending message") report ),
 
         it "summarizes the time it takes to finish"
             (any ("Finished in " `isPrefixOf`) report),
@@ -147,10 +155,7 @@ specs = do
             (True),
 
         it "outputs each example before running it"
-            (threadDelay 3000000 >> HUnit.assertBool "remove this behvior when the requirement prints, there's a 3 second pause, then the result prints" False),
-
-        it "outputs each example before running it"
-            (threadDelay 3000000)
+            (True)
     ],
     describe "Bool as an example" [
         it "is just an expression that evaluates to a Bool"
