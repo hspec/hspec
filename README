@@ -71,14 +71,12 @@ the "hspec" function
  - displays one row for each behavior
  - displays a '-' for successfull examples
  - displays an 'x' for failed examples
- - displays a list of failed examples
- - displays available details for failed examples
+ - displays a detailed list of failed examples
  - displays a '-' for pending examples
  - displays a '#' and an additional message for pending examples
  - summarizes the time it takes to finish
  - summarizes the number of examples and failures
- - outputs to stdout
- - outputs each example before running it
+ - outputs failed examples in red, pending in yellow, and passing in green
 
 Bool as an example
  - is just an expression that evaluates to a Bool
@@ -104,6 +102,6 @@ quantify (an internal function)
  - returns a plural word given the number 0
 
 
-Finished in 0.0493 seconds
+Finished in 0.0521 seconds
 
-31 examples, 0 failures
+29 examples, 0 failures

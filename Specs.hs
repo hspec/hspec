@@ -2,7 +2,7 @@
 module Specs where
 
 import Test.Hspec
-import Test.Hspec.Internal (Spec(..),Result(..),quantify,failedCount)
+import Test.Hspec.Internal (Spec(..),Result(..),quantify,failedCount,hHspecWithFormat,specdoc)
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
@@ -85,7 +85,7 @@ preable = unlines [
 
 specs :: IO [IO Spec]
 specs = do
-  (reportContents, exampleSpecs) <- capture $ hspec $ describe "Example" [
+  (reportContents, exampleSpecs) <- capture $ hHspecWithFormat (specdoc False) stdout $ describe "Example" [
           it "pass" (Success),
           it "fail 1" (Fail "fail message"),
           it "pending" (Pending "pending message"),
@@ -133,11 +133,8 @@ specs = do
         it "displays an 'x' for failed examples"
             (any (==" x fail 1 FAILED [1]") report),
 
-        it "displays a list of failed examples"
+        it "displays a detailed list of failed examples"
             (any (=="1) Example fail 1 FAILED") report),
-
-        it "displays available details for failed examples"
-            (any (=="fail message") report),
 
         it "displays a '-' for pending examples"
             (any (==" - pending") report ),
@@ -151,10 +148,7 @@ specs = do
         it "summarizes the number of examples and failures"
             (any (=="6 examples, 4 failures") report),
 
-        it "outputs to stdout"
-            (True),
-
-        it "outputs each example before running it"
+        it "outputs failed examples in red, pending in yellow, and passing in green"
             (True)
     ],
     describe "Bool as an example" [
