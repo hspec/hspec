@@ -22,9 +22,11 @@ tested-with:
 data-files:
 data-dir: ""
 extra-source-files: ./Specs.hs ./src/Test/Hspec/HUnit.hs
-                    ./src/Test/Hspec/Internal.hs ./src/Test/Hspec/QuickCheck.hs
+                    ./src/Test/Hspec/Runners.hs ./src/Test/Hspec/Formatters.hs
+                    ./src/Test/Hspec/Core.hs ./src/Test/Hspec/QuickCheck.hs
 extra-tmp-files:
-exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Internal
+exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
+                 Test.Hspec.Runners Test.Hspec.Formatters
                  Test.Hspec.QuickCheck
 exposed: True
 buildable: True

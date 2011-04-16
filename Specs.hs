@@ -2,7 +2,9 @@
 module Specs where
 
 import Test.Hspec
-import Test.Hspec.Internal (Spec(..),Result(..),quantify,failedCount,hHspecWithFormat,specdoc)
+import Test.Hspec.Core (Spec(..),Result(..),quantify,failedCount)
+import Test.Hspec.Runners (hHspecWithFormat)
+import Test.Hspec.Formatters (specdoc)
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
@@ -44,12 +46,12 @@ preable = unlines [
     "Step 2, write whatever you are describing",
     "> myabs n = undefined",
     "",
-    "Step 3, watch your examples fail",
+    "Step 3, watch your examples fail with red text",
     "> hspec specs",
     "myabs",
-    " x returns the original number when given a positive input [1]",
-    " x returns a positive number when given a negative input [2]",
-    " x returns zero when given zero [3]",
+    " x returns the original number when given a positive input FAILED [1]",
+    " x returns a positive number when given a negative input FAILED [2]",
+    " x returns zero when given zero FAILED [3]",
     "",
     "1) myabs returns the original number when given a positive input FAILED",
     "Prelude.undefined",
@@ -67,7 +69,7 @@ preable = unlines [
     "Step 4, implement your desired behavior",
     "> myabs n = if n < 0 then negate n else n",
     "",
-    "Step 5, watch your examples pass",
+    "Step 5, watch your examples pass with green text",
     "> hspec specs",
     "myabs",
     " - returns the original number when given a positive input",

@@ -16,12 +16,12 @@ Step 1, write descriptions and examples of your desired behavior
 Step 2, write whatever you are describing
 > myabs n = undefined
 
-Step 3, watch your examples fail
+Step 3, watch your examples fail with red text
 > hspec specs
 myabs
- x returns the original number when given a positive input [1]
- x returns a positive number when given a negative input [2]
- x returns zero when given zero [3]
+ x returns the original number when given a positive input FAILED [1]
+ x returns a positive number when given a negative input FAILED [2]
+ x returns zero when given zero FAILED [3]
 
 1) myabs returns the original number when given a positive input FAILED
 Prelude.undefined
@@ -39,7 +39,7 @@ Finished in 0.0002 seconds
 Step 4, implement your desired behavior
 > myabs n = if n < 0 then negate n else n
 
-Step 5, watch your examples pass
+Step 5, watch your examples pass with green text
 > hspec specs
 myabs
  - returns the original number when given a positive input
@@ -101,7 +101,6 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-
-Finished in 0.0521 seconds
+Finished in 0.0522 seconds
 
 29 examples, 0 failures

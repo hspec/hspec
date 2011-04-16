@@ -17,7 +17,7 @@ module Test.Hspec.HUnit (
 ) where
 
 import System.IO.Silently
-import Test.Hspec.Internal
+import Test.Hspec.Core
 import qualified Test.HUnit as HU
 import Data.List (intersperse)
 

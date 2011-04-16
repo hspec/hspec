@@ -17,7 +17,7 @@ module Test.Hspec.QuickCheck (
 ) where
 
 import System.IO.Silently
-import Test.Hspec.Internal
+import Test.Hspec.Core
 import qualified Test.QuickCheck as QC
 
 data QuickCheckProperty a = QuickCheckProperty a

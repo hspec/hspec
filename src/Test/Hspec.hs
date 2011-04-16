@@ -80,4 +80,5 @@ module Test.Hspec (
   hHspec
 ) where
 
-import Test.Hspec.Internal
+import Test.Hspec.Core
+import Test.Hspec.Runners
