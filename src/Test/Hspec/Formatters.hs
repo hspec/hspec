@@ -1,8 +1,10 @@
-module Test.Hspec.Formatters where
-
 -- | This module contains formaatters that take a set of specs and write to a given handle.
 -- They follow a structure similar to RSpec formatters.
 --
+module Test.Hspec.Formatters (
+  specdoc
+) where
+
 import Test.Hspec.Core
 import System.IO
 import Data.List (intersperse)

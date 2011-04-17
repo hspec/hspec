@@ -1,4 +1,6 @@
-module Test.Hspec.Runners where
+module Test.Hspec.Runners.ListMonad (
+  hspec, hHspec, hHspecWithFormat, describe, it
+) where
 
 -- | This module contains the runners that take a set of specs, evaluate their examples, and
 -- report to a given handle.

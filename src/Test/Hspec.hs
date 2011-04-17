@@ -80,5 +80,6 @@ module Test.Hspec (
   hHspec
 ) where
 
-import Test.Hspec.Core
-import Test.Hspec.Runners
+import Test.Hspec.Core hiding (describe,it)
+import Test.Hspec.Runners.ListMonad
+

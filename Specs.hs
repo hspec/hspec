@@ -3,8 +3,8 @@ module Specs where
 
 import Test.Hspec
 import Test.Hspec.Core (Spec(..),Result(..),quantify,failedCount)
-import Test.Hspec.Runners (hHspecWithFormat)
 import Test.Hspec.Formatters (specdoc)
+import Test.Hspec.Runners.ListMonad (hHspecWithFormat)
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
@@ -87,13 +87,15 @@ preable = unlines [
 
 specs :: IO [IO Spec]
 specs = do
-  (reportContents, exampleSpecs) <- capture $ hHspecWithFormat (specdoc False) stdout $ describe "Example" [
+  let testSpecs = describe "Example" [
           it "pass" (Success),
           it "fail 1" (Fail "fail message"),
           it "pending" (Pending "pending message"),
           it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
           it "exceptions" (undefined :: Bool),
-          it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
+          it "quickcheck" (property $ \ i -> i == (i+1::Integer)) ]
+
+  (reportContents, exampleSpecs) <- capture $ hHspecWithFormat (specdoc False) stdout testSpecs
 
   let report = lines reportContents
 
