@@ -1,10 +1,11 @@
-module Test.Hspec.Runner (
-  Specs, hspec, hHspec, hHspecWithFormat, describe, it
-) where
 
 -- | This module contains the runners that take a set of specs, evaluate their examples, and
 -- report to a given handle.
 --
+module Test.Hspec.Runner (
+  Specs, hspec, hHspec, hHspecWithFormat, describe, it
+) where
+
 import Test.Hspec.Core
 import Test.Hspec.Formatters
 import System.IO
