@@ -33,7 +33,7 @@ specdoc useColor = Formatter {
 
   errorsFormatter = \ h errors -> do
     when useColor (failColor h)
-    mapM_ (hPutStrLn h) ([""] ++ intersperse "" errors)
+    mapM_ (hPutStrLn h) ("" : intersperse "" errors)
     when (not $ null errors) (hPutStrLn h ""),
 
   footerFormatter = \ h specs time -> do

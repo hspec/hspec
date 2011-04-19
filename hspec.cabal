@@ -23,12 +23,12 @@ tested-with:
 data-files:
 data-dir: ""
 extra-source-files: ./Specs.hs ./src/Test/Hspec/HUnit.hs
-                    ./src/Test/Hspec/Runners/ListMonad.hs ./src/Test/Hspec/Runners/WriterMonad.hs
+                    ./src/Test/Hspec/Runner.hs ./src/Test/Hspec/Monadic.hs
                     ./src/Test/Hspec/Formatters.hs
                     ./src/Test/Hspec/Core.hs ./src/Test/Hspec/QuickCheck.hs
 extra-tmp-files:
 exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
-                 Test.Hspec.Runners.ListMonad Test.Hspec.Runners.WriterMonad
+                 Test.Hspec.Runner Test.Hspec.Monadic
                  Test.Hspec.Formatters Test.Hspec.QuickCheck
 exposed: True
 buildable: True

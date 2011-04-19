@@ -101,6 +101,6 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-Finished in 0.0522 seconds
+Finished in 0.0540 seconds
 
 29 examples, 0 failures

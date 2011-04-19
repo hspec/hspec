@@ -1,13 +1,6 @@
 
--- | Hspec is a Behaviour-Driven Development tool for Haskell programmers. BDD is an approach
--- to software development that combines Test-Driven Development, Domain Driven Design, and
--- Acceptance Test-Driven Planning. Hspec helps you do the TDD part of that equation, focusing
--- on the documentation and design aspects of TDD.
---
--- Hspec (and the preceding intro) are based on the Ruby library RSpec. Much of what applies to
--- RSpec also applies to Hspec. Hspec ties together /descriptions/ of behavior and /examples/ of
--- that behavior. The examples can also be run as tests and the output summarises what needs to
--- be implemented.
+-- | This module contains the runners that take a set of specs, specified in a monadic style, evaluate their examples, and
+-- report to a given handle.
 --
 -- The three functions you'll use the most are 'hspec', 'describe', and 'it'. Here is an
 -- example of functions that format and unformat phone numbers and the specs for them.
@@ -32,24 +25,24 @@
 --
 -- The "describe" function takes a list of behaviors and examples bound together with the "it" function
 --
--- > mySpecs = describe "unformatPhoneNumber" [
+-- > mySpecs = describe "unformatPhoneNumber" $ do
 --
 -- A boolean expression can act as a behavior's example.
 --
 -- >   it "removes dashes, spaces, and parenthesies"
--- >       (unformatPhoneNumber "(555) 555-1234" == "5555551234"),
+-- >       (unformatPhoneNumber "(555) 555-1234" == "5555551234")
 --
 -- The "pending" function marks a behavior as pending an example. The example doesn't count as failing.
 --
 -- >   it "handles non-US phone numbers"
--- >       (pending "need to look up how other cultures format phone numbers"),
+-- >       (pending "need to look up how other cultures format phone numbers")
 --
 -- An HUnit "Test" can act as a behavior's example. (must import @Test.Hspec.HUnit@)
 --
 -- >   it "removes the \"ext\" prefix of the extension"
 -- >       (TestCase $ let expected = "5555551234135"
 -- >                       actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
--- >                   in assertEqual "remove extension" expected actual),
+-- >                   in assertEqual "remove extension" expected actual)
 --
 -- An @IO()@ action is treated like an HUnit "TestCase". (must import @Test.Hspec.HUnit@)
 --
@@ -57,21 +50,20 @@
 -- >       (do
 -- >         let expected = "6862377"
 -- >         let actual   = unformatPhoneNumber "NUMBERS"
--- >         assertEqual "letters to numbers" expected actual),
+-- >         assertEqual "letters to numbers" expected actual)
 --
 -- The "property" function allows a QuickCheck property to act as an example. (must import @Test.Hspec.HUnit@)
 --
 -- >   it "can add and remove formatting without changing the number"
 -- >       (property $ forAll phoneNumber $
 -- >         \ n -> unformatPhoneNumber (formatPhoneNumber n) == n)
--- >   ]
 -- >
 -- > phoneNumber :: Gen String
 -- > phoneNumber = do
 -- >   nums <- elements [7,10,11,12,13,14,15]
 -- >   vectorOf nums (elements "0123456789")
 --
-module Test.Hspec (
+module Test.Hspec.Monadic (
   -- types
   Spec(), Result(),Specs,
   -- the main api
@@ -80,6 +72,33 @@ module Test.Hspec (
   hHspec
 ) where
 
-import Test.Hspec.Core
-import Test.Hspec.Runner
+import System.IO
+import Test.Hspec.Core hiding (describe,it)
+import qualified Test.Hspec.Core as Core
+import qualified Test.Hspec.Runner as Runner
 
+import Control.Monad.Trans.Writer (Writer, execWriter, tell)
+
+type ItSpec = IO (String, Result)
+
+type Specs = Writer [IO [IO Spec]] ()
+
+-- | Create a document of the given specs and write it to stdout.
+hspec :: Specs -> IO [Spec]
+hspec = Runner.hspec . runSpecM
+
+-- | Create a document of the given specs and write it to the given handle.
+--
+-- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
+--
+hHspec :: Handle -> Specs -> IO [Spec]
+hHspec h = Runner.hHspec h . runSpecM
+
+runSpecM :: Specs -> IO [IO Spec]
+runSpecM specs = descriptions $ execWriter specs
+
+describe :: String -> Writer [ItSpec] () -> Specs
+describe label action = tell [Core.describe label (execWriter action)]
+
+it :: SpecVerifier v => String -> v -> Writer [ItSpec] ()
+it label action = tell [Core.it label action]

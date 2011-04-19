@@ -2,9 +2,9 @@
 module Specs where
 
 import Test.Hspec
+import Test.Hspec.Runner (hHspecWithFormat)
 import Test.Hspec.Core (Spec(..),Result(..),quantify,failedCount)
 import Test.Hspec.Formatters (specdoc)
-import Test.Hspec.Runners.ListMonad (hHspecWithFormat)
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
@@ -85,7 +85,7 @@ preable = unlines [
     "",
     "Here's the report of hspec's behavior:" ]
 
-specs :: IO [IO Spec]
+specs :: IO Specs
 specs = do
   let testSpecs = describe "Example" [
           it "pass" (Success),
@@ -93,15 +93,11 @@ specs = do
           it "pending" (Pending "pending message"),
           it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
           it "exceptions" (undefined :: Bool),
-          it "quickcheck" (property $ \ i -> i == (i+1::Integer)) ]
+          it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
 
   (reportContents, exampleSpecs) <- capture $ hHspecWithFormat (specdoc False) stdout testSpecs
 
   let report = lines reportContents
-
-  -- putStrLn "--START--"
-  -- mapM_ putStrLn report
-  -- putStrLn "--END--"
 
   descriptions [
     describe "the \"describe\" function" [
@@ -185,14 +181,14 @@ specs = do
 
         it "will show what falsified it"
             (any (=="0") report)
-        ],
+    ],
     describe "pending as an example" [
         it "is specified with the \"pending\" function and an explanation"
             (pending "message" == Pending "message"),
 
         it "accepts a message to display in the report"
             (any (== "     # pending message") report)
-        ],
+    ],
     describe "quantify (an internal function)" [
         it "returns an amount and a word given an amount and word"
             (quantify (1::Int) "thing" == "1 thing"),
@@ -206,3 +202,4 @@ specs = do
         it "returns a plural word given the number 0"
             (quantify (0::Int) "thing" == "0 things")
     ]]
+
