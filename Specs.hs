@@ -2,7 +2,7 @@
 module Specs where
 
 import Test.Hspec
-import Test.Hspec.Runner (hHspecWithFormat)
+import Test.Hspec.Runner (hHspecWithFormat, toExitCode)
 import Test.Hspec.Core (Spec(..),Result(..),quantify,failedCount)
 import Test.Hspec.Formatters (specdoc)
 import Test.Hspec.QuickCheck
@@ -10,13 +10,9 @@ import Test.Hspec.HUnit ()
 import System.IO
 import System.IO.Silently
 import System.Environment
-import System.Exit
+import System.Exit (exitWith)
 import Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
-
-toExitCode :: Bool -> ExitCode
-toExitCode True  = ExitSuccess
-toExitCode False = ExitFailure 1
 
 main :: IO ()
 main = do

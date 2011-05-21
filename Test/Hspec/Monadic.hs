@@ -11,7 +11,7 @@
 -- > import Test.QuickCheck hiding (property)
 -- > import Test.HUnit
 -- >
--- > main = hspec mySpecs
+-- > main = hspecX $ do
 --
 -- Since the specs are often used to tell you what to implement, it's best to start with
 -- undefined functions. Once we have some specs, then you can implement each behavior
@@ -25,7 +25,7 @@
 --
 -- The "describe" function takes a list of behaviors and examples bound together with the "it" function
 --
--- > mySpecs = describe "unformatPhoneNumber" $ do
+-- > describe "unformatPhoneNumber" $ do
 --
 -- A boolean expression can act as a behavior's example.
 --
@@ -67,7 +67,7 @@ module Test.Hspec.Monadic (
   -- types
   Spec(), Result(),Specs,
   -- the main api
-  describe, it, hspec, pending, descriptions,
+  describe, it, hspec, hspecB, hspecX, pending, descriptions,
   -- alternate "runner" functions
   hHspec,
   -- this is just for internal use
@@ -89,6 +89,14 @@ type Specs = Writer [IO [IO Spec]] ()
 -- | Create a document of the given specs and write it to stdout.
 hspec :: Specs -> IO [Spec]
 hspec = Runner.hspec . runSpecM
+
+-- | Use in place of @hspec@ to also exit the program with an @ExitCode@
+hspecX :: Specs -> IO a
+hspecX = Runner.hspecX . runSpecM
+
+-- | Use in place of hspec to also give a @Bool@ success indication
+hspecB :: Specs -> IO Bool
+hspecB = Runner.hspecB . runSpecM
 
 -- | Create a document of the given specs and write it to the given handle.
 --
