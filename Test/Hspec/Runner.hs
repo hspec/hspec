@@ -3,7 +3,7 @@
 -- report to a given handle.
 --
 module Test.Hspec.Runner (
-  Specs, hspec, hHspec, hHspecWithFormat, describe, it
+  Specs, hspec, hspecX, hspecB, hHspec, hHspecWithFormat, describe, it, toExitCode
 ) where
 
 import Test.Hspec.Core
@@ -11,6 +11,7 @@ import Test.Hspec.Formatters
 import System.IO
 import System.CPUTime (getCPUTime)
 import Control.Monad (when)
+import System.Exit
 
 type Specs = [IO Spec]
 
@@ -37,6 +38,13 @@ errorDetails spec i = case result spec of
   (Fail s   ) -> concat [ show (i + 1), ") ", name spec, " ",  requirement spec, " FAILED", if null s then "" else "\n" ++ s ]
   _           -> ""
 
+-- | Use in place of @hspec@ to also exit the program with an @ExitCode@
+hspecX :: IO Specs -> IO a
+hspecX ss = hspecB ss >>= exitWith . toExitCode
+
+-- | Use in place of hspec to also give a @Bool@ success indication
+hspecB :: IO Specs -> IO Bool
+hspecB ss = hspec ss >>= return . success
 
 -- | Create a document of the given specs and write it to stdout.
 hspec :: IO Specs -> IO [Spec]
@@ -60,4 +68,8 @@ hHspecWithFormat formatter h ss = do
   let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
   (footerFormatter formatter) h specList runTime
   return specList
+
+toExitCode :: Bool -> ExitCode
+toExitCode True  = ExitSuccess
+toExitCode False = ExitFailure 1
 

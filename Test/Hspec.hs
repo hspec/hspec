@@ -75,7 +75,7 @@ module Test.Hspec (
   -- types
   Spec(), Result(),Specs,
   -- the main api
-  describe, it, hspec, pending, descriptions,
+  describe, it, hspec, hspecB, hspecX, pending, descriptions,
   -- alternate "runner" functions
   hHspec
 ) where
