@@ -69,7 +69,10 @@ module Test.Hspec.Monadic (
   -- the main api
   describe, it, hspec, pending, descriptions,
   -- alternate "runner" functions
-  hHspec
+  hHspec,
+  -- this is just for internal use
+  ItSpec
+
 ) where
 
 import System.IO
