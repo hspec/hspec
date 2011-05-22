@@ -1,55 +1,40 @@
-name: hspec
-version: 0.4.3
-cabal-version: -any
-build-type: Custom
-license: BSD3
-license-file: LICENSE
-copyright: (c) 2011 Trystan Spangler
-maintainer: trystan.s@comcast.net
-build-depends: HUnit >=1 && <=2, QuickCheck >=2.4.0.1 && <=2.5,
-               base >=4 && <=5, silently == 1.1.1,
-               ansi-terminal == 0.5.5, transformers >= 0.2.0 && < 0.3.0
-stability: experimental
-homepage: https://github.com/trystan/hspec
-package-url: https://github.com/trystan/hspec
-bug-reports: https://github.com/trystan/hspec/issues
-synopsis: Behavior Driven Development for Haskell
+name:           hspec
+version:        0.5.0
+cabal-version:  -any
+build-type:     Custom
+license:        BSD3
+license-file:   LICENSE
+copyright:      (c) 2011 Trystan Spangler
+category:       Testing
+author:         Trystan Spangler
+maintainer:     trystan.s@comcast.net
+stability:      experimental
+homepage:       https://github.com/trystan/hspec
+package-url:    https://github.com/trystan/hspec
+bug-reports:    https://github.com/trystan/hspec/issues
+synopsis:       Behavior Driven Development for Haskell
 description: Behavior Driven Development for Haskell
              .
-             Hspec is based on the Ruby library RSpec - so much of what applies to RSpec also applies to Hspec. Hspec ties together /descriptions/ of behavior and /examples/ of that behavior. The examples can then be run as tests and the output summarises what needs to be implemented.
-category: Testing
-author: Trystan Spangler
-tested-with:
-data-files:
-data-dir: ""
-extra-source-files: ./Specs.hs ./src/Test/Hspec/HUnit.hs
-                    ./src/Test/Hspec/Runner.hs ./src/Test/Hspec/Monadic.hs
-                    ./src/Test/Hspec/Formatters.hs
-                    ./src/Test/Hspec/Core.hs ./src/Test/Hspec/QuickCheck.hs
-extra-tmp-files:
+             Hspec is roughly based on the Ruby library RSpec. However, Hspec is just a framework for running HUnit and QuickCheck tests. Compared to other options, it provides a much nicer syntax that makes tests very easy to read.
+
+exposed:        True
+buildable:      True
+extensions:     FlexibleInstances
+other-modules: Specs
+ghc-options: -Wall
+
+build-depends: HUnit >=1 && <=2,
+               QuickCheck >=2.4.0.1 && <=2.5,
+               base >=4 && <=5,
+               silently == 1.1.1,
+               ansi-terminal == 0.5.5,
+               transformers >= 0.2.0 && < 0.3.0
+
+extra-source-files: ./Specs.hs ./Test/Hspec/HUnit.hs
+                    ./Test/Hspec/Runner.hs ./Test/Hspec/Monadic.hs
+                    ./Test/Hspec/Formatters.hs
+                    ./Test/Hspec/Core.hs ./Test/Hspec/QuickCheck.hs
+
 exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
                  Test.Hspec.Runner Test.Hspec.Monadic
                  Test.Hspec.Formatters Test.Hspec.QuickCheck
-exposed: True
-buildable: True
-build-tools:
-cpp-options:
-cc-options:
-ld-options:
-pkgconfig-depends:
-frameworks:
-c-sources:
-extensions: FlexibleInstances
-extra-libraries:
-extra-lib-dirs:
-includes:
-install-includes:
-include-dirs:
-hs-source-dirs: . src
-other-modules: Specs
-ghc-prof-options:
-ghc-shared-options:
-ghc-options: -Wall
-hugs-options:
-nhc98-options:
-jhc-options:

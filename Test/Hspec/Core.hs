@@ -94,9 +94,15 @@ pending :: String  -- ^ An explanation for why this behavior is pending.
 pending = Pending
 
 
-
 failedCount :: [Spec] -> Int
 failedCount ss = length $ filter (isFailure.result) ss
+
+failure :: [Spec] -> Bool
+failure = any (isFailure.result)
+
+success :: [Spec] -> Bool
+success = not . failure
+
 
 isFailure :: Result -> Bool
 isFailure (Fail _) = True
