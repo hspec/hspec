@@ -76,7 +76,7 @@ module Test.Hspec.Monadic (
 ) where
 
 import System.IO
-import Test.Hspec.Core hiding (describe,it)
+import Test.Hspec.Core hiding (describe,descriptions,it)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 
@@ -106,10 +106,15 @@ hHspec :: Handle -> Specs -> IO [Spec]
 hHspec h = Runner.hHspec h . runSpecM
 
 runSpecM :: Specs -> IO [IO Spec]
-runSpecM specs = descriptions $ execWriter specs
+runSpecM specs = Core.descriptions $ execWriter specs
 
 describe :: String -> Writer [ItSpec] () -> Specs
 describe label action = tell [Core.describe label (execWriter action)]
+
+-- | Combine a list of descriptions. (Note that descriptions can also
+-- be combined with monadic sequencing.)
+descriptions :: [Specs] -> Specs
+descriptions = sequence_
 
 it :: SpecVerifier v => String -> v -> Writer [ItSpec] ()
 it label action = tell [Core.it label action]
