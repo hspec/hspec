@@ -18,13 +18,13 @@ main :: IO ()
 main = do
   ar <- getArgs
   ss <- case ar of
-    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preable >> hHspec h specs)
+    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preamble >> hHspec h specs)
     [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
     _          -> hspec specs
   exitWith $ toExitCode (failedCount ss == 0)
 
-preable :: String
-preable = unlines [
+preamble :: String
+preamble = unlines [
     "hspec aims to be a simple, extendable, and useful tool for Behavior Driven Development in Haskell.", "",
     "",
     "Step 1, write descriptions and examples of your desired behavior",
