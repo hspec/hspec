@@ -4,7 +4,7 @@ module Specs where
 import Test.Hspec
 import Test.Hspec.Runner (hHspecWithFormat, toExitCode)
 import Test.Hspec.Core (Spec(..),Result(..),quantify,failedCount)
-import Test.Hspec.Formatters (specdoc)
+import Test.Hspec.Formatters
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import System.IO
@@ -92,6 +92,9 @@ specs = do
           it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
 
   (reportContents, exampleSpecs) <- capture $ hHspecWithFormat (specdoc False) stdout testSpecs
+  (silentReportContents, _) <- capture $ hHspecWithFormat (silent False) stdout testSpecs
+  (progressReportContents, _) <- capture $ hHspecWithFormat (progress False) stdout testSpecs
+  (failed_examplesReportContents, _) <- capture $ hHspecWithFormat (failed_examples False) stdout testSpecs
 
   let report = lines reportContents
 
@@ -184,6 +187,19 @@ specs = do
 
         it "accepts a message to display in the report"
             (any (== "     # pending message") report)
+    ],
+    describe "the \"hHspecWithFormat\" function" [
+        it "can use the \"silent\" formatter to show no output"
+            (null silentReportContents),
+
+        it "can use the \"progress\" formatter to show '..F...FF.F' style output"
+            (HUnit.assertEqual "" ".F.FFF" (head $ lines progressReportContents)),
+
+        it "can use the \"specdoc\" formatter to show all examples (default)"
+            (HUnit.assertEqual "" "Example" (lines reportContents !! 1)),
+
+        it "can use the \"failed_examples\" formatter to show only failed examples"
+            (HUnit.assertEqual "" " x fail 1 FAILED [1]" (head $ lines failed_examplesReportContents))
     ],
     describe "quantify (an internal function)" [
         it "returns an amount and a word given an amount and word"

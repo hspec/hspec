@@ -95,12 +95,18 @@ pending as an example
  - is specified with the "pending" function and an explanation
  - accepts a message to display in the report
 
+the "hHspecWithFormat" function
+ - can use the "silent" formatter to show no output
+ - can use the "progress" formatter to show '..F...FF.F' style output
+ - can use the "specdoc" formatter to show all examples (default)
+ - can use the "failed_examples" formatter to show only failed examples
+
 quantify (an internal function)
  - returns an amount and a word given an amount and word
  - returns a singular word given the number 1
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-Finished in 0.0498 seconds
+Finished in 0.0627 seconds
 
-29 examples, 0 failures
+33 examples, 0 failures
