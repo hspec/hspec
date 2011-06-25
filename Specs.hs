@@ -214,4 +214,3 @@ specs = do
         it "returns a plural word given the number 0"
             (quantify (0::Int) "thing" == "0 things")
     ]]
-

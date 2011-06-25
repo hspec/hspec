@@ -12,6 +12,7 @@ import System.IO
 import System.CPUTime (getCPUTime)
 import Control.Monad (when)
 import System.Exit
+import Control.Exception (bracket_)
 
 type Specs = [IO Spec]
 
@@ -60,14 +61,17 @@ hHspec h = hHspecWithFormat (specdoc $ h == stdout) h
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
 hHspecWithFormat :: Formatter -> Handle -> IO Specs -> IO [Spec]
-hHspecWithFormat formatter h ss = do
-  t0 <- getCPUTime
-  ioSpecList <- ss
-  specList <- (runFormatter formatter) h "" [] ioSpecList
-  t1 <- getCPUTime
-  let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
-  (footerFormatter formatter) h specList runTime
-  return specList
+hHspecWithFormat formatter h ss =
+  bracket_ (when (usesFormatting formatter) $ restoreFormat h)
+           (when (usesFormatting formatter) $ restoreFormat h)
+           (do
+         t0 <- getCPUTime
+         ioSpecList <- ss
+         specList <- runFormatter formatter h "" [] ioSpecList
+         t1 <- getCPUTime
+         let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
+         (footerFormatter formatter) h specList runTime
+         return specList)
 
 toExitCode :: Bool -> ExitCode
 toExitCode True  = ExitSuccess

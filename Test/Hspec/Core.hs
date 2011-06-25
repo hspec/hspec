@@ -28,7 +28,8 @@ data Formatter = Formatter { exampleGroupStarted :: Handle -> Spec -> IO (),
                              exampleFailed   :: Handle -> Spec -> [String] -> IO (),
                              examplePending  :: Handle -> Spec -> [String] -> IO (),
                              errorsFormatter :: Handle -> [String] -> IO (),
-                             footerFormatter :: Handle -> [Spec] -> Double -> IO () }
+                             footerFormatter :: Handle -> [Spec] -> Double -> IO (),
+                             usesFormatting  :: Bool }
 
 
 -- | Create a set of specifications for a specific type being described.

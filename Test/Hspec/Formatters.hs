@@ -2,6 +2,7 @@
 -- They follow a structure similar to RSpec formatters.
 --
 module Test.Hspec.Formatters (
+  restoreFormat,
   silent, specdoc, progress, failed_examples
 ) where
 
@@ -13,18 +14,19 @@ import Control.Monad (when)
 import System.Console.ANSI
 
 silent :: Bool -> Formatter
-silent _ = Formatter {
+silent useColor = Formatter {
   exampleGroupStarted = \ _ _ -> return (),
   examplePassed = \ _ _ _ -> return (),
   exampleFailed = \ _ _ _ -> return (),
   examplePending = \ _ _ _ -> return (),
   errorsFormatter = \ _ _ -> return (),
-  footerFormatter = \ _ _ _ -> return ()
+  footerFormatter = \ _ _ _ -> return (),
+  usesFormatting = useColor
   }
 
 
 specdoc :: Bool -> Formatter
-specdoc useColor = Formatter {
+specdoc useColor = (silent useColor) {
   exampleGroupStarted = \ h spec -> do
     when useColor (normalColor h)
     hPutStr h ('\n' : name spec ++ "\n"),
@@ -58,7 +60,7 @@ specdoc useColor = Formatter {
 
 
 progress :: Bool -> Formatter
-progress useColor = Formatter {
+progress useColor = (silent useColor) {
   exampleGroupStarted = \ _ _ -> return (),
 
   examplePassed = \ h _ _ -> do
@@ -89,7 +91,7 @@ progress useColor = Formatter {
 
 
 failed_examples :: Bool -> Formatter
-failed_examples useColor = Formatter {
+failed_examples useColor = (silent useColor) {
   exampleGroupStarted = \ _ _ -> return (),
 
   examplePassed = \ _ _ _ -> return (),
@@ -126,3 +128,6 @@ pendingColor h = hSetSGR h [ SetColor Foreground Dull Yellow ]
 
 normalColor :: Handle -> IO()
 normalColor h = hSetSGR h [ Reset ]
+
+restoreFormat :: Handle -> IO()
+restoreFormat h = hSetSGR h [ Reset ]
