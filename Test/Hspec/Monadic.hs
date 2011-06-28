@@ -71,7 +71,7 @@ module Test.Hspec.Monadic (
   -- alternate "runner" functions
   hHspec,
   -- this is just for internal use
-  ItSpec
+  ItSpec, runSpecM
 
 ) where
 

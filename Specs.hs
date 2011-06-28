@@ -199,7 +199,7 @@ specs = do
             (HUnit.assertEqual "" "Example" (lines reportContents !! 1)),
 
         it "can use the \"failed_examples\" formatter to show only failed examples"
-            (HUnit.assertEqual "" " x fail 1 FAILED [1]" (head $ lines failed_examplesReportContents))
+            (HUnit.assertEqual "" "1) Example fail 1 FAILED" (lines failed_examplesReportContents !! 1))
     ],
     describe "quantify (an internal function)" [
         it "returns an amount and a word given an amount and word"

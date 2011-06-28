@@ -1,6 +1,6 @@
 name:           hspec
-version:        0.6.2
-cabal-version:  -any
+version:        0.7
+cabal-version:  >= 1.8
 build-type:     Custom
 license:        BSD3
 license-file:   LICENSE
@@ -17,24 +17,39 @@ description: Behavior Driven Development for Haskell
              .
              Hspec is roughly based on the Ruby library RSpec. However, Hspec is just a framework for running HUnit and QuickCheck tests. Compared to other options, it provides a much nicer syntax that makes tests very easy to read.
 
-exposed:        True
-buildable:      True
-extensions:     FlexibleInstances
-other-modules: Specs
-ghc-options: -Wall
-
-build-depends: HUnit >=1 && <=2,
-               QuickCheck >=2.4.0.1 && <=2.5,
-               base >=4 && <=5,
-               silently >= 1.1.1 && < 2,
-               ansi-terminal == 0.5.5,
-               transformers >= 0.2.0 && < 0.3.0
-
 extra-source-files: ./Specs.hs ./Test/Hspec/HUnit.hs
                     ./Test/Hspec/Runner.hs ./Test/Hspec/Monadic.hs
                     ./Test/Hspec/Formatters.hs
                     ./Test/Hspec/Core.hs ./Test/Hspec/QuickCheck.hs
 
-exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
-                 Test.Hspec.Runner Test.Hspec.Monadic
-                 Test.Hspec.Formatters Test.Hspec.QuickCheck
+Executable hspec
+  main-is: hspec.hs
+  build-depends: hspec == 0.7,
+                 base >=4 && <=5,
+                 regex-posix >= 0.9,
+                 plugins == 1.5.1.4,
+                 HUnit >=1 && <=2,
+                 QuickCheck >=2.4.0.1 && <=2.5,
+                 base >=4 && <=5,
+                 silently >= 1.1.1 && < 2,
+                 ansi-terminal == 0.5.5,
+                 transformers >= 0.2.0 && < 0.3.0
+
+Library
+  exposed:        True
+  buildable:      True
+  extensions:     FlexibleInstances
+  other-modules: Specs
+  ghc-options: -Wall
+
+  build-depends: HUnit >=1 && <=2,
+                 QuickCheck >=2.4.0.1 && <=2.5,
+                 base >=4 && <=5,
+                 silently >= 1.1.1 && < 2,
+                 ansi-terminal == 0.5.5,
+                 transformers >= 0.2.0 && < 0.3.0
+
+  exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
+                   Test.Hspec.Runner Test.Hspec.Monadic
+                   Test.Hspec.Formatters Test.Hspec.QuickCheck
+

@@ -61,7 +61,6 @@ specdoc useColor = (silent useColor) {
 
 progress :: Bool -> Formatter
 progress useColor = (silent useColor) {
-  exampleGroupStarted = \ _ _ -> return (),
 
   examplePassed = \ h _ _ -> do
     when useColor (passColor h)
@@ -92,16 +91,6 @@ progress useColor = (silent useColor) {
 
 failed_examples :: Bool -> Formatter
 failed_examples useColor = (silent useColor) {
-  exampleGroupStarted = \ _ _ -> return (),
-
-  examplePassed = \ _ _ _ -> return (),
-
-  exampleFailed = \ h spec errors -> do
-    when useColor (failColor h)
-    hPutStrLn h $ " x " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]",
-
-  examplePending = \ _ _ _ -> return (),
-
   errorsFormatter = \ h errors -> do
     when useColor (failColor h)
     mapM_ (hPutStrLn h) ("" : intersperse "" errors)
