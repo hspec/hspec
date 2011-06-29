@@ -15,6 +15,7 @@ import System.Console.ANSI
 
 silent :: Bool -> Formatter
 silent useColor = Formatter {
+  formatterName = "silent",
   exampleGroupStarted = \ _ _ -> return (),
   examplePassed = \ _ _ _ -> return (),
   exampleFailed = \ _ _ _ -> return (),
@@ -27,6 +28,8 @@ silent useColor = Formatter {
 
 specdoc :: Bool -> Formatter
 specdoc useColor = (silent useColor) {
+  formatterName = "specdoc",
+
   exampleGroupStarted = \ h spec -> do
     when useColor (normalColor h)
     hPutStr h ('\n' : name spec ++ "\n"),
@@ -61,6 +64,7 @@ specdoc useColor = (silent useColor) {
 
 progress :: Bool -> Formatter
 progress useColor = (silent useColor) {
+  formatterName = "progress",
 
   examplePassed = \ h _ _ -> do
     when useColor (passColor h)
@@ -91,6 +95,8 @@ progress useColor = (silent useColor) {
 
 failed_examples :: Bool -> Formatter
 failed_examples useColor = (silent useColor) {
+  formatterName = "failed_examples",
+
   errorsFormatter = \ h errors -> do
     when useColor (failColor h)
     mapM_ (hPutStrLn h) ("" : intersperse "" errors)

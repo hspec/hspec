@@ -2,6 +2,9 @@ hspec aims to be a simple, extendable, and useful tool for Behavior Driven Devel
 
 
 Step 1, write descriptions and examples of your desired behavior
+> module Myabs where
+>
+> specs :: IO Specs
 > specs = describe "myabs" [
 >   it "returns the original number when given a positive input"
 >     (myabs 1 == 1),
@@ -16,8 +19,9 @@ Step 1, write descriptions and examples of your desired behavior
 Step 2, write whatever you are describing
 > myabs n = undefined
 
-Step 3, watch your examples fail with red text
-> hspec specs
+Step 3, watch your examples fail with red text by running from the .hs file itself
+> main = hspec specs
+
 myabs
  x returns the original number when given a positive input FAILED [1]
  x returns a positive number when given a negative input FAILED [2]
@@ -36,11 +40,14 @@ Finished in 0.0002 seconds
 
 3 examples, 3 failures
 
+
+Specs can also be run from the command line using the hspec program
+  Trystans-MacBook-Pro:hspec Trystan$ hspec myabs.hs
+
 Step 4, implement your desired behavior
 > myabs n = if n < 0 then negate n else n
 
-Step 5, watch your examples pass with green text
-> hspec specs
+Step 5, watch your examples pass with green text when rerun
 myabs
  - returns the original number when given a positive input
  - returns a positive number when given a negative input
@@ -107,6 +114,6 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-Finished in 0.0627 seconds
+Finished in 0.0584 seconds
 
 33 examples, 0 failures

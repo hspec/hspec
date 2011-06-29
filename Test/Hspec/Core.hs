@@ -23,7 +23,8 @@ data Spec = Spec {
                  -- | The status of this behavior.
                  result::Result }
 
-data Formatter = Formatter { exampleGroupStarted :: Handle -> Spec -> IO (),
+data Formatter = Formatter { formatterName   :: String,
+                             exampleGroupStarted :: Handle -> Spec -> IO (),
                              examplePassed   :: Handle -> Spec -> [String] -> IO (),
                              exampleFailed   :: Handle -> Spec -> [String] -> IO (),
                              examplePending  :: Handle -> Spec -> [String] -> IO (),
@@ -31,6 +32,11 @@ data Formatter = Formatter { exampleGroupStarted :: Handle -> Spec -> IO (),
                              footerFormatter :: Handle -> [Spec] -> Double -> IO (),
                              usesFormatting  :: Bool }
 
+instance Show Formatter where
+  show = formatterName
+
+instance Eq Formatter where
+  (==) a b = formatterName a == formatterName b
 
 -- | Create a set of specifications for a specific type being described.
 -- Once you know what you want specs for, use this.

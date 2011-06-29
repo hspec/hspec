@@ -1,7 +1,12 @@
+module Main where
+
 import Test.Hspec
 import Test.Hspec.Core
 import Test.Hspec.Runner
 import Test.Hspec.Formatters
+import Test.Hspec.HUnit ()
+import qualified Test.HUnit as HUnit
+import qualified Test.Hspec.Monadic
 import qualified Test.Hspec.Monadic as Monadic
 import Text.Regex.Posix
 import System.Environment
@@ -16,11 +21,13 @@ import Data.List (intersperse)
 main :: IO ()
 main = do
   args <- getArgs
-  let (actions, filenames, errors) = getOpt RequireOrder options args
-      opts = (foldl (.) id actions) startOptions
-      formatter = getFormatter (formatterName opts) (useColor opts)
+  let (filenames, errors, opts, formatter) = getOptions args
   if help opts
    then printHelp
+   else if runSelfSpecs opts
+   then do
+     Monadic.hspecX allSpecs
+     return ()
    else if not $ null errors
    then do
      mapM_ putStrLn errors
@@ -32,10 +39,18 @@ main = do
      printHelp
      exitFailure
    else do
+     runSpecsFromFiles filenames opts formatter
+
+runSpecsFromFiles :: [String] -> Options -> Formatter -> IO ()
+runSpecsFromFiles filenames opts formatter = do
      specsList <- mapM (getSpecsFromFile opts) filenames
      results <- runSpecs opts formatter (concat specsList)
      exitWith . toExitCode . success $ results
 
+getOptions args = (filenames, errors, opts, formatter)
+    where (actions, filenames, errors) = getOpt RequireOrder options args
+          opts = (foldl (.) id actions) startOptions
+          formatter = getFormatter (formatterToUse opts) (useColor opts)
 
 
 
@@ -82,31 +97,49 @@ removeLineComment []           = fail "bad line comment"
 
 
 
+getDeclerations :: String -> String -> [String]
+getDeclerations pattern contents = map head matches
+  where matches = (contents =~ pattern) :: [[String]]
 
+
+getSpecDeclerations :: String -> [String]
+getSpecDeclerations = getDeclerations "^[^ ]+ *:: *(Test\\.Hspec\\.)?Specs\\w*$"
 
 getSpecs :: String -> String -> IO [IO Spec]
 getSpecs filename contents = do
-  let matches = (contents =~ "[^ ]+ *:: *(Test\\.Hspec\\.)?Specs") :: [[String]]
-  specs <- mapM (\ m -> loadSpecs filename (getName $ head m) :: IO [IO Spec]) matches
+  let names = getSpecDeclerations contents
+  specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO [IO Spec]) names
   return $ concat specs
+
+
+getIOSpecDeclerations :: String -> [String]
+getIOSpecDeclerations = getDeclerations "^[^ ]+ *:: *IO +(Test\\.Hspec\\.)?Specs\\w*$"
 
 getIOSpecs :: String -> String -> IO [IO Spec]
 getIOSpecs filename contents = do
-  let matches = (contents =~ "[^ ]+ *:: *IO +(Test\\.Hspec\\.)?Specs") :: [[String]]
-  specs <- sequence =<< mapM (\ m -> loadSpecs filename (getName $ head m) :: IO (IO [IO Spec])) matches
+  let names = getIOSpecDeclerations contents
+  specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO [IO Spec])) names
   return $ concat specs
+
+
+getMonadicSpecDeclerations :: String -> [String]
+getMonadicSpecDeclerations = getDeclerations "^[^ ]+ *:: *Test\\.Hspec\\.Monadic\\.Specs\\w*$"
 
 getMonadicSpecs :: String -> String -> IO [IO Spec]
 getMonadicSpecs filename contents = do
-  let matches = (contents =~ "[^ ]+ *:: *Test\\.Hspec\\.Monadic\\.Specs") :: [[String]]
-  specs <- mapM (\ m -> loadSpecs filename (getName $ head m) :: IO Monadic.Specs) matches
+  let names = getMonadicSpecDeclerations contents
+  specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO Monadic.Specs) names
   specs2 <- mapM Monadic.runSpecM specs
   return $ concat specs2
 
+
+getMonadicIOSpecDeclerations :: String -> [String]
+getMonadicIOSpecDeclerations = getDeclerations "^[^ ]+ *:: *IO +Test\\.Hspec\\.Monadic\\.Specs\\w*$"
+
 getMonadicIOSpecs :: String -> String -> IO [IO Spec]
 getMonadicIOSpecs filename contents = do
-  let matches = (contents =~ "[^ ]+ *:: *IO +Test\\.Hspec\\.Monadic\\.Specs") :: [[String]]
-  specs <- sequence =<< mapM (\ m -> loadSpecs filename (getName $ head m) :: IO (IO Monadic.Specs)) matches
+  let names = getMonadicIOSpecDeclerations contents
+  specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO Monadic.Specs)) names
   specs2 <- mapM Monadic.runSpecM specs
   return $ concat specs2
 
@@ -148,7 +181,7 @@ getFormatter _ = specdoc
 
 useColor :: Options -> Bool
 useColor opts = case color opts of
-            Nothing -> output opts == "stdout"
+            Nothing -> output opts `elem` ["stdout","stderr"]
             Just x  -> x
 
 withHandle :: String -> (Handle -> IO a) -> IO a
@@ -162,29 +195,34 @@ withHandle filename f = bracket (openFile filename WriteMode)
 
 
 data Options = Options {
-                formatterName :: String,
+                formatterToUse :: String,
                 output :: String,
                 specificExample :: Maybe String,
                 color :: Maybe Bool,
-                help :: Bool }
+                help :: Bool,
+                runSelfSpecs :: Bool }
 
 startOptions :: Options
 startOptions = Options {
-                formatterName = "specdoc",
+                formatterToUse = "specdoc",
                 output = "stdout",
                 specificExample = Nothing,
                 color = Nothing,
-                help = False }
+                help = False,
+                runSelfSpecs = False }
+
+trim :: String -> String
+trim = reverse . dropWhile (==' ') . reverse . dropWhile (==' ')
 
 options :: [OptDescr (Options -> Options)]
 options =
   [ Option "f" ["format"]
-      (ReqArg (\x s -> s { formatterName = map toLower x }) "FORMAT")
+      (ReqArg (\x s -> s { formatterToUse = trim $ map toLower x }) "FORMAT")
       "Specifies what format to use for output.\n\
       \By default the specdoc format is used.\n\
       \FORMAT can be silent, progress, specdoc, or failed_examples."
   , Option "o" ["output"]
-      (ReqArg (\x s -> s { output = x }) "FILE_NAME")
+      (ReqArg (\x s -> s { output = trim $ x }) "FILE_NAME")
       "Specifies the file to use for output.\n\
       \By default output is directed to stdout.\n\
       \FILE_NAME can be stdout or stderr for those handles."
@@ -193,12 +231,15 @@ options =
 --      "Only execute examples with a matching description.\n\
 --      \By default all examples are executed."
   , Option "c" ["color"]
-      (ReqArg (\ x s -> s { color = Just (map toLower x == "true") }) "TRUE|FALSE")
+      (ReqArg (\ x s -> s { color = Just (map toLower (trim x) == "true") }) "TRUE|FALSE")
       "Force output to have or not have red and green color.\n\
       \By default color is only used when output is directed to stdout."
   , Option "h?" ["help"]
       (NoArg (\ s -> s { help = True }))
       "Display this help."
+  , Option "" ["specs"]
+      (NoArg (\ s -> s { runSelfSpecs = True }))
+      "Display the specs for the hspec command line runner itself."
   ]
 
 helpInfo :: String
@@ -210,3 +251,136 @@ helpInfo = "hspec searches through the specified files and runs any \
 
 printHelp :: IO ()
 printHelp = putStrLn $ usageInfo helpInfo options
+
+
+
+
+allSpecs :: Test.Hspec.Monadic.Specs
+allSpecs = do
+       commandLineSpecs
+       formatSpecs
+       colorSpecs
+       findingSpecsSpecs
+
+commandLineSpecs :: Test.Hspec.Monadic.Specs
+commandLineSpecs = let test :: (Eq a, Show a) => String -> a -> (Options -> a) -> IO ()
+                       test arg expected func = HUnit.assertEqual arg expected (func opts)
+                        where (_, _, opts, _) = getOptions (words arg)
+  in Monadic.describe "hspec command line runner" $ do
+        Monadic.it "accepts -h, -?, and --help to get help"
+          (do
+           test "-h" True help
+           test "-?" True help
+           test "--help" True help
+           test "" False help)
+
+        Monadic.it "accepts -c or --color to set weather or not to color the output"
+          (do
+           test "-c false" (Just False) color
+           test "-c true" (Just True) color
+           test "--color false" (Just False) color
+           test "--color true" (Just True) color
+           test "" Nothing color)
+
+        Monadic.it "accepts -f or --format and a formatter name to use"
+          (do
+           test "-f progress" "progress" formatterToUse
+           test "--format progress" "progress" formatterToUse
+           test "" "specdoc" formatterToUse)
+
+        Monadic.it "accepts -o or --output and a filename to output to"
+          (do
+           test "-o foo.txt" "foo.txt" output
+           test "--output foo.txt" "foo.txt" output
+           test "" "stdout" output)
+
+        Monadic.it "accepts -o or --output and stdout or stderr to output to"
+          (do
+           test "-o stderr" "stderr" output
+           test "--output stdout" "stdout" output)
+
+        Monadic.it "accepts --specs to display it's own specs"
+          (do
+           test "--specs" True runSelfSpecs
+           test "" False runSelfSpecs)
+
+        Monadic.it "requires one or more filenames to search"
+          (let args = ["a", "b"]
+               (files, _, _, _) = getOptions args
+           in HUnit.assertEqual (unwords args) args files)
+
+
+formatSpecs :: Test.Hspec.Monadic.Specs
+formatSpecs = let test :: String -> (Bool -> Formatter) -> IO ()
+                  test arg expected = HUnit.assertEqual arg (expected False) (getFormatter (formatterToUse opts) $ False)
+                   where (_, _, opts, _) = getOptions ["--format", arg]
+  in Monadic.describe "the --format option" $ do
+        Monadic.it "allows the \"silent\" formatter"
+          (test "silent" silent)
+
+        Monadic.it "allows the \"progress\" formatter"
+          (test "progress" progress)
+
+        Monadic.it "allows the \"specdoc\" formatter"
+          (test "specdoc" specdoc)
+
+        Monadic.it "allows the \"failed_examples\" formatter"
+          (test "failed_examples" failed_examples)
+
+        Monadic.it "uses \"specdoc\" by default"
+          (test "" specdoc)
+
+
+colorSpecs :: Test.Hspec.Monadic.Specs
+colorSpecs = let test :: String -> String -> Bool -> IO ()
+                 test colorArg outputArg expected = HUnit.assertEqual (unwords args) expected (useColor opts)
+                  where args = if colorArg == "" then ["-o", outputArg] else ["-c", colorArg, "-o", outputArg]
+                        (_, _, opts, _) = getOptions args
+  in Monadic.describe "the --color option" $ do
+        Monadic.it "allows \"true\" to force color output"
+          (test "true" "stdout" True)
+
+        Monadic.it "allows \"false\" to force non-color output"
+          (test "false" "stdout" False)
+
+        Monadic.it "by default, uses color when outputing to stdout"
+          (test "" "stdout" True)
+
+        Monadic.it "by default, uses color when outputing to stderr"
+          (test "" "stderr" True)
+
+        Monadic.it "by default, doesn't color when outputing to a file"
+          (test "" "foo.txt" False)
+
+
+findingSpecsSpecs :: Test.Hspec.Monadic.Specs
+findingSpecsSpecs = let test :: String -> [String] -> IO ()
+                        test contents expected = HUnit.assertEqual contents expected decs
+                         where decs = concat [ getSpecDeclerations contents,
+                                               getIOSpecDeclerations contents,
+                                               getMonadicSpecDeclerations contents,
+                                               getMonadicIOSpecDeclerations contents ]
+  in Monadic.describe "hspec" $ do
+        Monadic.it "finds top level definitions of type \"Specs\""
+          (test "\ntest :: Specs\ntest = undefined\n"
+                ["test :: Specs"])
+
+        Monadic.it "finds top level definitions of type \"IO Specs\""
+          (test "\ntest :: IO Specs\ntest = undefined\n"
+                ["test :: IO Specs"])
+
+        Monadic.it "finds top level definitions of type \"Test.Hspec.Specs\""
+          (test "\ntest :: Test.Hspec.Specs\ntest = undefined\n"
+                ["test :: Test.Hspec.Specs"])
+
+        Monadic.it "finds top level definitions of type \"IO Test.Hspec.Specs\""
+          (test "\ntest :: IO Test.Hspec.Specs\ntest = undefined\n"
+                ["test :: IO Test.Hspec.Specs"])
+
+        Monadic.it "finds top level definitions of type \"Test.Hspec.Monadic.Specs\""
+          (test "\ntest :: Test.Hspec.Monadic.Specs\ntest = undefined\n"
+                ["test :: Test.Hspec.Monadic.Specs"])
+
+        Monadic.it "finds top level definitions of type \"IO Test.Hspec.Monadic.Specs\""
+          (test "\ntest :: IO Test.Hspec.Monadic.Specs\ntest = undefined\n"
+                ["test :: IO Test.Hspec.Monadic.Specs"])
