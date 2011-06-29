@@ -11,6 +11,8 @@ import qualified Test.Hspec.Monadic as Monadic
 import Text.Regex.Posix
 import System.Environment
 import System.IO
+import System.Directory
+import System.FilePath
 import System.Exit
 import System.Plugins
 import System.Console.GetOpt
@@ -18,10 +20,15 @@ import Control.Exception
 import Data.Char (toLower,toUpper,isAlphaNum)
 import Data.List (intersperse)
 
+
+debug :: Options -> String -> IO ()
+debug opts msg = if verbose opts then putStrLn (" [verbose] " ++ msg) else return ()
+
 main :: IO ()
 main = do
   args <- getArgs
-  let (filenames, errors, opts, formatter) = getOptions args
+  let (targets, errors, opts, formatter) = getOptions args
+  filenames <- getFileNamesToSearchFromList (getTargets targets)
   if help opts
    then printHelp
    else if runSelfSpecs opts
@@ -35,17 +42,24 @@ main = do
      exitFailure
    else if null filenames
    then do
-     putStrLn "must specify at least one input file\n"
+     putStrLn "no valid *.hs files found\n"
      printHelp
      exitFailure
    else do
      runSpecsFromFiles filenames opts formatter
 
+getTargets :: [String] -> [String]
+getTargets [] = ["."]
+getTargets xs = xs
+
 runSpecsFromFiles :: [String] -> Options -> Formatter -> IO ()
 runSpecsFromFiles filenames opts formatter = do
-     specsList <- mapM (getSpecsFromFile opts) filenames
-     results <- runSpecs opts formatter (concat specsList)
-     exitWith . toExitCode . success $ results
+     specsList <- fmap concat $ mapM (getSpecsFromFile opts) filenames
+     if null specsList
+      then putStrLn "no specs found"
+      else do
+       results <- runSpecs opts formatter specsList
+       exitWith . toExitCode . success $ results
 
 getOptions args = (filenames, errors, opts, formatter)
     where (actions, filenames, errors) = getOpt RequireOrder options args
@@ -53,21 +67,48 @@ getOptions args = (filenames, errors, opts, formatter)
           formatter = getFormatter (formatterToUse opts) (useColor opts)
 
 
+getFileNamesToSearchFromList :: [String] -> IO [String]
+getFileNamesToSearchFromList names = do
+    files <- mapM getFileNamesToSearch names
+    return $ concat files
+
+getFileNamesToSearch :: String -> IO [String]
+getFileNamesToSearch name = do
+  isFile <- doesFileExist name
+  isDir <- doesDirectoryExist name
+  if isFile
+   then if takeExtension name == ".hs"
+        then return [name]
+        else return []
+   else if isDir
+   then do
+    names <- getDirectoryContents name
+    let validNames = map (combine name) $ filter ((/='.').head) names
+    getFileNamesToSearchFromList validNames
+   else fail $ name ++ " is not a valid *.hs file or directory name"
+
 
 getSpecsFromFile :: Options -> String -> IO [IO Spec]
 getSpecsFromFile opts filename = do
   contents <- readFile filename
-  if hasModuleHeader contents
+  if contents =~ "^module Main where$"
    then do
-     s1 <- getSpecs filename contents
-     s2 <- getIOSpecs filename contents
-     ms1 <- getMonadicSpecs filename contents
-     ms2 <- getMonadicIOSpecs filename contents
+     debug opts $ "skipping " ++ filename ++ " because it is a Main module and those can't be dynamically loaded."
+     return []
+   else if hasModuleHeader contents
+   then do
+     debug opts $ "seaching " ++ filename
+     (s1,n1) <- getSpecs filename contents
+     (s2,n2) <- getIOSpecs filename contents
+     (ms1,n3) <- getMonadicSpecs filename contents
+     (ms2,n4) <- getMonadicIOSpecs filename contents
+     mapM (debug opts) (map ("  "++) (concat $ [n1, n2, n3, n4]))
      return (s1 ++ s2 ++ ms1 ++ ms2)
    else do
-      let cleanName = takeWhile (/='.') $ toUpper (head filename) : tail filename
-      putStrLn $ filename ++ " must have a module header (like \"module " ++ cleanName ++ " where\")"
-      fail $ "invalid file " ++ filename
+      let justName = takeFileName filename
+          cleanName = dropExtension $ toUpper (head justName) : tail justName
+      debug opts $ "skipping " ++ filename ++ " because only library modules (like \"module " ++ cleanName ++ " where\") can be dynamically loaded."
+      return []
 
 
 hasModuleHeader :: String -> Bool
@@ -97,51 +138,51 @@ removeLineComment []           = fail "bad line comment"
 
 
 
-getDeclerations :: String -> String -> [String]
-getDeclerations pattern contents = map head matches
+getDeclariations :: String -> String -> [String]
+getDeclariations pattern contents = map head matches
   where matches = (contents =~ pattern) :: [[String]]
 
 
-getSpecDeclerations :: String -> [String]
-getSpecDeclerations = getDeclerations "^[^ ]+ *:: *(Test\\.Hspec\\.)?Specs\\w*$"
+getSpecDeclariations :: String -> [String]
+getSpecDeclariations = getDeclariations "^[^ ]+ *:: *(Test\\.Hspec\\.)?Specs\\w*$"
 
-getSpecs :: String -> String -> IO [IO Spec]
+getSpecs :: String -> String -> IO ([IO Spec],[String])
 getSpecs filename contents = do
-  let names = getSpecDeclerations contents
+  let names = getSpecDeclariations contents
   specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO [IO Spec]) names
-  return $ concat specs
+  return (concat specs, names)
 
 
-getIOSpecDeclerations :: String -> [String]
-getIOSpecDeclerations = getDeclerations "^[^ ]+ *:: *IO +(Test\\.Hspec\\.)?Specs\\w*$"
+getIOSpecDeclariations :: String -> [String]
+getIOSpecDeclariations = getDeclariations "^[^ ]+ *:: *IO +(Test\\.Hspec\\.)?Specs\\w*$"
 
-getIOSpecs :: String -> String -> IO [IO Spec]
+getIOSpecs :: String -> String -> IO ([IO Spec],[String])
 getIOSpecs filename contents = do
-  let names = getIOSpecDeclerations contents
+  let names = getIOSpecDeclariations contents
   specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO [IO Spec])) names
-  return $ concat specs
+  return (concat specs, names)
 
 
-getMonadicSpecDeclerations :: String -> [String]
-getMonadicSpecDeclerations = getDeclerations "^[^ ]+ *:: *Test\\.Hspec\\.Monadic\\.Specs\\w*$"
+getMonadicSpecDeclariations :: String -> [String]
+getMonadicSpecDeclariations = getDeclariations "^[^ ]+ *:: *Test\\.Hspec\\.Monadic\\.Specs\\w*$"
 
-getMonadicSpecs :: String -> String -> IO [IO Spec]
+getMonadicSpecs :: String -> String -> IO ([IO Spec],[String])
 getMonadicSpecs filename contents = do
-  let names = getMonadicSpecDeclerations contents
+  let names = getMonadicSpecDeclariations contents
   specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO Monadic.Specs) names
   specs2 <- mapM Monadic.runSpecM specs
-  return $ concat specs2
+  return (concat specs2, names)
 
 
-getMonadicIOSpecDeclerations :: String -> [String]
-getMonadicIOSpecDeclerations = getDeclerations "^[^ ]+ *:: *IO +Test\\.Hspec\\.Monadic\\.Specs\\w*$"
+getMonadicIOSpecDeclariations :: String -> [String]
+getMonadicIOSpecDeclariations = getDeclariations "^[^ ]+ *:: *IO +Test\\.Hspec\\.Monadic\\.Specs\\w*$"
 
-getMonadicIOSpecs :: String -> String -> IO [IO Spec]
+getMonadicIOSpecs :: String -> String -> IO ([IO Spec],[String])
 getMonadicIOSpecs filename contents = do
-  let names = getMonadicIOSpecDeclerations contents
+  let names = getMonadicIOSpecDeclariations contents
   specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO Monadic.Specs)) names
   specs2 <- mapM Monadic.runSpecM specs
-  return $ concat specs2
+  return (concat specs2, names)
 
 
 runSpecs :: Options -> Formatter -> [IO Spec] -> IO [Spec]
@@ -200,7 +241,8 @@ data Options = Options {
                 specificExample :: Maybe String,
                 color :: Maybe Bool,
                 help :: Bool,
-                runSelfSpecs :: Bool }
+                runSelfSpecs :: Bool,
+                verbose :: Bool }
 
 startOptions :: Options
 startOptions = Options {
@@ -209,7 +251,8 @@ startOptions = Options {
                 specificExample = Nothing,
                 color = Nothing,
                 help = False,
-                runSelfSpecs = False }
+                runSelfSpecs = False,
+                verbose = False }
 
 trim :: String -> String
 trim = reverse . dropWhile (==' ') . reverse . dropWhile (==' ')
@@ -237,17 +280,21 @@ options =
   , Option "h?" ["help"]
       (NoArg (\ s -> s { help = True }))
       "Display this help."
+  , Option "v" ["verbose"]
+      (NoArg (\ s -> s { verbose = True }))
+      "Display detailed information about what hspec is doing."
   , Option "" ["specs"]
       (NoArg (\ s -> s { runSelfSpecs = True }))
       "Display the specs for the hspec command line runner itself."
   ]
 
 helpInfo :: String
-helpInfo = "hspec searches through the specified files and runs any \
-           \top level items with a type of `Specs` or `IO Specs`. \
-           \Monadic specs must be fully qualified, list-based specs \
-           \may be qualified or not. \n\n\
-           \usage: hspec [OPTIONS] file1 [file2...]"
+helpInfo = "hspec searches through files or folders and runs any top level declarations with \
+           \a type of `Specs` or `IO Specs`. Monadic specs must be fully qualified, \
+           \list-based specs may be qualified or not. You can specify specific *.hs \
+           \files or directories to search through or let hspec search the current \
+           \directory tree for specs to run.\n\n\
+           \usage: hspec [OPTIONS] [TARGET_LIST]"
 
 printHelp :: IO ()
 printHelp = putStrLn $ usageInfo helpInfo options
@@ -258,6 +305,7 @@ printHelp = putStrLn $ usageInfo helpInfo options
 allSpecs :: Test.Hspec.Monadic.Specs
 allSpecs = do
        commandLineSpecs
+       targetSpecs
        formatSpecs
        colorSpecs
        findingSpecsSpecs
@@ -304,10 +352,33 @@ commandLineSpecs = let test :: (Eq a, Show a) => String -> a -> (Options -> a) -
            test "--specs" True runSelfSpecs
            test "" False runSelfSpecs)
 
-        Monadic.it "requires one or more filenames to search"
+        Monadic.it "accepts -v or --verbose to display extra details"
+          (do
+           test "-v" True verbose
+           test "--verbose" True verbose
+           test "" False verbose)
+
+        Monadic.it "accepts one or more targets to search"
           (let args = ["a", "b"]
                (files, _, _, _) = getOptions args
            in HUnit.assertEqual (unwords args) args files)
+
+        Monadic.it "defaults to the current directory tree if no targets are specified"
+          (HUnit.assertEqual "" ["."] (getTargets []))
+
+
+targetSpecs :: Test.Hspec.Monadic.Specs
+targetSpecs = Monadic.describe "an hspec target" $ do
+        Monadic.it "can be a file name to run all specs in that file"
+          (do
+          filenames <- getFileNamesToSearchFromList ["hspec.hs"]
+          HUnit.assertEqual "hspec.hs" ["hspec.hs"] filenames)
+
+        Monadic.it "can be a directory name to run all specs in that directory tree"
+          (do
+          filenames <- getFileNamesToSearchFromList ["."]
+          HUnit.assertBool "hspec.hs" ("./hspec.hs" `elem` filenames))
+
 
 
 formatSpecs :: Test.Hspec.Monadic.Specs
@@ -356,10 +427,10 @@ colorSpecs = let test :: String -> String -> Bool -> IO ()
 findingSpecsSpecs :: Test.Hspec.Monadic.Specs
 findingSpecsSpecs = let test :: String -> [String] -> IO ()
                         test contents expected = HUnit.assertEqual contents expected decs
-                         where decs = concat [ getSpecDeclerations contents,
-                                               getIOSpecDeclerations contents,
-                                               getMonadicSpecDeclerations contents,
-                                               getMonadicIOSpecDeclerations contents ]
+                         where decs = concat [ getSpecDeclariations contents,
+                                               getIOSpecDeclariations contents,
+                                               getMonadicSpecDeclariations contents,
+                                               getMonadicIOSpecDeclariations contents ]
   in Monadic.describe "hspec" $ do
         Monadic.it "finds top level definitions of type \"Specs\""
           (test "\ntest :: Specs\ntest = undefined\n"
