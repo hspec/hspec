@@ -33,7 +33,9 @@ Executable hspec
                  base >=4 && <=5,
                  silently >= 1.1.1 && < 2,
                  ansi-terminal == 0.5.5,
-                 transformers >= 0.2.0 && < 0.3.0
+                 transformers >= 0.2.0 && < 0.3.0,
+                 filepath >= 1.1,
+                 directory >= 1
 
 Library
   exposed:        True
