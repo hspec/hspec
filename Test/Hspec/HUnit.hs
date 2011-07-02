@@ -22,15 +22,15 @@ import qualified Test.HUnit as HU
 import Data.List (intersperse)
 
 instance SpecVerifier (IO ()) where
-  it description example = it description (HU.TestCase example)
+  it itDescription example = it itDescription (HU.TestCase example)
 
 instance SpecVerifier HU.Test where
-  it description example = do
+  it itDescription example = do
     (counts, fails) <- silence $ HU.runTestText HU.putTextToShowS example
     let r' = if HU.errors counts + HU.failures counts == 0
              then Success
              else Fail (details $ fails "")
-    return (description, r')
+    return $ ItSpec itDescription r'
 
 details :: String -> String
 details = concat . intersperse "\n" . tail . init . lines

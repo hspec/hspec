@@ -17,11 +17,11 @@ silent :: Bool -> Formatter
 silent useColor = Formatter {
   formatterName = "silent",
   exampleGroupStarted = \ _ _ -> return (),
-  examplePassed = \ _ _ _ -> return (),
-  exampleFailed = \ _ _ _ -> return (),
-  examplePending = \ _ _ _ -> return (),
-  errorsFormatter = \ _ _ -> return (),
-  footerFormatter = \ _ _ _ -> return (),
+  examplePassed = \ _ _ -> return (),
+  exampleFailed = \ _ _ -> return (),
+  examplePending = \ _ _ -> return (),
+  errorsFormatter = \ _ -> return (),
+  footerFormatter = \ _ _ -> return (),
   usesFormatting = useColor
   }
 
@@ -66,15 +66,15 @@ progress :: Bool -> Formatter
 progress useColor = (silent useColor) {
   formatterName = "progress",
 
-  examplePassed = \ h _ _ -> do
+  examplePassed = \ h -> do
     when useColor (passColor h)
     hPutStr h ".",
 
-  exampleFailed = \ h _ _ -> do
+  exampleFailed = \ h -> do
     when useColor (failColor h)
     hPutStr h "F",
 
-  examplePending = \ h _ _ -> do
+  examplePending = \ h -> do
     when useColor (pendingColor h)
     hPutStr h $ ".",
 

@@ -8,26 +8,29 @@ module Test.Hspec.Core where
 import System.IO
 import System.IO.Silently
 import Control.Exception
-import Control.Monad (liftM)
 
 -- | The result of running an example.
 data Result = Success | Fail String | Pending String
   deriving Eq
 
 -- | Everything needed to specify and show a specific behavior.
+data SpecTree = DescribeSpec String [SpecTree]
+              | ItSpec String Result
+
 data Spec = Spec {
                  -- | What is being tested, usually the name of a type.
                  name::String,
                  -- | The specific behavior being tested.
                  requirement::String,
                  -- | The status of this behavior.
-                 result::Result }
+                 result::Result
+            }
 
 data Formatter = Formatter { formatterName   :: String,
                              exampleGroupStarted :: Handle -> Spec -> IO (),
-                             examplePassed   :: Handle -> Spec -> [String] -> IO (),
-                             exampleFailed   :: Handle -> Spec -> [String] -> IO (),
-                             examplePending  :: Handle -> Spec -> [String] -> IO (),
+                             examplePassed   :: Handle -> Spec -> IO (),
+                             exampleFailed   :: Handle -> Spec -> IO (),
+                             examplePending  :: Handle -> Spec -> IO (),
                              errorsFormatter :: Handle -> [String] -> IO (),
                              footerFormatter :: Handle -> [Spec] -> Double -> IO (),
                              usesFormatting  :: Bool }
@@ -46,14 +49,21 @@ instance Eq Formatter where
 -- >     (abs (-1) == 1)
 -- >   ]
 --
-describe :: String                -- ^ The name of what is being described, usually a function or type.
-         -> [IO (String, Result)] -- ^ A list of behaviors and examples, created by a list of 'it'.
-         -> IO [IO Spec]
-describe n = return . map (>>= \ (req, res) -> return (Spec n req res))
+describe :: String    -- ^ The name of what is being described, usually a function or type.
+         -> [IO SpecTree] -- ^ A list of behaviors and examples, created by a list of 'it'.
+         -> IO SpecTree   -- ^ The lies of behaviors wrapped in describe
+describe named specs =
+  sequence specs >>= return . DescribeSpec named
 
 -- | Combine a list of descriptions.
-descriptions :: [IO [IO Spec]] -> IO [IO Spec]
-descriptions = liftM concat . sequence
+descriptions :: [IO SpecTree] -> IO [Spec]
+descriptions tree =
+  sequence tree >>= return . concatMap (toSpec "")
+  where
+    toSpec :: String -> SpecTree -> [Spec]
+    toSpec group (ItSpec n spec) = [Spec group n spec]
+    toSpec parentGroup (DescribeSpec group specs) =
+      concatMap (toSpec (parentGroup ++ group)) specs
 
 -- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
 safely :: Result -> IO Result
@@ -76,17 +86,17 @@ class SpecVerifier a where
   --
   it :: String           -- ^ A description of this behavior.
      -> a                -- ^ An example for this behavior.
-     -> IO (String, Result)
+     -> IO SpecTree
 
 instance SpecVerifier Bool where
-  it description example = do
+  it itDescription example = do
     r <- safely (if example then Success else Fail "")
-    return (description, r)
+    return $ ItSpec itDescription r
 
 instance SpecVerifier Result where
-  it description example = do
+  it itDescription example = do
     r <- safely example
-    return (description, r)
+    return $ ItSpec itDescription r
 
 -- | Declare an example as not successful or failing but pending some other work.
 -- If you want to report on a behavior but don't have an example yet, use this.

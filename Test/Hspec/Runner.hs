@@ -14,25 +14,26 @@ import Control.Monad (when)
 import System.Exit
 import Control.Exception (bracket_)
 
-type Specs = [IO Spec]
+type Specs = IO [Spec]
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> Handle -> String -> [String] -> Specs -> IO [Spec]
-runFormatter formatter h _     errors []     = do
-  errorsFormatter formatter h (reverse errors)
-  return []
-runFormatter formatter h group errors (iospec:ioss) = do
-  spec <- iospec
-  when (group /= name spec) (exampleGroupStarted formatter h spec)
-  case result spec of
-    (Success  ) -> examplePassed formatter h spec errors
-    (Fail _   ) -> exampleFailed formatter h spec errors
-    (Pending _) -> examplePending formatter h spec errors
-  let errors' = if isFailure (result spec)
-                then errorDetails spec (length errors) : errors
-                else errors
-  specs <- runFormatter formatter h (name spec) errors' ioss
-  return $ spec : specs
+runFormatter :: Formatter -> Handle -> Specs -> Specs
+runFormatter formatter handle iospecs = do
+    specs <- iospecs
+    errors <- mapM (runFormatter' "" []) specs
+    errorsFormatter formatter handle (reverse errors)
+    return specs
+  where
+    runFormatter' :: String -> [String] -> Spec -> IO String
+    runFormatter' group errors spec = do
+      when (group /= name spec) (exampleGroupStarted formatter handle spec)
+      case result spec of
+        (Success  ) -> examplePassed formatter handle spec
+        (Fail _   ) -> exampleFailed formatter handle spec
+        (Pending _) -> examplePending formatter handle spec
+      if isFailure (result spec)
+                    then errorDetails spec (length errors) : errors
+                    else errors
 
 errorDetails :: Spec -> Int -> String
 errorDetails spec i = case result spec of
@@ -67,7 +68,7 @@ hHspecWithFormat formatter h ss =
            (do
          t0 <- getCPUTime
          ioSpecList <- ss
-         specList <- runFormatter formatter h "" [] ioSpecList
+         specList <- runFormatter formatter h ioSpecList
          t1 <- getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
          (footerFormatter formatter) h specList runTime

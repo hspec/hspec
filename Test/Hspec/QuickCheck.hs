@@ -43,4 +43,4 @@ instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
               f@(QC.Failure {})       -> Fail (QC.output f)
               g@(QC.GaveUp {})        -> Fail ("Gave up after " ++ quantify (QC.numTests g) "test" )
               QC.NoExpectedFailure {} -> Fail ("No expected failure")
-    return (description, r')
+    return $ SpecIt description r'
