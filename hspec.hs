@@ -55,10 +55,16 @@ getTargets xs = xs
 runSpecsFromFiles :: [String] -> Options -> Formatter -> IO ()
 runSpecsFromFiles filenames opts formatter = do
      specsList <- fmap concat $ mapM (getSpecsFromFile opts) filenames
-     if null specsList
-      then putStrLn "no specs found"
+     (specsToRun, noneMessage) <- case specificExample opts of
+                  Nothing      -> return (specsList, "no specs found")
+                  Just pattern -> do
+                      debug opts $ "only running descriptions matching \"" ++ pattern ++ "\""
+                      s <- filterSpecificSpecs pattern specsList
+                      return (s, "no specs matching \"" ++ pattern ++ "\" found")
+     if null specsToRun
+      then putStrLn noneMessage
       else do
-       results <- runSpecs opts formatter specsList
+       results <- runSpecs opts formatter specsToRun
        exitWith . toExitCode . success $ results
 
 getOptions args = (filenames, errors, opts, formatter)
@@ -207,9 +213,9 @@ loadSpecs filename name = do
     LoadSuccess _ v  -> return v
 
 
---getSpecificSpecs :: String -> [IO Spec] -> IO [IO Spec]
---getSpecificSpecs pattern specs = sequence specs >>= return . map return . filter p
---  where p s = requirement s =~ pattern
+filterSpecificSpecs :: String -> [IO Spec] -> IO [IO Spec]
+filterSpecificSpecs pattern specs = sequence specs >>= return . map return . filter p
+  where p s = requirement s =~ pattern
 
 
 
@@ -269,10 +275,10 @@ options =
       "Specifies the file to use for output.\n\
       \By default output is directed to stdout.\n\
       \FILE_NAME can be stdout or stderr for those handles."
---  , Option "e" ["example"]
---      (ReqArg (\x s -> s { specificExample = Just x }) "REGEX")
---      "Only execute examples with a matching description.\n\
---      \By default all examples are executed."
+  , Option "e" ["example"]
+      (ReqArg (\x s -> s { specificExample = Just x }) "REGEX")
+      "Only execute examples with a matching description.\n\
+      \By default all examples are executed."
   , Option "c" ["color"]
       (ReqArg (\ x s -> s { color = Just (map toLower (trim x) == "true") }) "TRUE|FALSE")
       "Force output to have or not have red and green color.\n\
