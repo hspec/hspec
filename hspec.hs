@@ -54,24 +54,51 @@ getTargets xs = xs
 
 runSpecsFromFiles :: [String] -> Options -> Formatter -> IO ()
 runSpecsFromFiles filenames opts formatter = do
-     specsList <- fmap concat $ mapM (getSpecsFromFile opts) filenames
-     (specsToRun, noneMessage) <- case specificExample opts of
-                  Nothing      -> return (specsList, "no specs found")
-                  Just pattern -> do
-                      debug opts $ "only running descriptions matching \"" ++ pattern ++ "\""
-                      s <- filterSpecificSpecs pattern specsList
-                      return (s, "no specs matching \"" ++ pattern ++ "\" found")
+     allSpecsFound <- fmap concat $ mapM (getSpecsFromFile opts) filenames
+     (matchingSpecs, noneMessage) <- filterByExampleOption opts allSpecsFound
+     specsToRun <- filterByRerunOption opts matchingSpecs
      if null specsToRun
       then putStrLn noneMessage
       else do
        results <- runSpecs opts formatter specsToRun
+       writeToLastRunFile opts results
        exitWith . toExitCode . success $ results
-
+	
 getOptions args = (filenames, errors, opts, formatter)
     where (actions, filenames, errors) = getOpt RequireOrder options args
           opts = (foldl (.) id actions) startOptions
           formatter = getFormatter (formatterToUse opts) (useColor opts)
 
+writeToLastRunFile :: Options -> [Spec] -> IO ()
+writeToLastRunFile opts results = do
+       let fileName = lastRunFile opts
+           failedExamples = unlines [ requirement s | s <- results, isFailure (result s)]
+       if null failedExamples
+         then do
+           debug opts $ "removing " ++ fileName ++ " since there are no failed examples"
+           removeFile fileName
+         else do
+           debug opts $ "writing failed examples to " ++ fileName
+           writeFile fileName failedExamples
+
+filterByExampleOption :: Options -> [IO Spec] -> IO ([IO Spec], String)
+filterByExampleOption opts specs = case specificExample opts of
+                                    Nothing      -> return (specs, "no specs found")
+                                    Just pattern -> do
+                                        debug opts $ "only running descriptions matching \"" ++ pattern ++ "\""
+                                        s <- filterSpecsByRegex pattern specs
+                                        return (s, "no specs matching \"" ++ pattern ++ "\" found")
+
+filterByRerunOption :: Options -> [IO Spec] -> IO [IO Spec]
+filterByRerunOption opts specs
+  | lastRunOption opts == RunFailed = do
+    isFile <- doesFileExist (lastRunFile opts)
+    if isFile
+      then do
+        failedDescriptions <- readFile (lastRunFile opts)
+        filterExactSpecs (lines failedDescriptions) specs
+      else return specs
+  | otherwise = return specs
 
 getFileNamesToSearchFromList :: [String] -> IO [String]
 getFileNamesToSearchFromList names = do
@@ -213,9 +240,13 @@ loadSpecs filename name = do
     LoadSuccess _ v  -> return v
 
 
-filterSpecificSpecs :: String -> [IO Spec] -> IO [IO Spec]
-filterSpecificSpecs pattern specs = sequence specs >>= return . map return . filter p
+filterSpecsByRegex :: String -> [IO Spec] -> IO [IO Spec]
+filterSpecsByRegex pattern specs = sequence specs >>= return . map return . filter p
   where p s = requirement s =~ pattern
+
+filterExactSpecs :: [String] -> [IO Spec] -> IO [IO Spec]
+filterExactSpecs ok specs = sequence specs >>= return . map return . filter p
+  where p s = requirement s `elem` ok
 
 
 
@@ -239,7 +270,8 @@ withHandle filename f = bracket (openFile filename WriteMode)
                                 (f)
 
 
-
+data LastRunOption = RunAll | RunFailed
+  deriving Eq
 
 data Options = Options {
                 formatterToUse :: String,
@@ -248,7 +280,9 @@ data Options = Options {
                 color :: Maybe Bool,
                 help :: Bool,
                 runSelfSpecs :: Bool,
-                verbose :: Bool }
+                verbose :: Bool,
+                lastRunFile :: String,
+                lastRunOption :: LastRunOption }
 
 startOptions :: Options
 startOptions = Options {
@@ -258,7 +292,9 @@ startOptions = Options {
                 color = Nothing,
                 help = False,
                 runSelfSpecs = False,
-                verbose = False }
+                verbose = False,
+                lastRunFile = ".hspecLastRun",
+                lastRunOption = RunAll }
 
 trim :: String -> String
 trim = reverse . dropWhile (==' ') . reverse . dropWhile (==' ')
@@ -283,6 +319,19 @@ options =
       (ReqArg (\ x s -> s { color = Just (map toLower (trim x) == "true") }) "TRUE|FALSE")
       "Force output to have or not have red and green color.\n\
       \By default color is only used when output is directed to stdout."
+  , Option "" ["runfile"]
+      (ReqArg (\ x s -> s { lastRunFile = x }) "FILE_NAME")
+      "Use a specific file to log the last run results. This is read when using the --rerun option.\n\
+      \By default the file \".hspecLastRun\" logs the last run results."
+  , Option "r" ["rerun"]
+      (ReqArg (\ x s -> let opt = case map toLower (trim x) of
+                                    "all"    -> RunAll
+                                    "failed" -> RunFailed
+                                    _        -> error $ "unsupported run option \"" ++ x ++ "\""
+                        in s { lastRunOption = opt }) "RERUNOPT")
+      "Rerun a specific subset of specs. This looks at the last run file specified by --runfile.\n\
+      \RERUNOPT can be \"all\" or \"failed\".\n\
+      \By default the last run file is ignored and all specs are run."
   , Option "h?" ["help"]
       (NoArg (\ s -> s { help = True }))
       "Display this help."
