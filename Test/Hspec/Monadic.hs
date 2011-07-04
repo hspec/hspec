@@ -65,7 +65,7 @@
 --
 module Test.Hspec.Monadic (
   -- types
-  Spec(), Result(),Specs,
+  Spec(), Result(), SpecWriter,
   -- the main api
   describe, it, hspec, hspecB, hspecX, pending, descriptions,
   -- alternate "runner" functions
@@ -82,7 +82,7 @@ import qualified Test.Hspec.Runner as Runner
 
 import Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
-type SpecWriter = Writer [IO SpecTree] ()
+type SpecWriter = Writer [IO Spec] ()
 
 -- | Create a document of the given specs and write it to stdout.
 hspec :: SpecWriter -> IO [Spec]
@@ -107,7 +107,7 @@ runSpecM :: SpecWriter -> IO [Spec]
 runSpecM specs = Core.descriptions $ execWriter specs
 
 describe :: String -> SpecWriter -> SpecWriter
-describe label action = tell [Core.describe label (execWriter action)]
+describe desc action = tell [Core.describe desc (execWriter action)]
 
 it :: SpecVerifier v => String -> v -> SpecWriter
 it label action = tell [Core.it label action]

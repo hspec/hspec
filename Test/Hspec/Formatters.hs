@@ -17,11 +17,11 @@ silent :: Bool -> Formatter
 silent useColor = Formatter {
   formatterName = "silent",
   exampleGroupStarted = \ _ _ -> return (),
-  examplePassed = \ _ _ -> return (),
-  exampleFailed = \ _ _ -> return (),
-  examplePending = \ _ _ -> return (),
-  errorsFormatter = \ _ -> return (),
-  footerFormatter = \ _ _ -> return (),
+  examplePassed = \ _ _ _ -> return (),
+  exampleFailed = \ _ _ _ -> return (),
+  examplePending = \ _ _ _ -> return (),
+  errorsFormatter = \ _ _ -> return (),
+  footerFormatter = \ _ _ _ -> return (),
   usesFormatting = useColor
   }
 
@@ -30,9 +30,9 @@ specdoc :: Bool -> Formatter
 specdoc useColor = (silent useColor) {
   formatterName = "specdoc",
 
-  exampleGroupStarted = \ h spec -> do
+  exampleGroupStarted = \ h desc -> do
     when useColor (normalColor h)
-    hPutStr h ('\n' : name spec ++ "\n"),
+    hPutStr h ('\n' : desc ++ "\n"),
 
   examplePassed = \ h spec _ -> do
     when useColor (passColor h)
@@ -56,7 +56,7 @@ specdoc useColor = (silent useColor) {
     when useColor (if failedCount specs == 0 then passColor h else failColor h)
     hPutStrLn h $ printf "Finished in %1.4f seconds" time
     hPutStrLn h ""
-    hPutStr   h $ quantify (length specs) "example" ++ ", "
+    hPutStr   h $ quantify (length $ results specs) "example" ++ ", "
     hPutStrLn h $ quantify (failedCount specs) "failure"
     when useColor (normalColor h)
   }
@@ -66,15 +66,15 @@ progress :: Bool -> Formatter
 progress useColor = (silent useColor) {
   formatterName = "progress",
 
-  examplePassed = \ h -> do
+  examplePassed = \ h _ _ -> do
     when useColor (passColor h)
     hPutStr h ".",
 
-  exampleFailed = \ h -> do
+  exampleFailed = \ h _ _ -> do
     when useColor (failColor h)
     hPutStr h "F",
 
-  examplePending = \ h -> do
+  examplePending = \ h _ _ -> do
     when useColor (pendingColor h)
     hPutStr h $ ".",
 

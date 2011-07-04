@@ -88,37 +88,42 @@ preamble = unlines [
     "",
     "Here's the report of hspec's behavior:" ]
 
-specs :: IO Specs
+specs :: IO [Spec]
 specs = do
-  let testSpecs = describe "Example" [
+  let testSpecs = descriptions $ [
+        describe "Example" [
           it "pass" (Success),
           it "fail 1" (Fail "fail message"),
           it "pending" (Pending "pending message"),
           it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
           it "exceptions" (undefined :: Bool),
-          it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
+          it "quickcheck" (property $ \ i -> i == (i+1::Integer))
+          ]
+        ]
 
   (reportContents, exampleSpecs) <- capture $ hHspecWithFormat (specdoc False) stdout testSpecs
   (silentReportContents, _) <- capture $ hHspecWithFormat (silent False) stdout testSpecs
   (progressReportContents, _) <- capture $ hHspecWithFormat (progress False) stdout testSpecs
   (failed_examplesReportContents, _) <- capture $ hHspecWithFormat (failed_examples False) stdout testSpecs
 
+  let exampleSpec = head exampleSpecs
   let report = lines reportContents
+  print report
 
   descriptions [
     describe "the \"describe\" function" [
         it "takes a description of what the behavior is for"
-            ((=="Example") . name . head $ exampleSpecs),
+            (((=="Example") . description) exampleSpec),
 
         it "groups behaviors for what's being described"
-            (all ((=="Example").name) exampleSpecs)
+            (6 == (length $ itSpecs exampleSpec))
     ],
     describe "the \"it\" function" [
         it "takes a description of a desired behavior"
-            (requirement (Spec "Example" "whatever" Success) == "whatever" ),
+            (requirement (ItSpec "whatever" Success) == "whatever" ),
 
         it "takes an example of that behavior"
-            (result (Spec "Example" "whatever" Success) == Success),
+            (result (ItSpec "whatever" Success) == Success),
 
         it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
             (True),
@@ -170,12 +175,16 @@ specs = do
 
         it "will show the failed assertion text if available (e.g. assertBool)"
             (HUnit.TestCase $ do
-              (innerReport, _) <- capture $ hspec $ describe "" [ it "" (HUnit.assertBool "trivial" False)]
+              (innerReport, _) <- capture $ hspec $ descriptions [
+                  describe "" [ it "" (HUnit.assertBool "trivial" False)]
+                ]
               HUnit.assertBool "should find assertion text" $ any (=="trivial") (lines innerReport)),
 
         it "will show the failed assertion expected and actual values if available (e.g. assertEqual)"
             (HUnit.TestCase $ do
-              (innerReportContents, _) <- capture $ hspec $ describe "" [ it "" (HUnit.assertEqual "trivial" (1::Int) 2)]
+              (innerReportContents, _) <- capture $ hspec $ descriptions [
+                  describe "" [ it "" (HUnit.assertEqual "trivial" (1::Int) 2)]
+                ]
               let innerReport = lines innerReportContents
               HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
               HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport

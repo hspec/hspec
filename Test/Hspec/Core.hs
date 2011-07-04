@@ -14,12 +14,11 @@ data Result = Success | Fail String | Pending String
   deriving Eq
 
 -- | Everything needed to specify and show a specific behavior.
-data SpecTree = DescribeSpec String [SpecTree]
-              | ItSpec String Result
-
-data Spec = Spec {
-                 -- | What is being tested, usually the name of a type.
-                 name::String,
+data Spec = DescribeSpec {
+              description :: String,
+              itSpecs :: [Spec]
+            }
+          | ItSpec {
                  -- | The specific behavior being tested.
                  requirement::String,
                  -- | The status of this behavior.
@@ -27,10 +26,10 @@ data Spec = Spec {
             }
 
 data Formatter = Formatter { formatterName   :: String,
-                             exampleGroupStarted :: Handle -> Spec -> IO (),
-                             examplePassed   :: Handle -> Spec -> IO (),
-                             exampleFailed   :: Handle -> Spec -> IO (),
-                             examplePending  :: Handle -> Spec -> IO (),
+                             exampleGroupStarted :: Handle -> String -> IO (),
+                             examplePassed   :: Handle -> Spec -> [String] -> IO (),
+                             exampleFailed   :: Handle -> Spec -> [String] -> IO (),
+                             examplePending  :: Handle -> Spec -> [String] -> IO (),
                              errorsFormatter :: Handle -> [String] -> IO (),
                              footerFormatter :: Handle -> [Spec] -> Double -> IO (),
                              usesFormatting  :: Bool }
@@ -50,20 +49,14 @@ instance Eq Formatter where
 -- >   ]
 --
 describe :: String    -- ^ The name of what is being described, usually a function or type.
-         -> [IO SpecTree] -- ^ A list of behaviors and examples, created by a list of 'it'.
-         -> IO SpecTree   -- ^ The lies of behaviors wrapped in describe
+         -> [IO Spec] -- ^ A list of behaviors and examples, created by a list of 'it'.
+         -> IO Spec-- ^ The lies of behaviors wrapped in describe
 describe named specs =
   sequence specs >>= return . DescribeSpec named
 
 -- | Combine a list of descriptions.
-descriptions :: [IO SpecTree] -> IO [Spec]
-descriptions tree =
-  sequence tree >>= return . concatMap (toSpec "")
-  where
-    toSpec :: String -> SpecTree -> [Spec]
-    toSpec group (ItSpec n spec) = [Spec group n spec]
-    toSpec parentGroup (DescribeSpec group specs) =
-      concatMap (toSpec (parentGroup ++ group)) specs
+descriptions :: [IO Spec] -> IO [Spec]
+descriptions = sequence
 
 -- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
 safely :: Result -> IO Result
@@ -86,7 +79,7 @@ class SpecVerifier a where
   --
   it :: String           -- ^ A description of this behavior.
      -> a                -- ^ An example for this behavior.
-     -> IO SpecTree
+     -> IO Spec
 
 instance SpecVerifier Bool where
   it itDescription example = do
@@ -112,10 +105,15 @@ pending = Pending
 
 
 failedCount :: [Spec] -> Int
-failedCount ss = length $ filter (isFailure.result) ss
+failedCount ss = length $ filter isFailure (results ss)
+
+results :: [Spec] -> [Result]
+results = concatMap results'
+  where results' (DescribeSpec _ its) = concatMap results' its
+        results' (ItSpec _ res) = [res]
 
 failure :: [Spec] -> Bool
-failure = any (isFailure.result)
+failure = any isFailure . results
 
 success :: [Spec] -> Bool
 success = not . failure

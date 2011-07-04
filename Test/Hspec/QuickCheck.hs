@@ -32,7 +32,7 @@ property :: QC.Testable a => a -> QuickCheckProperty a
 property = QuickCheckProperty
 
 -- | Monadic DSL shortcut, use this instead of @it@
-prop :: QC.Testable t => String -> t -> Writer [DSL.ItSpec] ()
+prop :: QC.Testable t => String -> t -> Writer [IO Spec] ()
 prop n p = DSL.it n (QuickCheckProperty p)
 
 instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
@@ -43,4 +43,4 @@ instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
               f@(QC.Failure {})       -> Fail (QC.output f)
               g@(QC.GaveUp {})        -> Fail ("Gave up after " ++ quantify (QC.numTests g) "test" )
               QC.NoExpectedFailure {} -> Fail ("No expected failure")
-    return $ SpecIt description r'
+    return $ ItSpec description r'
