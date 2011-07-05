@@ -65,56 +65,49 @@
 --
 module Test.Hspec.Monadic (
   -- types
-  Spec(), Result(),Specs,
+  Spec(), Result(), SpecWriter,
   -- the main api
   describe, it, hspec, hspecB, hspecX, pending, descriptions,
   -- alternate "runner" functions
   hHspec,
   -- this is just for internal use
-  ItSpec, runSpecM
+  runSpecM
 
 ) where
 
 import System.IO
-import Test.Hspec.Core hiding (describe,descriptions,it)
+import Test.Hspec.Core hiding (describe,it)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 
 import Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
-type ItSpec = IO (String, Result)
-
-type Specs = Writer [IO [IO Spec]] ()
+type SpecWriter = Writer [IO Spec] ()
 
 -- | Create a document of the given specs and write it to stdout.
-hspec :: Specs -> IO [Spec]
+hspec :: SpecWriter -> IO [Spec]
 hspec = Runner.hspec . runSpecM
 
 -- | Use in place of @hspec@ to also exit the program with an @ExitCode@
-hspecX :: Specs -> IO a
+hspecX :: SpecWriter -> IO a
 hspecX = Runner.hspecX . runSpecM
 
 -- | Use in place of hspec to also give a @Bool@ success indication
-hspecB :: Specs -> IO Bool
+hspecB :: SpecWriter -> IO Bool
 hspecB = Runner.hspecB . runSpecM
 
 -- | Create a document of the given specs and write it to the given handle.
 --
 -- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
 --
-hHspec :: Handle -> Specs -> IO [Spec]
+hHspec :: Handle -> SpecWriter -> IO [Spec]
 hHspec h = Runner.hHspec h . runSpecM
 
-runSpecM :: Specs -> IO [IO Spec]
+runSpecM :: SpecWriter -> IO [Spec]
 runSpecM specs = Core.descriptions $ execWriter specs
 
-describe :: String -> Writer [ItSpec] () -> Specs
-describe label action = tell [Core.describe label (execWriter action)]
+describe :: String -> SpecWriter -> SpecWriter
+describe desc action = tell [Core.describe desc (execWriter action)]
 
--- | Combine a list of descriptions. (Note that descriptions can also
--- be combined with monadic sequencing.)
-descriptions :: [Specs] -> Specs
-descriptions = sequence_
-
-it :: SpecVerifier v => String -> v -> Writer [ItSpec] ()
+it :: SpecVerifier v => String -> v -> SpecWriter
 it label action = tell [Core.it label action]

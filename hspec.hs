@@ -61,7 +61,7 @@ runSpecsFromFiles filenames opts formatter = do
       then putStrLn noneMessage
       else do
        results <- runSpecs opts formatter specsToRun
-       writeToLastRunFile opts results
+       writeToLastRunFile opts (toIts results)
        exitWith . toExitCode . success $ results
 	
 getOptions args = (filenames, errors, opts, formatter)
@@ -81,22 +81,22 @@ writeToLastRunFile opts results = do
            debug opts $ "writing failed examples to " ++ fileName
            writeFile fileName failedExamples
 
-filterByExampleOption :: Options -> [IO Spec] -> IO ([IO Spec], String)
+filterByExampleOption :: Options -> [Spec] -> IO ([Spec], String)
 filterByExampleOption opts specs = case specificExample opts of
                                     Nothing      -> return (specs, "no specs found")
                                     Just pattern -> do
                                         debug opts $ "only running descriptions matching \"" ++ pattern ++ "\""
-                                        s <- filterSpecsByRegex pattern specs
+                                        let s = filterSpecsByRegex pattern specs
                                         return (s, "no specs matching \"" ++ pattern ++ "\" found")
 
-filterByRerunOption :: Options -> [IO Spec] -> IO [IO Spec]
+filterByRerunOption :: Options -> [Spec] -> IO [Spec]
 filterByRerunOption opts specs
   | lastRunOption opts == RunFailed = do
     isFile <- doesFileExist (lastRunFile opts)
     if isFile
       then do
         failedDescriptions <- readFile (lastRunFile opts)
-        filterExactSpecs (lines failedDescriptions) specs
+        return $ filterExactSpecs (lines failedDescriptions) specs
       else return specs
   | otherwise = return specs
 
@@ -121,7 +121,7 @@ getFileNamesToSearch name = do
    else fail $ name ++ " is not a valid *.hs file or directory name"
 
 
-getSpecsFromFile :: Options -> String -> IO [IO Spec]
+getSpecsFromFile :: Options -> String -> IO [Spec]
 getSpecsFromFile opts filename = do
   contents <- readFile filename
   if contents =~ "^module Main where$"
@@ -179,46 +179,46 @@ getDeclariations pattern contents = map head matches
 getSpecDeclariations :: String -> [String]
 getSpecDeclariations = getDeclariations "^[^ ]+ *:: *(Test\\.Hspec\\.)?Specs\\w*$"
 
-getSpecs :: String -> String -> IO ([IO Spec],[String])
+getSpecs :: String -> String -> IO ([Spec],[String])
 getSpecs filename contents = do
   let names = getSpecDeclariations contents
-  specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO [IO Spec]) names
+  specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO [Spec]) names
   return (concat specs, names)
 
 
 getIOSpecDeclariations :: String -> [String]
 getIOSpecDeclariations = getDeclariations "^[^ ]+ *:: *IO +(Test\\.Hspec\\.)?Specs\\w*$"
 
-getIOSpecs :: String -> String -> IO ([IO Spec],[String])
+getIOSpecs :: String -> String -> IO ([Spec],[String])
 getIOSpecs filename contents = do
   let names = getIOSpecDeclariations contents
-  specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO [IO Spec])) names
+  specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO [Spec])) names
   return (concat specs, names)
 
 
 getMonadicSpecDeclariations :: String -> [String]
-getMonadicSpecDeclariations = getDeclariations "^[^ ]+ *:: *Test\\.Hspec\\.Monadic\\.Specs\\w*$"
+getMonadicSpecDeclariations = getDeclariations "^[^ ]+ *:: *Test\\.Hspec\\.Monadic\\.SpecWriter\\w*$"
 
-getMonadicSpecs :: String -> String -> IO ([IO Spec],[String])
+getMonadicSpecs :: String -> String -> IO ([Spec],[String])
 getMonadicSpecs filename contents = do
   let names = getMonadicSpecDeclariations contents
-  specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO Monadic.Specs) names
-  specs2 <- mapM Monadic.runSpecM specs
+  specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO [Monadic.SpecWriter]) names
+  specs2 <- mapM Monadic.runSpecM (concat specs)
   return (concat specs2, names)
 
 
 getMonadicIOSpecDeclariations :: String -> [String]
 getMonadicIOSpecDeclariations = getDeclariations "^[^ ]+ *:: *IO +Test\\.Hspec\\.Monadic\\.Specs\\w*$"
 
-getMonadicIOSpecs :: String -> String -> IO ([IO Spec],[String])
+getMonadicIOSpecs :: String -> String -> IO ([Spec],[String])
 getMonadicIOSpecs filename contents = do
   let names = getMonadicIOSpecDeclariations contents
-  specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO Monadic.Specs)) names
-  specs2 <- mapM Monadic.runSpecM specs
+  specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n)) names
+  specs2 <- mapM Monadic.runSpecM (concat specs)
   return (concat specs2, names)
 
 
-runSpecs :: Options -> Formatter -> [IO Spec] -> IO [Spec]
+runSpecs :: Options -> Formatter -> [Spec] -> IO [Spec]
 runSpecs opts formatter specs = withHandle (output opts) work
   where work h = hHspecWithFormat formatter h (return specs)
 
@@ -240,12 +240,12 @@ loadSpecs filename name = do
     LoadSuccess _ v  -> return v
 
 
-filterSpecsByRegex :: String -> [IO Spec] -> IO [IO Spec]
-filterSpecsByRegex pattern specs = sequence specs >>= return . map return . filter p
+filterSpecsByRegex :: String -> [Spec] -> [Spec]
+filterSpecsByRegex pattern = filter p
   where p s = requirement s =~ pattern
 
-filterExactSpecs :: [String] -> [IO Spec] -> IO [IO Spec]
-filterExactSpecs ok specs = sequence specs >>= return . map return . filter p
+filterExactSpecs :: [String] -> [Spec] -> [Spec]
+filterExactSpecs ok = filter p
   where p s = requirement s `elem` ok
 
 
@@ -357,7 +357,7 @@ printHelp = putStrLn $ usageInfo helpInfo options
 
 
 
-allSpecs :: Test.Hspec.Monadic.Specs
+allSpecs :: Monadic.SpecWriter
 allSpecs = do
        commandLineSpecs
        targetSpecs
@@ -365,7 +365,7 @@ allSpecs = do
        colorSpecs
        findingSpecsSpecs
 
-commandLineSpecs :: Test.Hspec.Monadic.Specs
+commandLineSpecs :: Monadic.SpecWriter
 commandLineSpecs = let test :: (Eq a, Show a) => String -> a -> (Options -> a) -> IO ()
                        test arg expected func = HUnit.assertEqual arg expected (func opts)
                         where (_, _, opts, _) = getOptions (words arg)
@@ -422,7 +422,7 @@ commandLineSpecs = let test :: (Eq a, Show a) => String -> a -> (Options -> a) -
           (HUnit.assertEqual "" ["."] (getTargets []))
 
 
-targetSpecs :: Test.Hspec.Monadic.Specs
+targetSpecs :: Monadic.SpecWriter
 targetSpecs = Monadic.describe "an hspec target" $ do
         Monadic.it "can be a file name to run all specs in that file"
           (do
@@ -436,7 +436,7 @@ targetSpecs = Monadic.describe "an hspec target" $ do
 
 
 
-formatSpecs :: Test.Hspec.Monadic.Specs
+formatSpecs :: Monadic.SpecWriter
 formatSpecs = let test :: String -> (Bool -> Formatter) -> IO ()
                   test arg expected = HUnit.assertEqual arg (expected False) (getFormatter (formatterToUse opts) $ False)
                    where (_, _, opts, _) = getOptions ["--format", arg]
@@ -457,7 +457,7 @@ formatSpecs = let test :: String -> (Bool -> Formatter) -> IO ()
           (test "" specdoc)
 
 
-colorSpecs :: Test.Hspec.Monadic.Specs
+colorSpecs :: Monadic.SpecWriter
 colorSpecs = let test :: String -> String -> Bool -> IO ()
                  test colorArg outputArg expected = HUnit.assertEqual (unwords args) expected (useColor opts)
                   where args = if colorArg == "" then ["-o", outputArg] else ["-c", colorArg, "-o", outputArg]
@@ -479,7 +479,7 @@ colorSpecs = let test :: String -> String -> Bool -> IO ()
           (test "" "foo.txt" False)
 
 
-findingSpecsSpecs :: Test.Hspec.Monadic.Specs
+findingSpecsSpecs :: Monadic.SpecWriter
 findingSpecsSpecs = let test :: String -> [String] -> IO ()
                         test contents expected = HUnit.assertEqual contents expected decs
                          where decs = concat [ getSpecDeclariations contents,

@@ -73,7 +73,7 @@
 --
 module Test.Hspec (
   -- types
-  Spec(), Result(),Specs,
+  Spec(), Result(),
   -- the main api
   describe, it, hspec, hspecB, hspecX, pending, descriptions,
   -- alternate "runner" functions

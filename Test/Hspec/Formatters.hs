@@ -30,9 +30,9 @@ specdoc :: Bool -> Formatter
 specdoc useColor = (silent useColor) {
   formatterName = "specdoc",
 
-  exampleGroupStarted = \ h spec -> do
+  exampleGroupStarted = \ h desc -> do
     when useColor (normalColor h)
-    hPutStr h ('\n' : name spec ++ "\n"),
+    hPutStr h ('\n' : desc ++ "\n"),
 
   examplePassed = \ h spec _ -> do
     when useColor (passColor h)
@@ -56,7 +56,7 @@ specdoc useColor = (silent useColor) {
     when useColor (if failedCount specs == 0 then passColor h else failColor h)
     hPutStrLn h $ printf "Finished in %1.4f seconds" time
     hPutStrLn h ""
-    hPutStr   h $ quantify (length specs) "example" ++ ", "
+    hPutStr   h $ quantify (length $ results specs) "example" ++ ", "
     hPutStrLn h $ quantify (failedCount specs) "failure"
     when useColor (normalColor h)
   }
