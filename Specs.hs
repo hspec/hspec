@@ -69,7 +69,7 @@ preamble = unlines [
     "",
     "",
     "Specs can also be run from the command line using the hspec program",
-    "  Trystans-MacBook-Pro:hspec Trystan$ hspec myabs.hs",
+    "  $ hspec myabs.hs",
     "",
     "Step 4, implement your desired behavior",
     "> myabs n = if n < 0 then negate n else n",

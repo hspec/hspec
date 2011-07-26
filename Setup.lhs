@@ -7,6 +7,8 @@
 > import Distribution.Simple.LocalBuildInfo
 > import System.Cmd(system)
 > import Distribution.Simple.LocalBuildInfo
+> import Test.Hspec
+> import Specs (specs)
 >
 > main :: IO ()
 > main = defaultMainWithHooks hooks
@@ -14,8 +16,4 @@
 >                                   preSDist = \ _ _     -> runspecs >> return emptyHookedBuildInfo }
 >
 > runspecs :: IO ()
-> runspecs = do
->   result <- system "runhaskell ./Specs.hs"
->   if result == ExitSuccess
->    then return ()
->    else exitFailure
+> runspecs = specs >>= hspecX
