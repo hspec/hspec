@@ -14,15 +14,15 @@ import Control.Monad (when)
 import System.Exit
 import Control.Exception (bracket_)
 
-type Specs = [IO Spec]
+type Specs = [Spec]
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> Handle -> String -> [String] -> Specs -> IO [Spec]
+runFormatter :: Formatter -> Handle -> String -> [String] -> Specs -> IO Specs
 runFormatter formatter h _     errors []     = do
   errorsFormatter formatter h (reverse errors)
   return []
 runFormatter formatter h group errors (iospec:ioss) = do
-  spec <- iospec
+  spec <- evaluateSpec iospec
   when (group /= name spec) (exampleGroupStarted formatter h spec)
   case result spec of
     (Success  ) -> examplePassed formatter h spec errors
@@ -40,34 +40,33 @@ errorDetails spec i = case result spec of
   _           -> ""
 
 -- | Use in place of @hspec@ to also exit the program with an @ExitCode@
-hspecX :: IO Specs -> IO a
+hspecX :: Specs -> IO a
 hspecX ss = hspecB ss >>= exitWith . toExitCode
 
 -- | Use in place of hspec to also give a @Bool@ success indication
-hspecB :: IO Specs -> IO Bool
+hspecB :: Specs -> IO Bool
 hspecB ss = hspec ss >>= return . success
 
 -- | Create a document of the given specs and write it to stdout.
-hspec :: IO Specs -> IO [Spec]
+hspec :: Specs -> IO [Spec]
 hspec ss = hHspec stdout ss
 
 -- | Create a document of the given specs and write it to the given handle.
 --
 -- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
 --
-hHspec :: Handle -> IO Specs -> IO [Spec]
+hHspec :: Handle -> Specs -> IO Specs
 hHspec h = hHspecWithFormat (specdoc $ h == stdout) h
 
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
-hHspecWithFormat :: Formatter -> Handle -> IO Specs -> IO [Spec]
+hHspecWithFormat :: Formatter -> Handle -> Specs -> IO Specs
 hHspecWithFormat formatter h ss =
   bracket_ (when (usesFormatting formatter) $ restoreFormat h)
            (when (usesFormatting formatter) $ restoreFormat h)
            (do
          t0 <- getCPUTime
-         ioSpecList <- ss
-         specList <- runFormatter formatter h "" [] ioSpecList
+         specList <- runFormatter formatter h "" [] ss
          t1 <- getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
          (footerFormatter formatter) h specList runTime

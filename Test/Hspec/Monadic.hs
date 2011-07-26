@@ -63,6 +63,7 @@
 -- >   nums <- elements [7,10,11,12,13,14,15]
 -- >   vectorOf nums (elements "0123456789")
 --
+
 module Test.Hspec.Monadic (
   -- types
   Spec(), Result(),Specs,
@@ -72,7 +73,6 @@ module Test.Hspec.Monadic (
   hHspec,
   -- this is just for internal use
   ItSpec, runSpecM
-
 ) where
 
 import System.IO
@@ -82,9 +82,9 @@ import qualified Test.Hspec.Runner as Runner
 
 import Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
-type ItSpec = IO (String, Result)
+type ItSpec = String -> Spec
 
-type Specs = Writer [IO [IO Spec]] ()
+type Specs = Writer [Spec] ()
 
 -- | Create a document of the given specs and write it to stdout.
 hspec :: Specs -> IO [Spec]
@@ -105,16 +105,17 @@ hspecB = Runner.hspecB . runSpecM
 hHspec :: Handle -> Specs -> IO [Spec]
 hHspec h = Runner.hHspec h . runSpecM
 
-runSpecM :: Specs -> IO [IO Spec]
-runSpecM specs = Core.descriptions $ execWriter specs
+runSpecM :: Specs -> [Spec]
+runSpecM specs = execWriter specs
 
 describe :: String -> Writer [ItSpec] () -> Specs
-describe label action = tell [Core.describe label (execWriter action)]
+describe label action = tell $ Core.describe label (execWriter action)
 
 -- | Combine a list of descriptions. (Note that descriptions can also
 -- be combined with monadic sequencing.)
 descriptions :: [Specs] -> Specs
 descriptions = sequence_
 
-it :: SpecVerifier v => String -> v -> Writer [ItSpec] ()
+it :: Example v => String -> v -> Writer [ItSpec] ()
 it label action = tell [Core.it label action]
+

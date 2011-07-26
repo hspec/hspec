@@ -13,9 +13,7 @@
 -- >   ]
 --
 module Test.Hspec.QuickCheck (
-  property,
-  -- shortcut for the Monadic DSL
-  prop
+  property
 ) where
 
 import System.IO.Silently
@@ -35,12 +33,13 @@ property = QuickCheckProperty
 prop :: QC.Testable t => String -> t -> Writer [DSL.ItSpec] ()
 prop n p = DSL.it n (QuickCheckProperty p)
 
-instance QC.Testable t => SpecVerifier (QuickCheckProperty t) where
-  it description (QuickCheckProperty p) = do
+
+instance QC.Testable t => Example (QuickCheckProperty t) where
+  evaluateExample (QuickCheckProperty p) = do
     r <- silence $ QC.quickCheckResult p
-    let r' = case r of
+    let result = case r of
               QC.Success {}           -> Success
               f@(QC.Failure {})       -> Fail (QC.output f)
               g@(QC.GaveUp {})        -> Fail ("Gave up after " ++ quantify (QC.numTests g) "test" )
               QC.NoExpectedFailure {} -> Fail ("No expected failure")
-    return (description, r')
+    return result

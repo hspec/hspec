@@ -1,4 +1,4 @@
-{-# OPTIONS -XFlexibleInstances #-}
+{-# OPTIONS -XFlexibleInstances -XExistentialQuantification #-}
 
 -- | This module contains the core types, constructors, classes,
 -- instances, and utility functions common to hspec.
@@ -8,11 +8,11 @@ module Test.Hspec.Core where
 import System.IO
 import System.IO.Silently
 import Control.Exception
-import Control.Monad (liftM)
 
 -- | The result of running an example.
-data Result = Success | Fail String | Pending String
+data Result = Success | Pending String | Fail String
   deriving Eq
+
 
 -- | Everything needed to specify and show a specific behavior.
 data Spec = Spec {
@@ -20,8 +20,20 @@ data Spec = Spec {
                  name::String,
                  -- | The specific behavior being tested.
                  requirement::String,
-                 -- | The status of this behavior.
+                 -- | The status of the example of this behavior.
                  result::Result }
+          | UnevaluatedSpec {
+                 -- | What is being tested, usually the name of a type.
+                 name::String,
+                 -- | The specific behavior being tested.
+                 requirement::String,
+                 -- | An example of this behavior.
+                 example::AnyExample }
+
+
+-- | An existentialy quantified @Example@
+data AnyExample = forall a. Example a => AnyExample a
+
 
 data Formatter = Formatter { formatterName   :: String,
                              exampleGroupStarted :: Handle -> Spec -> IO (),
@@ -32,11 +44,30 @@ data Formatter = Formatter { formatterName   :: String,
                              footerFormatter :: Handle -> [Spec] -> Double -> IO (),
                              usesFormatting  :: Bool }
 
-instance Show Formatter where
-  show = formatterName
 
-instance Eq Formatter where
-  (==) a b = formatterName a == formatterName b
+describe :: String -- ^ The name of what is being described, usually a function or type.
+         -> [String -> Spec] -- ^ A list of behaviors and examples, created by a list of 'it'.
+         -> [Spec]
+describe name xs = map ($name) xs
+
+
+-- | Combine a list of descriptions.
+descriptions :: [[Spec]] -> [Spec]
+descriptions = concat
+
+-- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
+safely :: Result -> IO Result
+safely f = Control.Exception.catch ok failed
+  where ok = silence $ f `seq` return f
+        failed e = return $ Fail (show (e :: SomeException))
+
+
+evaluateSpec :: Spec -> IO Spec
+evaluateSpec (UnevaluatedSpec name description example) = do
+  result <- evaluateExample example
+  return $ Spec name description result
+evaluateSpec spec = return spec
+
 
 -- | Create a set of specifications for a specific type being described.
 -- Once you know what you want specs for, use this.
@@ -46,47 +77,21 @@ instance Eq Formatter where
 -- >     (abs (-1) == 1)
 -- >   ]
 --
-describe :: String                -- ^ The name of what is being described, usually a function or type.
-         -> [IO (String, Result)] -- ^ A list of behaviors and examples, created by a list of 'it'.
-         -> IO [IO Spec]
-describe n = return . map (>>= \ (req, res) -> return (Spec n req res))
+it :: Example a => String -> a -> String -> Spec
+it description example name = UnevaluatedSpec name description (AnyExample example)
 
--- | Combine a list of descriptions.
-descriptions :: [IO [IO Spec]] -> IO [IO Spec]
-descriptions = liftM concat . sequence
+class Example a where
+  evaluateExample :: a -> IO Result
 
--- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
-safely :: Result -> IO Result
-safely f = Control.Exception.catch ok failed
-  where ok = silence $ f `seq` return f
-        failed e = return $ Fail (show (e :: SomeException))
+instance Example AnyExample where
+  evaluateExample (AnyExample a) = evaluateExample a
 
--- | Anything that can be used as an example of a behavior.
-class SpecVerifier a where
-  -- | Create a description and example of a behavior, a list of these
-  -- is used by 'describe'. Once you know what you want to specify, use this.
-  --
-  -- > describe "closeEnough" [
-  -- >   it "is true if two numbers are almost the same"
-  -- >     (1.001 `closeEnough` 1.002),
-  -- >
-  -- >   it "is false if two numbers are not almost the same"
-  -- >     (not $ 1.001 `closeEnough` 1.003)
-  -- >   ]
-  --
-  it :: String           -- ^ A description of this behavior.
-     -> a                -- ^ An example for this behavior.
-     -> IO (String, Result)
+instance Example Bool where
+  evaluateExample example = safely $ if example then Success else Fail ""
 
-instance SpecVerifier Bool where
-  it description example = do
-    r <- safely (if example then Success else Fail "")
-    return (description, r)
+instance Example Result where
+  evaluateExample result = safely result
 
-instance SpecVerifier Result where
-  it description example = do
-    r <- safely example
-    return (description, r)
 
 -- | Declare an example as not successful or failing but pending some other work.
 -- If you want to report on a behavior but don't have an example yet, use this.
@@ -109,7 +114,6 @@ failure = any (isFailure.result)
 
 success :: [Spec] -> Bool
 success = not . failure
-
 
 isFailure :: Result -> Bool
 isFailure (Fail _) = True

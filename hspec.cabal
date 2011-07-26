@@ -1,5 +1,5 @@
 name:           hspec
-version:        0.7
+version:        0.8
 cabal-version:  >= 1.8
 build-type:     Custom
 license:        BSD3
@@ -42,7 +42,7 @@ Library
   buildable:      True
   extensions:     FlexibleInstances
   other-modules:  Specs
-  ghc-options:    -Wall
+  ghc-options:    -Wall -fno-warn-hi-shadowing
 
   build-depends: HUnit >=1 && <=2,
                  QuickCheck >=2.4.0.1 && <=2.5,

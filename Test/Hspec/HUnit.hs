@@ -21,16 +21,16 @@ import Test.Hspec.Core
 import qualified Test.HUnit as HU
 import Data.List (intersperse)
 
-instance SpecVerifier (IO ()) where
-  it description example = it description (HU.TestCase example)
+instance Example (IO ()) where
+  evaluateExample example = evaluateExample (HU.TestCase example)
 
-instance SpecVerifier HU.Test where
-  it description example = do
+instance Example HU.Test where
+  evaluateExample example = do
     (counts, fails) <- silence $ HU.runTestText HU.putTextToShowS example
-    let r' = if HU.errors counts + HU.failures counts == 0
+    let result = if HU.errors counts + HU.failures counts == 0
              then Success
              else Fail (details $ fails "")
-    return (description, r')
+    return result
 
 details :: String -> String
 details = concat . intersperse "\n" . tail . init . lines

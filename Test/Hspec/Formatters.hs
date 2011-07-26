@@ -32,25 +32,30 @@ specdoc useColor = (silent useColor) {
 
   exampleGroupStarted = \ h spec -> do
     when useColor (normalColor h)
-    hPutStr h ('\n' : name spec ++ "\n"),
+    hPutStr h ('\n' : name spec ++ "\n")
+    when useColor (restoreFormat h),
 
   examplePassed = \ h spec _ -> do
     when useColor (passColor h)
-    hPutStrLn h $ " - " ++ requirement spec,
+    hPutStrLn h $ " - " ++ requirement spec
+    when useColor (restoreFormat h),
 
   exampleFailed = \ h spec errors -> do
     when useColor (failColor h)
-    hPutStrLn h $ " x " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]",
+    hPutStrLn h $ " x " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]"
+    when useColor (restoreFormat h),
 
   examplePending = \ h spec _ -> do
     when useColor (pendingColor h)
     let (Pending s) = result spec
-    hPutStrLn h $ " - " ++ requirement spec ++ "\n     # " ++ s,
+    hPutStrLn h $ " - " ++ requirement spec ++ "\n     # " ++ s
+    when useColor (restoreFormat h),
 
   errorsFormatter = \ h errors -> do
     when useColor (failColor h)
     mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h ""),
+    when (not $ null errors) (hPutStrLn h "")
+    when useColor (restoreFormat h),
 
   footerFormatter = \ h specs time -> do
     when useColor (if failedCount specs == 0 then passColor h else failColor h)
@@ -58,7 +63,7 @@ specdoc useColor = (silent useColor) {
     hPutStrLn h ""
     hPutStr   h $ quantify (length specs) "example" ++ ", "
     hPutStrLn h $ quantify (failedCount specs) "failure"
-    when useColor (normalColor h)
+    when useColor (restoreFormat h)
   }
 
 
@@ -68,20 +73,24 @@ progress useColor = (silent useColor) {
 
   examplePassed = \ h _ _ -> do
     when useColor (passColor h)
-    hPutStr h ".",
+    hPutStr h "."
+    when useColor (restoreFormat h),
 
   exampleFailed = \ h _ _ -> do
     when useColor (failColor h)
-    hPutStr h "F",
+    hPutStr h "F"
+    when useColor (restoreFormat h),
 
   examplePending = \ h _ _ -> do
     when useColor (pendingColor h)
-    hPutStr h $ ".",
+    hPutStr h $ "."
+    when useColor (restoreFormat h),
 
   errorsFormatter = \ h errors -> do
     when useColor (failColor h)
     mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h ""),
+    when (not $ null errors) (hPutStrLn h "")
+    when useColor (restoreFormat h),
 
   footerFormatter = \ h specs time -> do
     when useColor (if failedCount specs == 0 then passColor h else failColor h)
@@ -89,7 +98,7 @@ progress useColor = (silent useColor) {
     hPutStrLn h ""
     hPutStr   h $ quantify (length specs) "example" ++ ", "
     hPutStrLn h $ quantify (failedCount specs) "failure"
-    when useColor (normalColor h)
+    when useColor (restoreFormat h)
   }
 
 
@@ -100,7 +109,8 @@ failed_examples useColor = (silent useColor) {
   errorsFormatter = \ h errors -> do
     when useColor (failColor h)
     mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h ""),
+    when (not $ null errors) (hPutStrLn h "")
+    when useColor (restoreFormat h),
 
   footerFormatter = \ h specs time -> do
     when useColor (if failedCount specs == 0 then passColor h else failColor h)
@@ -108,7 +118,7 @@ failed_examples useColor = (silent useColor) {
     hPutStrLn h ""
     hPutStr   h $ quantify (length specs) "example" ++ ", "
     hPutStrLn h $ quantify (failedCount specs) "failure"
-    when useColor (normalColor h)
+    when useColor (restoreFormat h)
   }
 
 

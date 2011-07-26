@@ -17,10 +17,11 @@ import qualified Test.HUnit as HUnit
 main :: IO ()
 main = do
   ar <- getArgs
+  specs' <- specs
   ss <- case ar of
-    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preamble >> hHspec h specs)
-    [filename] -> withFile filename WriteMode (\ h -> hHspec h specs)
-    _          -> hspec specs
+    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preamble >> hHspec h specs')
+    [filename] -> withFile filename WriteMode (\ h -> hHspec h specs')
+    _          -> hspec specs'
   exitWith $ toExitCode (failedCount ss == 0)
 
 preamble :: String
@@ -105,7 +106,7 @@ specs = do
 
   let report = lines reportContents
 
-  descriptions [
+  return $ descriptions [
     describe "the \"describe\" function" [
         it "takes a description of what the behavior is for"
             ((=="Example") . name . head $ exampleSpecs),
