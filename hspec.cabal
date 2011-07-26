@@ -23,6 +23,7 @@ extra-source-files: ./Specs.hs ./Test/Hspec/HUnit.hs
                     ./Test/Hspec/Core.hs ./Test/Hspec/QuickCheck.hs
 
 Executable hspec
+  ghc-options:    -Wall -fno-warn-hi-shadowing
   main-is: hspec.hs
   build-depends: hspec == 0.7,
                  base >=4 && <=5,

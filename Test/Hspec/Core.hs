@@ -48,7 +48,7 @@ data Formatter = Formatter { formatterName   :: String,
 describe :: String -- ^ The name of what is being described, usually a function or type.
          -> [String -> Spec] -- ^ A list of behaviors and examples, created by a list of 'it'.
          -> [Spec]
-describe name xs = map ($name) xs
+describe label xs = map ($label) xs
 
 
 -- | Combine a list of descriptions.
@@ -63,9 +63,9 @@ safely f = Control.Exception.catch ok failed
 
 
 evaluateSpec :: Spec -> IO Spec
-evaluateSpec (UnevaluatedSpec name description example) = do
-  result <- evaluateExample example
-  return $ Spec name description result
+evaluateSpec (UnevaluatedSpec name' requirement' example') = do
+  r <- evaluateExample example'
+  return $ Spec name' requirement' r
 evaluateSpec spec = return spec
 
 
@@ -78,7 +78,7 @@ evaluateSpec spec = return spec
 -- >   ]
 --
 it :: Example a => String -> a -> String -> Spec
-it description example name = UnevaluatedSpec name description (AnyExample example)
+it requirement' example' name' = UnevaluatedSpec name' requirement' (AnyExample example')
 
 class Example a where
   evaluateExample :: a -> IO Result
@@ -87,10 +87,10 @@ instance Example AnyExample where
   evaluateExample (AnyExample a) = evaluateExample a
 
 instance Example Bool where
-  evaluateExample example = safely $ if example then Success else Fail ""
+  evaluateExample bool = safely $ if bool then Success else Fail ""
 
 instance Example Result where
-  evaluateExample result = safely result
+  evaluateExample result' = safely result'
 
 
 -- | Declare an example as not successful or failing but pending some other work.

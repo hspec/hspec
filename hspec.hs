@@ -18,7 +18,6 @@ import System.Plugins
 import System.Console.GetOpt
 import Control.Exception
 import Data.Char (toLower,toUpper,isAlphaNum)
-import Data.List (intersperse)
 
 
 debug :: Options -> String -> IO ()
@@ -32,9 +31,7 @@ main = do
   if help opts
    then printHelp
    else if runSelfSpecs opts
-   then do
-     Monadic.hspecX allSpecs
-     return ()
+   then Monadic.hspecX allSpecs
    else if not $ null errors
    then do
      mapM_ putStrLn errors
@@ -63,7 +60,8 @@ runSpecsFromFiles filenames opts formatter = do
        results <- runSpecs opts formatter specsToRun
        writeToLastRunFile opts results
        exitWith . toExitCode . success $ results
-	
+
+getOptions :: [String] -> ([String], [String], Options, Formatter)
 getOptions args = (filenames, errors, opts, formatter)
     where (actions, filenames, errors) = getOpt RequireOrder options args
           opts = (foldl (.) id actions) startOptions
@@ -81,7 +79,7 @@ writeToLastRunFile opts results = do
            debug opts $ "writing failed examples to " ++ fileName
            writeFile fileName failedExamples
 
-filterByExampleOption :: Options -> [Spec] -> IO ([Spec], String)
+filterByExampleOption :: Options -> Specs -> IO (Specs, String)
 filterByExampleOption opts specs = case specificExample opts of
                                     Nothing      -> return (specs, "no specs found")
                                     Just pattern -> do
@@ -89,7 +87,7 @@ filterByExampleOption opts specs = case specificExample opts of
                                         let s = filterSpecsByRegex pattern specs
                                         return (s, "no specs matching \"" ++ pattern ++ "\" found")
 
-filterByRerunOption :: Options -> [Spec] -> IO [Spec]
+filterByRerunOption :: Options -> Specs -> IO Specs
 filterByRerunOption opts specs
   | lastRunOption opts == RunFailed = do
     isFile <- doesFileExist (lastRunFile opts)
@@ -106,22 +104,22 @@ getFileNamesToSearchFromList names = do
     return $ concat files
 
 getFileNamesToSearch :: String -> IO [String]
-getFileNamesToSearch name = do
-  isFile <- doesFileExist name
-  isDir <- doesDirectoryExist name
+getFileNamesToSearch fileName = do
+  isFile <- doesFileExist fileName
+  isDir <- doesDirectoryExist fileName
   if isFile
-   then if takeExtension name == ".hs"
-        then return [name]
+   then if takeExtension fileName == ".hs"
+        then return [fileName]
         else return []
    else if isDir
    then do
-    names <- getDirectoryContents name
-    let validNames = map (combine name) $ filter ((/='.').head) names
+    names <- getDirectoryContents fileName
+    let validNames = map (combine fileName) $ filter ((/='.').head) names
     getFileNamesToSearchFromList validNames
-   else fail $ name ++ " is not a valid *.hs file or directory name"
+   else fail $ fileName ++ " is not a valid *.hs file or directory name"
 
 
-getSpecsFromFile :: Options -> String -> IO [Spec]
+getSpecsFromFile :: Options -> String -> IO Specs
 getSpecsFromFile opts filename = do
   contents <- readFile filename
   if contents =~ "^module Main where$"
@@ -135,7 +133,7 @@ getSpecsFromFile opts filename = do
      (s2,n2) <- getIOSpecs filename contents
      (ms1,n3) <- getMonadicSpecs filename contents
      (ms2,n4) <- getMonadicIOSpecs filename contents
-     mapM (debug opts) (map ("  "++) (concat $ [n1, n2, n3, n4]))
+     mapM_ (debug opts) (map ("  "++) (concat $ [n1, n2, n3, n4]))
      return (s1 ++ s2 ++ ms1 ++ ms2)
    else do
       let justName = takeFileName filename
@@ -160,8 +158,8 @@ removeBlockComment ('-':'}':xs) d
   | d == 1    = xs
   | otherwise = removeBlockComment xs (d-1)
 removeBlockComment ('{':'-':xs) d = removeBlockComment xs (d+1)
-removeBlockComment (x:xs)       d = removeBlockComment xs d
-removeBlockComment []           d = fail "bad block comment"
+removeBlockComment (_:xs)       d = removeBlockComment xs d
+removeBlockComment []           _ = fail "bad block comment"
 
 removeLineComment :: String -> String
 removeLineComment ('\n':xs)    = xs
@@ -179,26 +177,26 @@ getDeclariations pattern contents = map head matches
 getSpecDeclariations :: String -> [String]
 getSpecDeclariations = getDeclariations "^[^ ]+ *:: *(Test\\.Hspec\\.)?Specs\\w*$"
 
-getSpecs :: String -> String -> IO ([Spec],[String])
+getSpecs :: String -> String -> IO (Specs,[String])
 getSpecs filename contents = do
   let names = getSpecDeclariations contents
-  specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO [Spec]) names
+  specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO Specs) names
   return (concat specs, names)
 
 
 getIOSpecDeclariations :: String -> [String]
 getIOSpecDeclariations = getDeclariations "^[^ ]+ *:: *IO +(Test\\.Hspec\\.)?Specs\\w*$"
 
-getIOSpecs :: String -> String -> IO ([Spec],[String])
+getIOSpecs :: String -> String -> IO (Specs,[String])
 getIOSpecs filename contents = do
   let names = getIOSpecDeclariations contents
-  specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO [Spec])) names
+  specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO Specs)) names
   return (concat specs, names)
 
 getMonadicSpecDeclariations :: String -> [String]
 getMonadicSpecDeclariations = getDeclariations "^[^ ]+ *:: *Test\\.Hspec\\.Monadic\\.Specs\\w*$"
 
-getMonadicSpecs :: String -> String -> IO ([Spec],[String])
+getMonadicSpecs :: String -> String -> IO (Specs,[String])
 getMonadicSpecs filename contents = do
   let names = getMonadicSpecDeclariations contents
   specs <- mapM (\ n -> loadSpecs filename (getName n) :: IO Monadic.Specs) names
@@ -208,14 +206,14 @@ getMonadicSpecs filename contents = do
 getMonadicIOSpecDeclariations :: String -> [String]
 getMonadicIOSpecDeclariations = getDeclariations "^[^ ]+ *:: *IO +Test\\.Hspec\\.Monadic\\.Specs\\w*$"
 
-getMonadicIOSpecs :: String -> String -> IO ([Spec],[String])
+getMonadicIOSpecs :: String -> String -> IO (Specs,[String])
 getMonadicIOSpecs filename contents = do
   let names = getMonadicIOSpecDeclariations contents
   specs <- sequence =<< mapM (\ n -> loadSpecs filename (getName n) :: IO (IO Monadic.Specs)) names
   return (concatMap Monadic.runSpecM specs, names)
 
 
-runSpecs :: Options -> Formatter -> [Spec] -> IO [Spec]
+runSpecs :: Options -> Formatter -> Specs -> IO Specs
 runSpecs opts formatter specs = withHandle (output opts) work
   where work h = hHspecWithFormat formatter h (specs)
 
@@ -226,22 +224,22 @@ getName = takeWhile (`notElem`" :")
 
 
 loadSpecs :: String -> String -> IO a
-loadSpecs filename name = do
+loadSpecs filename specName = do
   status <- makeAll filename []
   obj    <- case status of
               MakeSuccess _ o -> return o
               MakeFailure e   -> mapM_ putStrLn e >> fail "can't make"
-  mv <- load obj ["."] [] name
+  mv <- load obj ["."] [] specName
   case mv of
     LoadFailure msgs -> putStrLn (unwords msgs) >> fail "can't load"
     LoadSuccess _ v  -> return v
 
 
-filterSpecsByRegex :: String -> [Spec] -> [Spec]
+filterSpecsByRegex :: String -> Specs -> Specs
 filterSpecsByRegex pattern = filter p
   where p s = requirement s =~ pattern
 
-filterExactSpecs :: [String] -> [Spec] -> [Spec]
+filterExactSpecs :: [String] -> Specs -> Specs
 filterExactSpecs ok = filter p
   where p s = requirement s `elem` ok
 

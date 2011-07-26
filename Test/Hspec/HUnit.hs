@@ -22,15 +22,15 @@ import qualified Test.HUnit as HU
 import Data.List (intersperse)
 
 instance Example (IO ()) where
-  evaluateExample example = evaluateExample (HU.TestCase example)
+  evaluateExample io = evaluateExample (HU.TestCase io)
 
 instance Example HU.Test where
-  evaluateExample example = do
-    (counts, fails) <- silence $ HU.runTestText HU.putTextToShowS example
-    let result = if HU.errors counts + HU.failures counts == 0
+  evaluateExample test = do
+    (counts, fails) <- silence $ HU.runTestText HU.putTextToShowS test
+    let r = if HU.errors counts + HU.failures counts == 0
              then Success
              else Fail (details $ fails "")
-    return result
+    return r
 
 details :: String -> String
 details = concat . intersperse "\n" . tail . init . lines

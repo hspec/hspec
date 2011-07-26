@@ -13,7 +13,7 @@
 -- >   ]
 --
 module Test.Hspec.QuickCheck (
-  property
+  property, prop
 ) where
 
 import System.IO.Silently
@@ -37,9 +37,9 @@ prop n p = DSL.it n (QuickCheckProperty p)
 instance QC.Testable t => Example (QuickCheckProperty t) where
   evaluateExample (QuickCheckProperty p) = do
     r <- silence $ QC.quickCheckResult p
-    let result = case r of
+    let r' = case r of
               QC.Success {}           -> Success
               f@(QC.Failure {})       -> Fail (QC.output f)
               g@(QC.GaveUp {})        -> Fail ("Gave up after " ++ quantify (QC.numTests g) "test" )
               QC.NoExpectedFailure {} -> Fail ("No expected failure")
-    return result
+    return r'
