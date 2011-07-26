@@ -73,8 +73,12 @@ writeToLastRunFile opts results = do
            failedExamples = unlines [ requirement s | s <- results, isFailure (result s)]
        if null failedExamples
          then do
-           debug opts $ "removing " ++ fileName ++ " since there are no failed examples"
-           removeFile fileName
+           isFile <- doesFileExist fileName
+           if isFile
+             then do
+               debug opts $ "removing " ++ fileName ++ " since there are no failed examples"
+               removeFile fileName
+             else debug opts $ "skipping " ++ fileName ++ " since file doesn't exist and there are no failed examples"
          else do
            debug opts $ "writing failed examples to " ++ fileName
            writeFile fileName failedExamples
