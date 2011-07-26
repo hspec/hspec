@@ -51,15 +51,15 @@ getTargets xs = xs
 
 runSpecsFromFiles :: [String] -> Options -> Formatter -> IO ()
 runSpecsFromFiles filenames opts formatter = do
-     allSpecsFound <- fmap concat $ mapM (getSpecsFromFile opts) filenames
-     (matchingSpecs, noneMessage) <- filterByExampleOption opts allSpecsFound
-     specsToRun <- filterByRerunOption opts matchingSpecs
-     if null specsToRun
-      then putStrLn noneMessage
-      else do
-       results <- runSpecs opts formatter specsToRun
-       writeToLastRunFile opts results
-       exitWith . toExitCode . success $ results
+  allSpecsFound <- fmap concat $ mapM (getSpecsFromFile opts) filenames
+  (matchingSpecs, noneMessage) <- filterByExampleOption opts allSpecsFound
+  specsToRun <- filterByRerunOption opts matchingSpecs
+  if null specsToRun
+   then putStrLn noneMessage
+   else do
+    results <- runSpecs opts formatter specsToRun
+    writeToLastRunFile opts results
+    exitWith . toExitCode . success $ results
 
 getOptions :: [String] -> ([String], [String], Options, Formatter)
 getOptions args = (filenames, errors, opts, formatter)
@@ -69,27 +69,26 @@ getOptions args = (filenames, errors, opts, formatter)
 
 writeToLastRunFile :: Options -> [Spec] -> IO ()
 writeToLastRunFile opts results = do
-       let fileName = lastRunFile opts
-           failedExamples = unlines [ requirement s | s <- results, isFailure (result s)]
-       if null failedExamples
-         then do
-           isFile <- doesFileExist fileName
-           if isFile
-             then do
-               debug opts $ "removing " ++ fileName ++ " since there are no failed examples"
-               removeFile fileName
-             else debug opts $ "skipping " ++ fileName ++ " since file doesn't exist and there are no failed examples"
-         else do
-           debug opts $ "writing failed examples to " ++ fileName
-           writeFile fileName failedExamples
+  let fileName = lastRunFile opts
+      failedExamples = unlines [ requirement s | s <- results, isFailure (result s)]
+  isFile <- doesFileExist fileName
+  case (failedCount results, isFile) of
+    (0, True) -> do
+      debug opts $ "removing " ++ fileName ++ " since there are no failed examples"
+      removeFile fileName
+    (0, False) -> debug opts $ "skipping " ++ fileName ++ " since file doesn't exist and there are no failed examples"
+    (_, _   ) -> do
+      debug opts $ "writing failed examples to " ++ fileName
+      writeFile fileName failedExamples
 
 filterByExampleOption :: Options -> Specs -> IO (Specs, String)
-filterByExampleOption opts specs = case specificExample opts of
-                                    Nothing      -> return (specs, "no specs found")
-                                    Just pattern -> do
-                                        debug opts $ "only running descriptions matching \"" ++ pattern ++ "\""
-                                        let s = filterSpecsByRegex pattern specs
-                                        return (s, "no specs matching \"" ++ pattern ++ "\" found")
+filterByExampleOption opts specs =
+  case specificExample opts of
+    Nothing      -> return (specs, "no specs found")
+    Just pattern -> do
+        debug opts $ "only running descriptions matching \"" ++ pattern ++ "\""
+        let s = filterSpecsByRegex pattern specs
+        return (s, "no specs matching \"" ++ pattern ++ "\" found")
 
 filterByRerunOption :: Options -> Specs -> IO Specs
 filterByRerunOption opts specs
@@ -108,19 +107,19 @@ getFileNamesToSearchFromList names = do
     return $ concat files
 
 getFileNamesToSearch :: String -> IO [String]
-getFileNamesToSearch fileName = do
-  isFile <- doesFileExist fileName
-  isDir <- doesDirectoryExist fileName
+getFileNamesToSearch pathName = do
+  isFile <- doesFileExist pathName
+  isDir <- doesDirectoryExist pathName
   if isFile
-   then if takeExtension fileName == ".hs"
-        then return [fileName]
+   then if takeExtension pathName == ".hs"
+        then return [pathName]
         else return []
    else if isDir
    then do
-    names <- getDirectoryContents fileName
-    let validNames = map (combine fileName) $ filter ((/='.').head) names
+    names <- getDirectoryContents pathName
+    let validNames = map (combine pathName) $ filter ((/='.').head) names
     getFileNamesToSearchFromList validNames
-   else fail $ fileName ++ " is not a valid *.hs file or directory name"
+   else fail $ pathName ++ " is not a valid *.hs file or directory name"
 
 
 getSpecsFromFile :: Options -> String -> IO Specs
