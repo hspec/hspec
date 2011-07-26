@@ -27,37 +27,44 @@ main :: IO ()
 main = do
   args <- getArgs
   let (targets, errors, opts, formatter) = getOptions args
-  filenames <- getFileNamesToSearchFromList (getTargets targets)
+  filenames <- getFileNamesToSearchFromList (getTargets opts targets)
   if help opts
    then printHelp
-   else if runSelfSpecs opts
-   then Monadic.hspecX allSpecs
    else if not $ null errors
    then do
      mapM_ putStrLn errors
      printHelp
      exitFailure
-   else if null filenames
-   then do
-     putStrLn "no valid *.hs files found\n"
-     printHelp
-     exitFailure
    else do
-     runSpecsFromFiles filenames opts formatter
+     specs <- getAllSpecsFromFiles filenames opts
+     if runSelfSpecs opts
+       then runSpecs (specs ++ Monadic.runSpecM allSpecs) opts formatter
+       else if null filenames
+       then do
+         putStrLn "no valid *.hs files found\n"
+         printHelp
+         exitFailure
+       else do
+         runSpecs specs opts formatter
 
-getTargets :: [String] -> [String]
-getTargets [] = ["."]
-getTargets xs = xs
 
-runSpecsFromFiles :: [String] -> Options -> Formatter -> IO ()
-runSpecsFromFiles filenames opts formatter = do
-  allSpecsFound <- fmap concat $ mapM (getSpecsFromFile opts) filenames
+getTargets :: Options -> [String] -> [String]
+getTargets opts xs
+  | runSelfSpecs opts = xs
+getTargets _ [] = ["."]
+getTargets _ xs = xs
+
+getAllSpecsFromFiles :: [String] -> Options -> IO [Spec]
+getAllSpecsFromFiles filenames opts = fmap concat $ mapM (getSpecsFromFile opts) filenames
+
+runSpecs :: [Spec] -> Options -> Formatter -> IO ()
+runSpecs allSpecsFound opts formatter = do
   (matchingSpecs, noneMessage) <- filterByExampleOption opts allSpecsFound
   specsToRun <- filterByRerunOption opts matchingSpecs
   if null specsToRun
    then putStrLn noneMessage
    else do
-    results <- runSpecs opts formatter specsToRun
+    results <- runAllSpecs opts formatter specsToRun
     writeToLastRunFile opts results
     exitWith . toExitCode . success $ results
 
@@ -216,9 +223,9 @@ getMonadicIOSpecs filename contents = do
   return (concatMap Monadic.runSpecM specs, names)
 
 
-runSpecs :: Options -> Formatter -> Specs -> IO Specs
-runSpecs opts formatter specs = withHandle (output opts) work
-  where work h = hHspecWithFormat formatter h (specs)
+runAllSpecs :: Options -> Formatter -> Specs -> IO Specs
+runAllSpecs opts formatter specs = withHandle (output opts) work
+  where work h = hHspecWithFormat formatter h specs
 
 getName :: String -> String
 getName = takeWhile (`notElem`" :")
@@ -338,7 +345,9 @@ options =
       "Display detailed information about what hspec is doing."
   , Option "" ["specs"]
       (NoArg (\ s -> s { runSelfSpecs = True }))
-      "Display the specs for the hspec command line runner itself."
+      "Include the specs for the hspec command line runner itself. When used, the target list \n\
+      \will not default to the current directory. A non-empty target list will still be \n\
+      \searched though."
   ]
 
 helpInfo :: String
@@ -414,8 +423,8 @@ commandLineSpecs = let test :: (Eq a, Show a) => String -> a -> (Options -> a) -
                (files, _, _, _) = getOptions args
            in HUnit.assertEqual (unwords args) args files)
 
-        Monadic.it "defaults to the current directory tree if no targets are specified"
-          (HUnit.assertEqual "" ["."] (getTargets []))
+        Monadic.it "defaults to the current directory tree if no targets are specified and not running --specs"
+          (HUnit.assertEqual "" ["."] (getTargets startOptions []))
 
 
 targetSpecs :: Test.Hspec.Monadic.Specs
