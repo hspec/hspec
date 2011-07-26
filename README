@@ -8,10 +8,10 @@ Step 1, write descriptions and examples of your desired behavior
 > specs = describe "myabs" [
 >   it "returns the original number when given a positive input"
 >     (myabs 1 == 1),
-> 
+>
 >   it "returns a positive number when given a negative input"
 >     (myabs (-1) == 1),
-> 
+>
 >   it "returns zero when given zero"
 >     (myabs 0 == 0)
 >   ]
@@ -42,7 +42,7 @@ Finished in 0.0002 seconds
 
 
 Specs can also be run from the command line using the hspec program
-  Trystans-MacBook-Pro:hspec Trystan$ hspec myabs.hs
+  $ hspec myabs.hs
 
 Step 4, implement your desired behavior
 > myabs n = if n < 0 then negate n else n
