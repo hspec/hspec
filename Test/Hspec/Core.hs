@@ -21,18 +21,18 @@ data Spec = Spec {
                  -- | The specific behavior being tested.
                  requirement::String,
                  -- | The status of the example of this behavior.
-                 result::Result }
+                 result::Result,
+                 -- | The level of nestedness.
+                 depth :: Int }
           | UnevaluatedSpec {
                  -- | What is being tested, usually the name of a type.
                  name::String,
                  -- | The specific behavior being tested.
                  requirement::String,
                  -- | An example of this behavior.
-                 example::AnyExample }
-
-
--- | An existentialy quantified @Example@
-data AnyExample = forall a. Example a => AnyExample a
+                 example::AnyExample,
+                 -- | The level of nestedness.
+                 depth :: Int }
 
 
 data Formatter = Formatter { formatterName   :: String,
@@ -45,11 +45,11 @@ data Formatter = Formatter { formatterName   :: String,
                              usesFormatting  :: Bool }
 
 
-describe :: String -- ^ The name of what is being described, usually a function or type.
-         -> [String -> Spec] -- ^ A list of behaviors and examples, created by a list of 'it'.
-         -> [Spec]
-describe label xs = map ($label) xs
-
+describe :: String -> [[Spec]] -> [Spec]
+describe label specs = map desc (concat specs)
+  where desc spec
+          | null $ name spec = spec { name = label }
+          | otherwise        = spec { depth = depth spec + 1 }
 
 -- | Combine a list of descriptions.
 descriptions :: [[Spec]] -> [Spec]
@@ -63,9 +63,9 @@ safely f = Control.Exception.catch ok failed
 
 
 evaluateSpec :: Spec -> IO Spec
-evaluateSpec (UnevaluatedSpec name' requirement' example') = do
+evaluateSpec (UnevaluatedSpec name' requirement' example' depth') = do
   r <- evaluateExample example'
-  return $ Spec name' requirement' r
+  return $ Spec name' requirement' r depth'
 evaluateSpec spec = return spec
 
 
@@ -77,20 +77,24 @@ evaluateSpec spec = return spec
 -- >     (abs (-1) == 1)
 -- >   ]
 --
-it :: Example a => String -> a -> String -> Spec
-it requirement' example' name' = UnevaluatedSpec name' requirement' (AnyExample example')
+it :: Example a => String -> a -> [Spec]
+it requirement' example' = [UnevaluatedSpec "" requirement' (AnyExample example') 0]
 
 class Example a where
   evaluateExample :: a -> IO Result
-
-instance Example AnyExample where
-  evaluateExample (AnyExample a) = evaluateExample a
 
 instance Example Bool where
   evaluateExample bool = safely $ if bool then Success else Fail ""
 
 instance Example Result where
   evaluateExample result' = safely result'
+
+-- | An existentially quantified @Example@. This way they can be mixed within the same set of Specs
+data AnyExample = forall a. Example a => AnyExample a
+
+instance Example AnyExample where
+  evaluateExample (AnyExample a) = evaluateExample a
+
 
 
 -- | Declare an example as not successful or failing but pending some other work.

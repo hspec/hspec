@@ -112,14 +112,22 @@ specs = do
             ((=="Example") . name . head $ exampleSpecs),
 
         it "groups behaviors for what's being described"
-            (all ((=="Example").name) exampleSpecs)
+            (all ((=="Example").name) exampleSpecs),
+
+        describe "a nested description" [
+            it "has it's own specs"
+                (True),
+
+            it "may be displayed indented"
+                (True)
+        ]
     ],
     describe "the \"it\" function" [
         it "takes a description of a desired behavior"
-            (requirement (Spec "Example" "whatever" Success) == "whatever" ),
+            (requirement (Spec "Example" "whatever" Success 0) == "whatever" ),
 
         it "takes an example of that behavior"
-            (result (Spec "Example" "whatever" Success) == Success),
+            (result (Spec "Example" "whatever" Success 0) == Success),
 
         it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
             (True),

@@ -30,7 +30,7 @@ property :: QC.Testable a => a -> QuickCheckProperty a
 property = QuickCheckProperty
 
 -- | Monadic DSL shortcut, use this instead of @it@
-prop :: QC.Testable t => String -> t -> Writer [DSL.ItSpec] ()
+prop :: QC.Testable t => String -> t -> Writer [Spec] ()
 prop n p = DSL.it n (QuickCheckProperty p)
 
 

@@ -25,6 +25,8 @@ silent useColor = Formatter {
   usesFormatting = useColor
   }
 
+indentationFor :: Spec -> String
+indentationFor spec = replicate (depth spec * 2) ' '
 
 specdoc :: Bool -> Formatter
 specdoc useColor = (silent useColor) {
@@ -32,23 +34,23 @@ specdoc useColor = (silent useColor) {
 
   exampleGroupStarted = \ h spec -> do
     when useColor (normalColor h)
-    hPutStr h ('\n' : name spec ++ "\n")
+    hPutStrLn h ("\n" ++ indentationFor spec ++ name spec)
     when useColor (restoreFormat h),
 
   examplePassed = \ h spec _ -> do
     when useColor (passColor h)
-    hPutStrLn h $ " - " ++ requirement spec
+    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec
     when useColor (restoreFormat h),
 
   exampleFailed = \ h spec errors -> do
     when useColor (failColor h)
-    hPutStrLn h $ " x " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]"
+    hPutStrLn h $ indentationFor spec ++ " x " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]"
     when useColor (restoreFormat h),
 
   examplePending = \ h spec _ -> do
     when useColor (pendingColor h)
     let (Pending s) = result spec
-    hPutStrLn h $ " - " ++ requirement spec ++ "\n     # " ++ s
+    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
     when useColor (restoreFormat h),
 
   errorsFormatter = \ h errors -> do

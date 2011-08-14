@@ -67,6 +67,10 @@ the "describe" function
  - takes a description of what the behavior is for
  - groups behaviors for what's being described
 
+  a nested description
+   - has it's own specs
+   - may be displayed indented
+
 the "it" function
  - takes a description of a desired behavior
  - takes an example of that behavior
@@ -114,6 +118,6 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-Finished in 0.0488 seconds
+Finished in 0.0489 seconds
 
-33 examples, 0 failures
+35 examples, 0 failures

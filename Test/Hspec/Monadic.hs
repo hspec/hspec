@@ -72,7 +72,7 @@ module Test.Hspec.Monadic (
   -- alternate "runner" functions
   hHspec,
   -- this is just for internal use
-  ItSpec, runSpecM
+  runSpecM
 ) where
 
 import System.IO
@@ -81,8 +81,6 @@ import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 
 import Control.Monad.Trans.Writer (Writer, execWriter, tell)
-
-type ItSpec = String -> Spec
 
 type Specs = Writer [Spec] ()
 
@@ -108,14 +106,14 @@ hHspec h = Runner.hHspec h . runSpecM
 runSpecM :: Specs -> [Spec]
 runSpecM specs = execWriter specs
 
-describe :: String -> Writer [ItSpec] () -> Specs
-describe label action = tell $ Core.describe label (execWriter action)
+describe :: String -> Writer [Spec] () -> Specs
+describe label action = tell $ Core.describe label [execWriter action]
 
 -- | Combine a list of descriptions. (Note that descriptions can also
 -- be combined with monadic sequencing.)
 descriptions :: [Specs] -> Specs
 descriptions = sequence_
 
-it :: Example v => String -> v -> Writer [ItSpec] ()
-it label action = tell [Core.it label action]
+it :: Example v => String -> v -> Writer [Spec] ()
+it label action = tell $ Core.it label action
 
