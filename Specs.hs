@@ -50,9 +50,9 @@ preamble = unlines [
     "> main = hspec specs",
     "",
     "myabs",
-    " x returns the original number when given a positive input FAILED [1]",
-    " x returns a positive number when given a negative input FAILED [2]",
-    " x returns zero when given zero FAILED [3]",
+    " - returns the original number when given a positive input FAILED [1]",
+    " - returns a positive number when given a negative input FAILED [2]",
+    " - returns zero when given zero FAILED [3]",
     "",
     "1) myabs returns the original number when given a positive input FAILED",
     "Prelude.undefined",
@@ -116,9 +116,6 @@ specs = do
 
         describe "a nested description" [
             it "has it's own specs"
-                (True),
-
-            it "may be displayed indented"
                 (True)
         ]
     ],
@@ -133,7 +130,7 @@ specs = do
             (True),
 
         it "will treat exceptions as failures"
-            (any (==" x exceptions FAILED [3]") report)
+            (any (==" - exceptions FAILED [3]") report)
     ],
     describe "the \"hspec\" function" [
         it "displays a header for each thing being described"
@@ -142,17 +139,11 @@ specs = do
         it "displays one row for each behavior"
             (HUnit.assertEqual "" 29 (length report)),
 
-        it "displays a '-' for successfull examples"
+        it "displays a row for successfull examples"
             (any (==" - pass") report),
-
-        it "displays an 'x' for failed examples"
-            (any (==" x fail 1 FAILED [1]") report),
 
         it "displays a detailed list of failed examples"
             (any (=="1) Example fail 1 FAILED") report),
-
-        it "displays a '-' for pending examples"
-            (any (==" - pending") report ),
 
         it "displays a '#' and an additional message for pending examples"
             (any (=="     # pending message") report ),

@@ -44,7 +44,7 @@ specdoc useColor = (silent useColor) {
 
   exampleFailed = \ h spec errors -> do
     when useColor (failColor h)
-    hPutStrLn h $ indentationFor spec ++ " x " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]"
+    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]"
     when useColor (restoreFormat h),
 
   examplePending = \ h spec _ -> do

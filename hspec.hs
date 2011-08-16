@@ -17,7 +17,6 @@ import System.Exit
 import System.Plugins
 import System.Console.GetOpt
 import Control.Exception
-import Control.Monad (when)
 import Data.Char (toLower,toUpper,isAlphaNum)
 
 
@@ -25,31 +24,34 @@ debug :: Options -> String -> IO ()
 debug opts msg = if verbose opts then putStrLn (" [verbose] " ++ msg) else return ()
 
 main :: IO ()
-main = getArgs >>= runWithArgs
+main = do
+  result <- getArgs >>= runWithArgs
+  case result of
+    Left results  -> exitWith . toExitCode . success $ results
+    Right message -> putStrLn message >> exitFailure
 
-runWithArgs :: [String] -> IO ()
+
+runWithArgs :: [String] -> IO (Either Specs String)
 runWithArgs args = do
   let (targets, errors, opts) = getOptions args
   if help opts
-   then printHelp
-   else if not $ null errors
-   then reportErrors errors >> exitFailure
-   else do
+    then printHelp >> return (Left [])
+    else if not $ null errors
+    then return $ Right $ unlines errors
+    else runWithTargetsAndOptions targets opts
+
+runWithTargetsAndOptions :: [String] -> Options -> IO (Either Specs String)
+runWithTargetsAndOptions targets opts = do
     allSpecsFound <- getAllSpecs targets opts
     if null allSpecsFound
-      then do
-        putStrLn "no valid *.hs files found\n"
-        printHelp
-        exitFailure
+      then return $ Right "no valid *.hs files found\n"
       else do
-        results <- runSpecsWithOptions allSpecsFound opts
-        updateLastRunFile opts results
-        exitWith . toExitCode . success $ results
-
-reportErrors :: [String] -> IO ()
-reportErrors errors = do
-     mapM_ putStrLn errors
-     printHelp
+        result <- runSpecsWithOptions allSpecsFound opts
+        case result of
+          Left results -> do
+            updateLastRunFile opts results
+            return $ Left results
+          Right message -> return $ Right message
 
 getAllSpecs :: [String] -> Options -> IO Specs
 getAllSpecs targets opts = do
@@ -57,16 +59,12 @@ getAllSpecs targets opts = do
   specs <- getAllSpecsFromFiles filenames opts
   return $ includeSelfSpecs specs opts
 
-includeSelfSpecs :: Specs -> Options -> Specs
-includeSelfSpecs specs opts
-  | runSelfSpecs opts = specs ++ Monadic.runSpecM allSpecs
-  | otherwise         = specs
-
-runSpecsWithOptions :: Specs -> Options -> IO Specs
+runSpecsWithOptions :: Specs -> Options -> IO (Either Specs String)
 runSpecsWithOptions allFoundSpecs opts = do
-  (specsToRun, noneMessage) <- filterSpecs allFoundSpecs opts
-  when (null specsToRun) (putStrLn noneMessage)
-  runSpecs opts specsToRun
+  result <- filterSpecs allFoundSpecs opts
+  case result of
+    Left specsToRun   -> runSpecs opts specsToRun >>= return . Left
+    Right noneMessage -> return $ Right noneMessage
 
 runSpecs :: Options -> Specs -> IO Specs
 runSpecs opts specs = withHandle (output opts) work
@@ -222,11 +220,11 @@ loadSpecsFromFile filename specName = do
 
 
 -- excluding from loaded specs
-filterSpecs :: [Spec] -> Options -> IO ([Spec], String)
+filterSpecs :: [Spec] -> Options -> IO (Either [Spec] String)
 filterSpecs allSpecsFound opts = do
   (matchingSpecs, noneMessage) <- filterByExampleOption opts allSpecsFound
   specsToRun <- filterByRerunOption opts matchingSpecs
-  return (specsToRun, noneMessage)
+  return $ if null specsToRun then Right noneMessage else Left specsToRun
 
 filterByExampleOption :: Options -> Specs -> IO (Specs, String)
 filterByExampleOption opts specs =
@@ -283,6 +281,11 @@ withHandle "stderr" f = f stderr
 withHandle filename f = bracket (openFile filename WriteMode)
                                 (hClose)
                                 (f)
+
+includeSelfSpecs :: Specs -> Options -> Specs
+includeSelfSpecs specs opts
+  | runSelfSpecs opts = specs ++ Monadic.runSpecM allSpecs
+  | otherwise         = specs
 
 
 
@@ -384,18 +387,17 @@ printHelp = putStrLn $ usageInfo helpInfo options
 
 -- Specs
 allSpecs :: Test.Hspec.Monadic.Specs
-allSpecs = do
-       commandLineSpecs
-       targetSpecs
-       formatSpecs
-       colorSpecs
-       findingSpecsSpecs
+allSpecs =
+    Monadic.describe "hspec command line runner" $ do
 
-commandLineSpecs :: Test.Hspec.Monadic.Specs
-commandLineSpecs = let test :: (Eq a, Show a) => String -> a -> (Options -> a) -> IO ()
-                       test arg expected func = HUnit.assertEqual arg expected (func opts)
-                        where (_, _, opts) = getOptions (words arg)
-  in Monadic.describe "hspec command line runner" $ do
+      Monadic.it "searches target files for specs and runs them"
+        (True)
+
+      Monadic.describe "options" $ do
+        let test :: (Eq a, Show a) => String -> a -> (Options -> a) -> IO ()
+            test arg expected func = HUnit.assertEqual arg expected (func opts)
+              where (_, _, opts) = getOptions (words arg)
+
         Monadic.it "accepts -h, -?, and --help to get help"
           (do
            test "-h" True help
@@ -447,9 +449,8 @@ commandLineSpecs = let test :: (Eq a, Show a) => String -> a -> (Options -> a) -
         Monadic.it "defaults to the current directory tree if no targets are specified and not running --specs"
           (HUnit.assertEqual "" ["."] (getTargets startOptions []))
 
+      Monadic.describe "an hspec target" $ do
 
-targetSpecs :: Test.Hspec.Monadic.Specs
-targetSpecs = Monadic.describe "an hspec target" $ do
         Monadic.it "can be a file name to run all specs in that file"
           (do
           filenames <- getFileNamesToSearchFromTargets ["hspec.hs"]
@@ -460,13 +461,12 @@ targetSpecs = Monadic.describe "an hspec target" $ do
           filenames <- getFileNamesToSearchFromTargets ["."]
           HUnit.assertBool "hspec.hs" ("./hspec.hs" `elem` filenames))
 
+      Monadic.describe "the --format option" $ do
 
+        let test :: String -> (Bool -> Formatter) -> IO ()
+            test arg expected = HUnit.assertEqual arg (formatterName $ expected False) (formatterName $ getFormatter (formatterToUse opts) $ False)
+              where (_, _, opts) = getOptions ["--format", arg]
 
-formatSpecs :: Test.Hspec.Monadic.Specs
-formatSpecs = let test :: String -> (Bool -> Formatter) -> IO ()
-                  test arg expected = HUnit.assertEqual arg (formatterName $ expected False) (formatterName $ getFormatter (formatterToUse opts) $ False)
-                   where (_, _, opts) = getOptions ["--format", arg]
-  in Monadic.describe "the --format option" $ do
         Monadic.it "allows the \"silent\" formatter"
           (test "silent" silent)
 
@@ -482,13 +482,13 @@ formatSpecs = let test :: String -> (Bool -> Formatter) -> IO ()
         Monadic.it "uses \"specdoc\" by default"
           (test "" specdoc)
 
+      Monadic.describe "the --color option" $ do
 
-colorSpecs :: Test.Hspec.Monadic.Specs
-colorSpecs = let test :: String -> String -> Bool -> IO ()
-                 test colorArg outputArg expected = HUnit.assertEqual (unwords args) expected (useColor opts)
-                  where args = if colorArg == "" then ["-o", outputArg] else ["-c", colorArg, "-o", outputArg]
-                        (_, _, opts) = getOptions args
-  in Monadic.describe "the --color option" $ do
+        let test :: String -> String -> Bool -> IO ()
+            test colorArg outputArg expected = HUnit.assertEqual (unwords args) expected (useColor opts)
+              where args = if colorArg == "" then ["-o", outputArg] else ["-c", colorArg, "-o", outputArg]
+                    (_, _, opts) = getOptions args
+
         Monadic.it "allows \"true\" to force color output"
           (test "true" "stdout" True)
 
@@ -504,15 +504,15 @@ colorSpecs = let test :: String -> String -> Bool -> IO ()
         Monadic.it "by default, doesn't color when outputing to a file"
           (test "" "foo.txt" False)
 
+      Monadic.describe "searching for specs to run" $ do
 
-findingSpecsSpecs :: Test.Hspec.Monadic.Specs
-findingSpecsSpecs = let test :: String -> [String] -> IO ()
-                        test contents expected = HUnit.assertEqual contents expected decs
-                         where decs = concat [ getSpecDeclariations contents,
-                                               getIOSpecDeclariations contents,
-                                               getMonadicSpecDeclariations contents,
-                                               getMonadicIOSpecDeclariations contents ]
-  in Monadic.describe "hspec" $ do
+        let test :: String -> [String] -> IO ()
+            test contents expected = HUnit.assertEqual contents expected decs
+              where decs = concat [ getSpecDeclariations contents,
+                                    getIOSpecDeclariations contents,
+                                    getMonadicSpecDeclariations contents,
+                                    getMonadicIOSpecDeclariations contents ]
+
         Monadic.it "finds top level definitions of type \"Specs\""
           (test "\ntest :: Specs\ntest = undefined\n"
                 ["test :: Specs"])
