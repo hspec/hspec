@@ -1,5 +1,5 @@
 name:           hspec
-version:        0.8
+version:        0.8.1
 cabal-version:  >= 1.8
 build-type:     Custom
 license:        BSD3
@@ -25,8 +25,7 @@ extra-source-files: ./Specs.hs ./Test/Hspec/HUnit.hs
 Executable hspec
   ghc-options:    -Wall -fno-warn-hi-shadowing
   main-is: hspec.hs
-  build-depends: hspec == 0.7,
-                 base >=4 && <=5,
+  build-depends: base >=4 && <=5,
                  regex-posix >= 0.9,
                  plugins == 1.5.1.4,
                  HUnit >=1 && <=2,
