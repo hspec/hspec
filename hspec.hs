@@ -536,3 +536,18 @@ allSpecs =
         Monadic.it "finds top level definitions of type \"IO Test.Hspec.Monadic.Specs\""
           (test "\ntest :: IO Test.Hspec.Monadic.Specs\ntest = undefined\n"
                 ["test :: IO Test.Hspec.Monadic.Specs"])
+
+        Monadic.it "finds top level definitions after single line comments"
+          (test "\n-- single line comment\ntest :: IO Specs\ntest = undefined\n"
+                ["test :: IO Specs"])
+
+        Monadic.it "finds top level definitions after multi line comments"
+          (test "\n{- multi\n line\n comment -}\ntest :: IO Specs\ntest = undefined\n"
+                ["test :: IO Specs"])
+
+        Monadic.it "finds top level definitions after pragma style comments"
+          (test "{-# OPTIONS_GHC -fno-warn-unused-binds #-}\n\
+                \{-# LANGUAGE QuasiQuotes #-}\n\
+                \test :: Specs\n\
+                \test = undefined\n"
+                ["test :: Specs"])
