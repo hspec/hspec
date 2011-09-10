@@ -551,3 +551,10 @@ allSpecs =
                 \test :: Specs\n\
                 \test = undefined\n"
                 ["test :: Specs"])
+
+        Monadic.it "finds module declaration" $
+          hasModuleHeader "{-# OPTIONS_GHC -fno-warn-unused-binds #-}\n\
+                \{-# LANGUAGE QuasiQuotes #-}\n\
+                \module  main ()  where \n\
+                \test :: Specs\n\
+                \test = undefined\n"
