@@ -537,24 +537,27 @@ allSpecs =
           (test "\ntest :: IO Test.Hspec.Monadic.Specs\ntest = undefined\n"
                 ["test :: IO Test.Hspec.Monadic.Specs"])
 
-        Monadic.it "finds top level definitions after single line comments"
-          (test "\n-- single line comment\ntest :: IO Specs\ntest = undefined\n"
-                ["test :: IO Specs"])
+        Monadic.it "finds module declaration after single line comments" $
+          hasModuleHeader "-- single line comment\n\
+                          \module Test where\n\
+                          \test :: Specs\n\
+                          \test = undefined\n"
 
-        Monadic.it "finds top level definitions after multi line comments"
-          (test "\n{- multi\n line\n comment -}\ntest :: IO Specs\ntest = undefined\n"
-                ["test :: IO Specs"])
+        Monadic.it "finds module declaration after multi line comments" $
+          hasModuleHeader "{- multi\n line\n comment -}\n\
+                          \module Test where\n\
+                          \test :: Specs\n\
+                          \test = undefined\n"
 
-        Monadic.it "finds top level definitions after pragma style comments"
-          (test "{-# OPTIONS_GHC -fno-warn-unused-binds #-}\n\
-                \{-# LANGUAGE QuasiQuotes #-}\n\
-                \test :: Specs\n\
-                \test = undefined\n"
-                ["test :: Specs"])
-
-        Monadic.it "finds module declaration" $
+        Monadic.it "finds module declaration after pragmas" $
           hasModuleHeader "{-# OPTIONS_GHC -fno-warn-unused-binds #-}\n\
-                \{-# LANGUAGE QuasiQuotes #-}\n\
-                \module  main ()  where \n\
-                \test :: Specs\n\
-                \test = undefined\n"
+                          \{-# LANGUAGE QuasiQuotes #-}\n\
+                          \module Test where\n\
+                          \test :: Specs\n\
+                          \test = undefined\n"
+
+        Monadic.it "finds module declaration after whitespace" $
+          hasModuleHeader " \t\n\
+                          \module Test where\n\
+                          \test :: Specs\n\
+                          \test = undefined\n"
