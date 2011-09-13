@@ -572,7 +572,7 @@ allSpecs =
                           \test = undefined\n"
 
         Monadic.it "finds module declaration after any preprocessor stuff" $
-          pending "This example failes on my machine and I have git set to not commit if there are failing tests"
+          pending "This example fails on my machine and I have git set to not commit if there are failing tests"
 --          findsSpecs "{-# OPTIONS_GHC -fno-warn-unused-binds #-}\n\
 --                     \{-# LANGUAGE QuasiQuotes, CPP #-}\n\
 --                     \#ifdef DEBUG\n\
