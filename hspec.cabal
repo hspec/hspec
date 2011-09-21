@@ -1,5 +1,5 @@
 name:           hspec
-version:        0.8.1
+version:        0.9.0
 cabal-version:  >= 1.8
 build-type:     Custom
 license:        BSD3
@@ -21,21 +21,6 @@ extra-source-files: ./Specs.hs ./Test/Hspec/HUnit.hs
                     ./Test/Hspec/Runner.hs ./Test/Hspec/Monadic.hs
                     ./Test/Hspec/Formatters.hs
                     ./Test/Hspec/Core.hs ./Test/Hspec/QuickCheck.hs
-
-Executable hspec
-  ghc-options:    -Wall -fno-warn-hi-shadowing
-  main-is: hspec.hs
-  build-depends: base >=4 && <=5,
-                 regex-posix >= 0.9,
-                 plugins == 1.5.1.4,
-                 HUnit >=1 && <=2,
-                 QuickCheck >=2.4.0.1 && <=2.5,
-                 base >=4 && <=5,
-                 silently >= 1.1.1 && < 2,
-                 ansi-terminal == 0.5.5,
-                 transformers >= 0.2.0 && < 0.3.0,
-                 filepath >= 1.1,
-                 directory >= 1
 
 Library
   exposed:        True
