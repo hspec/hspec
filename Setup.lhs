@@ -1,6 +1,5 @@
 #!/usr/bin/runhaskell
 > module Main where
-> import System
 > import Distribution.Simple
 > import Distribution.Simple.Setup
 > import Distribution.PackageDescription
