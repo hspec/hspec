@@ -5,13 +5,13 @@
 -- The three functions you'll use the most are 'hspec', 'describe', and 'it'. Here is an
 -- example of functions that format and unformat phone numbers and the specs for them.
 --
--- > import Test.Hspec
+-- > import Test.Hspec.Monadic
 -- > import Test.Hspec.QuickCheck
 -- > import Test.Hspec.HUnit
 -- > import Test.QuickCheck hiding (property)
 -- > import Test.HUnit
 -- >
--- > main = hspecX $ do
+-- > main = hspec mySpecs
 --
 -- Since the specs are often used to tell you what to implement, it's best to start with
 -- undefined functions. Once we have some specs, then you can implement each behavior
@@ -25,7 +25,7 @@
 --
 -- The "describe" function takes a list of behaviors and examples bound together with the "it" function
 --
--- > describe "unformatPhoneNumber" $ do
+-- > mySpecs = describe "unformatPhoneNumber" $ do
 --
 -- A boolean expression can act as a behavior's example.
 --
