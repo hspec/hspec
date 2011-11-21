@@ -106,14 +106,14 @@ hHspec h = Runner.hHspec h . runSpecM
 runSpecM :: Specs -> [Spec]
 runSpecM specs = execWriter specs
 
-describe :: String -> Writer [Spec] () -> Specs
-describe label action = tell $ Core.describe label [execWriter action]
+describe :: String -> Specs -> Specs
+describe label action = tell $ Core.describe label [runSpecM action]
 
 -- | Combine a list of descriptions. (Note that descriptions can also
 -- be combined with monadic sequencing.)
 descriptions :: [Specs] -> Specs
 descriptions = sequence_
 
-it :: Example v => String -> v -> Writer [Spec] ()
+it :: Example v => String -> v -> Specs
 it label action = tell $ Core.it label action
 
