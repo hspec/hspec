@@ -23,7 +23,7 @@
 -- > formatPhoneNumber :: String -> String
 -- > formatPhoneNumber number = undefined
 --
--- The "describe" function takes a list of behaviors and examples bound together with the "it" function
+-- The 'describe' function takes a list of behaviors and examples bound together with the 'it' function
 --
 -- > mySpecs = describe "unformatPhoneNumber" $ do
 --
@@ -32,19 +32,19 @@
 -- >   it "removes dashes, spaces, and parenthesies"
 -- >       (unformatPhoneNumber "(555) 555-1234" == "5555551234")
 --
--- The "pending" function marks a behavior as pending an example. The example doesn't count as failing.
+-- The 'pending' function marks a behavior as pending an example. The example doesn't count as failing.
 --
 -- >   it "handles non-US phone numbers"
 -- >       (pending "need to look up how other cultures format phone numbers")
 --
--- An HUnit "Test" can act as a behavior's example. (must import @Test.Hspec.HUnit@)
+-- An HUnit 'Test' can act as a behavior's example. (must import @Test.Hspec.HUnit@)
 --
 -- >   it "removes the \"ext\" prefix of the extension"
 -- >       (TestCase $ let expected = "5555551234135"
 -- >                       actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
 -- >                   in assertEqual "remove extension" expected actual)
 --
--- An @IO()@ action is treated like an HUnit "TestCase". (must import @Test.Hspec.HUnit@)
+-- An @IO()@ action is treated like an HUnit 'TestCase'. (must import @Test.Hspec.HUnit@)
 --
 -- >   it "converts letters to numbers"
 -- >       (do
@@ -52,7 +52,7 @@
 -- >         let actual   = unformatPhoneNumber "NUMBERS"
 -- >         assertEqual "letters to numbers" expected actual)
 --
--- The "property" function allows a QuickCheck property to act as an example. (must import @Test.Hspec.HUnit@)
+-- The 'property' function allows a QuickCheck property to act as an example. (must import @Test.Hspec.HUnit@)
 --
 -- >   it "can add and remove formatting without changing the number"
 -- >       (property $ forAll phoneNumber $
