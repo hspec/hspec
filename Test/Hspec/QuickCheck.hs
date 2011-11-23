@@ -22,7 +22,6 @@ import qualified Test.QuickCheck as QC
 
 -- just for the prop shortcut
 import qualified Test.Hspec.Monadic as DSL
-import Control.Monad.Trans.Writer (Writer)
 
 data QuickCheckProperty a = QuickCheckProperty a
 
@@ -30,7 +29,7 @@ property :: QC.Testable a => a -> QuickCheckProperty a
 property = QuickCheckProperty
 
 -- | Monadic DSL shortcut, use this instead of @it@
-prop :: QC.Testable t => String -> t -> Writer [Spec] ()
+prop :: QC.Testable t => String -> t -> DSL.Specs
 prop n p = DSL.it n (QuickCheckProperty p)
 
 
