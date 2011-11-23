@@ -1,4 +1,4 @@
-
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- | This module contains the runners that take a set of specs, specified in a monadic style, evaluate their examples, and
 -- report to a given handle.
 --
@@ -82,7 +82,10 @@ import qualified Test.Hspec.Runner as Runner
 
 import Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
-type Specs = Writer [Spec] ()
+type Specs = SpecM ()
+
+newtype SpecM a = SpecM (Writer [Spec] a)
+  deriving Monad
 
 -- | Create a document of the given specs and write it to stdout.
 hspec :: Specs -> IO [Spec]
@@ -104,16 +107,16 @@ hHspec :: Handle -> Specs -> IO [Spec]
 hHspec h = Runner.hHspec h . runSpecM
 
 runSpecM :: Specs -> [Spec]
-runSpecM specs = execWriter specs
+runSpecM (SpecM specs) = execWriter specs
 
-describe :: String -> Writer [Spec] () -> Specs
-describe label action = tell $ Core.describe label [execWriter action]
+describe :: String -> Specs -> Specs
+describe label action = SpecM . tell $ Core.describe label [runSpecM action]
 
 -- | Combine a list of descriptions. (Note that descriptions can also
 -- be combined with monadic sequencing.)
 descriptions :: [Specs] -> Specs
 descriptions = sequence_
 
-it :: Example v => String -> v -> Writer [Spec] ()
-it label action = tell $ Core.it label action
+it :: Example v => String -> v -> Specs
+it label action = SpecM . tell $ Core.it label action
 
