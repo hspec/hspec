@@ -139,13 +139,13 @@ specs = do
         it "displays one row for each behavior"
             (HUnit.assertEqual "" 29 (length report)),
 
-        it "displays a row for successfull examples"
-            (any (==" - pass") report),
+        it "displays a row for each successfull, failed, or pending example"
+            (any (==" - pass") report && any (==" - fail 1 FAILED [1]") report),
 
         it "displays a detailed list of failed examples"
             (any (=="1) Example fail 1 FAILED") report),
 
-        it "displays a '#' and an additional message for pending examples"
+        it "displays a '#' with an additional message for pending examples"
             (any (=="     # pending message") report ),
 
         it "summarizes the time it takes to finish"
