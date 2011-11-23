@@ -23,9 +23,9 @@ Step 3, watch your examples fail with red text by running from the .hs file itse
 > main = hspec specs
 
 myabs
- x returns the original number when given a positive input FAILED [1]
- x returns a positive number when given a negative input FAILED [2]
- x returns zero when given zero FAILED [3]
+ - returns the original number when given a positive input FAILED [1]
+ - returns a positive number when given a negative input FAILED [2]
+ - returns zero when given zero FAILED [3]
 
 1) myabs returns the original number when given a positive input FAILED
 Prelude.undefined
@@ -69,7 +69,6 @@ the "describe" function
 
   a nested description
    - has it's own specs
-   - may be displayed indented
 
 the "it" function
  - takes a description of a desired behavior
@@ -80,10 +79,8 @@ the "it" function
 the "hspec" function
  - displays a header for each thing being described
  - displays one row for each behavior
- - displays a '-' for successfull examples
- - displays an 'x' for failed examples
+ - displays a row for successfull examples
  - displays a detailed list of failed examples
- - displays a '-' for pending examples
  - displays a '#' and an additional message for pending examples
  - summarizes the time it takes to finish
  - summarizes the number of examples and failures
@@ -118,6 +115,6 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-Finished in 0.0489 seconds
+Finished in 0.0464 seconds
 
-35 examples, 0 failures
+32 examples, 0 failures

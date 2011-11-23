@@ -31,7 +31,7 @@ preamble = unlines [
     "Step 1, write descriptions and examples of your desired behavior",
     "> module Myabs where",
     ">",
-    "> specs :: IO Specs",
+    "> specs :: Specs",
     "> specs = describe \"myabs\" [",
     ">   it \"returns the original number when given a positive input\"",
     ">     (myabs 1 == 1),",
