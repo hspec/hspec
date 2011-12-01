@@ -57,9 +57,16 @@ descriptions = concat
 
 -- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
 safely :: Result -> IO Result
-safely f = Control.Exception.catch ok failed
-  where ok = silence $ f `seq` return f
-        failed e = return $ Fail (show (e :: SomeException))
+safely f = (silence $ f `seq` return f) `catches` [
+
+        -- Re-throw AsyncException, otherwise execution will not terminate on
+        -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
+        -- UserInterrupt) because all of them indicate severe conditions and
+        -- should not occur during normal test runs.
+        Handler (\e -> throw (e :: AsyncException)),
+
+        Handler (\e -> return $ Fail (show (e :: SomeException)))
+        ]
 
 
 evaluateSpec :: Spec -> IO Spec
