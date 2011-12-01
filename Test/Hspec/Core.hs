@@ -55,23 +55,18 @@ describe label specs = map desc (concat specs)
 descriptions :: [[Spec]] -> [Spec]
 descriptions = concat
 
--- | Evaluate a Result. Any exceptions (undefined, etc.) are treated as failures.
-safely :: Result -> IO Result
-safely f = (silence $ f `seq` return f) `catches` [
-
-        -- Re-throw AsyncException, otherwise execution will not terminate on
-        -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
-        -- UserInterrupt) because all of them indicate severe conditions and
-        -- should not occur during normal test runs.
-        Handler (\e -> throw (e :: AsyncException)),
-
-        Handler (\e -> return $ Fail (show (e :: SomeException)))
-        ]
-
 
 evaluateSpec :: Spec -> IO Spec
 evaluateSpec (UnevaluatedSpec name' requirement' example' depth') = do
-  r <- evaluateExample example'
+  r <- evaluateExample example' `catches` [
+    -- Re-throw AsyncException, otherwise execution will not terminate on
+    -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
+    -- UserInterrupt) because all of them indicate severe conditions and
+    -- should not occur during normal test runs.
+    Handler (\e -> throw (e :: AsyncException)),
+
+    Handler (\e -> return $ Fail (show (e :: SomeException)))
+    ]
   return $ Spec name' requirement' r depth'
 evaluateSpec spec = return spec
 
@@ -91,10 +86,10 @@ class Example a where
   evaluateExample :: a -> IO Result
 
 instance Example Bool where
-  evaluateExample bool = safely $ if bool then Success else Fail ""
+  evaluateExample bool = evaluateExample $ if bool then Success else Fail ""
 
 instance Example Result where
-  evaluateExample result' = safely result'
+  evaluateExample result' = silence $ result' `seq` return result'
 
 -- | An existentially quantified @Example@. This way they can be mixed within the same set of Specs
 data AnyExample = forall a. Example a => AnyExample a
