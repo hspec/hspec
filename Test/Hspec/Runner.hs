@@ -56,7 +56,9 @@ hspec ss = hHspec stdout ss
 -- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
 --
 hHspec :: Handle -> Specs -> IO Specs
-hHspec h = hHspecWithFormat (specdoc $ h == stdout) h
+hHspec h specs = do
+  useColor <- hIsTerminalDevice h
+  hHspecWithFormat (specdoc useColor) h specs
 
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
