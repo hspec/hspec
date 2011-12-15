@@ -71,6 +71,8 @@ module Test.Hspec.Monadic (
   describe, it, hspec, hspecB, hspecX, pending, descriptions,
   -- alternate "runner" functions
   hHspec,
+  -- interface to the non-monadic api
+  fromSpecList,
   -- this is just for internal use
   runSpecM
 ) where
@@ -120,3 +122,6 @@ descriptions = sequence_
 it :: Example v => String -> v -> Specs
 it label action = SpecM . tell $ Core.it label action
 
+-- | Converts a specs created with 'Test.Hspec.HUnit.describe' into a monadic 'describe'.
+fromSpecList :: [Spec] -> Specs
+fromSpecList = SpecM . tell
