@@ -126,6 +126,6 @@ isFailure (Fail _) = True
 isFailure _        = False
 
 -- | Create a more readable display of a quantity of something.
-quantify :: Num a => a -> String -> String
+quantify :: (Show a, Num a, Eq a) => a -> String -> String
 quantify 1 s = "1 " ++ s
 quantify n s = show n ++ " " ++ s ++ "s"
