@@ -1,5 +1,5 @@
 name:           hspec
-version:        0.9.0
+version:        0.9.1
 cabal-version:  >= 1.8
 build-type:     Custom
 license:        BSD3

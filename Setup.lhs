@@ -11,8 +11,7 @@
 >
 > main :: IO ()
 > main = defaultMainWithHooks hooks
->   where hooks = simpleUserHooks { runTests = \ _ _ _ _ -> runspecs,
->                                   preSDist = \ _ _     -> runspecs >> return emptyHookedBuildInfo }
+>   where hooks = simpleUserHooks { preSDist = \ _ _     -> runspecs >> return emptyHookedBuildInfo }
 >
 > runspecs :: IO ()
 > runspecs = specs >>= hspecX
