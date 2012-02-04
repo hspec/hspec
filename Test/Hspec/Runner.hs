@@ -13,16 +13,17 @@ import System.CPUTime (getCPUTime)
 import Control.Monad (when)
 import System.Exit
 import Control.Exception (bracket_)
+import Control.Monad.IO.Class
 
 type Specs = [Spec]
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> Handle -> String -> [String] -> Specs -> IO Specs
+runFormatter :: Formatter -> Handle -> String -> [String] -> Specs -> FormatM Specs
 runFormatter formatter h _     errors []     = do
   errorsFormatter formatter h (reverse errors)
   return []
 runFormatter formatter h group errors (iospec:ioss) = do
-  spec <- evaluateSpec iospec
+  spec <- liftIO $ evaluateSpec iospec
   when (group /= name spec) (exampleGroupStarted formatter h spec)
   case result spec of
     (Success  ) -> examplePassed formatter h spec errors
@@ -66,10 +67,10 @@ hHspecWithFormat :: Formatter -> Handle -> Specs -> IO Specs
 hHspecWithFormat formatter h ss =
   bracket_ (when (usesFormatting formatter) $ restoreFormat h)
            (when (usesFormatting formatter) $ restoreFormat h)
-           (do
-         t0 <- getCPUTime
+           (runFormatM FormatterState {} $ do
+         t0 <- liftIO $ getCPUTime
          specList <- runFormatter formatter h "" [] ss
-         t1 <- getCPUTime
+         t1 <- liftIO $ getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
          (footerFormatter formatter) h specList runTime
          return specList)
