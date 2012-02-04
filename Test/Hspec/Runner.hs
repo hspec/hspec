@@ -18,21 +18,21 @@ import Control.Monad.IO.Class
 type Specs = [Spec]
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> Handle -> String -> [String] -> Specs -> FormatM Specs
-runFormatter formatter h _     errors []     = do
-  errorsFormatter formatter h (reverse errors)
+runFormatter :: Formatter -> String -> [String] -> Specs -> FormatM Specs
+runFormatter formatter _     errors []     = do
+  errorsFormatter formatter (reverse errors)
   return []
-runFormatter formatter h group errors (iospec:ioss) = do
+runFormatter formatter group errors (iospec:ioss) = do
   spec <- liftIO $ evaluateSpec iospec
-  when (group /= name spec) (exampleGroupStarted formatter h spec)
+  when (group /= name spec) (exampleGroupStarted formatter spec)
   case result spec of
-    (Success  ) -> examplePassed formatter h spec errors
-    (Fail _   ) -> exampleFailed formatter h spec errors
-    (Pending _) -> examplePending formatter h spec errors
+    (Success  ) -> examplePassed  formatter spec errors
+    (Fail _   ) -> exampleFailed  formatter spec errors
+    (Pending _) -> examplePending formatter spec errors
   let errors' = if isFailure (result spec)
                 then errorDetails spec (length errors) : errors
                 else errors
-  specs <- runFormatter formatter h (name spec) errors' ioss
+  specs <- runFormatter formatter (name spec) errors' ioss
   return $ spec : specs
 
 errorDetails :: Spec -> Int -> String
@@ -67,12 +67,12 @@ hHspecWithFormat :: Formatter -> Handle -> Specs -> IO Specs
 hHspecWithFormat formatter h ss =
   bracket_ (when (usesFormatting formatter) $ restoreFormat h)
            (when (usesFormatting formatter) $ restoreFormat h)
-           (runFormatM FormatterState {} $ do
+           (runFormatM (usesFormatting formatter) h $ do
          t0 <- liftIO $ getCPUTime
-         specList <- runFormatter formatter h "" [] ss
+         specList <- runFormatter formatter "" [] ss
          t1 <- liftIO $ getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
-         (footerFormatter formatter) h specList runTime
+         (footerFormatter formatter) specList runTime
          return specList)
 
 toExitCode :: Bool -> ExitCode
