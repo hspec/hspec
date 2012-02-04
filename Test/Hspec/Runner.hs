@@ -26,9 +26,9 @@ runFormatter formatter group errors (iospec:ioss) = do
   spec <- liftIO $ evaluateSpec iospec
   when (group /= name spec) (exampleGroupStarted formatter spec)
   case result spec of
-    (Success  ) -> examplePassed  formatter spec errors
-    (Fail _   ) -> exampleFailed  formatter spec errors
-    (Pending _) -> examplePending formatter spec errors
+    (Success  ) -> increaseSuccessCount >> examplePassed  formatter spec
+    (Fail _   ) -> increaseFailCount    >> exampleFailed  formatter spec
+    (Pending _) -> increasePendingCount >> examplePending formatter spec
   let errors' = if isFailure (result spec)
                 then errorDetails spec (length errors) : errors
                 else errors
@@ -72,7 +72,7 @@ hHspecWithFormat formatter useColor h ss =
          specList <- runFormatter formatter "" [] ss
          t1 <- liftIO $ getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
-         (footerFormatter formatter) specList runTime
+         (footerFormatter formatter) runTime
          return specList)
 
 toExitCode :: Bool -> ExitCode

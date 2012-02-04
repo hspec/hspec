@@ -7,6 +7,9 @@ module Test.Hspec.Formatters (
   , Formatter (..)
   , FormatM
   , runFormatM
+  , increaseSuccessCount
+  , increasePendingCount
+  , increaseFailCount
 ) where
 
 import Test.Hspec.Core
@@ -22,21 +25,36 @@ import Control.Monad.IO.Class
 data FormatterState = FormatterState {
   stateHandle   :: Handle
 , stateUseColor :: Bool
+, successCount  :: Int
+, pendingCount  :: Int
+, failCount     :: Int
 }
+
+totalCount :: FormatterState -> Int
+totalCount s = successCount s + pendingCount s + failCount s
 
 type FormatM = StateT FormatterState IO
 
 runFormatM :: Bool -> Handle -> FormatM a -> IO a
-runFormatM useColor handle action = evalStateT action (FormatterState handle useColor)
+runFormatM useColor handle action = evalStateT action (FormatterState handle useColor 0 0 0)
+
+increaseSuccessCount :: FormatM ()
+increaseSuccessCount = modify $ \s -> s {successCount = succ $ successCount s}
+
+increasePendingCount :: FormatM ()
+increasePendingCount = modify $ \s -> s {pendingCount = succ $ pendingCount s}
+
+increaseFailCount :: FormatM ()
+increaseFailCount = modify $ \s -> s {failCount = succ $ failCount s}
 
 data Formatter = Formatter {
   formatterName       :: String
 , exampleGroupStarted :: Spec -> FormatM ()
-, examplePassed       :: Spec -> [String] -> FormatM ()
-, exampleFailed       :: Spec -> [String] -> FormatM ()
-, examplePending      :: Spec -> [String] -> FormatM ()
+, examplePassed       :: Spec -> FormatM ()
+, exampleFailed       :: Spec -> FormatM ()
+, examplePending      :: Spec -> FormatM ()
 , errorsFormatter     :: [String] -> FormatM ()
-, footerFormatter     :: [Spec] -> Double -> FormatM ()
+, footerFormatter     :: Double -> FormatM ()
 }
 
 hPutStrLn :: Handle -> String -> FormatM ()
@@ -50,11 +68,11 @@ silent :: Formatter
 silent = Formatter {
   formatterName = "silent",
   exampleGroupStarted = \_ -> return (),
-  examplePassed = \_ _ -> return (),
-  exampleFailed = \_ _ -> return (),
-  examplePending = \_ _ -> return (),
+  examplePassed = \_ -> return (),
+  exampleFailed = \_ -> return (),
+  examplePending = \_ -> return (),
   errorsFormatter = \_ -> return (),
-  footerFormatter = \_ _ -> return ()
+  footerFormatter = \_ -> return ()
   }
 
 indentationFor :: Spec -> String
@@ -68,15 +86,16 @@ specdoc = silent {
     hPutStrLn h ("\n" ++ indentationFor spec ++ name spec)
     ,
 
-  examplePassed = \spec _ -> withPassColor $ \h -> do
+  examplePassed = \spec -> withPassColor $ \h -> do
     hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec
     ,
 
-  exampleFailed = \spec errors -> withFailColor $ \h -> do
-    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]"
+  exampleFailed = \spec -> withFailColor $ \h -> do
+    errors <- gets failCount
+    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show errors ++ "]"
     ,
 
-  examplePending = \spec _ -> withPendingColor $ \h -> do
+  examplePending = \spec -> withPendingColor $ \h -> do
     let (Pending s) = result spec
     hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
     ,
@@ -94,15 +113,15 @@ progress :: Formatter
 progress = silent {
   formatterName = "progress",
 
-  examplePassed = \_ _ -> withPassColor $ \h -> do
+  examplePassed = \_ -> withPassColor $ \h -> do
     hPutStr h "."
     ,
 
-  exampleFailed = \_ _ -> withFailColor $ \h -> do
+  exampleFailed = \_ -> withFailColor $ \h -> do
     hPutStr h "F"
     ,
 
-  examplePending = \_ _ -> withPendingColor $ \h -> do
+  examplePending = \_ -> withPendingColor $ \h -> do
     hPutStr h $ "."
     ,
 
@@ -127,12 +146,15 @@ failed_examples = silent {
   footerFormatter = defaultFooter
   }
 
-defaultFooter :: [Spec] -> Double -> FormatM ()
-defaultFooter specs time = (if failedCount specs == 0 then withPassColor else withFailColor) $ \h -> do
-  hPutStrLn h $ printf "Finished in %1.4f seconds" time
-  hPutStrLn h ""
-  hPutStr   h $ quantify (length specs) "example" ++ ", "
-  hPutStrLn h $ quantify (failedCount specs) "failure"
+defaultFooter :: Double -> FormatM ()
+defaultFooter time = do
+  fails <- gets failCount
+  total <- gets totalCount
+  (if fails == 0 then withPassColor else withFailColor) $ \h -> do
+    hPutStrLn h $ printf "Finished in %1.4f seconds" time
+    hPutStrLn h ""
+    hPutStr   h $ quantify total "example" ++ ", "
+    hPutStrLn h $ quantify fails "failure"
 
 
 withFailColor :: (Handle -> FormatM a) -> FormatM a
