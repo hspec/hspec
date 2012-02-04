@@ -59,15 +59,15 @@ hspec ss = hHspec stdout ss
 hHspec :: Handle -> Specs -> IO Specs
 hHspec h specs = do
   useColor <- hIsTerminalDevice h
-  hHspecWithFormat (specdoc useColor) h specs
+  hHspecWithFormat specdoc useColor h specs
 
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
-hHspecWithFormat :: Formatter -> Handle -> Specs -> IO Specs
-hHspecWithFormat formatter h ss =
-  bracket_ (when (usesFormatting formatter) $ restoreFormat h)
-           (when (usesFormatting formatter) $ restoreFormat h)
-           (runFormatM (usesFormatting formatter) h $ do
+hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO Specs
+hHspecWithFormat formatter useColor h ss =
+  bracket_ (when useColor $ restoreFormat h)
+           (when useColor $ restoreFormat h)
+           (runFormatM useColor h $ do
          t0 <- liftIO $ getCPUTime
          specList <- runFormatter formatter "" [] ss
          t1 <- liftIO $ getCPUTime

@@ -37,7 +37,6 @@ data Formatter = Formatter {
 , examplePending      :: Spec -> [String] -> FormatM ()
 , errorsFormatter     :: [String] -> FormatM ()
 , footerFormatter     :: [Spec] -> Double -> FormatM ()
-, usesFormatting      :: Bool
 }
 
 hPutStrLn :: Handle -> String -> FormatM ()
@@ -47,23 +46,22 @@ hPutStr :: Handle -> String -> FormatM ()
 hPutStr h = liftIO . IO.hPutStr h
 
 
-silent :: Bool -> Formatter
-silent useColor = Formatter {
+silent :: Formatter
+silent = Formatter {
   formatterName = "silent",
   exampleGroupStarted = \_ -> return (),
   examplePassed = \_ _ -> return (),
   exampleFailed = \_ _ -> return (),
   examplePending = \_ _ -> return (),
   errorsFormatter = \_ -> return (),
-  footerFormatter = \_ _ -> return (),
-  usesFormatting = useColor
+  footerFormatter = \_ _ -> return ()
   }
 
 indentationFor :: Spec -> String
 indentationFor spec = replicate (depth spec * 2) ' '
 
-specdoc :: Bool -> Formatter
-specdoc useColor = (silent useColor) {
+specdoc :: Formatter
+specdoc = silent {
   formatterName = "specdoc",
 
   exampleGroupStarted = \spec -> withNormalColor $ \h -> do
@@ -96,8 +94,8 @@ specdoc useColor = (silent useColor) {
   }
 
 
-progress :: Bool -> Formatter
-progress useColor = (silent useColor) {
+progress :: Formatter
+progress = silent {
   formatterName = "progress",
 
   examplePassed = \_ _ -> withPassColor $ \h -> do
@@ -125,8 +123,8 @@ progress useColor = (silent useColor) {
   }
 
 
-failed_examples :: Bool -> Formatter
-failed_examples useColor = (silent useColor) {
+failed_examples :: Formatter
+failed_examples = silent {
   formatterName = "failed_examples",
 
   errorsFormatter = \errors -> withFailColor $ \h -> do
