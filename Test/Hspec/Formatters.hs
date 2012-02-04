@@ -86,11 +86,7 @@ specdoc = silent {
     when (not $ null errors) (hPutStrLn h "")
     ,
 
-  footerFormatter = \specs time -> (if failedCount specs == 0 then withPassColor else withFailColor) $ \h -> do
-    hPutStrLn h $ printf "Finished in %1.4f seconds" time
-    hPutStrLn h ""
-    hPutStr   h $ quantify (length specs) "example" ++ ", "
-    hPutStrLn h $ quantify (failedCount specs) "failure"
+  footerFormatter = defaultFooter
   }
 
 
@@ -115,11 +111,7 @@ progress = silent {
     when (not $ null errors) (hPutStrLn h "")
     ,
 
-  footerFormatter = \specs time -> (if failedCount specs == 0 then withPassColor else withFailColor) $ \h -> do
-    hPutStrLn h $ printf "Finished in %1.4f seconds" time
-    hPutStrLn h ""
-    hPutStr   h $ quantify (length specs) "example" ++ ", "
-    hPutStrLn h $ quantify (failedCount specs) "failure"
+  footerFormatter = defaultFooter
   }
 
 
@@ -132,12 +124,15 @@ failed_examples = silent {
     when (not $ null errors) (hPutStrLn h "")
     ,
 
-  footerFormatter = \specs time -> (if failedCount specs == 0 then withPassColor else withFailColor) $ \h -> do
-    hPutStrLn h $ printf "Finished in %1.4f seconds" time
-    hPutStrLn h ""
-    hPutStr   h $ quantify (length specs) "example" ++ ", "
-    hPutStrLn h $ quantify (failedCount specs) "failure"
+  footerFormatter = defaultFooter
   }
+
+defaultFooter :: [Spec] -> Double -> FormatM ()
+defaultFooter specs time = (if failedCount specs == 0 then withPassColor else withFailColor) $ \h -> do
+  hPutStrLn h $ printf "Finished in %1.4f seconds" time
+  hPutStrLn h ""
+  hPutStr   h $ quantify (length specs) "example" ++ ", "
+  hPutStrLn h $ quantify (failedCount specs) "failure"
 
 
 withFailColor :: (Handle -> FormatM a) -> FormatM a
