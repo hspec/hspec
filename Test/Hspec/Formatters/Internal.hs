@@ -1,10 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Formatters.Internal (
   Formatter (..)
-, FormatterState (..)
-, totalCount
 , FormatM
 , runFormatM
+
 , increaseSuccessCount
 , increasePendingCount
 , increaseFailCount
@@ -14,12 +13,16 @@ module Test.Hspec.Formatters.Internal (
 , getPendingCount
 , getFailMessages
 , getTotalCount
+
 , withNormalColor
 , withPassColor
 , withPendingColor
 , withFailColor
 , hPutStr
 , hPutStrLn
+
+-- * Functions for internal use
+, liftIO
 , restoreFormat
 ) where
 
@@ -30,7 +33,7 @@ import Control.Monad (when)
 import System.Console.ANSI
 import Control.Monad.Trans.State hiding (gets, modify)
 import qualified Control.Monad.Trans.State as State
-import Control.Monad.IO.Class
+import qualified Control.Monad.IO.Class as IOClass
 
 -- | A lifted version of `State.gets`
 gets :: (FormatterState -> a) -> FormatM a
@@ -39,6 +42,14 @@ gets f = FormatM (State.gets f)
 -- | A lifted version of `State.modify`
 modify :: (FormatterState -> FormatterState) -> FormatM ()
 modify f = FormatM (State.modify f)
+
+-- | A lifted version of `IOClass.liftIO`
+--
+-- This is meant for internal use only, and not part of the public API.  This
+-- is also the reason why we do not make FormatM an instance MonadIO, so we
+-- have narrow control over the visibilty of this function.
+liftIO :: IO a -> FormatM a
+liftIO action = FormatM (IOClass.liftIO action)
 
 data FormatterState = FormatterState {
   stateHandle   :: Handle
@@ -53,7 +64,7 @@ totalCount :: FormatterState -> Int
 totalCount s = successCount s + pendingCount s + failCount s
 
 newtype FormatM a = FormatM (StateT FormatterState IO a)
-  deriving (Monad, Functor, MonadIO) -- FIXME: remove MonadIO instance
+  deriving (Functor, Monad)
 
 runFormatM :: Bool -> Handle -> FormatM a -> IO a
 runFormatM useColor handle (FormatM action) = evalStateT action (FormatterState handle useColor 0 0 0 [])

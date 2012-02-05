@@ -8,12 +8,12 @@ module Test.Hspec.Runner (
 
 import Test.Hspec.Core
 import Test.Hspec.Formatters
+import Test.Hspec.Formatters.Internal (liftIO)
 import System.IO
 import System.CPUTime (getCPUTime)
 import Control.Monad (when)
 import System.Exit
 import Control.Exception (bracket_)
-import Control.Monad.IO.Class
 
 type Specs = [Spec]
 
