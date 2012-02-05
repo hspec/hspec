@@ -3,7 +3,9 @@
 -- | Importing this module allows you to use an @HUnit@ test case as an example
 -- for a behavior. You can use an explicit @TestCase@ data constructor or
 -- use an @IO()@ action. For an @IO()@ action, any exception means the example
--- failed; otherwise, it's successfull.
+-- failed; otherwise, it's successfull. Any output from the example to stdout is
+-- ignored. If you need to write out for debugging, you can write to stderr or
+-- a file handle.
 --
 -- > describe "cutTheDeck" [
 -- >   it "puts the first half of a list after the last half"

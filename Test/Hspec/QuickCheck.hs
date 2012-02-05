@@ -1,6 +1,8 @@
 
 -- | Importing this module allows you to use a QuickCheck property as an example
 -- for a behavior. Use the 'property' function to indicate a QuickCkeck property.
+-- Any output from the example to stdout is ignored. If you need to write out for
+-- debugging, you can write to stderr or a file handle.
 --
 -- > describe "cutTheDeck" [
 -- >   it "puts the first half of a list after the last half"
