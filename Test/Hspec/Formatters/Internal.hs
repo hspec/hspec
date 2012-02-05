@@ -14,12 +14,12 @@ module Test.Hspec.Formatters.Internal (
 , getFailMessages
 , getTotalCount
 
+, write
+, writeLine
 , withNormalColor
 , withPassColor
 , withPendingColor
 , withFailColor
-, hPutStr
-, hPutStrLn
 
 -- * Functions for internal use
 , liftIO
@@ -106,31 +106,35 @@ data Formatter = Formatter {
 , footerFormatter     :: Double -> FormatM ()
 }
 
-hPutStrLn :: Handle -> String -> FormatM ()
-hPutStrLn h = liftIO . IO.hPutStrLn h
+write :: String -> FormatM ()
+write s = do
+  h <- gets stateHandle
+  liftIO $ IO.hPutStr h s
 
-hPutStr :: Handle -> String -> FormatM ()
-hPutStr h = liftIO . IO.hPutStr h
+writeLine :: String -> FormatM ()
+writeLine s = do
+  h <- gets stateHandle
+  liftIO $ IO.hPutStrLn h s
 
-withFailColor :: (Handle -> FormatM a) -> FormatM a
+withFailColor :: FormatM a -> FormatM a
 withFailColor = withColor (SetColor Foreground Dull Red)
 
-withPassColor :: (Handle -> FormatM a) -> FormatM a
+withPassColor :: FormatM a -> FormatM a
 withPassColor = withColor (SetColor Foreground Dull Green)
 
-withPendingColor :: (Handle -> FormatM a) -> FormatM a
+withPendingColor :: FormatM a -> FormatM a
 withPendingColor = withColor (SetColor Foreground Dull Yellow)
 
-withNormalColor :: (Handle -> FormatM a) -> FormatM a
+withNormalColor :: FormatM a -> FormatM a
 withNormalColor = withColor Reset
 
 -- | Set a color, run an action, and finally reset colors.
-withColor :: SGR -> (Handle -> FormatM a) -> FormatM a
+withColor :: SGR -> FormatM a -> FormatM a
 withColor color action = do
   useColor <- gets stateUseColor
   h <- gets stateHandle
   when useColor (liftIO $ hSetSGR h [color])
-  r <- action h
+  r <- action
 
   -- FIXME:  When action throws an exception, restoreFormat is never called.
   -- We can remedy this by using finally in combination with `monad-control`,

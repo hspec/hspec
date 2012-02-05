@@ -38,22 +38,22 @@ specdoc :: Formatter
 specdoc = silent {
   formatterName = "specdoc",
 
-  exampleGroupStarted = \spec -> withNormalColor $ \h -> do
-    hPutStrLn h ("\n" ++ indentationFor spec ++ name spec)
+  exampleGroupStarted = \spec -> withNormalColor $ do
+    writeLine ("\n" ++ indentationFor spec ++ name spec)
     ,
 
-  examplePassed = \spec -> withPassColor $ \h -> do
-    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec
+  examplePassed = \spec -> withPassColor $ do
+    writeLine $ indentationFor spec ++ " - " ++ requirement spec
     ,
 
-  exampleFailed = \spec -> withFailColor $ \h -> do
+  exampleFailed = \spec -> withFailColor $ do
     errors <- getFailCount
-    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show errors ++ "]"
+    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show errors ++ "]"
     ,
 
-  examplePending = \spec -> withPendingColor $ \h -> do
+  examplePending = \spec -> withPendingColor $ do
     let (Pending s) = result spec
-    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
+    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
     ,
 
   errorsFormatter = defaultErrorsFormatter,
@@ -66,16 +66,16 @@ progress :: Formatter
 progress = silent {
   formatterName = "progress",
 
-  examplePassed = \_ -> withPassColor $ \h -> do
-    hPutStr h "."
+  examplePassed = \_ -> withPassColor $ do
+    write "."
     ,
 
-  exampleFailed = \_ -> withFailColor $ \h -> do
-    hPutStr h "F"
+  exampleFailed = \_ -> withFailColor $ do
+    write "F"
     ,
 
-  examplePending = \_ -> withPendingColor $ \h -> do
-    hPutStr h $ "."
+  examplePending = \_ -> withPendingColor $ do
+    write $ "."
     ,
 
   errorsFormatter = defaultErrorsFormatter,
@@ -94,17 +94,17 @@ failed_examples = silent {
   }
 
 defaultErrorsFormatter :: FormatM ()
-defaultErrorsFormatter = withFailColor $ \h -> do
+defaultErrorsFormatter = withFailColor $ do
   errors <- getFailMessages
-  mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-  when (not $ null errors) (hPutStrLn h "")
+  mapM_ writeLine ("" : intersperse "" errors)
+  when (not $ null errors) (writeLine "")
 
 defaultFooter :: Double -> FormatM ()
 defaultFooter time = do
   fails <- getFailCount
   total <- getTotalCount
-  (if fails == 0 then withPassColor else withFailColor) $ \h -> do
-    hPutStrLn h $ printf "Finished in %1.4f seconds" time
-    hPutStrLn h ""
-    hPutStr   h $ quantify total "example" ++ ", "
-    hPutStrLn h $ quantify fails "failure"
+  (if fails == 0 then withPassColor else withFailColor) $ do
+    writeLine $ printf "Finished in %1.4f seconds" time
+    writeLine ""
+    write $ quantify total "example" ++ ", "
+    writeLine $ quantify fails "failure"
