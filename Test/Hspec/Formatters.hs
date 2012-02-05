@@ -66,78 +66,62 @@ import Test.Hspec.Formatters.Internal (
   , withFailColor
   )
 
+
 silent :: Formatter
 silent = Formatter {
-  formatterName = "silent",
-  exampleGroupStarted = \_ -> return (),
-  examplePassed = \_ -> return (),
-  exampleFailed = \_ -> return (),
-  examplePending = \_ -> return (),
-  errorsFormatter = return (),
-  footerFormatter = \_ -> return ()
-  }
+  formatterName = "silent"
+, exampleGroupStarted = \_ -> return ()
+, examplePassed = \_ -> return ()
+, exampleFailed = \_ -> return ()
+, examplePending = \_ -> return ()
+, errorsFormatter = return ()
+, footerFormatter = \_ -> return ()
+}
 
-indentationFor :: Spec -> String
-indentationFor spec = replicate (depth spec * 2) ' '
 
 specdoc :: Formatter
 specdoc = silent {
-  formatterName = "specdoc",
+  formatterName = "specdoc"
 
-  exampleGroupStarted = \spec -> withNormalColor $ do
+, exampleGroupStarted = \spec -> withNormalColor $ do
     writeLine ("\n" ++ indentationFor spec ++ name spec)
-    ,
 
-  examplePassed = \spec -> withPassColor $ do
+, examplePassed = \spec -> withPassColor $ do
     writeLine $ indentationFor spec ++ " - " ++ requirement spec
-    ,
 
-  exampleFailed = \spec -> withFailColor $ do
+, exampleFailed = \spec -> withFailColor $ do
     errors <- getFailCount
     writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show errors ++ "]"
-    ,
 
-  examplePending = \spec -> withPendingColor $ do
+, examplePending = \spec -> withPendingColor $ do
     let (Pending s) = result spec
     writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
-    ,
 
-  errorsFormatter = defaultErrorsFormatter,
+, errorsFormatter = defaultErrorsFormatter
 
-  footerFormatter = defaultFooter
-  }
+, footerFormatter = defaultFooter
+} where
+    indentationFor spec = replicate (depth spec * 2) ' '
 
 
 progress :: Formatter
 progress = silent {
-  formatterName = "progress",
-
-  examplePassed = \_ -> withPassColor $ do
-    write "."
-    ,
-
-  exampleFailed = \_ -> withFailColor $ do
-    write "F"
-    ,
-
-  examplePending = \_ -> withPendingColor $ do
-    write $ "."
-    ,
-
-  errorsFormatter = defaultErrorsFormatter,
-
-  footerFormatter = defaultFooter
-  }
+  formatterName   = "progress"
+, examplePassed   = \_ -> withPassColor    $ write "."
+, exampleFailed   = \_ -> withFailColor    $ write "F"
+, examplePending  = \_ -> withPendingColor $ write "."
+, errorsFormatter = defaultErrorsFormatter
+, footerFormatter = defaultFooter
+}
 
 
 failed_examples :: Formatter
-failed_examples = silent {
-  formatterName = "failed_examples",
+failed_examples   = silent {
+  formatterName   = "failed_examples"
+, errorsFormatter = defaultErrorsFormatter
+, footerFormatter = defaultFooter
+}
 
-  errorsFormatter = defaultErrorsFormatter,
-
-  footerFormatter = defaultFooter
-  }
 
 defaultErrorsFormatter :: FormatM ()
 defaultErrorsFormatter = withFailColor $ do
