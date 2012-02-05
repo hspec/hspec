@@ -16,23 +16,23 @@ data Result = Success | Pending String | Fail String
 
 -- | Everything needed to specify and show a specific behavior.
 data Spec = Spec {
-                 -- | What is being tested, usually the name of a type.
+                 -- | What is being tested, usually the name of a type or use case.
                  name::String,
-                 -- | The specific behavior being tested.
+                 -- | A description of the specific behavior being tested.
                  requirement::String,
                  -- | The status of the example of this behavior.
                  result::Result,
                  -- | The level of nestedness.
-                 depth :: Int }
+                 depth::Int }
           | UnevaluatedSpec {
-                 -- | What is being tested, usually the name of a type.
+                 -- | What is being tested, usually the name of a type or use case.
                  name::String,
-                 -- | The specific behavior being tested.
+                 -- | A description of the specific behavior being tested.
                  requirement::String,
                  -- | An example of this behavior.
                  example::AnyExample,
                  -- | The level of nestedness.
-                 depth :: Int }
+                 depth::Int }
 
 
 data Formatter = Formatter { formatterName   :: String,

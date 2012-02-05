@@ -59,7 +59,7 @@
 -- >         let actual   = unformatPhoneNumber "NUMBERS"
 -- >         assertEqual "letters to numbers" expected actual),
 --
--- The 'property' function allows a QuickCheck property to act as an example. (must import @Test.Hspec.HUnit@)
+-- The 'property' function allows a QuickCheck property to act as an example. (must import @Test.Hspec.QuickCheck@)
 --
 -- >   it "can add and remove formatting without changing the number"
 -- >       (property $ forAll phoneNumber $
