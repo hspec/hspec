@@ -8,7 +8,7 @@ module Test.Hspec.Runner (
 
 import Test.Hspec.Core
 import Test.Hspec.Formatters
-import Test.Hspec.Formatters.Internal (liftIO)
+import Test.Hspec.Formatters.Internal
 import System.IO
 import System.CPUTime (getCPUTime)
 import Control.Monad (when)

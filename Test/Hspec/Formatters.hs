@@ -2,23 +2,69 @@
 -- They follow a structure similar to RSpec formatters.
 --
 module Test.Hspec.Formatters (
-  restoreFormat,
-  silent, specdoc, progress, failed_examples
-  , Formatter (..)
-  , FormatM
-  , runFormatM
-  , increaseSuccessCount
-  , increasePendingCount
-  , increaseFailCount
-  , getFailCount
-  , addFailMessage
+
+-- * Formatters
+  silent
+, specdoc
+, progress
+, failed_examples
+
+-- * Implementing a custom Formatter
+-- |
+-- A formatter is a set of actions.  Each action is evaluated when a certain
+-- situation is encountered during a test run.
+--
+-- Actions live in the `FormatM` monad.  It provides access to the runner state
+-- and primitives for appending to the generated report.
+, Formatter (..)
+, FormatM
+
+-- ** Accessing the runner state
+, getSuccessCount
+, getPendingCount
+, getFailCount
+, getTotalCount
+, getFailMessages
+
+-- ** Appending to the gerenated report
+, write
+, writeLine
+
+-- ** Dealing with colors
+, withNormalColor
+, withPassColor
+, withPendingColor
+, withFailColor
 ) where
 
 import Test.Hspec.Core
 import Data.List (intersperse)
 import Text.Printf
 import Control.Monad (when)
-import Test.Hspec.Formatters.Internal
+
+-- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
+-- sure, that we only use the public API to implement formatters.
+--
+-- Everything imported here has to be re-exported, so that users can implement
+-- there own formatters.
+import Test.Hspec.Formatters.Internal (
+    Formatter (..)
+  , FormatM
+
+  , getSuccessCount
+  , getPendingCount
+  , getFailCount
+  , getTotalCount
+  , getFailMessages
+
+  , write
+  , writeLine
+
+  , withNormalColor
+  , withPassColor
+  , withPendingColor
+  , withFailColor
+  )
 
 silent :: Formatter
 silent = Formatter {
