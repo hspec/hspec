@@ -100,10 +100,7 @@ specdoc = silent {
     hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
     ,
 
-  errorsFormatter = \errors -> withFailColor $ \h -> do
-    mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h "")
-    ,
+  errorsFormatter = defaultErrorsFormatter,
 
   footerFormatter = defaultFooter
   }
@@ -125,10 +122,7 @@ progress = silent {
     hPutStr h $ "."
     ,
 
-  errorsFormatter = \errors -> withFailColor $ \h -> do
-    mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h "")
-    ,
+  errorsFormatter = defaultErrorsFormatter,
 
   footerFormatter = defaultFooter
   }
@@ -138,13 +132,15 @@ failed_examples :: Formatter
 failed_examples = silent {
   formatterName = "failed_examples",
 
-  errorsFormatter = \errors -> withFailColor $ \h -> do
-    mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h "")
-    ,
+  errorsFormatter = defaultErrorsFormatter,
 
   footerFormatter = defaultFooter
   }
+
+defaultErrorsFormatter :: [String] -> FormatM ()
+defaultErrorsFormatter errors = withFailColor $ \h -> do
+  mapM_ (hPutStrLn h) ("" : intersperse "" errors)
+  when (not $ null errors) (hPutStrLn h "")
 
 defaultFooter :: Double -> FormatM ()
 defaultFooter time = do
