@@ -18,8 +18,6 @@ import Test.Hspec.Core
 import Data.List (intersperse)
 import Text.Printf
 import Control.Monad (when)
-import Control.Monad.Trans.State
-
 import Test.Hspec.Formatters.Internal
 
 silent :: Formatter
@@ -49,7 +47,7 @@ specdoc = silent {
     ,
 
   exampleFailed = \spec -> withFailColor $ \h -> do
-    errors <- gets failCount
+    errors <- getFailCount
     hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show errors ++ "]"
     ,
 
@@ -103,8 +101,8 @@ defaultErrorsFormatter = withFailColor $ \h -> do
 
 defaultFooter :: Double -> FormatM ()
 defaultFooter time = do
-  fails <- gets failCount
-  total <- gets totalCount
+  fails <- getFailCount
+  total <- getTotalCount
   (if fails == 0 then withPassColor else withFailColor) $ \h -> do
     hPutStrLn h $ printf "Finished in %1.4f seconds" time
     hPutStrLn h ""

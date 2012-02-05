@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Formatters.Internal (
   Formatter (..)
 , FormatterState (..)
@@ -9,7 +10,10 @@ module Test.Hspec.Formatters.Internal (
 , increaseFailCount
 , getFailCount
 , addFailMessage
+, getSuccessCount
+, getPendingCount
 , getFailMessages
+, getTotalCount
 , withNormalColor
 , withPassColor
 , withPendingColor
@@ -24,8 +28,17 @@ import qualified System.IO as IO
 import System.IO (Handle)
 import Control.Monad (when)
 import System.Console.ANSI
-import Control.Monad.Trans.State
+import Control.Monad.Trans.State hiding (gets, modify)
+import qualified Control.Monad.Trans.State as State
 import Control.Monad.IO.Class
+
+-- | A lifted version of `State.gets`
+gets :: (FormatterState -> a) -> FormatM a
+gets f = FormatM (State.gets f)
+
+-- | A lifted version of `State.modify`
+modify :: (FormatterState -> FormatterState) -> FormatM ()
+modify f = FormatM (State.modify f)
 
 data FormatterState = FormatterState {
   stateHandle   :: Handle
@@ -39,10 +52,11 @@ data FormatterState = FormatterState {
 totalCount :: FormatterState -> Int
 totalCount s = successCount s + pendingCount s + failCount s
 
-type FormatM = StateT FormatterState IO
+newtype FormatM a = FormatM (StateT FormatterState IO a)
+  deriving (Monad, Functor, MonadIO) -- FIXME: remove MonadIO instance
 
 runFormatM :: Bool -> Handle -> FormatM a -> IO a
-runFormatM useColor handle action = evalStateT action (FormatterState handle useColor 0 0 0 [])
+runFormatM useColor handle (FormatM action) = evalStateT action (FormatterState handle useColor 0 0 0 [])
 
 increaseSuccessCount :: FormatM ()
 increaseSuccessCount = modify $ \s -> s {successCount = succ $ successCount s}
@@ -53,8 +67,17 @@ increasePendingCount = modify $ \s -> s {pendingCount = succ $ pendingCount s}
 increaseFailCount :: FormatM ()
 increaseFailCount = modify $ \s -> s {failCount = succ $ failCount s}
 
+getSuccessCount :: FormatM Int
+getSuccessCount = gets successCount
+
+getPendingCount :: FormatM Int
+getPendingCount = gets pendingCount
+
 getFailCount :: FormatM Int
 getFailCount = gets failCount
+
+getTotalCount :: FormatM Int
+getTotalCount = gets totalCount
 
 addFailMessage :: String -> FormatM ()
 addFailMessage err = modify $ \s -> s {failMessages = err : failMessages s}
