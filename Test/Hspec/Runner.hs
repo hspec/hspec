@@ -22,17 +22,21 @@ runFormatter :: Formatter -> String -> Specs -> FormatM Specs
 runFormatter _ _ [] = return []
 runFormatter formatter group (iospec:ioss) = do
   spec <- liftIO $ evaluateSpec iospec
-  when (group /= name spec) (exampleGroupStarted formatter spec)
+  when (group /= name spec) $
+    exampleGroupStarted formatter spec
   case result spec of
-    (Success  ) -> increaseSuccessCount >> examplePassed  formatter spec
-    (Fail _   ) -> do
+    Success -> do
+      increaseSuccessCount
+      examplePassed formatter spec
+    Fail _ -> do
       increaseFailCount
       exampleFailed  formatter spec
       n <- getFailCount
       addFailMessage $ errorDetails spec n
-    (Pending _) -> increasePendingCount >> examplePending formatter spec
-  specs <- runFormatter formatter (name spec) ioss
-  return $ spec : specs
+    Pending _ -> do
+      increasePendingCount
+      examplePending formatter spec
+  (spec :) `fmap` runFormatter formatter (name spec) ioss
 
 errorDetails :: Spec -> Int -> String
 errorDetails spec i = case result spec of
