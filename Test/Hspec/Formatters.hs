@@ -10,6 +10,8 @@ module Test.Hspec.Formatters (
   , increaseSuccessCount
   , increasePendingCount
   , increaseFailCount
+  , getFailCount
+  , addFailMessage
 ) where
 
 import Test.Hspec.Core
@@ -28,6 +30,7 @@ data FormatterState = FormatterState {
 , successCount  :: Int
 , pendingCount  :: Int
 , failCount     :: Int
+, failMessages  :: [String]
 }
 
 totalCount :: FormatterState -> Int
@@ -36,7 +39,7 @@ totalCount s = successCount s + pendingCount s + failCount s
 type FormatM = StateT FormatterState IO
 
 runFormatM :: Bool -> Handle -> FormatM a -> IO a
-runFormatM useColor handle action = evalStateT action (FormatterState handle useColor 0 0 0)
+runFormatM useColor handle action = evalStateT action (FormatterState handle useColor 0 0 0 [])
 
 increaseSuccessCount :: FormatM ()
 increaseSuccessCount = modify $ \s -> s {successCount = succ $ successCount s}
@@ -47,13 +50,22 @@ increasePendingCount = modify $ \s -> s {pendingCount = succ $ pendingCount s}
 increaseFailCount :: FormatM ()
 increaseFailCount = modify $ \s -> s {failCount = succ $ failCount s}
 
+getFailCount :: FormatM Int
+getFailCount = gets failCount
+
+addFailMessage :: String -> FormatM ()
+addFailMessage err = modify $ \s -> s {failMessages = err : failMessages s}
+
+getFailMessages :: FormatM [String]
+getFailMessages = reverse `fmap` gets failMessages
+
 data Formatter = Formatter {
   formatterName       :: String
 , exampleGroupStarted :: Spec -> FormatM ()
 , examplePassed       :: Spec -> FormatM ()
 , exampleFailed       :: Spec -> FormatM ()
 , examplePending      :: Spec -> FormatM ()
-, errorsFormatter     :: [String] -> FormatM ()
+, errorsFormatter     :: FormatM ()
 , footerFormatter     :: Double -> FormatM ()
 }
 
@@ -71,7 +83,7 @@ silent = Formatter {
   examplePassed = \_ -> return (),
   exampleFailed = \_ -> return (),
   examplePending = \_ -> return (),
-  errorsFormatter = \_ -> return (),
+  errorsFormatter = return (),
   footerFormatter = \_ -> return ()
   }
 
@@ -137,8 +149,9 @@ failed_examples = silent {
   footerFormatter = defaultFooter
   }
 
-defaultErrorsFormatter :: [String] -> FormatM ()
-defaultErrorsFormatter errors = withFailColor $ \h -> do
+defaultErrorsFormatter :: FormatM ()
+defaultErrorsFormatter = withFailColor $ \h -> do
+  errors <- getFailMessages
   mapM_ (hPutStrLn h) ("" : intersperse "" errors)
   when (not $ null errors) (hPutStrLn h "")
 

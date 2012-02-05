@@ -18,26 +18,25 @@ import Control.Monad.IO.Class
 type Specs = [Spec]
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> String -> [String] -> Specs -> FormatM Specs
-runFormatter formatter _     errors []     = do
-  errorsFormatter formatter (reverse errors)
-  return []
-runFormatter formatter group errors (iospec:ioss) = do
+runFormatter :: Formatter -> String -> Specs -> FormatM Specs
+runFormatter _ _ [] = return []
+runFormatter formatter group (iospec:ioss) = do
   spec <- liftIO $ evaluateSpec iospec
   when (group /= name spec) (exampleGroupStarted formatter spec)
   case result spec of
     (Success  ) -> increaseSuccessCount >> examplePassed  formatter spec
-    (Fail _   ) -> increaseFailCount    >> exampleFailed  formatter spec
+    (Fail _   ) -> do
+      increaseFailCount
+      exampleFailed  formatter spec
+      n <- getFailCount
+      addFailMessage $ errorDetails spec n
     (Pending _) -> increasePendingCount >> examplePending formatter spec
-  let errors' = if isFailure (result spec)
-                then errorDetails spec (length errors) : errors
-                else errors
-  specs <- runFormatter formatter (name spec) errors' ioss
+  specs <- runFormatter formatter (name spec) ioss
   return $ spec : specs
 
 errorDetails :: Spec -> Int -> String
 errorDetails spec i = case result spec of
-  (Fail s   ) -> concat [ show (i + 1), ") ", name spec, " ",  requirement spec, " FAILED", if null s then "" else "\n" ++ s ]
+  (Fail s   ) -> concat [ show i, ") ", name spec, " ",  requirement spec, " FAILED", if null s then "" else "\n" ++ s ]
   _           -> ""
 
 -- | Use in place of @hspec@ to also exit the program with an @ExitCode@
@@ -69,9 +68,10 @@ hHspecWithFormat formatter useColor h ss =
            (when useColor $ restoreFormat h)
            (runFormatM useColor h $ do
          t0 <- liftIO $ getCPUTime
-         specList <- runFormatter formatter "" [] ss
+         specList <- runFormatter formatter "" ss
          t1 <- liftIO $ getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
+         errorsFormatter formatter
          (footerFormatter formatter) runTime
          return specList)
 
