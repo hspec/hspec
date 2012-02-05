@@ -28,20 +28,19 @@ runFormatter formatter group (iospec:ioss) = do
     Success -> do
       increaseSuccessCount
       examplePassed formatter spec
-    Fail _ -> do
+    Fail err -> do
       increaseFailCount
       exampleFailed  formatter spec
       n <- getFailCount
-      addFailMessage $ errorDetails spec n
+      addFailMessage $ errorDetails err spec n
     Pending _ -> do
       increasePendingCount
       examplePending formatter spec
   (spec :) `fmap` runFormatter formatter (name spec) ioss
 
-errorDetails :: Spec -> Int -> String
-errorDetails spec i = case result spec of
-  (Fail s   ) -> concat [ show i, ") ", name spec, " ",  requirement spec, " FAILED", if null s then "" else "\n" ++ s ]
-  _           -> ""
+errorDetails :: String -> Spec -> Int -> String
+errorDetails err spec i =
+  concat [ show i, ") ", name spec, " ",  requirement spec, " FAILED", if null err then "" else "\n" ++ err ]
 
 -- | Use in place of @hspec@ to also exit the program with an @ExitCode@
 hspecX :: Specs -> IO a
