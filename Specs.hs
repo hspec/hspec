@@ -101,10 +101,10 @@ specs = do
           it "exceptions" (undefined :: Bool),
           it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
 
-  (reportContents, exampleSpecs) <- capture $ hHspecWithFormat (specdoc False) stdout testSpecs
-  (silentReportContents, _) <- capture $ hHspecWithFormat (silent False) stdout testSpecs
-  (progressReportContents, _) <- capture $ hHspecWithFormat (progress False) stdout testSpecs
-  (failed_examplesReportContents, _) <- capture $ hHspecWithFormat (failed_examples False) stdout testSpecs
+  (reportContents, exampleSpecs)     <- capture $ hHspecWithFormat specdoc         False stdout testSpecs
+  (silentReportContents, _)          <- capture $ hHspecWithFormat silent          False stdout testSpecs
+  (progressReportContents, _)        <- capture $ hHspecWithFormat progress        False stdout testSpecs
+  (failed_examplesReportContents, _) <- capture $ hHspecWithFormat failed_examples False stdout testSpecs
 
   let report = lines reportContents
 
