@@ -46,7 +46,7 @@ import Control.Monad (when)
 -- sure, that we only use the public API to implement formatters.
 --
 -- Everything imported here has to be re-exported, so that users can implement
--- there own formatters.
+-- their own formatters.
 import Test.Hspec.Formatters.Internal (
     Formatter (..)
   , FormatM
