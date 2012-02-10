@@ -2,139 +2,139 @@
 -- They follow a structure similar to RSpec formatters.
 --
 module Test.Hspec.Formatters (
-  restoreFormat,
-  silent, specdoc, progress, failed_examples
+
+-- * Formatters
+  silent
+, specdoc
+, progress
+, failed_examples
+
+-- * Implementing a custom Formatter
+-- |
+-- A formatter is a set of actions.  Each action is evaluated when a certain
+-- situation is encountered during a test run.
+--
+-- Actions live in the `FormatM` monad.  It provides access to the runner state
+-- and primitives for appending to the generated report.
+, Formatter (..)
+, FormatM
+
+-- ** Accessing the runner state
+, getSuccessCount
+, getPendingCount
+, getFailCount
+, getTotalCount
+, getFailMessages
+
+-- ** Appending to the gerenated report
+, write
+, writeLine
+
+-- ** Dealing with colors
+, withNormalColor
+, withPassColor
+, withPendingColor
+, withFailColor
 ) where
 
 import Test.Hspec.Core
-import System.IO
 import Data.List (intersperse)
 import Text.Printf
 import Control.Monad (when)
-import System.Console.ANSI
 
-silent :: Bool -> Formatter
-silent useColor = Formatter {
-  formatterName = "silent",
-  exampleGroupStarted = \ _ _ -> return (),
-  examplePassed = \ _ _ _ -> return (),
-  exampleFailed = \ _ _ _ -> return (),
-  examplePending = \ _ _ _ -> return (),
-  errorsFormatter = \ _ _ -> return (),
-  footerFormatter = \ _ _ _ -> return (),
-  usesFormatting = useColor
-  }
+-- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
+-- sure, that we only use the public API to implement formatters.
+--
+-- Everything imported here has to be re-exported, so that users can implement
+-- there own formatters.
+import Test.Hspec.Formatters.Internal (
+    Formatter (..)
+  , FormatM
 
-indentationFor :: Spec -> String
-indentationFor spec = replicate (depth spec * 2) ' '
+  , getSuccessCount
+  , getPendingCount
+  , getFailCount
+  , getTotalCount
+  , getFailMessages
 
-specdoc :: Bool -> Formatter
-specdoc useColor = (silent useColor) {
-  formatterName = "specdoc",
+  , write
+  , writeLine
 
-  exampleGroupStarted = \ h spec -> do
-    when useColor (normalColor h)
-    hPutStrLn h ("\n" ++ indentationFor spec ++ name spec)
-    when useColor (restoreFormat h),
+  , withNormalColor
+  , withPassColor
+  , withPendingColor
+  , withFailColor
+  )
 
-  examplePassed = \ h spec _ -> do
-    when useColor (passColor h)
-    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec
-    when useColor (restoreFormat h),
 
-  exampleFailed = \ h spec errors -> do
-    when useColor (failColor h)
-    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ (show $ (length errors) + 1) ++ "]"
-    when useColor (restoreFormat h),
+silent :: Formatter
+silent = Formatter {
+  formatterName = "silent"
+, exampleGroupStarted = \_ -> return ()
+, examplePassed = \_ -> return ()
+, exampleFailed = \_ -> return ()
+, examplePending = \_ -> return ()
+, errorsFormatter = return ()
+, footerFormatter = \_ -> return ()
+}
 
-  examplePending = \ h spec _ -> do
-    when useColor (pendingColor h)
+
+specdoc :: Formatter
+specdoc = silent {
+  formatterName = "specdoc"
+
+, exampleGroupStarted = \spec -> withNormalColor $ do
+    writeLine ("\n" ++ indentationFor spec ++ name spec)
+
+, examplePassed = \spec -> withPassColor $ do
+    writeLine $ indentationFor spec ++ " - " ++ requirement spec
+
+, exampleFailed = \spec -> withFailColor $ do
+    errors <- getFailCount
+    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show errors ++ "]"
+
+, examplePending = \spec -> withPendingColor $ do
     let (Pending s) = result spec
-    hPutStrLn h $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
-    when useColor (restoreFormat h),
+    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
 
-  errorsFormatter = \ h errors -> do
-    when useColor (failColor h)
-    mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h "")
-    when useColor (restoreFormat h),
+, errorsFormatter = defaultErrorsFormatter
 
-  footerFormatter = \ h specs time -> do
-    when useColor (if failedCount specs == 0 then passColor h else failColor h)
-    hPutStrLn h $ printf "Finished in %1.4f seconds" time
-    hPutStrLn h ""
-    hPutStr   h $ quantify (length specs) "example" ++ ", "
-    hPutStrLn h $ quantify (failedCount specs) "failure"
-    when useColor (restoreFormat h)
-  }
+, footerFormatter = defaultFooter
+} where
+    indentationFor spec = replicate (depth spec * 2) ' '
 
 
-progress :: Bool -> Formatter
-progress useColor = (silent useColor) {
-  formatterName = "progress",
-
-  examplePassed = \ h _ _ -> do
-    when useColor (passColor h)
-    hPutStr h "."
-    when useColor (restoreFormat h),
-
-  exampleFailed = \ h _ _ -> do
-    when useColor (failColor h)
-    hPutStr h "F"
-    when useColor (restoreFormat h),
-
-  examplePending = \ h _ _ -> do
-    when useColor (pendingColor h)
-    hPutStr h $ "."
-    when useColor (restoreFormat h),
-
-  errorsFormatter = \ h errors -> do
-    when useColor (failColor h)
-    mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h "")
-    when useColor (restoreFormat h),
-
-  footerFormatter = \ h specs time -> do
-    when useColor (if failedCount specs == 0 then passColor h else failColor h)
-    hPutStrLn h $ printf "Finished in %1.4f seconds" time
-    hPutStrLn h ""
-    hPutStr   h $ quantify (length specs) "example" ++ ", "
-    hPutStrLn h $ quantify (failedCount specs) "failure"
-    when useColor (restoreFormat h)
-  }
+progress :: Formatter
+progress = silent {
+  formatterName   = "progress"
+, examplePassed   = \_ -> withPassColor    $ write "."
+, exampleFailed   = \_ -> withFailColor    $ write "F"
+, examplePending  = \_ -> withPendingColor $ write "."
+, errorsFormatter = defaultErrorsFormatter
+, footerFormatter = defaultFooter
+}
 
 
-failed_examples :: Bool -> Formatter
-failed_examples useColor = (silent useColor) {
-  formatterName = "failed_examples",
-
-  errorsFormatter = \ h errors -> do
-    when useColor (failColor h)
-    mapM_ (hPutStrLn h) ("" : intersperse "" errors)
-    when (not $ null errors) (hPutStrLn h "")
-    when useColor (restoreFormat h),
-
-  footerFormatter = \ h specs time -> do
-    when useColor (if failedCount specs == 0 then passColor h else failColor h)
-    hPutStrLn h $ printf "Finished in %1.4f seconds" time
-    hPutStrLn h ""
-    hPutStr   h $ quantify (length specs) "example" ++ ", "
-    hPutStrLn h $ quantify (failedCount specs) "failure"
-    when useColor (restoreFormat h)
-  }
+failed_examples :: Formatter
+failed_examples   = silent {
+  formatterName   = "failed_examples"
+, errorsFormatter = defaultErrorsFormatter
+, footerFormatter = defaultFooter
+}
 
 
-failColor :: Handle -> IO()
-failColor h = hSetSGR h [ SetColor Foreground Dull Red ]
+defaultErrorsFormatter :: FormatM ()
+defaultErrorsFormatter = withFailColor $ do
+  errors <- getFailMessages
+  mapM_ writeLine ("" : intersperse "" errors)
+  when (not $ null errors) (writeLine "")
 
-passColor :: Handle -> IO()
-passColor h = hSetSGR h [ SetColor Foreground Dull Green ]
-
-pendingColor :: Handle -> IO()
-pendingColor h = hSetSGR h [ SetColor Foreground Dull Yellow ]
-
-normalColor :: Handle -> IO()
-normalColor h = hSetSGR h [ Reset ]
-
-restoreFormat :: Handle -> IO()
-restoreFormat h = hSetSGR h [ Reset ]
+defaultFooter :: Double -> FormatM ()
+defaultFooter time = do
+  fails <- getFailCount
+  total <- getTotalCount
+  (if fails == 0 then withPassColor else withFailColor) $ do
+    writeLine $ printf "Finished in %1.4f seconds" time
+    writeLine ""
+    write $ quantify total "example" ++ ", "
+    writeLine $ quantify fails "failure"

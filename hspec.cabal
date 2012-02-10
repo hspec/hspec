@@ -39,4 +39,4 @@ Library
   exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
                    Test.Hspec.Runner Test.Hspec.Monadic
                    Test.Hspec.Formatters Test.Hspec.QuickCheck
-
+  other-modules:   Test.Hspec.Formatters.Internal

@@ -5,7 +5,6 @@
 --
 module Test.Hspec.Core where
 
-import System.IO
 import System.IO.Silently
 import Control.Exception
 
@@ -33,17 +32,6 @@ data Spec = Spec {
                  example::AnyExample,
                  -- | The level of nestedness.
                  depth::Int }
-
-
-data Formatter = Formatter { formatterName   :: String,
-                             exampleGroupStarted :: Handle -> Spec -> IO (),
-                             examplePassed   :: Handle -> Spec -> [String] -> IO (),
-                             exampleFailed   :: Handle -> Spec -> [String] -> IO (),
-                             examplePending  :: Handle -> Spec -> [String] -> IO (),
-                             errorsFormatter :: Handle -> [String] -> IO (),
-                             footerFormatter :: Handle -> [Spec] -> Double -> IO (),
-                             usesFormatting  :: Bool }
-
 
 describe :: String -> [[Spec]] -> [Spec]
 describe label specs = map desc (concat specs)

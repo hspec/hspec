@@ -8,6 +8,7 @@ module Test.Hspec.Runner (
 
 import Test.Hspec.Core
 import Test.Hspec.Formatters
+import Test.Hspec.Formatters.Internal
 import System.IO
 import System.CPUTime (getCPUTime)
 import Control.Monad (when)
@@ -17,27 +18,29 @@ import Control.Exception (bracket_)
 type Specs = [Spec]
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> Handle -> String -> [String] -> Specs -> IO Specs
-runFormatter formatter h _     errors []     = do
-  errorsFormatter formatter h (reverse errors)
-  return []
-runFormatter formatter h group errors (iospec:ioss) = do
-  spec <- evaluateSpec iospec
-  when (group /= name spec) (exampleGroupStarted formatter h spec)
+runFormatter :: Formatter -> String -> Specs -> FormatM Specs
+runFormatter _ _ [] = return []
+runFormatter formatter group (iospec:ioss) = do
+  spec <- liftIO $ evaluateSpec iospec
+  when (group /= name spec) $
+    exampleGroupStarted formatter spec
   case result spec of
-    (Success  ) -> examplePassed formatter h spec errors
-    (Fail _   ) -> exampleFailed formatter h spec errors
-    (Pending _) -> examplePending formatter h spec errors
-  let errors' = if isFailure (result spec)
-                then errorDetails spec (length errors) : errors
-                else errors
-  specs <- runFormatter formatter h (name spec) errors' ioss
-  return $ spec : specs
+    Success -> do
+      increaseSuccessCount
+      examplePassed formatter spec
+    Fail err -> do
+      increaseFailCount
+      exampleFailed  formatter spec
+      n <- getFailCount
+      addFailMessage $ errorDetails err spec n
+    Pending _ -> do
+      increasePendingCount
+      examplePending formatter spec
+  (spec :) `fmap` runFormatter formatter (name spec) ioss
 
-errorDetails :: Spec -> Int -> String
-errorDetails spec i = case result spec of
-  (Fail s   ) -> concat [ show (i + 1), ") ", name spec, " ",  requirement spec, " FAILED", if null s then "" else "\n" ++ s ]
-  _           -> ""
+errorDetails :: String -> Spec -> Int -> String
+errorDetails err spec i =
+  concat [ show i, ") ", name spec, " ",  requirement spec, " FAILED", if null err then "" else "\n" ++ err ]
 
 -- | Use in place of @hspec@ to also exit the program with an @ExitCode@
 hspecX :: Specs -> IO a
@@ -58,20 +61,21 @@ hspec ss = hHspec stdout ss
 hHspec :: Handle -> Specs -> IO Specs
 hHspec h specs = do
   useColor <- hIsTerminalDevice h
-  hHspecWithFormat (specdoc useColor) h specs
+  hHspecWithFormat specdoc useColor h specs
 
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
-hHspecWithFormat :: Formatter -> Handle -> Specs -> IO Specs
-hHspecWithFormat formatter h ss =
-  bracket_ (when (usesFormatting formatter) $ restoreFormat h)
-           (when (usesFormatting formatter) $ restoreFormat h)
-           (do
-         t0 <- getCPUTime
-         specList <- runFormatter formatter h "" [] ss
-         t1 <- getCPUTime
+hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO Specs
+hHspecWithFormat formatter useColor h ss =
+  bracket_ (when useColor $ restoreFormat h)
+           (when useColor $ restoreFormat h)
+           (runFormatM useColor h $ do
+         t0 <- liftIO $ getCPUTime
+         specList <- runFormatter formatter "" ss
+         t1 <- liftIO $ getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
-         (footerFormatter formatter) h specList runTime
+         errorsFormatter formatter
+         (footerFormatter formatter) runTime
          return specList)
 
 toExitCode :: Bool -> ExitCode
