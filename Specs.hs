@@ -76,7 +76,7 @@ preamble = unlines [
     "Step 4, implement your desired behavior",
     "> myabs n = if n < 0 then negate n else n",
     "",
-    "Step 5, watch your examples pass with green text when rerun",
+    "Step 5, watch your examples succeed with green text when rerun",
     "myabs",
     " - returns the original number when given a positive input",
     " - returns a positive number when given a negative input",
@@ -94,7 +94,7 @@ preamble = unlines [
 specs :: IO Specs
 specs = do
   let testSpecs = describe "Example" [
-          it "pass" (Success),
+          it "success" (Success),
           it "fail 1" (Fail "fail message"),
           it "pending" (Pending "pending message"),
           it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
@@ -142,7 +142,7 @@ specs = do
             (HUnit.assertEqual "" 29 (length report)),
 
         it "displays a row for each successfull, failed, or pending example"
-            (any (==" - pass") report && any (==" - fail 1 FAILED [1]") report),
+            (any (==" - success") report && any (==" - fail 1 FAILED [1]") report),
 
         it "displays a detailed list of failed examples"
             (any (=="1) Example fail 1 FAILED") report),
@@ -156,7 +156,7 @@ specs = do
         it "summarizes the number of examples and failures"
             (any (=="6 examples, 4 failures") report),
 
-        it "outputs failed examples in red, pending in yellow, and passing in green"
+        it "outputs failed examples in red, pending in yellow, and successful in green"
             (True)
     ],
     describe "Bool as an example" [

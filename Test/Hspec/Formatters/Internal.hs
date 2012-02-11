@@ -15,7 +15,7 @@ module Test.Hspec.Formatters.Internal (
 , writeLine
 
 , withNormalColor
-, withPassColor
+, withSuccessColor
 , withPendingColor
 , withFailColor
 
@@ -101,11 +101,11 @@ getFailCount = gets failCount
 getTotalCount :: FormatM Int
 getTotalCount = gets totalCount
 
--- | Append to the list of accumulated error messages.
+-- | Append to the list of accumulated failure messages.
 addFailMessage :: String -> FormatM ()
 addFailMessage err = modify $ \s -> s {failMessages = err : failMessages s}
 
--- | Get the list of accumulated error messages.
+-- | Get the list of accumulated failure messages.
 getFailMessages :: FormatM [String]
 getFailMessages = reverse `fmap` gets failMessages
 
@@ -115,14 +115,14 @@ data Formatter = Formatter {
 -- | evaluated before each test group
 , exampleGroupStarted :: Spec -> FormatM ()
 -- | evaluated after each successful example
-, examplePassed       :: Spec -> FormatM ()
+, exampleSucceeded    :: Spec -> FormatM ()
 -- | evaluated after each failed example
 , exampleFailed       :: Spec -> FormatM ()
 -- | evaluated after each pending example
 , examplePending      :: Spec -> FormatM ()
 -- | evaluated after a test run
-, errorsFormatter     :: FormatM ()
--- | evaluated after `errorsFormatter`
+, failedFormatter     :: FormatM ()
+-- | evaluated after `failuresFormatter`
 , footerFormatter     :: Double -> FormatM ()
 }
 
@@ -145,8 +145,8 @@ withFailColor = withColor (SetColor Foreground Dull Red)
 
 -- | Set output to color green, run given action, and finally restore the
 -- default color.
-withPassColor :: FormatM a -> FormatM a
-withPassColor = withColor (SetColor Foreground Dull Green)
+withSuccessColor :: FormatM a -> FormatM a
+withSuccessColor = withColor (SetColor Foreground Dull Green)
 
 -- | Set output color to yellow, run given action, and finally restore the
 -- default color.

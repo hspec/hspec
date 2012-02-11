@@ -49,7 +49,7 @@ Specs can also be run from the command line using the hspec program
 Step 4, implement your desired behavior
 > myabs n = if n < 0 then negate n else n
 
-Step 5, watch your examples pass with green text when rerun
+Step 5, watch your examples succeed with green text when rerun
 myabs
  - returns the original number when given a positive input
  - returns a positive number when given a negative input
@@ -81,12 +81,12 @@ the "it" function
 the "hspec" function
  - displays a header for each thing being described
  - displays one row for each behavior
- - displays a row for successfull examples
+ - displays a row for each successfull, failed, or pending example
  - displays a detailed list of failed examples
- - displays a '#' and an additional message for pending examples
+ - displays a '#' with an additional message for pending examples
  - summarizes the time it takes to finish
  - summarizes the number of examples and failures
- - outputs failed examples in red, pending in yellow, and passing in green
+ - outputs failed examples in red, pending in yellow, and successful in green
 
 Bool as an example
  - is just an expression that evaluates to a Bool
@@ -117,6 +117,6 @@ quantify (an internal function)
  - returns a plural word given a number greater than 1
  - returns a plural word given the number 0
 
-Finished in 0.0483 seconds
+Finished in 0.0477 seconds
 
 32 examples, 0 failures

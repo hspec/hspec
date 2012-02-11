@@ -32,7 +32,7 @@ module Test.Hspec.Formatters (
 
 -- ** Dealing with colors
 , withNormalColor
-, withPassColor
+, withSuccessColor
 , withPendingColor
 , withFailColor
 ) where
@@ -61,7 +61,7 @@ import Test.Hspec.Formatters.Internal (
   , writeLine
 
   , withNormalColor
-  , withPassColor
+  , withSuccessColor
   , withPendingColor
   , withFailColor
   )
@@ -69,13 +69,13 @@ import Test.Hspec.Formatters.Internal (
 
 silent :: Formatter
 silent = Formatter {
-  formatterName = "silent"
+  formatterName       = "silent"
 , exampleGroupStarted = \_ -> return ()
-, examplePassed = \_ -> return ()
-, exampleFailed = \_ -> return ()
-, examplePending = \_ -> return ()
-, errorsFormatter = return ()
-, footerFormatter = \_ -> return ()
+, exampleSucceeded    = \_ -> return ()
+, exampleFailed       = \_ -> return ()
+, examplePending      = \_ -> return ()
+, failedFormatter     = return ()
+, footerFormatter     = \_ -> return ()
 }
 
 
@@ -86,18 +86,18 @@ specdoc = silent {
 , exampleGroupStarted = \spec -> withNormalColor $ do
     writeLine ("\n" ++ indentationFor spec ++ name spec)
 
-, examplePassed = \spec -> withPassColor $ do
+, exampleSucceeded = \spec -> withSuccessColor $ do
     writeLine $ indentationFor spec ++ " - " ++ requirement spec
 
 , exampleFailed = \spec -> withFailColor $ do
-    errors <- getFailCount
-    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show errors ++ "]"
+    failed <- getFailCount
+    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show failed ++ "]"
 
 , examplePending = \spec -> withPendingColor $ do
     let (Pending s) = result spec
     writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
 
-, errorsFormatter = defaultErrorsFormatter
+, failedFormatter = defaultFailedFormatter
 
 , footerFormatter = defaultFooter
 } where
@@ -106,34 +106,34 @@ specdoc = silent {
 
 progress :: Formatter
 progress = silent {
-  formatterName   = "progress"
-, examplePassed   = \_ -> withPassColor    $ write "."
-, exampleFailed   = \_ -> withFailColor    $ write "F"
-, examplePending  = \_ -> withPendingColor $ write "."
-, errorsFormatter = defaultErrorsFormatter
-, footerFormatter = defaultFooter
+  formatterName    = "progress"
+, exampleSucceeded = \_ -> withSuccessColor $ write "."
+, exampleFailed    = \_ -> withFailColor    $ write "F"
+, examplePending   = \_ -> withPendingColor $ write "."
+, failedFormatter  = defaultFailedFormatter
+, footerFormatter  = defaultFooter
 }
 
 
 failed_examples :: Formatter
 failed_examples   = silent {
   formatterName   = "failed_examples"
-, errorsFormatter = defaultErrorsFormatter
+, failedFormatter = defaultFailedFormatter
 , footerFormatter = defaultFooter
 }
 
 
-defaultErrorsFormatter :: FormatM ()
-defaultErrorsFormatter = withFailColor $ do
-  errors <- getFailMessages
-  mapM_ writeLine ("" : intersperse "" errors)
-  when (not $ null errors) (writeLine "")
+defaultFailedFormatter :: FormatM ()
+defaultFailedFormatter = withFailColor $ do
+  failures <- getFailMessages
+  mapM_ writeLine ("" : intersperse "" failures)
+  when (not $ null failures) (writeLine "")
 
 defaultFooter :: Double -> FormatM ()
 defaultFooter time = do
   fails <- getFailCount
   total <- getTotalCount
-  (if fails == 0 then withPassColor else withFailColor) $ do
+  (if fails == 0 then withSuccessColor else withFailColor) $ do
     writeLine $ printf "Finished in %1.4f seconds" time
     writeLine ""
     write $ quantify total "example" ++ ", "

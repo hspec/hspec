@@ -27,19 +27,19 @@ runFormatter formatter group (iospec:ioss) = do
   case result spec of
     Success -> do
       increaseSuccessCount
-      examplePassed formatter spec
+      exampleSucceeded formatter spec
     Fail err -> do
       increaseFailCount
       exampleFailed  formatter spec
       n <- getFailCount
-      addFailMessage $ errorDetails err spec n
+      addFailMessage $ failureDetails err spec n
     Pending _ -> do
       increasePendingCount
       examplePending formatter spec
   (spec :) `fmap` runFormatter formatter (name spec) ioss
 
-errorDetails :: String -> Spec -> Int -> String
-errorDetails err spec i =
+failureDetails :: String -> Spec -> Int -> String
+failureDetails err spec i =
   concat [ show i, ") ", name spec, " ",  requirement spec, " FAILED", if null err then "" else "\n" ++ err ]
 
 -- | Use in place of @hspec@ to also exit the program with an @ExitCode@
@@ -74,7 +74,7 @@ hHspecWithFormat formatter useColor h ss =
          specList <- runFormatter formatter "" ss
          t1 <- liftIO $ getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
-         errorsFormatter formatter
+         failedFormatter formatter
          (footerFormatter formatter) runTime
          return specList)
 
