@@ -70,10 +70,10 @@ import Test.Hspec.Formatters.Internal (
 silent :: Formatter
 silent = Formatter {
   formatterName       = "silent"
-, exampleGroupStarted = \_ -> return ()
-, exampleSucceeded    = \_ -> return ()
-, exampleFailed       = \_ -> return ()
-, examplePending      = \_ -> return ()
+, exampleGroupStarted = \_ _ -> return ()
+, exampleSucceeded    = \_ _ -> return ()
+, exampleFailed       = \_ _ -> return ()
+, examplePending      = \_ _ -> return ()
 , failedFormatter     = return ()
 , footerFormatter     = \_ -> return ()
 }
@@ -83,33 +83,33 @@ specdoc :: Formatter
 specdoc = silent {
   formatterName = "specdoc"
 
-, exampleGroupStarted = \spec -> withNormalColor $ do
-    writeLine ("\n" ++ indentationFor spec ++ name spec)
+, exampleGroupStarted = \nesting spec -> withNormalColor $ do
+    writeLine ("\n" ++ indentationFor nesting ++ name spec)
 
-, exampleSucceeded = \spec -> withSuccessColor $ do
-    writeLine $ indentationFor spec ++ " - " ++ requirement spec
+, exampleSucceeded = \nesting spec -> withSuccessColor $ do
+    writeLine $ indentationFor nesting ++ " - " ++ requirement spec
 
-, exampleFailed = \spec -> withFailColor $ do
+, exampleFailed = \nesting spec -> withFailColor $ do
     failed <- getFailCount
-    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show failed ++ "]"
+    writeLine $ indentationFor nesting ++ " - " ++ requirement spec ++ " FAILED [" ++ show failed ++ "]"
 
-, examplePending = \spec -> withPendingColor $ do
+, examplePending = \nesting spec -> withPendingColor $ do
     let (Pending s) = result spec
-    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
+    writeLine $ indentationFor nesting ++ " - " ++ requirement spec ++ "\n     # " ++ s
 
 , failedFormatter = defaultFailedFormatter
 
 , footerFormatter = defaultFooter
 } where
-    indentationFor spec = replicate (depth spec * 2) ' '
+    indentationFor nesting = replicate (nesting * 2) ' '
 
 
 progress :: Formatter
 progress = silent {
   formatterName    = "progress"
-, exampleSucceeded = \_ -> withSuccessColor $ write "."
-, exampleFailed    = \_ -> withFailColor    $ write "F"
-, examplePending   = \_ -> withPendingColor $ write "."
+, exampleSucceeded = \_ _ -> withSuccessColor $ write "."
+, exampleFailed    = \_ _ -> withFailColor    $ write "F"
+, examplePending   = \_ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter
 , footerFormatter  = defaultFooter
 }

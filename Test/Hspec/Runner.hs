@@ -22,20 +22,21 @@ runFormatter :: Formatter -> String -> Specs -> FormatM Specs
 runFormatter _ _ [] = return []
 runFormatter formatter group (iospec:ioss) = do
   spec <- liftIO $ evaluateSpec iospec
+  let nesting = depth spec
   when (group /= name spec) $
-    exampleGroupStarted formatter spec
+    exampleGroupStarted formatter nesting spec
   case result spec of
     Success -> do
       increaseSuccessCount
-      exampleSucceeded formatter spec
+      exampleSucceeded formatter nesting spec
     Fail err -> do
       increaseFailCount
-      exampleFailed  formatter spec
+      exampleFailed  formatter nesting spec
       n <- getFailCount
       addFailMessage $ failureDetails err spec n
     Pending _ -> do
       increasePendingCount
-      examplePending formatter spec
+      examplePending formatter nesting spec
   (spec :) `fmap` runFormatter formatter (name spec) ioss
 
 failureDetails :: String -> Spec -> Int -> String
