@@ -24,7 +24,7 @@ runFormatter formatter group (iospec:ioss) = do
   spec <- liftIO $ evaluateSpec iospec
   let nesting = depth spec
   when (group /= name spec) $
-    exampleGroupStarted formatter nesting spec
+    exampleGroupStarted formatter nesting (name spec)
   case result spec of
     Success -> do
       increaseSuccessCount

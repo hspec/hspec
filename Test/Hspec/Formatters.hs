@@ -83,8 +83,8 @@ specdoc :: Formatter
 specdoc = silent {
   formatterName = "specdoc"
 
-, exampleGroupStarted = \nesting spec -> withNormalColor $ do
-    writeLine ("\n" ++ indentationFor nesting ++ name spec)
+, exampleGroupStarted = \nesting name -> withNormalColor $ do
+    writeLine ("\n" ++ indentationFor nesting ++ name)
 
 , exampleSucceeded = \nesting spec -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ " - " ++ requirement spec

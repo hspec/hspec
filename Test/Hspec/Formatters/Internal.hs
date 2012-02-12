@@ -113,7 +113,7 @@ data Formatter = Formatter {
   formatterName       :: String
 
 -- | evaluated before each test group
-, exampleGroupStarted :: Int -> Spec -> FormatM ()
+, exampleGroupStarted :: Int -> String -> FormatM ()
 -- | evaluated after each successful example
 , exampleSucceeded    :: Int -> Spec -> FormatM ()
 -- | evaluated after each failed example
