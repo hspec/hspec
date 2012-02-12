@@ -1,18 +1,21 @@
-
+{-# LANGUAGE StandaloneDeriving #-}
 module Specs where
 
 import Test.Hspec
 import Test.Hspec.Runner (hHspecWithFormat, toExitCode)
-import Test.Hspec.Core (Spec(..),Result(..),quantify,failedCount)
+import Test.Hspec.Core (Spec(..), Result(..), quantify, failedCount, evaluateExample)
 import Test.Hspec.Formatters
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
+import Test.HUnit
 import System.IO
 import System.IO.Silently
 import System.Environment
 import System.Exit (exitWith)
 import Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
+
+deriving instance Show Result
 
 main :: IO ()
 main = do
@@ -93,13 +96,14 @@ preamble = unlines [
 
 specs :: IO Specs
 specs = do
-  let testSpecs = describe "Example" [
+  let testSpecs = [describe "Example" [
           it "success" (Success),
           it "fail 1" (Fail "fail message"),
           it "pending" (Pending "pending message"),
           it "fail 2" (HUnit.assertEqual "assertEqual test" 1 (2::Int)),
           it "exceptions" (undefined :: Bool),
           it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
+          ]
 
   (reportContents, exampleSpecs)     <- capture $ hHspecWithFormat specdoc         False stdout testSpecs
   (silentReportContents, _)          <- capture $ hHspecWithFormat silent          False stdout testSpecs
@@ -110,24 +114,34 @@ specs = do
 
   return $ descriptions [
     describe "the \"describe\" function" [
-        it "takes a description of what the behavior is for"
-            ((=="Example") . name . head $ exampleSpecs),
-
-        it "groups behaviors for what's being described"
-            (all ((=="Example").name) exampleSpecs),
-
+        it "takes a description of what the behavior is for" $
+            case exampleSpecs of
+              [SpecGroup "Example" _] -> True
+              _ -> False
+        ,
+        it "groups behaviors for what's being described" $
+            case exampleSpecs of
+              [SpecGroup _ xs] -> length xs == 6
+              _ -> False
+        ,
         describe "a nested description" [
             it "has it's own specs"
                 (True)
         ]
     ],
     describe "the \"it\" function" [
-        it "takes a description of a desired behavior"
-            (requirement (Spec "Example" "whatever" Success 0) == "whatever" ),
-
-        it "takes an example of that behavior"
-            (example (Spec "Example" "whatever" Success 0) == Success),
-
+        it "takes a description of a desired behavior" $
+            case it "whatever" Success of
+              SpecExample requirement _ -> requirement == "whatever"
+              _ -> False
+        ,
+        it "takes an example of that behavior" $ do
+            case it "whatever" Success of
+              SpecExample _ example -> do
+                r <- evaluateExample example
+                r @?= Success
+              SpecGroup _ _ -> assertFailure "unexpected SpecGroup"
+        ,
         it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
             (True),
 
@@ -172,12 +186,12 @@ specs = do
 
         it "will show the failed assertion text if available (e.g. assertBool)"
             (HUnit.TestCase $ do
-              (innerReport, _) <- capture $ hspec $ describe "" [ it "" (HUnit.assertBool "trivial" False)]
+              (innerReport, _) <- capture $ hspec $ [describe "" [ it "" (HUnit.assertBool "trivial" False)]]
               HUnit.assertBool "should find assertion text" $ any (=="trivial") (lines innerReport)),
 
         it "will show the failed assertion expected and actual values if available (e.g. assertEqual)"
             (HUnit.TestCase $ do
-              (innerReportContents, _) <- capture $ hspec $ describe "" [ it "" (HUnit.assertEqual "trivial" (1::Int) 2)]
+              (innerReportContents, _) <- capture $ hspec $ [describe "" [ it "" (HUnit.assertEqual "trivial" (1::Int) 2)]]
               let innerReport = lines innerReportContents
               HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
               HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport

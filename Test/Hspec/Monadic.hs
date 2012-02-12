@@ -112,7 +112,7 @@ runSpecM :: Specs -> [UnevaluatedSpec]
 runSpecM (SpecM specs) = execWriter specs
 
 describe :: String -> Specs -> Specs
-describe label action = SpecM . tell $ Core.describe label [runSpecM action]
+describe label action = SpecM . tell $ [Core.describe label (runSpecM action)]
 
 -- | Combine a list of descriptions. (Note that descriptions can also
 -- be combined with monadic sequencing.)
@@ -120,7 +120,7 @@ descriptions :: [Specs] -> Specs
 descriptions = sequence_
 
 it :: Example v => String -> v -> Specs
-it label action = SpecM . tell $ Core.it label action
+it label action = (SpecM . tell) [Core.it label action]
 
 -- | Converts a specs created with 'Test.Hspec.HUnit.describe' into a monadic 'describe'.
 fromSpecList :: [UnevaluatedSpec] -> Specs

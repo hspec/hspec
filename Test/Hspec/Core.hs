@@ -16,33 +16,20 @@ data Result = Success | Pending String | Fail String
 type UnevaluatedSpec = Spec AnyExample
 type EvaluatedSpec = Spec Result
 
--- | Everything needed to specify and show a specific behavior.
-data Spec a = Spec {
-                 -- | What is being tested, usually the name of a type or use case.
-                 name::String,
-                 -- | A description of the specific behavior being tested.
-                 requirement::String,
-                 -- | The status of the example of this behavior.
-                 -- | An example of this behavior.
-                 -- (either evaluatede or unevaluated)
-                 example :: a,
-                 -- | The level of nestedness.
-                 depth::Int }
+data Spec a = SpecGroup String [Spec a]
+            | SpecExample String a
 
-describe :: String -> [[Spec a]] -> [Spec a]
-describe label specs = map desc (concat specs)
-  where desc spec
-          | null $ name spec = spec { name = label }
-          | otherwise        = spec { depth = depth spec + 1 }
+describe :: String -> [Spec a] -> Spec a
+describe = SpecGroup
 
 -- | Combine a list of descriptions.
-descriptions :: [[Spec a]] -> [Spec a]
-descriptions = concat
+descriptions :: [Spec a] -> [Spec a]
+descriptions = id
+{-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 
-
-evaluateSpec :: UnevaluatedSpec -> IO EvaluatedSpec
-evaluateSpec (Spec name' requirement' example' depth') = do
-  r <- evaluateExample example' `catches` [
+safeEvaluateExample :: AnyExample -> IO Result
+safeEvaluateExample example' = do
+  evaluateExample example' `catches` [
     -- Re-throw AsyncException, otherwise execution will not terminate on
     -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
     -- UserInterrupt) because all of them indicate severe conditions and
@@ -51,7 +38,6 @@ evaluateSpec (Spec name' requirement' example' depth') = do
 
     Handler (\e -> return $ Fail (show (e :: SomeException)))
     ]
-  return $ Spec name' requirement' r depth'
 
 
 -- | Create a set of specifications for a specific type being described.
@@ -62,8 +48,8 @@ evaluateSpec (Spec name' requirement' example' depth') = do
 -- >     (abs (-1) == 1)
 -- >   ]
 --
-it :: Example a => String -> a -> [UnevaluatedSpec]
-it requirement' example' = [Spec "" requirement' (AnyExample example') 0]
+it :: Example a => String -> a -> UnevaluatedSpec
+it requirement' example' = SpecExample requirement' (AnyExample example')
 
 class Example a where
   evaluateExample :: a -> IO Result
@@ -96,10 +82,16 @@ pending = Pending
 
 
 failedCount :: [EvaluatedSpec] -> Int
-failedCount ss = length $ filter (isFailure . example) ss
+failedCount = sum . map count
+  where
+    count (SpecGroup _ xs) = sum (map count xs)
+    count (SpecExample _ x) = if isFailure x then 1 else 0
 
 failure :: [EvaluatedSpec] -> Bool
-failure = any (isFailure . example)
+failure = any p
+  where
+    p (SpecGroup _ xs) = any p xs
+    p (SpecExample _ x) = isFailure x
 
 success :: [EvaluatedSpec] -> Bool
 success = not . failure

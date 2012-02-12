@@ -6,8 +6,7 @@ module Test.Hspec.Runner (
   Specs, hspec, hspecX, hspecB, hHspec, hHspecWithFormat, describe, it, toExitCode
 ) where
 
-import Test.Hspec.Core hiding (requirement)
-import qualified Test.Hspec.Core as Spec (requirement)
+import Test.Hspec.Core
 import Test.Hspec.Formatters
 import Test.Hspec.Formatters.Internal
 import System.IO
@@ -19,16 +18,14 @@ import Control.Exception (bracket_)
 type Specs = [UnevaluatedSpec]
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> String -> Specs -> FormatM [EvaluatedSpec]
-runFormatter _ _ [] = return []
-runFormatter formatter oldGroup (iospec:ioss) = do
-  spec <- liftIO $ evaluateSpec iospec
-  let nesting = depth spec
-      group = name spec
-      requirement = Spec.requirement spec
-  when (group /= oldGroup) $
-    exampleGroupStarted formatter nesting group
-  case example spec of
+runFormatter :: Formatter -> Int -> String -> UnevaluatedSpec -> FormatM EvaluatedSpec
+runFormatter formatter nesting _ (SpecGroup group xs) = do
+  exampleGroupStarted formatter (succ nesting) group
+  ys <- mapM (runFormatter formatter (succ nesting) group) xs
+  return (SpecGroup group ys)
+runFormatter formatter nesting group (SpecExample requirement e) = do
+  result <- liftIO $ safeEvaluateExample e
+  case result of
     Success -> do
       increaseSuccessCount
       exampleSucceeded formatter nesting requirement
@@ -40,7 +37,7 @@ runFormatter formatter oldGroup (iospec:ioss) = do
     Pending reason -> do
       increasePendingCount
       examplePending formatter nesting requirement reason
-  (spec :) `fmap` runFormatter formatter group ioss
+  return (SpecExample requirement result)
 
 failureDetails :: String -> String -> String -> Int -> String
 failureDetails group requirement err i =
@@ -75,7 +72,7 @@ hHspecWithFormat formatter useColor h ss =
            (when useColor $ restoreFormat h)
            (runFormatM useColor h $ do
          t0 <- liftIO $ getCPUTime
-         specList <- runFormatter formatter "" ss
+         specList <- mapM (runFormatter formatter (-1) "") ss
          t1 <- liftIO $ getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
          failedFormatter formatter
