@@ -28,7 +28,7 @@ runFormatter formatter group (iospec:ioss) = do
   case result spec of
     Success -> do
       increaseSuccessCount
-      exampleSucceeded formatter nesting spec
+      exampleSucceeded formatter nesting (requirement spec)
     Fail err -> do
       increaseFailCount
       exampleFailed  formatter nesting spec

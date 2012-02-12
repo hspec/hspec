@@ -86,8 +86,8 @@ specdoc = silent {
 , exampleGroupStarted = \nesting name -> withNormalColor $ do
     writeLine ("\n" ++ indentationFor nesting ++ name)
 
-, exampleSucceeded = \nesting spec -> withSuccessColor $ do
-    writeLine $ indentationFor nesting ++ " - " ++ requirement spec
+, exampleSucceeded = \nesting requirement -> withSuccessColor $ do
+    writeLine $ indentationFor nesting ++ " - " ++ requirement
 
 , exampleFailed = \nesting spec -> withFailColor $ do
     failed <- getFailCount

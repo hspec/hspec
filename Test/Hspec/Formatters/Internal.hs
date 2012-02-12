@@ -115,7 +115,7 @@ data Formatter = Formatter {
 -- | evaluated before each test group
 , exampleGroupStarted :: Int -> String -> FormatM ()
 -- | evaluated after each successful example
-, exampleSucceeded    :: Int -> Spec -> FormatM ()
+, exampleSucceeded    :: Int -> String -> FormatM ()
 -- | evaluated after each failed example
 , exampleFailed       :: Int -> Spec -> FormatM ()
 -- | evaluated after each pending example
