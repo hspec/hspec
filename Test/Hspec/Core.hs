@@ -13,39 +13,35 @@ data Result = Success | Pending String | Fail String
   deriving Eq
 
 
+type UnevaluatedSpec = Spec AnyExample
+type EvaluatedSpec = Spec Result
+
 -- | Everything needed to specify and show a specific behavior.
-data Spec = Spec {
+data Spec a = Spec {
                  -- | What is being tested, usually the name of a type or use case.
                  name::String,
                  -- | A description of the specific behavior being tested.
                  requirement::String,
                  -- | The status of the example of this behavior.
-                 result::Result,
-                 -- | The level of nestedness.
-                 depth::Int }
-          | UnevaluatedSpec {
-                 -- | What is being tested, usually the name of a type or use case.
-                 name::String,
-                 -- | A description of the specific behavior being tested.
-                 requirement::String,
                  -- | An example of this behavior.
-                 example::AnyExample,
+                 -- (either evaluatede or unevaluated)
+                 example :: a,
                  -- | The level of nestedness.
                  depth::Int }
 
-describe :: String -> [[Spec]] -> [Spec]
+describe :: String -> [[Spec a]] -> [Spec a]
 describe label specs = map desc (concat specs)
   where desc spec
           | null $ name spec = spec { name = label }
           | otherwise        = spec { depth = depth spec + 1 }
 
 -- | Combine a list of descriptions.
-descriptions :: [[Spec]] -> [Spec]
+descriptions :: [[Spec a]] -> [Spec a]
 descriptions = concat
 
 
-evaluateSpec :: Spec -> IO Spec
-evaluateSpec (UnevaluatedSpec name' requirement' example' depth') = do
+evaluateSpec :: UnevaluatedSpec -> IO EvaluatedSpec
+evaluateSpec (Spec name' requirement' example' depth') = do
   r <- evaluateExample example' `catches` [
     -- Re-throw AsyncException, otherwise execution will not terminate on
     -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
@@ -56,7 +52,6 @@ evaluateSpec (UnevaluatedSpec name' requirement' example' depth') = do
     Handler (\e -> return $ Fail (show (e :: SomeException)))
     ]
   return $ Spec name' requirement' r depth'
-evaluateSpec spec = return spec
 
 
 -- | Create a set of specifications for a specific type being described.
@@ -67,8 +62,8 @@ evaluateSpec spec = return spec
 -- >     (abs (-1) == 1)
 -- >   ]
 --
-it :: Example a => String -> a -> [Spec]
-it requirement' example' = [UnevaluatedSpec "" requirement' (AnyExample example') 0]
+it :: Example a => String -> a -> [UnevaluatedSpec]
+it requirement' example' = [Spec "" requirement' (AnyExample example') 0]
 
 class Example a where
   evaluateExample :: a -> IO Result
@@ -100,13 +95,13 @@ pending :: String  -- ^ An explanation for why this behavior is pending.
 pending = Pending
 
 
-failedCount :: [Spec] -> Int
-failedCount ss = length $ filter (isFailure.result) ss
+failedCount :: [EvaluatedSpec] -> Int
+failedCount ss = length $ filter (isFailure . example) ss
 
-failure :: [Spec] -> Bool
-failure = any (isFailure.result)
+failure :: [EvaluatedSpec] -> Bool
+failure = any (isFailure . example)
 
-success :: [Spec] -> Bool
+success :: [EvaluatedSpec] -> Bool
 success = not . failure
 
 isFailure :: Result -> Bool

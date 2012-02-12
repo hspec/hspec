@@ -86,11 +86,11 @@ import Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 type Specs = SpecM ()
 
-newtype SpecM a = SpecM (Writer [Spec] a)
+newtype SpecM a = SpecM (Writer [UnevaluatedSpec] a)
   deriving Monad
 
 -- | Create a document of the given specs and write it to stdout.
-hspec :: Specs -> IO [Spec]
+hspec :: Specs -> IO [EvaluatedSpec]
 hspec = Runner.hspec . runSpecM
 
 -- | Use in place of @hspec@ to also exit the program with an @ExitCode@
@@ -105,10 +105,10 @@ hspecB = Runner.hspecB . runSpecM
 --
 -- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
 --
-hHspec :: Handle -> Specs -> IO [Spec]
+hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
 hHspec h = Runner.hHspec h . runSpecM
 
-runSpecM :: Specs -> [Spec]
+runSpecM :: Specs -> [UnevaluatedSpec]
 runSpecM (SpecM specs) = execWriter specs
 
 describe :: String -> Specs -> Specs
@@ -123,5 +123,5 @@ it :: Example v => String -> v -> Specs
 it label action = SpecM . tell $ Core.it label action
 
 -- | Converts a specs created with 'Test.Hspec.HUnit.describe' into a monadic 'describe'.
-fromSpecList :: [Spec] -> Specs
+fromSpecList :: [UnevaluatedSpec] -> Specs
 fromSpecList = SpecM . tell

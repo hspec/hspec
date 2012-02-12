@@ -16,10 +16,10 @@ import Control.Monad (when)
 import System.Exit
 import Control.Exception (bracket_)
 
-type Specs = [Spec]
+type Specs = [UnevaluatedSpec]
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> String -> Specs -> FormatM Specs
+runFormatter :: Formatter -> String -> Specs -> FormatM [EvaluatedSpec]
 runFormatter _ _ [] = return []
 runFormatter formatter oldGroup (iospec:ioss) = do
   spec <- liftIO $ evaluateSpec iospec
@@ -28,7 +28,7 @@ runFormatter formatter oldGroup (iospec:ioss) = do
       requirement = Spec.requirement spec
   when (group /= oldGroup) $
     exampleGroupStarted formatter nesting group
-  case result spec of
+  case example spec of
     Success -> do
       increaseSuccessCount
       exampleSucceeded formatter nesting requirement
@@ -55,21 +55,21 @@ hspecB :: Specs -> IO Bool
 hspecB ss = hspec ss >>= return . success
 
 -- | Create a document of the given specs and write it to stdout.
-hspec :: Specs -> IO [Spec]
+hspec :: Specs -> IO [EvaluatedSpec]
 hspec ss = hHspec stdout ss
 
 -- | Create a document of the given specs and write it to the given handle.
 --
 -- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
 --
-hHspec :: Handle -> Specs -> IO Specs
+hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
 hHspec h specs = do
   useColor <- hIsTerminalDevice h
   hHspecWithFormat specdoc useColor h specs
 
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
-hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO Specs
+hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO [EvaluatedSpec]
 hHspecWithFormat formatter useColor h ss =
   bracket_ (when useColor $ restoreFormat h)
            (when useColor $ restoreFormat h)

@@ -126,7 +126,7 @@ specs = do
             (requirement (Spec "Example" "whatever" Success 0) == "whatever" ),
 
         it "takes an example of that behavior"
-            (result (Spec "Example" "whatever" Success 0) == Success),
+            (example (Spec "Example" "whatever" Success 0) == Success),
 
         it "can use a Bool, HUnit Test, QuickCheck property, or \"pending\" as an example"
             (True),
