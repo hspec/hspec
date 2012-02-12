@@ -37,7 +37,7 @@ module Test.Hspec.Formatters (
 , withFailColor
 ) where
 
-import Test.Hspec.Core
+import Test.Hspec.Core (quantify)
 import Data.List (intersperse)
 import Text.Printf
 import Control.Monad (when)
@@ -72,8 +72,8 @@ silent = Formatter {
   formatterName       = "silent"
 , exampleGroupStarted = \_ _ -> return ()
 , exampleSucceeded    = \_ _ -> return ()
-, exampleFailed       = \_ _ -> return ()
-, examplePending      = \_ _ -> return ()
+, exampleFailed       = \_ _ _ -> return ()
+, examplePending      = \_ _ _  -> return ()
 , failedFormatter     = return ()
 , footerFormatter     = \_ -> return ()
 }
@@ -89,13 +89,12 @@ specdoc = silent {
 , exampleSucceeded = \nesting requirement -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ " - " ++ requirement
 
-, exampleFailed = \nesting spec -> withFailColor $ do
+, exampleFailed = \nesting requirement _ -> withFailColor $ do
     failed <- getFailCount
-    writeLine $ indentationFor nesting ++ " - " ++ requirement spec ++ " FAILED [" ++ show failed ++ "]"
+    writeLine $ indentationFor nesting ++ " - " ++ requirement ++ " FAILED [" ++ show failed ++ "]"
 
-, examplePending = \nesting spec -> withPendingColor $ do
-    let (Pending s) = result spec
-    writeLine $ indentationFor nesting ++ " - " ++ requirement spec ++ "\n     # " ++ s
+, examplePending = \nesting requirement reason -> withPendingColor $ do
+    writeLine $ indentationFor nesting ++ " - " ++ requirement ++ "\n     # " ++ reason
 
 , failedFormatter = defaultFailedFormatter
 
@@ -108,8 +107,8 @@ progress :: Formatter
 progress = silent {
   formatterName    = "progress"
 , exampleSucceeded = \_ _ -> withSuccessColor $ write "."
-, exampleFailed    = \_ _ -> withFailColor    $ write "F"
-, examplePending   = \_ _ -> withPendingColor $ write "."
+, exampleFailed    = \_ _ _ -> withFailColor    $ write "F"
+, examplePending   = \_ _ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter
 , footerFormatter  = defaultFooter
 }

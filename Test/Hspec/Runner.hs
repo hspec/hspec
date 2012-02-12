@@ -31,12 +31,12 @@ runFormatter formatter group (iospec:ioss) = do
       exampleSucceeded formatter nesting (requirement spec)
     Fail err -> do
       increaseFailCount
-      exampleFailed  formatter nesting spec
+      exampleFailed  formatter nesting (requirement spec) err
       n <- getFailCount
       addFailMessage $ failureDetails err spec n
-    Pending _ -> do
+    Pending reason -> do
       increasePendingCount
-      examplePending formatter nesting spec
+      examplePending formatter nesting (requirement spec) reason
   (spec :) `fmap` runFormatter formatter (name spec) ioss
 
 failureDetails :: String -> Spec -> Int -> String
