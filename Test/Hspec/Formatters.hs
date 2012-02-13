@@ -37,7 +37,7 @@ module Test.Hspec.Formatters (
 , withFailColor
 ) where
 
-import Test.Hspec.Core
+import Test.Hspec.Core (quantify)
 import Data.List (intersperse)
 import Text.Printf
 import Control.Monad (when)
@@ -46,7 +46,7 @@ import Control.Monad (when)
 -- sure, that we only use the public API to implement formatters.
 --
 -- Everything imported here has to be re-exported, so that users can implement
--- there own formatters.
+-- their own formatters.
 import Test.Hspec.Formatters.Internal (
     Formatter (..)
   , FormatM
@@ -70,10 +70,10 @@ import Test.Hspec.Formatters.Internal (
 silent :: Formatter
 silent = Formatter {
   formatterName       = "silent"
-, exampleGroupStarted = \_ -> return ()
-, exampleSucceeded    = \_ -> return ()
-, exampleFailed       = \_ -> return ()
-, examplePending      = \_ -> return ()
+, exampleGroupStarted = \_ _ -> return ()
+, exampleSucceeded    = \_ _ -> return ()
+, exampleFailed       = \_ _ _ -> return ()
+, examplePending      = \_ _ _  -> return ()
 , failedFormatter     = return ()
 , footerFormatter     = \_ -> return ()
 }
@@ -83,33 +83,32 @@ specdoc :: Formatter
 specdoc = silent {
   formatterName = "specdoc"
 
-, exampleGroupStarted = \spec -> withNormalColor $ do
-    writeLine ("\n" ++ indentationFor spec ++ name spec)
+, exampleGroupStarted = \nesting name -> withNormalColor $ do
+    writeLine ("\n" ++ indentationFor nesting ++ name)
 
-, exampleSucceeded = \spec -> withSuccessColor $ do
-    writeLine $ indentationFor spec ++ " - " ++ requirement spec
+, exampleSucceeded = \nesting requirement -> withSuccessColor $ do
+    writeLine $ indentationFor nesting ++ " - " ++ requirement
 
-, exampleFailed = \spec -> withFailColor $ do
+, exampleFailed = \nesting requirement _ -> withFailColor $ do
     failed <- getFailCount
-    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ " FAILED [" ++ show failed ++ "]"
+    writeLine $ indentationFor nesting ++ " - " ++ requirement ++ " FAILED [" ++ show failed ++ "]"
 
-, examplePending = \spec -> withPendingColor $ do
-    let (Pending s) = result spec
-    writeLine $ indentationFor spec ++ " - " ++ requirement spec ++ "\n     # " ++ s
+, examplePending = \nesting requirement reason -> withPendingColor $ do
+    writeLine $ indentationFor nesting ++ " - " ++ requirement ++ "\n     # " ++ reason
 
 , failedFormatter = defaultFailedFormatter
 
 , footerFormatter = defaultFooter
 } where
-    indentationFor spec = replicate (depth spec * 2) ' '
+    indentationFor nesting = replicate (nesting * 2) ' '
 
 
 progress :: Formatter
 progress = silent {
   formatterName    = "progress"
-, exampleSucceeded = \_ -> withSuccessColor $ write "."
-, exampleFailed    = \_ -> withFailColor    $ write "F"
-, examplePending   = \_ -> withPendingColor $ write "."
+, exampleSucceeded = \_ _ -> withSuccessColor $ write "."
+, exampleFailed    = \_ _ _ -> withFailColor    $ write "F"
+, examplePending   = \_ _ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter
 , footerFormatter  = defaultFooter
 }

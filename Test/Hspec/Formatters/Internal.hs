@@ -29,7 +29,6 @@ module Test.Hspec.Formatters.Internal (
 , restoreFormat
 ) where
 
-import Test.Hspec.Core
 import qualified System.IO as IO
 import System.IO (Handle)
 import Control.Monad (when)
@@ -113,13 +112,13 @@ data Formatter = Formatter {
   formatterName       :: String
 
 -- | evaluated before each test group
-, exampleGroupStarted :: Spec -> FormatM ()
+, exampleGroupStarted :: Int -> String -> FormatM ()
 -- | evaluated after each successful example
-, exampleSucceeded    :: Spec -> FormatM ()
+, exampleSucceeded    :: Int -> String -> FormatM ()
 -- | evaluated after each failed example
-, exampleFailed       :: Spec -> FormatM ()
+, exampleFailed       :: Int -> String -> String -> FormatM ()
 -- | evaluated after each pending example
-, examplePending      :: Spec -> FormatM ()
+, examplePending      :: Int -> String -> String -> FormatM ()
 -- | evaluated after a test run
 , failedFormatter     :: FormatM ()
 -- | evaluated after `failuresFormatter`
