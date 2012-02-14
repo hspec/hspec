@@ -6,7 +6,8 @@ module Test.Hspec.Runner (
   Specs, hspec, hspecX, hspecB, hHspec, hHspecWithFormat, describe, it, toExitCode
 ) where
 
-import Test.Hspec.Core
+import Test.Hspec.Core hiding (requirement)
+import qualified Test.Hspec.Core as Spec (requirement)
 import Test.Hspec.Formatters
 import Test.Hspec.Formatters.Internal
 import System.IO
@@ -20,27 +21,30 @@ type Specs = [Spec]
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Formatter -> String -> Specs -> FormatM Specs
 runFormatter _ _ [] = return []
-runFormatter formatter group (iospec:ioss) = do
+runFormatter formatter oldGroup (iospec:ioss) = do
   spec <- liftIO $ evaluateSpec iospec
-  when (group /= name spec) $
-    exampleGroupStarted formatter spec
+  let nesting = depth spec
+      group = name spec
+      requirement = Spec.requirement spec
+  when (group /= oldGroup) $
+    exampleGroupStarted formatter nesting group
   case result spec of
     Success -> do
       increaseSuccessCount
-      exampleSucceeded formatter spec
+      exampleSucceeded formatter nesting requirement
     Fail err -> do
       increaseFailCount
-      exampleFailed  formatter spec
+      exampleFailed  formatter nesting requirement err
       n <- getFailCount
-      addFailMessage $ failureDetails err spec n
-    Pending _ -> do
+      addFailMessage $ failureDetails group requirement err n
+    Pending reason -> do
       increasePendingCount
-      examplePending formatter spec
-  (spec :) `fmap` runFormatter formatter (name spec) ioss
+      examplePending formatter nesting requirement reason
+  (spec :) `fmap` runFormatter formatter group ioss
 
-failureDetails :: String -> Spec -> Int -> String
-failureDetails err spec i =
-  concat [ show i, ") ", name spec, " ",  requirement spec, " FAILED", if null err then "" else "\n" ++ err ]
+failureDetails :: String -> String -> String -> Int -> String
+failureDetails group requirement err i =
+  concat [ show i, ") ", group, " ",  requirement, " FAILED", if null err then "" else "\n" ++ err ]
 
 -- | Use in place of @hspec@ to also exit the program with an @ExitCode@
 hspecX :: Specs -> IO a
