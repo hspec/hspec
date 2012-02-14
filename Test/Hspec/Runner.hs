@@ -20,7 +20,7 @@ type Specs = [UnevaluatedSpec]
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Formatter -> Int -> String -> UnevaluatedSpec -> FormatM EvaluatedSpec
 runFormatter formatter nesting _ (SpecGroup group xs) = do
-  exampleGroupStarted formatter (succ nesting) group
+  exampleGroupStarted formatter (nesting) group
   ys <- mapM (runFormatter formatter (succ nesting) group) xs
   return (SpecGroup group ys)
 runFormatter formatter nesting group (SpecExample requirement e) = do
@@ -72,7 +72,7 @@ hHspecWithFormat formatter useColor h ss =
            (when useColor $ restoreFormat h)
            (runFormatM useColor h $ do
          t0 <- liftIO $ getCPUTime
-         specList <- mapM (runFormatter formatter (-1) "") ss
+         specList <- mapM (runFormatter formatter 0 "") ss
          t1 <- liftIO $ getCPUTime
          let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
          failedFormatter formatter
