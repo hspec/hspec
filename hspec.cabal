@@ -40,3 +40,15 @@ Library
                    Test.Hspec.Runner Test.Hspec.Monadic
                    Test.Hspec.Formatters Test.Hspec.QuickCheck
   other-modules:   Test.Hspec.Formatters.Internal
+
+test-suite spec
+  type:           exitcode-stdio-1.0
+  main-is:        runtests.hs
+  ghc-options:    -Wall -fno-warn-hi-shadowing
+
+  build-depends: HUnit >=1 && <=2,
+                 QuickCheck >=2.4.0.1 && <=2.5,
+                 base >=4 && <=5,
+                 silently >= 1.1.1 && < 2,
+                 ansi-terminal == 0.5.5,
+                 transformers >= 0.2.0 && < 0.3.0
