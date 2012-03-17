@@ -84,23 +84,24 @@ specdoc = silent {
   formatterName = "specdoc"
 
 , exampleGroupStarted = \nesting name -> withNormalColor $ do
-    writeLine ("\n" ++ indentationFor nesting ++ name)
+    writeLine ("\n" ++ indentationForGroup nesting ++ name)
 
 , exampleSucceeded = \nesting requirement -> withSuccessColor $ do
-    writeLine $ indentationFor nesting ++ " - " ++ requirement
+    writeLine $ indentationForExample nesting ++ " - " ++ requirement
 
 , exampleFailed = \nesting requirement _ -> withFailColor $ do
     failed <- getFailCount
-    writeLine $ indentationFor nesting ++ " - " ++ requirement ++ " FAILED [" ++ show failed ++ "]"
+    writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ " FAILED [" ++ show failed ++ "]"
 
 , examplePending = \nesting requirement reason -> withPendingColor $ do
-    writeLine $ indentationFor nesting ++ " - " ++ requirement ++ "\n     # " ++ reason
+    writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ "\n     # " ++ reason
 
 , failedFormatter = defaultFailedFormatter
 
 , footerFormatter = defaultFooter
 } where
-    indentationFor nesting = replicate (nesting * 2) ' '
+    indentationForExample nesting = replicate (pred nesting * 2) ' '
+    indentationForGroup nesting = replicate (nesting * 2) ' '
 
 
 progress :: Formatter
