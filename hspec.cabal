@@ -26,7 +26,6 @@ Library
   exposed:        True
   buildable:      True
   extensions:     FlexibleInstances
-  other-modules:  Specs
   ghc-options:    -Wall -fno-warn-hi-shadowing
 
   build-depends: HUnit >=1 && <=2,
@@ -44,6 +43,7 @@ Library
 test-suite spec
   type:           exitcode-stdio-1.0
   main-is:        runtests.hs
+  other-modules:  Specs
   ghc-options:    -Wall -fno-warn-hi-shadowing
 
   build-depends: HUnit >=1 && <=2,
