@@ -17,11 +17,6 @@ description: Behavior Driven Development for Haskell
              .
              Hspec is roughly based on the Ruby library RSpec. However, Hspec is just a framework for running HUnit and QuickCheck tests. Compared to other options, it provides a much nicer syntax that makes tests very easy to read.
 
-extra-source-files: ./Specs.hs ./Test/Hspec/HUnit.hs
-                    ./Test/Hspec/Runner.hs ./Test/Hspec/Monadic.hs
-                    ./Test/Hspec/Formatters.hs
-                    ./Test/Hspec/Core.hs ./Test/Hspec/QuickCheck.hs
-
 Library
   exposed:        True
   buildable:      True
