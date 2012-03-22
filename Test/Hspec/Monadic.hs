@@ -114,10 +114,10 @@ runSpecM (SpecM specs) = execWriter specs
 describe :: String -> Specs -> Specs
 describe label action = SpecM . tell $ [Core.describe label (runSpecM action)]
 
--- | Combine a list of descriptions. (Note that descriptions can also
--- be combined with monadic sequencing.)
+-- | DEPRECATED: Use `sequence_` instead.
 descriptions :: [Specs] -> Specs
 descriptions = sequence_
+{-# DEPRECATED descriptions "sequence_ instead" #-}
 
 it :: Example v => String -> v -> Specs
 it label action = (SpecM . tell) [Core.it label action]
