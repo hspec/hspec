@@ -136,4 +136,4 @@ it label action = (SpecM . tell) [Core.it label action]
 -- | DEPRECATED: Use `sequence_` instead.
 descriptions :: [Specs] -> Specs
 descriptions = sequence_
-{-# DEPRECATED descriptions "sequence_ instead" #-}
+{-# DEPRECATED descriptions "use sequence_ instead" #-}
