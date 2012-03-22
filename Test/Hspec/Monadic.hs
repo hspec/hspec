@@ -65,16 +65,29 @@
 --
 
 module Test.Hspec.Monadic (
-  -- types
-  Spec(), Result(),Specs,
-  -- the main api
-  describe, it, hspec, hspecB, hspecX, pending, descriptions,
-  -- alternate "runner" functions
-  hHspec,
-  -- interface to the non-monadic api
-  fromSpecList,
-  -- this is just for internal use
-  runSpecM
+
+  -- * Types
+    Spec
+  , Result
+  , Specs
+
+  -- * Defining a spec
+  , describe
+  , it
+  , pending
+
+  -- * Running a spec
+  , hspec
+  , hspecB
+  , hspecX
+  , hHspec
+
+  -- * Interface to the non-monadic API
+  , runSpecM
+  , fromSpecList
+
+  -- * Deprecated functions
+  , descriptions
 ) where
 
 import System.IO

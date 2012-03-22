@@ -72,12 +72,25 @@
 -- >   vectorOf nums (elements "0123456789")
 --
 module Test.Hspec (
-  -- types
-  Spec(), Result(),Specs,
-  -- the main api
-  describe, it, hspec, hspecB, hspecX, pending, descriptions,
-  -- alternate "runner" functions
-  hHspec
+
+  -- * Types
+    Spec
+  , Result
+  , Specs
+
+  -- * Defining a spec
+  , describe
+  , it
+  , pending
+
+  -- * Running a spec
+  , hspec
+  , hspecB
+  , hspecX
+  , hHspec
+
+  -- * Deprecated functions
+  , descriptions
 ) where
 
 import Test.Hspec.Core
