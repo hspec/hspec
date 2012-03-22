@@ -119,10 +119,11 @@ hspecB = Runner.hspecB . runSpecM
 hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
 hHspec h = Runner.hHspec h . runSpecM
 
+-- | Convert a monadic spec into a non-monadic spec.
 runSpecM :: Specs -> [UnevaluatedSpec]
 runSpecM (SpecM specs) = execWriter specs
 
--- | Converts a specs created with 'Test.Hspec.HUnit.describe' into a monadic 'describe'.
+-- | Convert a non-monadic spec into a monadic spec.
 fromSpecList :: [UnevaluatedSpec] -> Specs
 fromSpecList = SpecM . tell
 
