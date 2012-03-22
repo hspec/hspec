@@ -112,7 +112,7 @@ specs = do
 
   let report = lines reportContents
 
-  return $ descriptions [
+  return [
     describe "the \"describe\" function" [
         it "takes a description of what the behavior is for" $
             case exampleSpecs of
