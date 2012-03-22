@@ -65,15 +65,14 @@ hHspec h specs = do
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
 hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO [EvaluatedSpec]
-hHspecWithFormat formatter useColor h ss =
-           (runFormatM useColor h $ do
-         t0 <- liftIO $ getCPUTime
-         specList <- mapM (runFormatter formatter 0 "") ss
-         t1 <- liftIO $ getCPUTime
-         let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
-         failedFormatter formatter
-         (footerFormatter formatter) runTime
-         return specList)
+hHspecWithFormat formatter useColor h ss = runFormatM useColor h $ do
+  t0 <- liftIO $ getCPUTime
+  specList <- mapM (runFormatter formatter 0 "") ss
+  t1 <- liftIO $ getCPUTime
+  let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
+  failedFormatter formatter
+  (footerFormatter formatter) runTime
+  return specList
 
 toExitCode :: Bool -> ExitCode
 toExitCode True  = ExitSuccess
