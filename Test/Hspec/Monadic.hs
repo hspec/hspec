@@ -29,34 +29,32 @@
 --
 -- A boolean expression can act as a behavior's example.
 --
--- >   it "removes dashes, spaces, and parenthesies"
--- >       (unformatPhoneNumber "(555) 555-1234" == "5555551234")
+-- >   it "removes dashes, spaces, and parenthesies" $
+-- >     unformatPhoneNumber "(555) 555-1234" == "5555551234"
 --
 -- The 'pending' function marks a behavior as pending an example. The example doesn't count as failing.
 --
--- >   it "handles non-US phone numbers"
--- >       (pending "need to look up how other cultures format phone numbers")
+-- >   it "handles non-US phone numbers" $
+-- >     pending "need to look up how other cultures format phone numbers"
 --
 -- An HUnit 'Test' can act as a behavior's example. (must import @Test.Hspec.HUnit@)
 --
--- >   it "removes the \"ext\" prefix of the extension"
--- >       (TestCase $ let expected = "5555551234135"
--- >                       actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
--- >                   in assertEqual "remove extension" expected actual)
+-- >   it "removes the \"ext\" prefix of the extension" $ do
+-- >     let expected = "5555551234135"
+-- >         actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
+-- >     assertEqual "remove extension" expected actual
 --
 -- An @IO()@ action is treated like an HUnit 'TestCase'. (must import @Test.Hspec.HUnit@)
 --
--- >   it "converts letters to numbers"
--- >       (do
--- >         let expected = "6862377"
--- >         let actual   = unformatPhoneNumber "NUMBERS"
--- >         assertEqual "letters to numbers" expected actual)
+-- >   it "converts letters to numbers" $ do
+-- >     let expected = "6862377"
+-- >         actual   = unformatPhoneNumber "NUMBERS"
+-- >     assertEqual "letters to numbers" expected actual
 --
 -- The 'property' function allows a QuickCheck property to act as an example. (must import @Test.Hspec.HUnit@)
 --
--- >   it "can add and remove formatting without changing the number"
--- >       (property $ forAll phoneNumber $
--- >         \ n -> unformatPhoneNumber (formatPhoneNumber n) == n)
+-- >   it "can add and remove formatting without changing the number" $ property $
+-- >     forAll phoneNumber $ \ n -> unformatPhoneNumber (formatPhoneNumber n) == n
 -- >
 -- > phoneNumber :: Gen String
 -- > phoneNumber = do
@@ -65,16 +63,29 @@
 --
 
 module Test.Hspec.Monadic (
-  -- types
-  Spec(), Result(),Specs,
-  -- the main api
-  describe, it, hspec, hspecB, hspecX, pending, descriptions,
-  -- alternate "runner" functions
-  hHspec,
-  -- interface to the non-monadic api
-  fromSpecList,
-  -- this is just for internal use
-  runSpecM
+
+  -- * Types
+    Spec
+  , Result
+  , Specs
+
+  -- * Defining a spec
+  , describe
+  , it
+  , pending
+
+  -- * Running a spec
+  , hspec
+  , hspecB
+  , hspecX
+  , hHspec
+
+  -- * Interface to the non-monadic API
+  , runSpecM
+  , fromSpecList
+
+  -- * Deprecated functions
+  , descriptions
 ) where
 
 import System.IO
@@ -108,20 +119,21 @@ hspecB = Runner.hspecB . runSpecM
 hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
 hHspec h = Runner.hHspec h . runSpecM
 
+-- | Convert a monadic spec into a non-monadic spec.
 runSpecM :: Specs -> [UnevaluatedSpec]
 runSpecM (SpecM specs) = execWriter specs
+
+-- | Convert a non-monadic spec into a monadic spec.
+fromSpecList :: [UnevaluatedSpec] -> Specs
+fromSpecList = SpecM . tell
 
 describe :: String -> Specs -> Specs
 describe label action = SpecM . tell $ [Core.describe label (runSpecM action)]
 
--- | Combine a list of descriptions. (Note that descriptions can also
--- be combined with monadic sequencing.)
-descriptions :: [Specs] -> Specs
-descriptions = sequence_
-
 it :: Example v => String -> v -> Specs
 it label action = (SpecM . tell) [Core.it label action]
 
--- | Converts a specs created with 'Test.Hspec.HUnit.describe' into a monadic 'describe'.
-fromSpecList :: [UnevaluatedSpec] -> Specs
-fromSpecList = SpecM . tell
+-- | DEPRECATED: Use `sequence_` instead.
+descriptions :: [Specs] -> Specs
+descriptions = sequence_
+{-# DEPRECATED descriptions "use sequence_ instead" #-}

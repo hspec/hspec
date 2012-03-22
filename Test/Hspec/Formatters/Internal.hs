@@ -14,7 +14,6 @@ module Test.Hspec.Formatters.Internal (
 , write
 , writeLine
 
-, withNormalColor
 , withSuccessColor
 , withPendingColor
 , withFailColor
@@ -26,12 +25,12 @@ module Test.Hspec.Formatters.Internal (
 , increasePendingCount
 , increaseFailCount
 , addFailMessage
-, restoreFormat
 ) where
 
 import qualified System.IO as IO
 import System.IO (Handle)
 import Control.Monad (when)
+import Control.Exception (bracket_)
 import System.Console.ANSI
 import Control.Monad.Trans.State hiding (gets, modify)
 import qualified Control.Monad.Trans.State as State
@@ -152,22 +151,19 @@ withSuccessColor = withColor (SetColor Foreground Dull Green)
 withPendingColor :: FormatM a -> FormatM a
 withPendingColor = withColor (SetColor Foreground Dull Yellow)
 
-withNormalColor :: FormatM a -> FormatM a
-withNormalColor = withColor Reset
-
 -- | Set a color, run an action, and finally reset colors.
 withColor :: SGR -> FormatM a -> FormatM a
-withColor color action = do
-  useColor <- gets stateUseColor
-  h <- gets stateHandle
-  when useColor (liftIO $ hSetSGR h [color])
-  r <- action
+withColor color (FormatM action) = FormatM . StateT $ \st -> do
+  let useColor = stateUseColor st
+      h        = stateHandle st
 
-  -- FIXME:  When action throws an exception, restoreFormat is never called.
-  -- We can remedy this by using finally in combination with `monad-control`,
-  -- `MonadCatchIO-transformers`, or something.
-  when useColor (liftIO $ restoreFormat h)
-  return r
+  bracket_
 
-restoreFormat :: Handle -> IO ()
-restoreFormat h = hSetSGR h [ Reset ]
+    -- set color
+    (when useColor $ hSetSGR h [color])
+
+    -- reset colors
+    (when useColor $ hSetSGR h [Reset])
+
+    -- run action
+    (runStateT action st)
