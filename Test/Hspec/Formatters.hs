@@ -31,7 +31,6 @@ module Test.Hspec.Formatters (
 , writeLine
 
 -- ** Dealing with colors
-, withNormalColor
 , withSuccessColor
 , withPendingColor
 , withFailColor
@@ -60,7 +59,6 @@ import Test.Hspec.Formatters.Internal (
   , write
   , writeLine
 
-  , withNormalColor
   , withSuccessColor
   , withPendingColor
   , withFailColor
@@ -83,7 +81,7 @@ specdoc :: Formatter
 specdoc = silent {
   formatterName = "specdoc"
 
-, exampleGroupStarted = \nesting name -> withNormalColor $ do
+, exampleGroupStarted = \nesting name -> do
     writeLine ("\n" ++ indentationForGroup nesting ++ name)
 
 , exampleSucceeded = \nesting requirement -> withSuccessColor $ do

@@ -14,7 +14,6 @@ module Test.Hspec.Formatters.Internal (
 , write
 , writeLine
 
-, withNormalColor
 , withSuccessColor
 , withPendingColor
 , withFailColor
@@ -151,9 +150,6 @@ withSuccessColor = withColor (SetColor Foreground Dull Green)
 -- default color.
 withPendingColor :: FormatM a -> FormatM a
 withPendingColor = withColor (SetColor Foreground Dull Yellow)
-
-withNormalColor :: FormatM a -> FormatM a
-withNormalColor = withColor Reset
 
 -- | Set a color, run an action, and finally reset colors.
 withColor :: SGR -> FormatM a -> FormatM a
