@@ -32,7 +32,7 @@
 --
 -- The 'describe' function takes a list of behaviors and examples bound together with the 'it' function
 --
--- > mySpecs = describe "unformatPhoneNumber" [
+-- > mySpecs = [describe "unformatPhoneNumber" [
 --
 -- A boolean expression can act as a behavior's example.
 --
@@ -64,7 +64,7 @@
 -- >   it "can add and remove formatting without changing the number"
 -- >       (property $ forAll phoneNumber $
 -- >         \ n -> unformatPhoneNumber (formatPhoneNumber n) == n)
--- >   ]
+-- >   ]]
 -- >
 -- > phoneNumber :: Gen String
 -- > phoneNumber = do
@@ -72,12 +72,25 @@
 -- >   vectorOf nums (elements "0123456789")
 --
 module Test.Hspec (
-  -- types
-  Spec(), Result(),Specs,
-  -- the main api
-  describe, it, hspec, hspecB, hspecX, pending, descriptions,
-  -- alternate "runner" functions
-  hHspec
+
+  -- * Types
+    Spec
+  , Result
+  , Specs
+
+  -- * Defining a spec
+  , describe
+  , it
+  , pending
+
+  -- * Running a spec
+  , hspec
+  , hspecB
+  , hspecX
+  , hHspec
+
+  -- * Deprecated functions
+  , descriptions
 ) where
 
 import Test.Hspec.Core

@@ -22,7 +22,7 @@ data Spec a = SpecGroup String [Spec a]
 describe :: String -> [Spec a] -> Spec a
 describe = SpecGroup
 
--- | Combine a list of descriptions.
+-- | DEPRECATED: This is no longer needed (it's just an alias for `id` now).
 descriptions :: [Spec a] -> [Spec a]
 descriptions = id
 {-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
