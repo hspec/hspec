@@ -10,6 +10,7 @@ module Test.Hspec.Formatters.Internal (
 , getFailCount
 , getTotalCount
 , getFailMessages
+, getCPUTime
 
 , write
 , writeLine
@@ -35,6 +36,7 @@ import System.Console.ANSI
 import Control.Monad.Trans.State hiding (gets, modify)
 import qualified Control.Monad.Trans.State as State
 import qualified Control.Monad.IO.Class as IOClass
+import qualified System.CPUTime as CPUTime
 
 -- | A lifted version of `State.gets`
 gets :: (FormatterState -> a) -> FormatM a
@@ -59,6 +61,7 @@ data FormatterState = FormatterState {
 , pendingCount  :: Int
 , failCount     :: Int
 , failMessages  :: [String]
+, cpuStartTime  :: Integer
 }
 
 -- | The total number of examples encountered so far.
@@ -69,7 +72,9 @@ newtype FormatM a = FormatM (StateT FormatterState IO a)
   deriving (Functor, Monad)
 
 runFormatM :: Bool -> Handle -> FormatM a -> IO a
-runFormatM useColor handle (FormatM action) = evalStateT action (FormatterState handle useColor 0 0 0 [])
+runFormatM useColor handle (FormatM action) = do
+  t <- CPUTime.getCPUTime
+  evalStateT action (FormatterState handle useColor 0 0 0 [] t)
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()
@@ -121,7 +126,7 @@ data Formatter = Formatter {
 -- | evaluated after a test run
 , failedFormatter     :: FormatM ()
 -- | evaluated after `failuresFormatter`
-, footerFormatter     :: Double -> FormatM ()
+, footerFormatter     :: FormatM ()
 }
 
 -- | Append some output to the report.
@@ -167,3 +172,10 @@ withColor color (FormatM action) = FormatM . StateT $ \st -> do
 
     -- run action
     (runStateT action st)
+
+-- | Get the used CPU time since the test run has been started.
+getCPUTime :: FormatM Double
+getCPUTime = do
+  t1 <- liftIO CPUTime.getCPUTime
+  t0 <- gets cpuStartTime
+  return ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)))

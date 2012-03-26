@@ -10,7 +10,6 @@ import Test.Hspec.Core
 import Test.Hspec.Formatters
 import Test.Hspec.Formatters.Internal
 import System.IO
-import System.CPUTime (getCPUTime)
 import System.Exit
 
 type Specs = [UnevaluatedSpec]
@@ -66,12 +65,9 @@ hHspec h specs = do
 -- THIS IS LIKELY TO CHANGE
 hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO [EvaluatedSpec]
 hHspecWithFormat formatter useColor h ss = runFormatM useColor h $ do
-  t0 <- liftIO $ getCPUTime
   specList <- mapM (runFormatter formatter 0 "") ss
-  t1 <- liftIO $ getCPUTime
-  let runTime = ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)) :: Double)
   failedFormatter formatter
-  (footerFormatter formatter) runTime
+  footerFormatter formatter
   return specList
 
 toExitCode :: Bool -> ExitCode
