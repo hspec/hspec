@@ -25,6 +25,8 @@ module Test.Hspec.Formatters (
 , getFailCount
 , getTotalCount
 , getFailMessages
+, getCPUTime
+, getRealTime
 
 -- ** Appending to the gerenated report
 , write
@@ -55,6 +57,8 @@ import Test.Hspec.Formatters.Internal (
   , getFailCount
   , getTotalCount
   , getFailMessages
+  , getCPUTime
+  , getRealTime
 
   , write
   , writeLine
@@ -73,7 +77,7 @@ silent = Formatter {
 , exampleFailed       = \_ _ _ -> return ()
 , examplePending      = \_ _ _  -> return ()
 , failedFormatter     = return ()
-, footerFormatter     = \_ -> return ()
+, footerFormatter     = return ()
 }
 
 
@@ -127,12 +131,14 @@ defaultFailedFormatter = withFailColor $ do
   mapM_ writeLine ("" : intersperse "" failures)
   when (not $ null failures) (writeLine "")
 
-defaultFooter :: Double -> FormatM ()
-defaultFooter time = do
+defaultFooter :: FormatM ()
+defaultFooter = do
+  cpuTime <- getCPUTime
+  time <- getRealTime
   fails <- getFailCount
   total <- getTotalCount
   (if fails == 0 then withSuccessColor else withFailColor) $ do
-    writeLine $ printf "Finished in %1.4f seconds" time
+    writeLine $ printf "Finished in %1.4f seconds, used %1.4f seconds of CPU time" time cpuTime
     writeLine ""
     write $ quantify total "example" ++ ", "
     writeLine $ quantify fails "failure"
