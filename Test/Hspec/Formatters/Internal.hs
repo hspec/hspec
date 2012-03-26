@@ -11,6 +11,7 @@ module Test.Hspec.Formatters.Internal (
 , getTotalCount
 , getFailMessages
 , getCPUTime
+, getRealTime
 
 , write
 , writeLine
@@ -37,6 +38,7 @@ import Control.Monad.Trans.State hiding (gets, modify)
 import qualified Control.Monad.Trans.State as State
 import qualified Control.Monad.IO.Class as IOClass
 import qualified System.CPUTime as CPUTime
+import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 -- | A lifted version of `State.gets`
 gets :: (FormatterState -> a) -> FormatM a
@@ -62,6 +64,7 @@ data FormatterState = FormatterState {
 , failCount     :: Int
 , failMessages  :: [String]
 , cpuStartTime  :: Integer
+, startTime     :: POSIXTime
 }
 
 -- | The total number of examples encountered so far.
@@ -73,8 +76,9 @@ newtype FormatM a = FormatM (StateT FormatterState IO a)
 
 runFormatM :: Bool -> Handle -> FormatM a -> IO a
 runFormatM useColor handle (FormatM action) = do
-  t <- CPUTime.getCPUTime
-  evalStateT action (FormatterState handle useColor 0 0 0 [] t)
+  time <- getPOSIXTime
+  cpuTime <- CPUTime.getCPUTime
+  evalStateT action (FormatterState handle useColor 0 0 0 [] cpuTime time)
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()
@@ -179,3 +183,10 @@ getCPUTime = do
   t1 <- liftIO CPUTime.getCPUTime
   t0 <- gets cpuStartTime
   return ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)))
+
+-- | Get the passed real time since the test run has been started.
+getRealTime :: FormatM Double
+getRealTime = do
+  t1 <- liftIO getPOSIXTime
+  t0 <- gets startTime
+  return (realToFrac $ t1 - t0)
