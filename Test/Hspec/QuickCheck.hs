@@ -1,4 +1,5 @@
-
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Importing this module allows you to use a QuickCheck property as an example
 -- for a behavior. Use the 'property' function to indicate a QuickCkeck property.
 -- Any output from the example to stdout is ignored. If you need to write out for
@@ -15,7 +16,8 @@
 -- >   ]
 --
 module Test.Hspec.QuickCheck (
-  property, prop
+  QC.property
+, prop
 ) where
 
 import System.IO.Silently
@@ -25,18 +27,12 @@ import qualified Test.QuickCheck as QC
 -- just for the prop shortcut
 import qualified Test.Hspec.Monadic as DSL
 
-data QuickCheckProperty a = QuickCheckProperty a
-
-property :: QC.Testable a => a -> QuickCheckProperty a
-property = QuickCheckProperty
-
 -- | Monadic DSL shortcut, use this instead of @it@
 prop :: QC.Testable t => String -> t -> DSL.Specs
-prop n p = DSL.it n (QuickCheckProperty p)
+prop n p = DSL.it n (QC.property p)
 
-
-instance QC.Testable t => Example (QuickCheckProperty t) where
-  evaluateExample (QuickCheckProperty p) = do
+instance Example QC.Property where
+  evaluateExample p = do
     r <- silence $ QC.quickCheckResult p
     let r' = case r of
               QC.Success {}           -> Success
