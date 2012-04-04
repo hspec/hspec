@@ -15,7 +15,7 @@
 -- > import Test.Hspec
 -- > import Test.Hspec.QuickCheck
 -- > import Test.Hspec.HUnit
--- > import Test.QuickCheck hiding (property)
+-- > import Test.QuickCheck
 -- > import Test.HUnit
 -- >
 -- > main = hspec mySpecs
