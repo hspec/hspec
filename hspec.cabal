@@ -9,7 +9,7 @@ category:       Testing
 author:         Trystan Spangler
 maintainer:     trystan.s@comcast.net
 stability:      experimental
-bug-reports:    https://github.com/trystan/hspec/issues
+bug-reports:    https://github.com/hspec/hspec/issues
 synopsis:       Behavior Driven Development for Haskell
 description: Behavior Driven Development for Haskell
              .
@@ -17,7 +17,7 @@ description: Behavior Driven Development for Haskell
 
 source-repository head
   type: git
-  location: https://github.com/trystan/hspec
+  location: https://github.com/hspec/hspec
 
 Library
   exposed:        True
