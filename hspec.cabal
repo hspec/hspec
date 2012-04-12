@@ -31,7 +31,7 @@ Library
                  silently >= 1.1.1 && < 2,
                  ansi-terminal == 0.5.5,
                  time < 1.5,
-                 transformers >= 0.2.0 && < 0.3.0
+                 transformers >= 0.2.0 && < 0.4.0
 
   exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
                    Test.Hspec.Runner Test.Hspec.Monadic
@@ -50,4 +50,4 @@ test-suite spec
                  silently >= 1.1.1 && < 2,
                  ansi-terminal == 0.5.5,
                  time < 1.5,
-                 transformers >= 0.2.0 && < 0.3.0
+                 transformers >= 0.2.0 && < 0.4.0
