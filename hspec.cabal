@@ -20,9 +20,7 @@ source-repository head
   location: https://github.com/hspec/hspec
 
 Library
-  exposed:        True
-  buildable:      True
-  ghc-options:    -Wall -fno-warn-hi-shadowing
+  ghc-options:    -Wall
 
   build-depends: HUnit >=1 && <=2,
                  QuickCheck >=2.4.0.1 && <=2.5,
@@ -41,7 +39,7 @@ test-suite spec
   type:           exitcode-stdio-1.0
   main-is:        runtests.hs
   other-modules:  Specs
-  ghc-options:    -Wall -fno-warn-hi-shadowing
+  ghc-options:    -Wall
 
   build-depends: HUnit >=1 && <=2,
                  QuickCheck >=2.4.0.1 && <=2.5,
