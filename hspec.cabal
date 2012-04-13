@@ -1,5 +1,5 @@
 name:           hspec
-version:        0.9.2.1
+version:        0.9.2.2
 cabal-version:  >= 1.8
 build-type:     Simple
 license:        BSD3
@@ -30,7 +30,7 @@ Library
                  base >=4 && <=5,
                  silently >= 1.1.1 && < 2,
                  ansi-terminal == 0.5.5,
-                 transformers >= 0.2.0 && < 0.3.0
+                 transformers >= 0.2.0 && < 0.4
 
   exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
                    Test.Hspec.Runner Test.Hspec.Monadic
@@ -47,4 +47,4 @@ test-suite spec
                  base >=4 && <=5,
                  silently >= 1.1.1 && < 2,
                  ansi-terminal == 0.5.5,
-                 transformers >= 0.2.0 && < 0.3.0
+                 transformers >= 0.2.0 && < 0.4
