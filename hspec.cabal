@@ -11,40 +11,60 @@ maintainer:     trystan.s@comcast.net
 stability:      experimental
 bug-reports:    https://github.com/hspec/hspec/issues
 synopsis:       Behavior Driven Development for Haskell
-description: Behavior Driven Development for Haskell
-             .
-             Hspec is roughly based on the Ruby library RSpec. However, Hspec is just a framework for running HUnit and QuickCheck tests. Compared to other options, it provides a much nicer syntax that makes tests very easy to read.
+description:    Behavior Driven Development for Haskell
+                .
+                Hspec is roughly based on the Ruby library RSpec. However,
+                Hspec is just a framework for running HUnit and QuickCheck
+                tests. Compared to other options, it provides a much nicer
+                syntax that makes tests very easy to read.
 
 source-repository head
   type: git
   location: https://github.com/hspec/hspec
 
 Library
-  ghc-options:    -Wall
+  ghc-options:
+      -Wall
 
-  build-depends: HUnit >=1 && <=2,
-                 QuickCheck >=2.4.0.1 && <=2.5,
-                 base >=4 && <=5,
-                 silently >= 1.1.1 && < 2,
-                 ansi-terminal == 0.5.5,
-                 time < 1.5,
-                 transformers >= 0.2.0 && < 0.4.0
+  build-depends:
+      base >= 4 && <= 5
+    , silently >= 1.1.1 && < 2
+    , ansi-terminal == 0.5.5
+    , time < 1.5
+    , transformers >= 0.2.0 && < 0.4.0
+    , HUnit >= 1 && <= 2
+    , QuickCheck >= 2.4.0.1 && <= 2.5
 
-  exposed-modules: Test.Hspec Test.Hspec.HUnit Test.Hspec.Core
-                   Test.Hspec.Runner Test.Hspec.Monadic
-                   Test.Hspec.Formatters Test.Hspec.QuickCheck
-  other-modules:   Test.Hspec.Formatters.Internal
+  exposed-modules:
+      Test.Hspec
+    , Test.Hspec.Core
+    , Test.Hspec.Monadic
+    , Test.Hspec.Runner
+    , Test.Hspec.Formatters
+    , Test.Hspec.HUnit
+    , Test.Hspec.QuickCheck
+
+  other-modules:
+      Test.Hspec.Formatters.Internal
 
 test-suite spec
-  type:           exitcode-stdio-1.0
-  main-is:        runtests.hs
-  other-modules:  Specs
-  ghc-options:    -Wall
+  type:
+      exitcode-stdio-1.0
 
-  build-depends: HUnit >=1 && <=2,
-                 QuickCheck >=2.4.0.1 && <=2.5,
-                 base >=4 && <=5,
-                 silently >= 1.1.1 && < 2,
-                 ansi-terminal == 0.5.5,
-                 time < 1.5,
-                 transformers >= 0.2.0 && < 0.4.0
+  main-is:
+      runtests.hs
+
+  other-modules:
+      Specs
+
+  ghc-options:
+      -Wall -Werror
+
+  build-depends:
+      base >= 4 && <= 5
+    , silently >= 1.1.1 && < 2
+    , ansi-terminal == 0.5.5
+    , time < 1.5
+    , transformers >= 0.2.0 && < 0.4.0
+    , HUnit >= 1 && <= 2
+    , QuickCheck >= 2.4.0.1 && <= 2.5
