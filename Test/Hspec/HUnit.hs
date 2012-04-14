@@ -19,10 +19,10 @@
 module Test.Hspec.HUnit (
 ) where
 
-import System.IO.Silently
-import Test.Hspec.Core
+import           System.IO.Silently
+import           Test.Hspec.Core
 import qualified Test.HUnit as HU
-import Data.List (intersperse)
+import           Data.List (intersperse)
 
 instance Example (IO ()) where
   evaluateExample io = evaluateExample (HU.TestCase io)

@@ -20,8 +20,8 @@ module Test.Hspec.QuickCheck (
 , prop
 ) where
 
-import System.IO.Silently
-import Test.Hspec.Core
+import           System.IO.Silently
+import           Test.Hspec.Core
 import qualified Test.QuickCheck as QC
 
 -- just for the prop shortcut

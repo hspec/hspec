@@ -38,10 +38,10 @@ module Test.Hspec.Formatters (
 , withFailColor
 ) where
 
-import Test.Hspec.Core (quantify)
-import Data.List (intersperse)
-import Text.Printf
-import Control.Monad (unless)
+import           Test.Hspec.Core (quantify)
+import           Data.List (intersperse)
+import           Text.Printf
+import           Control.Monad (unless)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.

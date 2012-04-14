@@ -6,11 +6,11 @@ module Test.Hspec.Runner (
   Specs, hspec, hspecX, hspecB, hHspec, hHspecWithFormat, describe, it, toExitCode
 ) where
 
-import Test.Hspec.Core
-import Test.Hspec.Formatters
-import Test.Hspec.Formatters.Internal
-import System.IO
-import System.Exit
+import           Test.Hspec.Core
+import           Test.Hspec.Formatters
+import           Test.Hspec.Formatters.Internal
+import           System.IO
+import           System.Exit
 
 type Specs = [UnevaluatedSpec]
 

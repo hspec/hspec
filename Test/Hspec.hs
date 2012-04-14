@@ -93,6 +93,6 @@ module Test.Hspec (
   , descriptions
 ) where
 
-import Test.Hspec.Core
-import Test.Hspec.Runner
+import           Test.Hspec.Core
+import           Test.Hspec.Runner
 

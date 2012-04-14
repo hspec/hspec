@@ -5,8 +5,8 @@
 --
 module Test.Hspec.Core where
 
-import System.IO.Silently
-import Control.Exception
+import           System.IO.Silently
+import           Control.Exception
 
 -- | The result of running an example.
 data Result = Success | Pending String | Fail String

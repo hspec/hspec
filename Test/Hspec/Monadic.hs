@@ -88,12 +88,12 @@ module Test.Hspec.Monadic (
   , descriptions
 ) where
 
-import System.IO
-import Test.Hspec.Core hiding (describe,descriptions,it)
+import           System.IO
+import           Test.Hspec.Core hiding (describe,descriptions,it)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 
-import Control.Monad.Trans.Writer (Writer, execWriter, tell)
+import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 type Specs = SpecM ()
 

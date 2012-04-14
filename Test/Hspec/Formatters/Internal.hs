@@ -30,11 +30,11 @@ module Test.Hspec.Formatters.Internal (
 ) where
 
 import qualified System.IO as IO
-import System.IO (Handle)
-import Control.Monad (when)
-import Control.Exception (bracket_)
-import System.Console.ANSI
-import Control.Monad.Trans.State hiding (gets, modify)
+import           System.IO (Handle)
+import           Control.Monad (when)
+import           Control.Exception (bracket_)
+import           System.Console.ANSI
+import           Control.Monad.Trans.State hiding (gets, modify)
 import qualified Control.Monad.Trans.State as State
 import qualified Control.Monad.IO.Class as IOClass
 import qualified System.CPUTime as CPUTime
