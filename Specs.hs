@@ -1,7 +1,7 @@
 module Main (main) where
 
 import qualified Test.Hspec as H
-import           Test.Hspec hiding (describe, it, hspecX)
+import           Test.Hspec hiding (Specs, describe, it, hspecX)
 import           Test.Hspec.Runner (hHspecWithFormat)
 import           Test.Hspec.Core (Spec(..), Result(..), quantify, evaluateExample)
 import           Test.Hspec.Formatters
@@ -13,11 +13,12 @@ import           System.IO.Silently
 import           Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
 
-import           Test.Hspec.Monadic (it, describe, hspecX)
+import           Test.Hspec.Monadic (Specs, describe, it, hspecX)
 
 main :: IO ()
 main = specs >>= hspecX
 
+specs :: IO Specs
 specs = do
   let testSpecs = [H.describe "Example" [
           H.it "success" (Success),
