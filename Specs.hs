@@ -3,97 +3,21 @@
 module Specs where
 
 import Test.Hspec
-import Test.Hspec.Runner (hHspecWithFormat, toExitCode)
-import Test.Hspec.Core (Spec(..), Result(..), quantify, failedCount, evaluateExample)
+import Test.Hspec.Runner (hHspecWithFormat)
+import Test.Hspec.Core (Spec(..), Result(..), quantify, evaluateExample)
 import Test.Hspec.Formatters
 import Test.Hspec.QuickCheck
 import Test.Hspec.HUnit ()
 import Test.HUnit
 import System.IO
 import System.IO.Silently
-import System.Environment
-import System.Exit (exitWith)
 import Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
 
 deriving instance Show Result
 
 main :: IO ()
-main = do
-  ar <- getArgs
-  specs' <- specs
-  ss <- case ar of
-    ["README"] -> withFile "README" WriteMode (\ h -> hPutStrLn h preamble >> hHspec h specs')
-    [filename] -> withFile filename WriteMode (\ h -> hHspec h specs')
-    _          -> hspec specs'
-  exitWith $ toExitCode (failedCount ss == 0)
-
-preamble :: String
-preamble = unlines [
-    "hspec aims to be a simple, extendable, and useful tool for Behavior Driven Development in Haskell.", "",
-    "",
-    "Step 1, write descriptions and examples of your desired behavior",
-    "> module Myabs where",
-    ">",
-    "> import Test.Hspec",
-    ">",
-    "> specs :: Specs",
-    "> specs = describe \"myabs\" [",
-    ">   it \"returns the original number when given a positive input\"",
-    ">     (myabs 1 == 1),",
-    "> ",
-    ">   it \"returns a positive number when given a negative input\"",
-    ">     (myabs (-1) == 1),",
-    "> ",
-    ">   it \"returns zero when given zero\"",
-    ">     (myabs 0 == 0)",
-    ">   ]",
-    "",
-    "Step 2, write whatever you are describing",
-    "> myabs n = undefined",
-    "",
-    "Step 3, watch your examples fail with red text by running from the .hs file itself",
-    "> main = hspec specs",
-    "",
-    "myabs",
-    " - returns the original number when given a positive input FAILED [1]",
-    " - returns a positive number when given a negative input FAILED [2]",
-    " - returns zero when given zero FAILED [3]",
-    "",
-    "1) myabs returns the original number when given a positive input FAILED",
-    "Prelude.undefined",
-    "",
-    "2) myabs returns a positive number when given a negative input FAILED",
-    "Prelude.undefined",
-    "",
-    "3) myabs returns zero when given zero FAILED",
-    "Prelude.undefined",
-    "",
-    "Finished in 0.0002 seconds",
-    "",
-    "3 examples, 3 failures",
-    "",
-    "",
-    "Specs can also be run from the command line using the hspec program",
-    "  $ hspec myabs.hs",
-    "",
-    "Step 4, implement your desired behavior",
-    "> myabs n = if n < 0 then negate n else n",
-    "",
-    "Step 5, watch your examples succeed with green text when rerun",
-    "myabs",
-    " - returns the original number when given a positive input",
-    " - returns a positive number when given a negative input",
-    " - returns zero when given zero",
-    "",
-    "Finished in 0.0000 seconds",
-    "",
-    "3 examples, 0 failures",
-    "",
-    "",
-    "",
-    "",
-    "Here's the report of hspec's behavior:" ]
+main = specs >>= hspecX
 
 specs :: IO Specs
 specs = do
