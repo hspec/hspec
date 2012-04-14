@@ -10,6 +10,7 @@ author:         Trystan Spangler
 maintainer:     trystan.s@comcast.net
 stability:      experimental
 bug-reports:    https://github.com/hspec/hspec/issues
+homepage:       http://hspec.github.com/
 synopsis:       Behavior Driven Development for Haskell
 description:    Behavior Driven Development for Haskell
                 .
@@ -17,6 +18,8 @@ description:    Behavior Driven Development for Haskell
                 Hspec is just a framework for running HUnit and QuickCheck
                 tests. Compared to other options, it provides a much nicer
                 syntax that makes tests very easy to read.
+                .
+                Read the introductory documentation: <http://hspec.github.com/>
 
 source-repository head
   type: git
