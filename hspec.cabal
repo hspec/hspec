@@ -55,10 +55,7 @@ test-suite spec
       exitcode-stdio-1.0
 
   main-is:
-      runtests.hs
-
-  other-modules:
-      Specs
+      Specs.hs
 
   ghc-options:
       -Wall -Werror

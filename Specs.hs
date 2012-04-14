@@ -1,6 +1,6 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Specs where
+module Main (main) where
 
 import Test.Hspec
 import Test.Hspec.Runner (hHspecWithFormat)
