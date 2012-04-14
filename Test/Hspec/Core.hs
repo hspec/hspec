@@ -10,7 +10,7 @@ import Control.Exception
 
 -- | The result of running an example.
 data Result = Success | Pending String | Fail String
-  deriving Eq
+  deriving (Eq, Show)
 
 
 type UnevaluatedSpec = Spec AnyExample

@@ -1,5 +1,3 @@
-{-# LANGUAGE StandaloneDeriving #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Main (main) where
 
 import qualified Test.Hspec as H
@@ -16,8 +14,6 @@ import Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
 
 import           Test.Hspec.Monadic (it, describe, hspecX)
-
-deriving instance Show Result
 
 main :: IO ()
 main = specs >>= hspecX
