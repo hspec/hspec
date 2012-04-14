@@ -41,7 +41,7 @@ module Test.Hspec.Formatters (
 import Test.Hspec.Core (quantify)
 import Data.List (intersperse)
 import Text.Printf
-import Control.Monad (when)
+import Control.Monad (unless)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -129,7 +129,7 @@ defaultFailedFormatter :: FormatM ()
 defaultFailedFormatter = withFailColor $ do
   failures <- getFailMessages
   mapM_ writeLine ("" : intersperse "" failures)
-  when (not $ null failures) (writeLine "")
+  unless (null failures) (writeLine "")
 
 defaultFooter :: FormatM ()
 defaultFooter = do

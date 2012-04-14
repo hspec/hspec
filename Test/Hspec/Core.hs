@@ -1,4 +1,4 @@
-{-# OPTIONS -XFlexibleInstances -XExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances, ExistentialQuantification #-}
 
 -- | This module contains the core types, constructors, classes,
 -- instances, and utility functions common to hspec.

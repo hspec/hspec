@@ -1,4 +1,5 @@
-{-# OPTIONS -XFlexibleInstances -fno-warn-orphans #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS -fno-warn-orphans #-}
 
 -- | Importing this module allows you to use an @HUnit@ test case as an example
 -- for a behavior. You can use an explicit @TestCase@ data constructor or

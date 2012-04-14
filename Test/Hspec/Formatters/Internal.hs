@@ -182,7 +182,7 @@ getCPUTime :: FormatM Double
 getCPUTime = do
   t1 <- liftIO CPUTime.getCPUTime
   t0 <- gets cpuStartTime
-  return ((fromIntegral $ t1 - t0) / (10.0^(12::Integer)))
+  return (fromIntegral (t1 - t0) / (10.0^(12::Integer)))
 
 -- | Get the passed real time since the test run has been started.
 getRealTime :: FormatM Double

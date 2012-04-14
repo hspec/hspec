@@ -17,7 +17,7 @@ type Specs = [UnevaluatedSpec]
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Formatter -> Int -> String -> UnevaluatedSpec -> FormatM EvaluatedSpec
 runFormatter formatter nesting _ (SpecGroup group xs) = do
-  exampleGroupStarted formatter (nesting) group
+  exampleGroupStarted formatter nesting group
   ys <- mapM (runFormatter formatter (succ nesting) group) xs
   return (SpecGroup group ys)
 runFormatter formatter nesting group (SpecExample requirement e) = do
@@ -46,11 +46,11 @@ hspecX ss = hspecB ss >>= exitWith . toExitCode
 
 -- | Use in place of hspec to also give a @Bool@ success indication
 hspecB :: Specs -> IO Bool
-hspecB ss = hspec ss >>= return . success
+hspecB ss = success `fmap` hspec ss
 
 -- | Create a document of the given specs and write it to stdout.
 hspec :: Specs -> IO [EvaluatedSpec]
-hspec ss = hHspec stdout ss
+hspec = hHspec stdout
 
 -- | Create a document of the given specs and write it to the given handle.
 --
