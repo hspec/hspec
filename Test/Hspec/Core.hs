@@ -1,8 +1,6 @@
-{-# LANGUAGE FlexibleInstances, ExistentialQuantification #-}
-
--- | This module contains the core types, constructors, classes,
--- instances, and utility functions common to hspec.
---
+-- |
+-- This module contains the core types, constructors, classes, instances, and
+-- utility functions common to hspec.
 module Test.Hspec.Core where
 
 import           System.IO.Silently
@@ -13,7 +11,7 @@ data Result = Success | Pending String | Fail String
   deriving (Eq, Show)
 
 
-type UnevaluatedSpec = Spec AnyExample
+type UnevaluatedSpec = Spec (IO Result)
 type EvaluatedSpec = Spec Result
 
 data Spec a = SpecGroup String [Spec a]
@@ -27,9 +25,9 @@ descriptions :: [Spec a] -> [Spec a]
 descriptions = id
 {-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 
-safeEvaluateExample :: AnyExample -> IO Result
-safeEvaluateExample example' = do
-  evaluateExample example' `catches` [
+safeEvaluateExample :: IO Result -> IO Result
+safeEvaluateExample action = do
+  action `catches` [
     -- Re-throw AsyncException, otherwise execution will not terminate on
     -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
     -- UserInterrupt) because all of them indicate severe conditions and
@@ -49,7 +47,7 @@ safeEvaluateExample example' = do
 -- >   ]
 --
 it :: Example a => String -> a -> UnevaluatedSpec
-it requirement' example' = SpecExample requirement' (AnyExample example')
+it requirement' = SpecExample requirement' . evaluateExample
 
 class Example a where
   evaluateExample :: a -> IO Result
@@ -59,14 +57,6 @@ instance Example Bool where
 
 instance Example Result where
   evaluateExample result' = silence $ result' `seq` return result'
-
--- | An existentially quantified @Example@. This way they can be mixed within the same set of Specs
-data AnyExample = forall a. Example a => AnyExample a
-
-instance Example AnyExample where
-  evaluateExample (AnyExample a) = evaluateExample a
-
-
 
 -- | Declare an example as not successful or failing but pending some other work.
 -- If you want to report on a behavior but don't have an example yet, use this.

@@ -3,7 +3,7 @@ module Main (main) where
 import qualified Test.Hspec as H
 import           Test.Hspec hiding (Specs, describe, it, hspecX)
 import           Test.Hspec.Runner (hHspecWithFormat)
-import           Test.Hspec.Core (Spec(..), Result(..), quantify, evaluateExample)
+import           Test.Hspec.Core (Spec(..), Result(..), quantify)
 import           Test.Hspec.Formatters
 import           Test.Hspec.QuickCheck
 import           Test.Hspec.HUnit ()
@@ -61,7 +61,7 @@ specs = do
         it "takes an example of that behavior" $ do
             case H.it "whatever" Success of
               SpecExample _ example -> do
-                r <- evaluateExample example
+                r <- example
                 r @?= Success
               SpecGroup _ _ -> assertFailure "unexpected SpecGroup"
 
