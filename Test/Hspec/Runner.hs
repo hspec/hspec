@@ -73,4 +73,3 @@ hHspecWithFormat formatter useColor h ss = runFormatM useColor h $ do
 toExitCode :: Bool -> ExitCode
 toExitCode True  = ExitSuccess
 toExitCode False = ExitFailure 1
-
