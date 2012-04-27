@@ -53,10 +53,10 @@ class Example a where
   evaluateExample :: a -> IO Result
 
 instance Example Bool where
-  evaluateExample bool = evaluateExample $ if bool then Success else Fail ""
+  evaluateExample b = if b then return Success else return (Fail "")
 
 instance Example Result where
-  evaluateExample result' = silence $ result' `seq` return result'
+  evaluateExample r = r `seq` return r
 
 -- | Declare an example as not successful or failing but pending some other work.
 -- If you want to report on a behavior but don't have an example yet, use this.
