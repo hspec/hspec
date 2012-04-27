@@ -3,7 +3,6 @@
 -- utility functions common to hspec.
 module Test.Hspec.Core where
 
-import           System.IO.Silently
 import           Control.Exception
 
 -- | The result of running an example.
