@@ -53,13 +53,30 @@ Library
 test-suite spec
   type:
       exitcode-stdio-1.0
-
+  hs-source-dirs:
+      ., test
   main-is:
-      Specs.hs
-
+      Spec.hs
   ghc-options:
       -Wall -Werror
+  build-depends:
+      base >= 4 && <= 5
+    , silently >= 1.1.1 && < 2
+    , ansi-terminal == 0.5.5
+    , time < 1.5
+    , transformers >= 0.2.0 && < 0.4.0
+    , HUnit >= 1 && <= 2
+    , QuickCheck >= 2.4.0.1 && <= 2.5
+    , hspec-shouldbe
 
+-- this should be merged with spec
+test-suite old-spec
+  type:
+      exitcode-stdio-1.0
+  main-is:
+      Specs.hs
+  ghc-options:
+      -Wall -Werror
   build-depends:
       base >= 4 && <= 5
     , silently >= 1.1.1 && < 2
