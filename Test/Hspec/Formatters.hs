@@ -92,8 +92,8 @@ specdoc = silent {
     writeLine $ indentationForExample nesting ++ " - " ++ requirement
 
 , exampleFailed = \nesting requirement _ -> withFailColor $ do
-    failed <- getFailCount
-    writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ " FAILED [" ++ show failed ++ "]"
+    n <- getFailCount
+    writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ " FAILED [" ++ show n ++ "]"
 
 , examplePending = \nesting requirement reason -> withPendingColor $ do
     writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ "\n     # " ++ reason
