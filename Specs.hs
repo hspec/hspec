@@ -1,5 +1,7 @@
 module Main (main) where
 
+import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX)
+
 import qualified Test.Hspec as H
 import           Test.Hspec hiding (Specs, describe, it, hspecX)
 import           Test.Hspec.Runner (hHspecWithFormat)
@@ -12,8 +14,6 @@ import           System.IO
 import           System.IO.Silently
 import           Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
-
-import           Test.Hspec.Monadic (Specs, describe, it, hspecX)
 
 main :: IO ()
 main = specs >>= hspecX
