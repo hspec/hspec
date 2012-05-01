@@ -1,12 +1,31 @@
+{-# LANGUAGE FlexibleInstances #-}
 -- |
 -- This module contains the core types, constructors, classes, instances, and
 -- utility functions common to hspec.
-module Test.Hspec.Core where
+module Test.Hspec.Core (
+  Spec (..)
+, UnevaluatedSpec
+, EvaluatedSpec
+, Example (..)
+, safeEvaluateExample
+, Pending
+, Result (..)
+
+, describe
+, it
+, pending
+, descriptions
+
+, quantify
+, success
+, failedCount -- unused, remove?
+)
+where
 
 import           Control.Exception
 
 -- | The result of running an example.
-data Result = Success | Pending String | Fail String
+data Result = Success | ResultPending (Maybe String) | Fail String
   deriving (Eq, Show)
 
 
@@ -57,17 +76,16 @@ instance Example Bool where
 instance Example Result where
   evaluateExample r = r `seq` return r
 
--- | Declare an example as not successful or failing but pending some other work.
--- If you want to report on a behavior but don't have an example yet, use this.
---
--- > describe "fancyFormatter" [
--- >   it "can format text in a way that everyone likes"
--- >     (pending "waiting for clarification from the designers")
--- >   ]
---
-pending :: String  -- ^ An explanation for why this behavior is pending.
-        -> Result
-pending = Pending
+newtype Pending = Pending (Maybe String)
+
+pending :: String -> Pending
+pending = Pending . Just
+
+instance Example Pending where
+  evaluateExample (Pending reason) = evaluateExample (ResultPending reason)
+
+instance Example (String -> Pending) where
+  evaluateExample _ = evaluateExample (Pending Nothing)
 
 
 failedCount :: [EvaluatedSpec] -> Int

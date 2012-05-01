@@ -126,7 +126,7 @@ data Formatter = Formatter {
 -- | evaluated after each failed example
 , exampleFailed       :: Int -> String -> String -> FormatM ()
 -- | evaluated after each pending example
-, examplePending      :: Int -> String -> String -> FormatM ()
+, examplePending      :: Int -> String -> Maybe String -> FormatM ()
 -- | evaluated after a test run
 , failedFormatter     :: FormatM ()
 -- | evaluated after `failuresFormatter`

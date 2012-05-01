@@ -90,7 +90,7 @@ module Test.Hspec.Monadic (
 ) where
 
 import           System.IO
-import           Test.Hspec.Core hiding (describe,descriptions,it)
+import           Test.Hspec.Core hiding (describe, descriptions, it, pending)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 
@@ -136,6 +136,22 @@ context = describe
 
 it :: Example v => String -> v -> Specs
 it label action = (SpecM . tell) [Core.it label action]
+
+-- | A pending example.
+--
+-- If you want to report on a behavior but don't have an example yet, use this.
+--
+-- > describe "fancyFormatter" $ do
+-- >   it "can format text in a way that everyone likes" $ do
+-- >     pending
+--
+-- You can give an reason for why it's pending.
+--
+-- > describe "fancyFormatter" $ do
+-- >   it "can format text in a way that everyone likes" $ do
+-- >     pending "waiting for clarification from the designers"
+pending :: String  -> Pending
+pending = Core.pending
 
 -- | DEPRECATED: Use `sequence_` instead.
 descriptions :: [Specs] -> Specs

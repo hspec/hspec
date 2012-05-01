@@ -31,7 +31,7 @@ runFormatter formatter nesting group (SpecExample requirement e) = do
       exampleFailed  formatter nesting requirement err
       n <- getFailCount
       addFailMessage $ failureDetails group requirement err n
-    Pending reason -> do
+    ResultPending reason -> do
       increasePendingCount
       examplePending formatter nesting requirement reason
   return (SpecExample requirement result)

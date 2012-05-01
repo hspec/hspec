@@ -38,6 +38,7 @@ module Test.Hspec.Formatters (
 , withFailColor
 ) where
 
+import           Data.Maybe
 import           Test.Hspec.Core (quantify)
 import           Data.List (intersperse)
 import           Text.Printf
@@ -96,7 +97,7 @@ specdoc = silent {
     writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ " FAILED [" ++ show n ++ "]"
 
 , examplePending = \nesting requirement reason -> withPendingColor $ do
-    writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ "\n     # " ++ reason
+    writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ "\n     # PENDING: " ++ fromMaybe "No reason given" reason
 
 , failedFormatter = defaultFailedFormatter
 
