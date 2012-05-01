@@ -1,4 +1,6 @@
 language: haskell
 
-before_install:
-    - "cabal update"
+install:
+    - cabal update
+    - cabal install hspec-shouldbe
+    - cabal install
