@@ -74,9 +74,9 @@
 module Test.Hspec (
 
   -- * Types
-    SpecTree
-  , Result
+    Spec
   , Specs
+  , Example
 
   -- * Defining a spec
   , describe
