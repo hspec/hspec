@@ -44,7 +44,7 @@
 -- >     pending "need to look up how other cultures format phone numbers"
 --
 --
--- An HUnit 'Test' can act as a behavior's example. (must import
+-- An HUnit 'Test.HUnit.Test' can act as a behavior's example. (must import
 -- "Test.Hspec.HUnit")
 --
 -- >   it "removes the \"ext\" prefix of the extension" $ TestCase $ do

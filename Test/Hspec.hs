@@ -10,6 +10,43 @@
 -- /descriptions/ of behavior and /examples/ of that behavior. The examples can
 -- also be run as tests and the output summarises what needs to be implemented.
 --
+-- NOTE: There is a monadic and a non-monadic API.  This is the documentation
+-- for the non-monadic API.  The monadic API is more stable, so you may prefer
+-- it over this one.  For documentation on the monadic API look at
+-- "Test.Hspec.Monadic".
+
+module Test.Hspec (
+
+-- * Introduction
+-- $introduction
+
+-- * Types
+  Spec
+, Specs
+, Example
+, Pending
+
+-- * Defining a spec
+, describe
+, it
+, pending
+
+-- * Running a spec
+, hspec
+, hspecB
+, hspecX
+, hHspec
+
+-- * Deprecated functions
+, descriptions
+) where
+
+import           Test.Hspec.Core
+import           Test.Hspec.Runner
+import           Test.Hspec.Pending
+
+-- $introduction
+--
 -- The three functions you'll use the most are 'hspecX', 'describe', and 'it'.
 -- Here is an example of functions that format and unformat phone numbers and
 -- the specs for them.
@@ -51,7 +88,7 @@
 -- >     pending "need to look up how other cultures format phone numbers"
 -- >   ,
 --
--- An HUnit 'Test' can act as a behavior's example. (must import
+-- An HUnit 'Test.HUnit.Test' can act as a behavior's example. (must import
 -- "Test.Hspec.HUnit")
 --
 -- >   it "removes the \"ext\" prefix of the extension" $ TestCase $ do
@@ -80,30 +117,3 @@
 -- > phoneNumber = do
 -- >   n <- elements [7,10,11,12,13,14,15]
 -- >   vectorOf n (elements "0123456789")
---
-module Test.Hspec (
-
-  -- * Types
-    Spec
-  , Specs
-  , Example
-  , Pending
-
-  -- * Defining a spec
-  , describe
-  , it
-  , pending
-
-  -- * Running a spec
-  , hspec
-  , hspecB
-  , hspecX
-  , hHspec
-
-  -- * Deprecated functions
-  , descriptions
-) where
-
-import           Test.Hspec.Core
-import           Test.Hspec.Runner
-import           Test.Hspec.Pending
