@@ -9,7 +9,7 @@
 --
 -- > import Test.Hspec.Monadic
 -- > import Test.Hspec.QuickCheck
--- > import Test.Hspec.HUnit
+-- > import Test.Hspec.HUnit ()
 -- > import Test.QuickCheck
 -- > import Test.HUnit
 -- >
@@ -36,38 +36,42 @@
 -- >   it "removes dashes, spaces, and parenthesies" $
 -- >     unformatPhoneNumber "(555) 555-1234" == "5555551234"
 --
+--
 -- The 'pending' function marks a behavior as pending an example. The example
 -- doesn't count as failing.
 --
 -- >   it "handles non-US phone numbers" $
 -- >     pending "need to look up how other cultures format phone numbers"
 --
--- An HUnit 'Test' can act as a behavior's example. (must import
--- @Test.Hspec.HUnit@)
 --
--- >   it "removes the \"ext\" prefix of the extension" $ do
+-- An HUnit 'Test' can act as a behavior's example. (must import
+-- "Test.Hspec.HUnit")
+--
+-- >   it "removes the \"ext\" prefix of the extension" $ TestCase $ do
 -- >     let expected = "5555551234135"
 -- >         actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
--- >     assertEqual "remove extension" expected actual
+-- >     expected @?= actual
+--
 --
 -- An @IO()@ action is treated like an HUnit 'TestCase'. (must import
--- @Test.Hspec.HUnit@)
+-- "Test.Hspec.HUnit")
 --
 -- >   it "converts letters to numbers" $ do
 -- >     let expected = "6862377"
 -- >         actual   = unformatPhoneNumber "NUMBERS"
--- >     assertEqual "letters to numbers" expected actual
+-- >     actual @?= expected
+--
 --
 -- The 'property' function allows a QuickCheck property to act as an example.
--- (must import @Test.Hspec.HUnit@)
+-- (must import "Test.Hspec.QuickCheck")
 --
 -- >   it "can add and remove formatting without changing the number" $ property $
--- >     forAll phoneNumber $ \ n -> unformatPhoneNumber (formatPhoneNumber n) == n
+-- >     forAll phoneNumber $ \n -> unformatPhoneNumber (formatPhoneNumber n) == n
 -- >
 -- > phoneNumber :: Gen String
 -- > phoneNumber = do
--- >   nums <- elements [7,10,11,12,13,14,15]
--- >   vectorOf nums (elements "0123456789")
+-- >   n <- elements [7,10,11,12,13,14,15]
+-- >   vectorOf n (elements "0123456789")
 --
 module Test.Hspec.Monadic (
 -- * Types
