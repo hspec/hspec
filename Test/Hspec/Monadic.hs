@@ -65,7 +65,7 @@
 module Test.Hspec.Monadic (
 
   -- * Types
-    Spec
+    SpecTree
   , Result
   , Specs
 

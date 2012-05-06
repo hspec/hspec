@@ -74,7 +74,7 @@
 module Test.Hspec (
 
   -- * Types
-    Spec
+    SpecTree
   , Result
   , Specs
 

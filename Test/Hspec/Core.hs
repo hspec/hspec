@@ -1,5 +1,5 @@
 module Test.Hspec.Core (
-  Spec
+  SpecTree
 , Example (..)
 , Result (..)
 , pending

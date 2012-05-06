@@ -3,7 +3,7 @@
 -- This module contains the core types, constructors, classes, instances, and
 -- utility functions common to hspec.
 module Test.Hspec.Internal (
-  Spec (..)
+  SpecTree (..)
 , UnevaluatedSpec
 , EvaluatedSpec
 , Example (..)
@@ -29,17 +29,17 @@ data Result = Success | ResultPending (Maybe String) | Fail String
   deriving (Eq, Show)
 
 
-type UnevaluatedSpec = Spec (IO Result)
-type EvaluatedSpec = Spec Result
+type UnevaluatedSpec = SpecTree (IO Result)
+type EvaluatedSpec = SpecTree Result
 
-data Spec a = SpecGroup String [Spec a]
+data SpecTree a = SpecGroup String [SpecTree a]
             | SpecExample String a
 
-describe :: String -> [Spec a] -> Spec a
+describe :: String -> [SpecTree a] -> SpecTree a
 describe = SpecGroup
 
 -- | DEPRECATED: This is no longer needed (it's just an alias for `id` now).
-descriptions :: [Spec a] -> [Spec a]
+descriptions :: [SpecTree a] -> [SpecTree a]
 descriptions = id
 {-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 

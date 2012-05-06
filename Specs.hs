@@ -5,7 +5,7 @@ import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX)
 import qualified Test.Hspec as H
 import           Test.Hspec hiding (Specs, describe, it, hspecX)
 import           Test.Hspec.Runner (hHspecWithFormat)
-import           Test.Hspec.Internal (Spec(..), Result(..), quantify)
+import           Test.Hspec.Internal (SpecTree(..), Result(..), quantify)
 import           Test.Hspec.Formatters
 import           Test.Hspec.QuickCheck
 import           Test.Hspec.HUnit ()
