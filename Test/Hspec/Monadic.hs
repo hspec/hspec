@@ -1,9 +1,11 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
--- | This module contains the runners that take a set of specs, specified in a monadic style, evaluate their examples, and
--- report to a given handle.
+-- |
+-- This module contains the runners that take a set of specs, specified in a
+-- monadic style, evaluate their examples, and report to a given handle.
 --
--- The three functions you'll use the most are 'hspec', 'describe', and 'it'. Here is an
--- example of functions that format and unformat phone numbers and the specs for them.
+-- The three functions you'll use the most are 'hspec', 'describe', and 'it'.
+-- Here is an example of functions that format and unformat phone numbers and
+-- the specs for them.
 --
 -- > import Test.Hspec.Monadic
 -- > import Test.Hspec.QuickCheck
@@ -13,9 +15,10 @@
 -- >
 -- > main = hspec mySpecs
 --
--- Since the specs are often used to tell you what to implement, it's best to start with
--- undefined functions. Once we have some specs, then you can implement each behavior
--- one at a time, ensuring that each behavior is met and there is no undocumented behavior.
+-- Since the specs are often used to tell you what to implement, it's best to
+-- start with undefined functions. Once we have some specs, then you can
+-- implement each behavior one at a time, ensuring that each behavior is met
+-- and there is no undocumented behavior.
 --
 -- > unformatPhoneNumber :: String -> String
 -- > unformatPhoneNumber number = undefined
@@ -23,7 +26,8 @@
 -- > formatPhoneNumber :: String -> String
 -- > formatPhoneNumber number = undefined
 --
--- The 'describe' function takes a list of behaviors and examples bound together with the 'it' function
+-- The 'describe' function takes a list of behaviors and examples bound
+-- together with the 'it' function
 --
 -- > mySpecs = describe "unformatPhoneNumber" $ do
 --
@@ -32,26 +36,30 @@
 -- >   it "removes dashes, spaces, and parenthesies" $
 -- >     unformatPhoneNumber "(555) 555-1234" == "5555551234"
 --
--- The 'pending' function marks a behavior as pending an example. The example doesn't count as failing.
+-- The 'pending' function marks a behavior as pending an example. The example
+-- doesn't count as failing.
 --
 -- >   it "handles non-US phone numbers" $
 -- >     pending "need to look up how other cultures format phone numbers"
 --
--- An HUnit 'Test' can act as a behavior's example. (must import @Test.Hspec.HUnit@)
+-- An HUnit 'Test' can act as a behavior's example. (must import
+-- @Test.Hspec.HUnit@)
 --
 -- >   it "removes the \"ext\" prefix of the extension" $ do
 -- >     let expected = "5555551234135"
 -- >         actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
 -- >     assertEqual "remove extension" expected actual
 --
--- An @IO()@ action is treated like an HUnit 'TestCase'. (must import @Test.Hspec.HUnit@)
+-- An @IO()@ action is treated like an HUnit 'TestCase'. (must import
+-- @Test.Hspec.HUnit@)
 --
 -- >   it "converts letters to numbers" $ do
 -- >     let expected = "6862377"
 -- >         actual   = unformatPhoneNumber "NUMBERS"
 -- >     assertEqual "letters to numbers" expected actual
 --
--- The 'property' function allows a QuickCheck property to act as an example. (must import @Test.Hspec.HUnit@)
+-- The 'property' function allows a QuickCheck property to act as an example.
+-- (must import @Test.Hspec.HUnit@)
 --
 -- >   it "can add and remove formatting without changing the number" $ property $
 -- >     forAll phoneNumber $ \ n -> unformatPhoneNumber (formatPhoneNumber n) == n
@@ -61,7 +69,6 @@
 -- >   nums <- elements [7,10,11,12,13,14,15]
 -- >   vectorOf nums (elements "0123456789")
 --
-
 module Test.Hspec.Monadic (
 -- * Types
   Specs
