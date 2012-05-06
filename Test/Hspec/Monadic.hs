@@ -89,9 +89,11 @@ module Test.Hspec.Monadic (
 ) where
 
 import           System.IO
-import           Test.Hspec.Core (EvaluatedSpec, Example, Pending)
+import           Test.Hspec.Core (EvaluatedSpec, Example)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
+import           Test.Hspec.Pending (Pending)
+import qualified Test.Hspec.Pending as Pending
 
 import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
@@ -152,7 +154,7 @@ it label action = (SpecM . tell) [Core.it label action]
 -- >   it "can format text in a way that everyone likes" $
 -- >     pending "waiting for clarification from the designers"
 pending :: String  -> Pending
-pending = Core.pending
+pending = Pending.pending
 
 -- | DEPRECATED: Use `sequence_` instead.
 descriptions :: [Specs] -> Specs

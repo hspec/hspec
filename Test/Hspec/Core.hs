@@ -6,7 +6,6 @@ module Test.Hspec.Core (
   SpecTree (..)
 , Example (..)
 , Result (..)
-, pending
 , descriptions
 
 , describe
@@ -15,7 +14,6 @@ module Test.Hspec.Core (
 , Specs
 , UnevaluatedSpec
 , EvaluatedSpec
-, Pending
 
 , quantify
 
@@ -36,7 +34,6 @@ module Test.Hspec.Core (
 
 import           Test.Hspec.Internal hiding (safeEvaluateExample)
 import qualified Test.Hspec.Internal as Internal
-import           Test.Hspec.Pending
 
 {-# DEPRECATED UnevaluatedSpec "use Spec instead" #-}
 type UnevaluatedSpec = Spec

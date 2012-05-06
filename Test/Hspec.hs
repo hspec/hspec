@@ -96,3 +96,4 @@ module Test.Hspec (
 
 import           Test.Hspec.Core
 import           Test.Hspec.Runner
+import           Test.Hspec.Pending
