@@ -48,6 +48,7 @@ Library
     , Test.Hspec.QuickCheck
 
   other-modules:
+      Test.Hspec.Pending
       Test.Hspec.Internal
       Test.Hspec.Formatters.Internal
 

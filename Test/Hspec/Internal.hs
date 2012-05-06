@@ -4,21 +4,20 @@ module Test.Hspec.Internal (
 , Spec (..)
 , Example (..)
 , safeEvaluateExample
-, Pending
 , Result (..)
 
 , describe
 , it
-, pending
 
 , quantify
 )
 where
 
 import           Control.Exception
+import qualified Test.Hspec.Pending as Pending
 
 -- | The result of running an example.
-data Result = Success | ResultPending (Maybe String) | Fail String
+data Result = Success | Pending (Maybe String) | Fail String
   deriving (Eq, Show)
 
 newtype Spec = Spec {unSpec :: SpecTree (IO Result)}
@@ -63,31 +62,11 @@ instance Example Bool where
 instance Example Result where
   evaluateExample r = r `seq` return r
 
-newtype Pending = Pending (Maybe String)
+instance Example Pending.Pending where
+  evaluateExample (Pending.Pending reason) = evaluateExample (Pending reason)
 
--- | A pending example.
---
--- If you want to report on a behavior but don't have an example yet, use this.
---
--- > describe "fancyFormatter" [
--- >   it "can format text in a way that everyone likes" $
--- >     pending
--- > ]
---
--- You can give an optional reason for why it's pending.
---
--- > describe "fancyFormatter" [
--- >   it "can format text in a way that everyone likes" $
--- >     pending "waiting for clarification from the designers"
--- > ]
-pending :: String -> Pending
-pending = Pending . Just
-
-instance Example Pending where
-  evaluateExample (Pending reason) = evaluateExample (ResultPending reason)
-
-instance Example (String -> Pending) where
-  evaluateExample _ = evaluateExample (Pending Nothing)
+instance Example (String -> Pending.Pending) where
+  evaluateExample _ = evaluateExample (Pending.Pending Nothing)
 
 -- | Create a more readable display of a quantity of something.
 quantify :: (Show a, Num a, Eq a) => a -> String -> String

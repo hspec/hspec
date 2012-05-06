@@ -32,7 +32,7 @@ runFormatter formatter = go 0 "" . unSpec
           exampleFailed  formatter nesting requirement err
           n <- getFailCount
           addFailMessage $ failureDetails group requirement err n
-        ResultPending reason -> do
+        Pending reason -> do
           increasePendingCount
           examplePending formatter nesting requirement reason
       return (SpecExample requirement result)
