@@ -19,4 +19,3 @@ newtype Pending = Pending (Maybe String)
 -- > ]
 pending :: String -> Pending
 pending = Pending . Just
-

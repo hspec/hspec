@@ -77,6 +77,7 @@ module Test.Hspec (
     Spec
   , Specs
   , Example
+  , Pending
 
   -- * Defining a spec
   , describe
