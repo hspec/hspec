@@ -18,7 +18,7 @@
 module Test.Hspec (
 
 -- * Introduction
--- $introduction
+-- $intro
 
 -- * Types
   Spec
@@ -45,7 +45,7 @@ import           Test.Hspec.Core
 import           Test.Hspec.Runner
 import           Test.Hspec.Pending
 
--- $introduction
+-- $intro
 --
 -- The three functions you'll use the most are 'hspecX', 'describe', and 'it'.
 -- Here is an example of functions that format and unformat phone numbers and

@@ -1,7 +1,49 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- |
--- This module contains the runners that take a set of specs, specified in a
--- monadic style, evaluate their examples, and report to a given handle.
+-- There is a monadic and a non-monadic API.  This is the documentation for the
+-- monadic API.  The monadic API is suitable for most use cases, and it is more
+-- stable than the non-monadic API.
+--
+-- For documentation on the non-monadic API look at "Test.Hspec".
+--
+module Test.Hspec.Monadic (
+-- * Introduction
+-- $intro
+-- * Types
+  Specs
+, Example
+, Pending
+
+-- * Defining a spec
+, describe
+-- , context
+, it
+, pending
+
+-- * Running a spec
+, hspec
+, hspecB
+, hspecX
+, hHspec
+
+-- * Interface to the non-monadic API
+, runSpecM
+, fromSpecList
+
+-- * Deprecated functions
+, descriptions
+) where
+
+import           System.IO
+import           Test.Hspec.Core (EvaluatedSpec, Example)
+import qualified Test.Hspec.Core as Core
+import qualified Test.Hspec.Runner as Runner
+import           Test.Hspec.Pending (Pending)
+import qualified Test.Hspec.Pending as Pending
+
+import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
+
+-- $intro
 --
 -- The three functions you'll use the most are 'hspecX', 'describe', and 'it'.
 -- Here is an example of functions that format and unformat phone numbers and
@@ -73,40 +115,6 @@
 -- >   n <- elements [7,10,11,12,13,14,15]
 -- >   vectorOf n (elements "0123456789")
 --
-module Test.Hspec.Monadic (
--- * Types
-  Specs
-, Example
-, Pending
-
--- * Defining a spec
-, describe
--- , context
-, it
-, pending
-
--- * Running a spec
-, hspec
-, hspecB
-, hspecX
-, hHspec
-
--- * Interface to the non-monadic API
-, runSpecM
-, fromSpecList
-
--- * Deprecated functions
-, descriptions
-) where
-
-import           System.IO
-import           Test.Hspec.Core (EvaluatedSpec, Example)
-import qualified Test.Hspec.Core as Core
-import qualified Test.Hspec.Runner as Runner
-import           Test.Hspec.Pending (Pending)
-import qualified Test.Hspec.Pending as Pending
-
-import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 type Specs = SpecM ()
 
