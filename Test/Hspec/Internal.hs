@@ -6,7 +6,6 @@ module Test.Hspec.Internal (
   SpecTree (..)
 , Specs
 , Spec (..)
-, UnevaluatedSpec
 , EvaluatedSpec
 , Example (..)
 , safeEvaluateExample
@@ -16,7 +15,6 @@ module Test.Hspec.Internal (
 , describe
 , it
 , pending
-, descriptions
 
 , quantify
 , success
@@ -33,9 +31,6 @@ data Result = Success | ResultPending (Maybe String) | Fail String
 
 newtype Spec = Spec {unSpec :: SpecTree (IO Result)}
 
-{-# DEPRECATED UnevaluatedSpec "use Spec instead" #-}
-type UnevaluatedSpec = Spec
-
 type EvaluatedSpec = SpecTree Result
 
 -- | Internal representation of a spec.
@@ -46,11 +41,6 @@ describe :: String -> [Spec] -> Spec
 describe str specs = Spec . SpecGroup str $ map unSpec specs
 
 type Specs = [Spec]
-
--- | DEPRECATED: This is no longer needed (it's just an alias for `id` now).
-descriptions :: Specs -> Specs
-descriptions = id
-{-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 
 safeEvaluateExample :: IO Result -> IO Result
 safeEvaluateExample action = do
