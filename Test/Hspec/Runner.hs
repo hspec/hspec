@@ -6,8 +6,8 @@ module Test.Hspec.Runner (
   Specs, hspec, hspecX, hspecB, hHspec, hHspecWithFormat, describe, it, toExitCode
 ) where
 
-import           Test.Hspec.Internal (Spec(..), SpecTree(..), safeEvaluateExample)
-import           Test.Hspec.Core
+import           Test.Hspec.Internal
+import           Test.Hspec.Core (EvaluatedSpec, Specs)
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           System.IO
@@ -48,6 +48,19 @@ hspecX ss = hspecB ss >>= exitWith . toExitCode
 -- | Use in place of hspec to also give a @Bool@ success indication
 hspecB :: Specs -> IO Bool
 hspecB ss = success `fmap` hspec ss
+  where
+    success :: [EvaluatedSpec] -> Bool
+    success = not . failure
+
+    failure :: [EvaluatedSpec] -> Bool
+    failure = any p
+      where
+        p (SpecGroup _ xs) = any p xs
+        p (SpecExample _ x) = isFailure x
+
+    isFailure :: Result -> Bool
+    isFailure (Fail _) = True
+    isFailure _        = False
 
 -- | Create a document of the given specs and write it to stdout.
 hspec :: Specs -> IO [EvaluatedSpec]
