@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Main (main) where
 
 import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX)

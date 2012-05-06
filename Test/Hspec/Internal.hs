@@ -22,7 +22,21 @@ data Result = Success | Pending (Maybe String) | Fail String
 
 newtype Spec = Spec {unSpec :: SpecTree (IO Result)}
 
+-- IMPORTANT: Remove this warnings and remove -fno-warn-deprecations from the
+-- following modules/files when making SpecGroup abstract.
+--
+--  * Spec.hs
+--  * Test.Hspec.Runner
+--  * Test.Hspec.Core
+--
+{-# WARNING SpecExample "This will be removed from the public interface with the next major release.  If you need this, raise your voice!" #-}
+{-# WARNING SpecGroup "This will be removed from the public interface with the next major release.  If you need this, raise your voice!" #-}
+
 -- | Internal representation of a spec.
+--
+-- This will be made abstract with the next release.  If you still need access
+-- to any constructors, open an issue and describe your use case:
+-- <https://github.com/hspec/hspec/issues>
 data SpecTree a = SpecGroup String [SpecTree a]
             | SpecExample String a
 

@@ -1,8 +1,9 @@
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- |
 -- This module contains the core types, constructors, classes, instances, and
 -- utility functions common to hspec.
 module Test.Hspec.Core (
-  SpecTree
+  SpecTree (..)
 , Example (..)
 , Result (..)
 , pending
@@ -19,6 +20,11 @@ module Test.Hspec.Core (
 , quantify
 
 -- * Deprecated types and functions
+-- | The following types and functions are deprecated and will be removed with
+-- the next release.
+--
+-- If you still need any of those, please open an issue and describe your use
+-- case: <https://github.com/hspec/hspec/issues>
 , AnyExample
 , safeEvaluateExample
 

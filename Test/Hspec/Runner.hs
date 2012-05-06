@@ -1,4 +1,4 @@
-
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- | This module contains the runners that take a set of specs, evaluate their examples, and
 -- report to a given handle.
 --
