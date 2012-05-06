@@ -106,7 +106,7 @@ newtype SpecM a = SpecM (Writer [Core.Spec] a)
 hspec :: Specs -> IO [EvaluatedSpec]
 hspec = Runner.hspec . runSpecM
 
--- | Use in place of @hspec@ to also exit the program with an @ExitCode@
+-- | Use in place of `hspec` to also exit the program with an @ExitCode@
 hspecX :: Specs -> IO a
 hspecX = Runner.hspecX . runSpecM
 
@@ -116,7 +116,7 @@ hspecB = Runner.hspecB . runSpecM
 
 -- | Create a document of the given specs and write it to the given handle.
 --
--- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
+-- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
 --
 hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
 hHspec h = Runner.hHspec h . runSpecM

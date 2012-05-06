@@ -41,7 +41,7 @@ failureDetails :: String -> String -> String -> Int -> String
 failureDetails group requirement err i =
   concat [ show i, ") ", group, " ",  requirement, " FAILED", if null err then "" else "\n" ++ err ]
 
--- | Use in place of @hspec@ to also exit the program with an @ExitCode@
+-- | Use in place of `hspec` to also exit the program with an @ExitCode@
 hspecX :: Specs -> IO a
 hspecX ss = hspecB ss >>= exitWith . toExitCode
 
@@ -68,7 +68,7 @@ hspec = hHspec stdout
 
 -- | Create a document of the given specs and write it to the given handle.
 --
--- > writeReport filename specs = withFile filename WriteMode (\ h -> hHspec h specs)
+-- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
 --
 hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
 hHspec h specs = do

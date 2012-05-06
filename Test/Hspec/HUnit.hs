@@ -1,12 +1,14 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 {-# OPTIONS -fno-warn-orphans #-}
 
--- | Importing this module allows you to use an @HUnit@ test case as an example
--- for a behavior. You can use an explicit @TestCase@ data constructor or
--- use an @IO()@ action. For an @IO()@ action, any exception means the example
--- failed; otherwise, it's successfull. Any output from the example to stdout is
--- ignored. If you need to write out for debugging, you can write to stderr or
--- a file handle.
+-- |
+-- Importing this module allows you to use an @HUnit@ `HU.Test` as an example
+-- for a behavior.  You can use an explicit `HU.TestCase` data constructor or
+-- use an `HU.Assertion`.  For an @Assertion@, any exception means the example
+-- failed; otherwise, it's successfull.
+--
+-- NOTE: Any output from the example to @stdout@ is ignored.  If you need to
+-- write out for debugging, you can write to @stderr@ or a file handle.
 --
 -- > describe "cutTheDeck" [
 -- >   it "puts the first half of a list after the last half"
