@@ -5,7 +5,7 @@ import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX)
 import qualified Test.Hspec as H
 import           Test.Hspec hiding (Specs, describe, it, hspecX)
 import           Test.Hspec.Runner (hHspecWithFormat)
-import           Test.Hspec.Internal (SpecTree(..), Result(..), quantify)
+import           Test.Hspec.Internal (SpecTree(..), UnevaluatedSpec(..), Result(..), quantify)
 import           Test.Hspec.Formatters
 import           Test.Hspec.QuickCheck
 import           Test.Hspec.HUnit ()
@@ -54,12 +54,12 @@ specs = do
 
     describe "the \"it\" function" $ do
         it "takes a description of a desired behavior" $
-            case H.it "whatever" Success of
+            case unUnevaluatedSpec $ H.it "whatever" Success of
               SpecExample requirement _ -> requirement == "whatever"
               _ -> False
 
         it "takes an example of that behavior" $ do
-            case H.it "whatever" Success of
+            case unUnevaluatedSpec $ H.it "whatever" Success of
               SpecExample _ example -> do
                 r <- example
                 r @?= Success

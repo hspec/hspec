@@ -13,26 +13,28 @@ import           System.IO
 import           System.Exit
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> Int -> String -> UnevaluatedSpec -> FormatM EvaluatedSpec
-runFormatter formatter nesting _ (SpecGroup group xs) = do
-  exampleGroupStarted formatter nesting group
-  ys <- mapM (runFormatter formatter (succ nesting) group) xs
-  return (SpecGroup group ys)
-runFormatter formatter nesting group (SpecExample requirement e) = do
-  result <- liftIO $ safeEvaluateExample e
-  case result of
-    Success -> do
-      increaseSuccessCount
-      exampleSucceeded formatter nesting requirement
-    Fail err -> do
-      increaseFailCount
-      exampleFailed  formatter nesting requirement err
-      n <- getFailCount
-      addFailMessage $ failureDetails group requirement err n
-    ResultPending reason -> do
-      increasePendingCount
-      examplePending formatter nesting requirement reason
-  return (SpecExample requirement result)
+runFormatter :: Formatter -> UnevaluatedSpec -> FormatM EvaluatedSpec
+runFormatter formatter = go 0 "" . unUnevaluatedSpec
+  where
+    go nesting _ (SpecGroup group xs) = do
+      exampleGroupStarted formatter nesting group
+      ys <- mapM (go (succ nesting) group) xs
+      return (SpecGroup group ys)
+    go nesting group (SpecExample requirement e) = do
+      result <- liftIO $ safeEvaluateExample e
+      case result of
+        Success -> do
+          increaseSuccessCount
+          exampleSucceeded formatter nesting requirement
+        Fail err -> do
+          increaseFailCount
+          exampleFailed  formatter nesting requirement err
+          n <- getFailCount
+          addFailMessage $ failureDetails group requirement err n
+        ResultPending reason -> do
+          increasePendingCount
+          examplePending formatter nesting requirement reason
+      return (SpecExample requirement result)
 
 failureDetails :: String -> String -> String -> Int -> String
 failureDetails group requirement err i =
@@ -63,7 +65,7 @@ hHspec h specs = do
 -- THIS IS LIKELY TO CHANGE
 hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO [EvaluatedSpec]
 hHspecWithFormat formatter useColor h ss = runFormatM useColor h $ do
-  specList <- mapM (runFormatter formatter 0 "") ss
+  specList <- mapM (runFormatter formatter) ss
   failedFormatter formatter
   footerFormatter formatter
   return specList

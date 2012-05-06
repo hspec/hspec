@@ -5,7 +5,7 @@
 module Test.Hspec.Internal (
   SpecTree (..)
 , Specs
-, UnevaluatedSpec
+, UnevaluatedSpec (..)
 , EvaluatedSpec
 , Example (..)
 , safeEvaluateExample
@@ -30,14 +30,15 @@ data Result = Success | ResultPending (Maybe String) | Fail String
   deriving (Eq, Show)
 
 
-type UnevaluatedSpec = SpecTree (IO Result)
+newtype UnevaluatedSpec = UnevaluatedSpec {unUnevaluatedSpec :: SpecTree (IO Result)}
+
 type EvaluatedSpec = SpecTree Result
 
 data SpecTree a = SpecGroup String [SpecTree a]
             | SpecExample String a
 
 describe :: String -> [UnevaluatedSpec] -> UnevaluatedSpec
-describe = SpecGroup
+describe str specs = UnevaluatedSpec . SpecGroup str $ map unUnevaluatedSpec specs
 
 type Specs = [UnevaluatedSpec]
 
@@ -68,7 +69,7 @@ safeEvaluateExample action = do
 -- >   ]
 --
 it :: Example a => String -> a -> UnevaluatedSpec
-it requirement' = SpecExample requirement' . evaluateExample
+it requirement' = UnevaluatedSpec . SpecExample requirement' . evaluateExample
 
 class Example a where
   evaluateExample :: a -> IO Result
