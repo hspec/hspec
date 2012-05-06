@@ -3,7 +3,7 @@
 -- This module contains the runners that take a set of specs, specified in a
 -- monadic style, evaluate their examples, and report to a given handle.
 --
--- The three functions you'll use the most are 'hspec', 'describe', and 'it'.
+-- The three functions you'll use the most are 'hspecX', 'describe', and 'it'.
 -- Here is an example of functions that format and unformat phone numbers and
 -- the specs for them.
 --
@@ -13,7 +13,7 @@
 -- > import Test.QuickCheck
 -- > import Test.HUnit
 -- >
--- > main = hspec mySpecs
+-- > main = hspecX mySpecs
 --
 -- Since the specs are often used to tell you what to implement, it's best to
 -- start with undefined functions. Once we have some specs, then you can
