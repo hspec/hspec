@@ -24,7 +24,7 @@ import           Test.Hspec.Core
 import qualified Test.HUnit as HU
 import           Data.List (intersperse)
 
-instance Example (IO ()) where
+instance Example HU.Assertion where
   evaluateExample io = evaluateExample (HU.TestCase io)
 
 instance Example HU.Test where

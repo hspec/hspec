@@ -27,7 +27,7 @@ import qualified Test.QuickCheck as QC
 -- just for the prop shortcut
 import qualified Test.Hspec.Monadic as DSL
 
--- | Monadic DSL shortcut, use this instead of @it@
+-- | Monadic DSL shortcut, use this instead of `DSL.it`.
 prop :: QC.Testable t => String -> t -> DSL.Specs
 prop n p = DSL.it n (QC.property p)
 
