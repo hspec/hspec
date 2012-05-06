@@ -4,6 +4,7 @@
 -- utility functions common to hspec.
 module Test.Hspec.Internal (
   SpecTree (..)
+, Specs
 , UnevaluatedSpec
 , EvaluatedSpec
 , Example (..)
@@ -35,11 +36,13 @@ type EvaluatedSpec = SpecTree Result
 data SpecTree a = SpecGroup String [SpecTree a]
             | SpecExample String a
 
-describe :: String -> [SpecTree a] -> SpecTree a
+describe :: String -> [UnevaluatedSpec] -> UnevaluatedSpec
 describe = SpecGroup
 
+type Specs = [UnevaluatedSpec]
+
 -- | DEPRECATED: This is no longer needed (it's just an alias for `id` now).
-descriptions :: [SpecTree a] -> [SpecTree a]
+descriptions :: Specs -> Specs
 descriptions = id
 {-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 

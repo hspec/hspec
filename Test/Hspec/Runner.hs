@@ -12,8 +12,6 @@ import           Test.Hspec.Formatters.Internal
 import           System.IO
 import           System.Exit
 
-type Specs = [UnevaluatedSpec]
-
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Formatter -> Int -> String -> UnevaluatedSpec -> FormatM EvaluatedSpec
 runFormatter formatter nesting _ (SpecGroup group xs) = do
