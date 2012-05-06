@@ -63,30 +63,29 @@
 --
 
 module Test.Hspec.Monadic (
+-- * Types
+  SpecTree
+, Result
+, Specs
 
-  -- * Types
-    SpecTree
-  , Result
-  , Specs
+-- * Defining a spec
+, describe
+, context
+, it
+, pending
 
-  -- * Defining a spec
-  , describe
-  , context
-  , it
-  , pending
+-- * Running a spec
+, hspec
+, hspecB
+, hspecX
+, hHspec
 
-  -- * Running a spec
-  , hspec
-  , hspecB
-  , hspecX
-  , hHspec
+-- * Interface to the non-monadic API
+, runSpecM
+, fromSpecList
 
-  -- * Interface to the non-monadic API
-  , runSpecM
-  , fromSpecList
-
-  -- * Deprecated functions
-  , descriptions
+-- * Deprecated functions
+, descriptions
 ) where
 
 import           System.IO
