@@ -10,14 +10,19 @@
 -- NOTE: Any output from the example to @stdout@ is ignored.  If you need to
 -- write out for debugging, you can write to @stderr@ or a file handle.
 --
--- > describe "cutTheDeck" [
--- >   it "puts the first half of a list after the last half"
--- >      (TestCase $ assertEqual "cut the deck" [3,4,1,2] (cutTheDeck [1,2,3,4])),
+-- > import Test.Hspec.Monadic
+-- > import Test.Hspec.HUnit ()
+-- > import Test.HUnit
 -- >
--- >   it "restores an even sized list when cut twice"
--- >      (assertEqual "cut the deck twice" [3,4,1,2] (cutTheDeck (cutTheDeck [1,2,3,4]))),
--- >   ]
+-- > main :: IO ()
+-- > main = hspecX $ do
+-- >   describe "reverse" $ do
+-- >     it "reverses a list" $ do
+-- >       reverse [1, 2, 3] @?= [3, 2, 1]
 -- >
+-- >     it "gives the original list, if applied twice" $ TestCase $
+-- >       (reverse . reverse) [1, 2, 3] @?= [1, 2, 3]
+--
 module Test.Hspec.HUnit (
 ) where
 

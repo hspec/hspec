@@ -8,15 +8,14 @@
 -- NOTE: Any output from the example to @stdout@ is ignored.  If you need to
 -- write out for debugging, you can write to @stderr@ or a file handle.
 --
--- > describe "cutTheDeck" [
--- >   it "puts the first half of a list after the last half"
--- >      (property $ \ xs -> let top = take (length xs `div` 2) xs
--- >                              bot = drop (length xs `div` 2) xs
--- >                          in cutTheDeck xs == bot ++ top),
+-- > import Test.Hspec.Monadic
+-- > import Test.Hspec.QuickCheck
 -- >
--- >   it "restores an even sized list when cut twice"
--- >      (property $ \ xs -> even (length xs) ==> cutTheDeck (cutTheDeck xs) == xs)
--- >   ]
+-- > main :: IO ()
+-- > main = hspecX $ do
+-- >   describe "reverse" $ do
+-- >     it "gives the original list, if applied twice" $ property $
+-- >       \xs -> (reverse . reverse) xs == (xs :: [Int])
 --
 module Test.Hspec.QuickCheck (
   QC.property
