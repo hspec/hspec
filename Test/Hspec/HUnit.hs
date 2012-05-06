@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 {-# OPTIONS -fno-warn-orphans #-}
 
 -- | Importing this module allows you to use an @HUnit@ test case as an example
