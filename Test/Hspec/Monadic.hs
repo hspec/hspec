@@ -64,9 +64,9 @@
 
 module Test.Hspec.Monadic (
 -- * Types
-  SpecTree
-, Result
-, Specs
+  Specs
+, Example
+, Pending
 
 -- * Defining a spec
 , describe
@@ -89,7 +89,7 @@ module Test.Hspec.Monadic (
 ) where
 
 import           System.IO
-import           Test.Hspec.Core (SpecTree, EvaluatedSpec, Example, Pending, Result)
+import           Test.Hspec.Core (EvaluatedSpec, Example, Pending)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 
