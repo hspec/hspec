@@ -5,7 +5,8 @@
 module Test.Hspec.Internal (
   SpecTree (..)
 , Specs
-, UnevaluatedSpec (..)
+, Spec (..)
+, UnevaluatedSpec
 , EvaluatedSpec
 , Example (..)
 , safeEvaluateExample
@@ -30,17 +31,21 @@ data Result = Success | ResultPending (Maybe String) | Fail String
   deriving (Eq, Show)
 
 
-newtype UnevaluatedSpec = UnevaluatedSpec {unUnevaluatedSpec :: SpecTree (IO Result)}
+newtype Spec = Spec {unSpec :: SpecTree (IO Result)}
+
+{-# DEPRECATED UnevaluatedSpec "use Spec instead" #-}
+type UnevaluatedSpec = Spec
 
 type EvaluatedSpec = SpecTree Result
 
+-- | Internal representation of a spec.
 data SpecTree a = SpecGroup String [SpecTree a]
             | SpecExample String a
 
-describe :: String -> [UnevaluatedSpec] -> UnevaluatedSpec
-describe str specs = UnevaluatedSpec . SpecGroup str $ map unUnevaluatedSpec specs
+describe :: String -> [Spec] -> Spec
+describe str specs = Spec . SpecGroup str $ map unSpec specs
 
-type Specs = [UnevaluatedSpec]
+type Specs = [Spec]
 
 -- | DEPRECATED: This is no longer needed (it's just an alias for `id` now).
 descriptions :: Specs -> Specs
@@ -68,8 +73,8 @@ safeEvaluateExample action = do
 -- >     (abs (-1) == 1)
 -- >   ]
 --
-it :: Example a => String -> a -> UnevaluatedSpec
-it requirement' = UnevaluatedSpec . SpecExample requirement' . evaluateExample
+it :: Example a => String -> a -> Spec
+it requirement' = Spec . SpecExample requirement' . evaluateExample
 
 class Example a where
   evaluateExample :: a -> IO Result

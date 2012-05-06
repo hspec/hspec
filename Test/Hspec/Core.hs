@@ -7,6 +7,7 @@ module Test.Hspec.Core (
 
 , describe
 , it
+, Spec
 , UnevaluatedSpec
 , EvaluatedSpec
 , Pending

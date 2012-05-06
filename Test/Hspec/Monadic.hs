@@ -98,7 +98,7 @@ import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 type Specs = SpecM ()
 
-newtype SpecM a = SpecM (Writer [UnevaluatedSpec] a)
+newtype SpecM a = SpecM (Writer [Core.Spec] a)
   deriving Monad
 
 -- | Create a document of the given specs and write it to stdout.
@@ -121,11 +121,11 @@ hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
 hHspec h = Runner.hHspec h . runSpecM
 
 -- | Convert a monadic spec into a non-monadic spec.
-runSpecM :: Specs -> [UnevaluatedSpec]
+runSpecM :: Specs -> [Core.Spec]
 runSpecM (SpecM specs) = execWriter specs
 
 -- | Convert a non-monadic spec into a monadic spec.
-fromSpecList :: [UnevaluatedSpec] -> Specs
+fromSpecList :: [Core.Spec] -> Specs
 fromSpecList = SpecM . tell
 
 describe :: String -> Specs -> Specs

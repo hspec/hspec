@@ -13,8 +13,8 @@ import           System.IO
 import           System.Exit
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> UnevaluatedSpec -> FormatM EvaluatedSpec
-runFormatter formatter = go 0 "" . unUnevaluatedSpec
+runFormatter :: Formatter -> Spec -> FormatM EvaluatedSpec
+runFormatter formatter = go 0 "" . unSpec
   where
     go nesting _ (SpecGroup group xs) = do
       exampleGroupStarted formatter nesting group
