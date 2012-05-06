@@ -1,12 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
--- |
--- This module contains the core types, constructors, classes, instances, and
--- utility functions common to hspec.
 module Test.Hspec.Internal (
   SpecTree (..)
-, Specs
 , Spec (..)
-, EvaluatedSpec
 , Example (..)
 , safeEvaluateExample
 , Pending
@@ -17,8 +12,6 @@ module Test.Hspec.Internal (
 , pending
 
 , quantify
-, success
-, failedCount -- unused, remove?
 )
 where
 
@@ -28,10 +21,7 @@ import           Control.Exception
 data Result = Success | ResultPending (Maybe String) | Fail String
   deriving (Eq, Show)
 
-
 newtype Spec = Spec {unSpec :: SpecTree (IO Result)}
-
-type EvaluatedSpec = SpecTree Result
 
 -- | Internal representation of a spec.
 data SpecTree a = SpecGroup String [SpecTree a]
@@ -39,8 +29,6 @@ data SpecTree a = SpecGroup String [SpecTree a]
 
 describe :: String -> [Spec] -> Spec
 describe str specs = Spec . SpecGroup str $ map unSpec specs
-
-type Specs = [Spec]
 
 safeEvaluateExample :: IO Result -> IO Result
 safeEvaluateExample action = do
@@ -100,26 +88,6 @@ instance Example Pending where
 
 instance Example (String -> Pending) where
   evaluateExample _ = evaluateExample (Pending Nothing)
-
-
-failedCount :: [EvaluatedSpec] -> Int
-failedCount = sum . map count
-  where
-    count (SpecGroup _ xs) = sum (map count xs)
-    count (SpecExample _ x) = if isFailure x then 1 else 0
-
-failure :: [EvaluatedSpec] -> Bool
-failure = any p
-  where
-    p (SpecGroup _ xs) = any p xs
-    p (SpecExample _ x) = isFailure x
-
-success :: [EvaluatedSpec] -> Bool
-success = not . failure
-
-isFailure :: Result -> Bool
-isFailure (Fail _) = True
-isFailure _        = False
 
 -- | Create a more readable display of a quantity of something.
 quantify :: (Show a, Num a, Eq a) => a -> String -> String

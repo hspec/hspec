@@ -90,7 +90,7 @@ module Test.Hspec.Monadic (
 ) where
 
 import           System.IO
-import           Test.Hspec.Core hiding (describe, descriptions, it, pending)
+import           Test.Hspec.Core (SpecTree, EvaluatedSpec, Example, Pending, Result)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 

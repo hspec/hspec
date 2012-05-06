@@ -6,7 +6,8 @@ module Test.Hspec.Runner (
   Specs, hspec, hspecX, hspecB, hHspec, hHspecWithFormat, describe, it, toExitCode
 ) where
 
-import           Test.Hspec.Internal
+import           Test.Hspec.Internal (Spec(..), SpecTree(..), safeEvaluateExample)
+import           Test.Hspec.Core
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           System.IO
