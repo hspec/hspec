@@ -22,5 +22,8 @@ spec = do
       it "finds a single spec" $ do
         findSpecs "test-data/single-spec-nested" `shouldReturn` [SpecNode "Foo" False [SpecNode "Bar" True []]]
 
+      it "properly groups nested specs" $ do
+        findSpecs "test-data/nested-spec" `shouldReturn` [SpecNode "Foo" True [SpecNode "Bar" True [SpecNode "Baz" True []]]]
+
   where
     context = describe
