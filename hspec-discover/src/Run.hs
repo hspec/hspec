@@ -4,8 +4,19 @@ import           Control.Monad
 import           Control.Applicative
 import           Data.List
 import           Data.Function
+import           System.Environment
+import           System.Exit
+import           System.IO
 import           System.Directory
 import           System.FilePath hiding (combine)
+
+run :: [String] -> IO ()
+run args = case args of
+  [_, _, _] -> undefined
+  _             -> do
+    name <- getProgName
+    hPutStrLn stderr ("usage: " ++ name ++ " SRC CUR DST")
+    exitFailure
 
 data SpecNode = SpecNode String Bool [SpecNode]
   deriving (Eq, Show)
@@ -19,29 +30,43 @@ specNodeInhabited (SpecNode _ inhabited _) = inhabited
 specNodeChildren :: SpecNode -> [SpecNode]
 specNodeChildren (SpecNode _ _ children) = children
 
-findSpecs :: FilePath -> IO [SpecNode]
-findSpecs dir = do
-  c <- getDirectoryContents dir
-  dirs <- filter (/= "..") . filter (/= ".") <$> filterM (doesDirectoryExist . (dir </>)) c
-  nestedSpecs <- forM dirs $ \d -> do
-    SpecNode d False <$> findSpecs (dir </> d)
+getFilesAndDirectories :: FilePath -> IO ([FilePath], [FilePath])
+getFilesAndDirectories dir = do
+  c <- filter (`notElem` ["..", "."]) <$> getDirectoryContents dir
+  dirs <- filterM (doesDirectoryExist . (dir </>)) c
   files <- filterM (doesFileExist . (dir </>)) c
-  return $ combineSpecs (specsFromFiles files ++ nestedSpecs)
+  return (dirs, files)
+
+-- | Find specs relative to given source file.
+--
+-- The source file itself is not considered.
+findSpecs :: FilePath -> IO [SpecNode]
+findSpecs src = do
+  let (dir, file) = splitFileName src
+  (dirs, files) <- getFilesAndDirectories dir
+  go dir (dirs, filter (/= file) files)
   where
-    specsFromFiles = map (\x -> SpecNode (stripSuffix x) True []) . filter (isSuffixOf suffix)
+    go :: FilePath -> ([FilePath], [FilePath]) -> IO [SpecNode]
+    go base (dirs, files) = do
+      nestedSpecs <- forM dirs $ \d -> do
+        let dir = base </> d
+        SpecNode d False <$> (getFilesAndDirectories dir >>= go dir)
+      return $ combineSpecs (specsFromFiles files ++ nestedSpecs)
       where
-        suffix = "Spec.hs"
-        stripSuffix = reverse . drop (length suffix) . reverse
-
-    -- sort specs, and merge nodes with the same name
-    combineSpecs :: [SpecNode] -> [SpecNode]
-    combineSpecs = foldr f [] . sortBy (compare `on` specNodeName)
-      where
-        f x@(SpecNode n1 _ _) (y@(SpecNode n2 _ _):acc) | n1 == n2 = x `combine` y : acc
-        f x acc = x : acc
-
-        x `combine` y = SpecNode name inhabited children
+        specsFromFiles = map (\x -> SpecNode (stripSuffix x) True []) . filter (isSuffixOf suffix)
           where
-            name      = specNodeName x
-            inhabited = specNodeInhabited x || specNodeInhabited y
-            children  = specNodeChildren x ++ specNodeChildren y
+            suffix = "Spec.hs"
+            stripSuffix = reverse . drop (length suffix) . reverse
+
+        -- sort specs, and merge nodes with the same name
+        combineSpecs :: [SpecNode] -> [SpecNode]
+        combineSpecs = foldr f [] . sortBy (compare `on` specNodeName)
+          where
+            f x@(SpecNode n1 _ _) (y@(SpecNode n2 _ _):acc) | n1 == n2 = x `combine` y : acc
+            f x acc = x : acc
+
+            x `combine` y = SpecNode name inhabited children
+              where
+                name      = specNodeName x
+                inhabited = specNodeInhabited x || specNodeInhabited y
+                children  = specNodeChildren x ++ specNodeChildren y
