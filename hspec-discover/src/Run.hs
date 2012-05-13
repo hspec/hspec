@@ -45,13 +45,15 @@ formatSpecs = sequenceS . map formatSpec
 
 -- | Convert a spec to code.
 formatSpec :: SpecNode -> ShowS
-formatSpec (SpecNode name inhabited children) = "describe " . shows name . " (" . specs . ")"
+formatSpec = go ""
   where
-    specs :: ShowS
-    specs = (sequenceS . addThis . map formatSpec) children
-    addThis
-      | inhabited = ((showString name . "Spec.spec") :)
-      | otherwise = id
+    go current (SpecNode name inhabited children) = "describe " . shows name . " (" . specs . ")"
+      where
+        specs :: ShowS
+        specs = (sequenceS . addThis . map (go (current . showString name . "."))) children
+        addThis
+          | inhabited = ((current . showString name . "Spec.spec") :)
+          | otherwise = id
 
 data SpecNode = SpecNode String Bool [SpecNode]
   deriving (Eq, Show)
