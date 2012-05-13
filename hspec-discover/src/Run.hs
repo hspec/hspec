@@ -18,12 +18,25 @@ instance IsString ShowS where
 
 run :: [String] -> IO ()
 run args = case args of
-  [_, _, _] -> undefined
-  _             -> do
+  [src, _, dst] -> do
+    specs <- findSpecs src
+    writeFile dst (mkSpecModule specs)
+  _ -> do
     name <- getProgName
     hPutStrLn stderr ("usage: " ++ name ++ " SRC CUR DST")
     exitFailure
 
+mkSpecModule :: [SpecNode] -> String
+mkSpecModule specs =
+  ( showString "module Main where\n"
+  . showString "import Test.Hspec.Monadic\n"
+  . importList specs
+  . showString "main :: IO ()\n"
+  . showString "main = hspecX $ "
+  . formatSpecs specs
+  ) "\n"
+
+-- | Generate imports for a list of specs.
 importList :: [SpecNode] -> ShowS
 importList = go ""
   where

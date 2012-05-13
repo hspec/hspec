@@ -1,0 +1,37 @@
+name:             hspecpp
+version:          0.0.0
+license:          MIT
+license-file:     LICENSE
+copyright:        (c) 2012 Simon Hengel
+author:           Simon Hengel <sol@typeful.net>
+maintainer:       Simon Hengel <sol@typeful.net>
+build-type:       Simple
+cabal-version:    >= 1.8
+
+executable hspecpp
+  ghc-options:
+      -Wall
+  hs-source-dirs:
+      src
+  main-is:
+      Main.hs
+  build-depends:
+      base
+    , filepath
+    , directory
+
+test-suite spec
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  hs-source-dirs:
+      src, test
+  main-is:
+      Spec.hs
+  build-depends:
+      base
+    , filepath
+    , directory
+    , hspec
+    , hspec-shouldbe
