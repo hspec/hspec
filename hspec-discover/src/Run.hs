@@ -1,14 +1,20 @@
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | A preprocessor that finds and combines specs.
 module Run where
 import           Control.Monad
 import           Control.Applicative
 import           Data.List
+import           Data.String
 import           Data.Function
 import           System.Environment
 import           System.Exit
 import           System.IO
 import           System.Directory
 import           System.FilePath hiding (combine)
+
+instance IsString ShowS where
+  fromString = showString
 
 run :: [String] -> IO ()
 run args = case args of
@@ -17,6 +23,24 @@ run args = case args of
     name <- getProgName
     hPutStrLn stderr ("usage: " ++ name ++ " SRC CUR DST")
     exitFailure
+
+-- | Combine a list of strings with (>>).
+sequenceS :: [ShowS] -> ShowS
+sequenceS = foldr (.) "" . intersperse " >> "
+
+-- | Convert a list of specs to code.
+formatSpecs :: [SpecNode] -> ShowS
+formatSpecs = sequenceS . map formatSpec
+
+-- | Convert a spec to code.
+formatSpec :: SpecNode -> ShowS
+formatSpec (SpecNode name inhabited children) = "describe " . shows name . " (" . specs . ")"
+  where
+    specs :: ShowS
+    specs = (sequenceS . addThis . map formatSpec) children
+    addThis
+      | inhabited = ((showString name . "Spec.spec") :)
+      | otherwise = id
 
 data SpecNode = SpecNode String Bool [SpecNode]
   deriving (Eq, Show)
