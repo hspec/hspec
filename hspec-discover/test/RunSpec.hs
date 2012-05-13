@@ -25,5 +25,14 @@ spec = do
       it "properly groups nested specs" $ do
         findSpecs "test-data/nested-spec" `shouldReturn` [SpecNode "Foo" True [SpecNode "Bar" True [SpecNode "Baz" True []]]]
 
+    context "given a nested spec, without specs at the intermediate nodes" $ do
+      it "finds a single spec" $ do
+        findSpecs "test-data/no-intermediate-specs" `shouldReturn` [SpecNode "Foo" False [SpecNode "Bar" False [SpecNode "Baz" True []]]]
+
+    context "given a nested specs, with specs at the intermediate nodes" $ do
+      context "with two top-level specs, where one spec name is a prefix of the other" $ do
+        it "specs are properly sorted" $ do
+          findSpecs "test-data/prefix-name" `shouldReturn` [SpecNode "Foo" True [SpecNode "Baz" True []], SpecNode "FooBar" True [SpecNode "Baz" True []]]
+
   where
     context = describe
