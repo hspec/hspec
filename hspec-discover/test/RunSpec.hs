@@ -52,5 +52,21 @@ spec = do
       formatSpecs [SpecNode "Bar" True [], SpecNode "Baz" True [], SpecNode "Foo" True []] "" `shouldBe`
         "describe \"Bar\" (BarSpec.spec) >> describe \"Baz\" (BazSpec.spec) >> describe \"Foo\" (FooSpec.spec)"
 
+  describe "importList" $ do
+    it "generates imports for a spec" $ do
+      importList [SpecNode "Foo" True []] "" `shouldBe` "import qualified FooSpec\n"
+
+    it "generates imports for a nested spec" $
+      importList [SpecNode "Foo" True [SpecNode "Bar" True [SpecNode "Baz" True []]]] "" `shouldBe`
+        "import qualified FooSpec\nimport qualified Foo.BarSpec\nimport qualified Foo.Bar.BazSpec\n"
+
+    it "generates imports for a list of specs" $ do
+      importList [SpecNode "Bar" True [], SpecNode "Baz" True [], SpecNode "Foo" True []] "" `shouldBe`
+        "import qualified BarSpec\nimport qualified BazSpec\nimport qualified FooSpec\n"
+
+    it "generates imports for a nested spec that has no specs at the intermediate nodes" $ do
+      importList [SpecNode "Foo" False [SpecNode "Bar" False [SpecNode "Baz" True []]]] "" `shouldBe`
+        "import qualified Foo.Bar.BazSpec\n"
+
   where
     context = describe

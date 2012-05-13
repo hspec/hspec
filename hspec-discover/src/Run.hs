@@ -24,6 +24,17 @@ run args = case args of
     hPutStrLn stderr ("usage: " ++ name ++ " SRC CUR DST")
     exitFailure
 
+importList :: [SpecNode] -> ShowS
+importList = go ""
+  where
+    go :: ShowS -> [SpecNode] -> ShowS
+    go current = foldr (.) "" . map (f current)
+    f current (SpecNode name inhabited children) = this . go (current . showString name . ".") children
+      where
+        this
+          | inhabited = "import qualified " . current . showString name . "Spec\n"
+          | otherwise = id
+
 -- | Combine a list of strings with (>>).
 sequenceS :: [ShowS] -> ShowS
 sequenceS = foldr (.) "" . intersperse " >> "
