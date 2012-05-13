@@ -17,5 +17,10 @@ spec = do
 
       it "finds several specs" $ do
         findSpecs "test-data/several-specs" `shouldReturn` [SpecNode "Bar" True [], SpecNode "Baz" True [], SpecNode "Foo" True []]
+
+    context "when specs are nested" $ do
+      it "finds a single spec" $ do
+        findSpecs "test-data/single-spec-nested" `shouldReturn` [SpecNode "Foo" False [SpecNode "Bar" True []]]
+
   where
     context = describe
