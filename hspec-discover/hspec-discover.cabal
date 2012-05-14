@@ -1,4 +1,4 @@
-name:             hspecpp
+name:             hspec-discover
 version:          0.0.0
 license:          MIT
 license-file:     LICENSE
@@ -8,7 +8,7 @@ maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
 cabal-version:    >= 1.8
 
-executable hspecpp
+executable hspec-discover
   ghc-options:
       -Wall
   hs-source-dirs:
