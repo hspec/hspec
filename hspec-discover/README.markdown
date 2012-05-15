@@ -41,7 +41,8 @@ $ ghci test/Spec.hs
 *Main> main
 ```
 
-Or use it in a Cabal test suite.
+Or turn it into a [Cabal test suite]
+(http://www.haskell.org/cabal/users-guide/developing-packages.html#test-suites).
 
 ```
 test-suite spec
