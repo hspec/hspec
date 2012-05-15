@@ -9,6 +9,7 @@ build-type:       Simple
 cabal-version:    >= 1.8
 category:         Testing
 synopsis:         Automatically discover and run Hspec tests
+description:      Documentation is here: <https://github.com/sol/hspec-discover#readme>
 
 source-repository head
   type: git
