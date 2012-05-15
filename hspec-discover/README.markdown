@@ -65,9 +65,9 @@ module Main where
 
 import Test.Hspec.Monadic
 
-import qualified BazSpec
 import qualified FooSpec
 import qualified Foo.BarSpec
+import qualified BazSpec
 
 main :: IO ()
 main = hspecX $ do
@@ -99,9 +99,9 @@ module Main where
 
 import Test.Hspec.Monadic
 
-import qualified BazSpec
 import qualified FooSpec
 import qualified Foo.BarSpec
+import qualified BazSpec
 
 main :: IO ()
 main = hspecX $ do
@@ -113,8 +113,8 @@ main = hspecX $ do
     BazSpec.spec
 ```
 
-Other aspects `hspec-discover` are not yet configurable.  If you need anything
-else, write me an email or [open an issue on GitHub]
+Other aspects of `hspec-discover` are not yet configurable.  If you need
+anything else, write me an email or [open an issue on GitHub]
 (https://github.com/sol/hspec-discover/issues).
 
 ## Limitations
