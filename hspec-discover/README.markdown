@@ -53,7 +53,7 @@ test-suite spec
 `hspec-discover`.  `hspec-discover` will then generate a suitable main module
 for your test suite.
 
-For the above example it looks like this.
+For the above example something like this is generated.
 
 ```haskell
 module Main where
@@ -72,13 +72,13 @@ main = hspecX $ do
 ```
 
 `hspec-discover` searches for specs in the same directory where the file with
-the preprocessor directive is placed, and in all subdirectories.  All files
-with a name that ends in `Spec.hs` are include in the generated test suite, and
-they must export a `spec` of type `Test.Hspec.Monadic.Specs`.
+the preprocessor directive is located, and in all subdirectories.  All files
+with a name that ends in `Spec.hs` are include in the generated test suite.  And
+it is assumed, that they export a `spec` of type `Test.Hspec.Monadic.Specs`.
 
 ## Customizing things
 
-If you rather want to get a nested spec hierarchical modules, pass `--nested`
+If you rather want to get a nested spec for hierarchical modules, pass `--nested`
 to `hspec-discover`.
 
 ```haskell
