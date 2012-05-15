@@ -7,6 +7,12 @@ author:           Simon Hengel <sol@typeful.net>
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
 cabal-version:    >= 1.8
+category:         Testing
+synopsis:         Automatically discover and run Hspec tests
+
+source-repository head
+  type: git
+  location: https://github.com/sol/hspec-discover
 
 executable hspec-discover
   ghc-options:
