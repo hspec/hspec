@@ -1,10 +1,14 @@
 # Automatically discover and run Hspec tests
 
+If you are new to Hspec, start with the [introductory documentation](http://hspec.github.com/).
+
 ## Getting started
 
-> For the purpose of this example all source files are put into the `src/`
-> directory, specs are put into the `test/` directory, and the main module of
-> the test suite is named `Spec.hs`.  This are useful conventions, but you can
+> For the purpose of this example, all source files are put into the `src/`
+> directory, and specs are put into the `test/` directory.  The main module of
+> the test suite is defined in `test/Spec.hs`.
+>
+> This are useful conventions, but you can
 > use anything you like.
 
 Create some modules.
