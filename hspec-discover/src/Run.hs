@@ -131,12 +131,16 @@ findSpecs src = do
       nestedSpecs <- forM dirs $ \d -> do
         let dir = base </> d
         SpecNode d False <$> (getFilesAndDirectories dir >>= go dir)
-      return $ combineSpecs (specsFromFiles files ++ nestedSpecs)
+      (return . filterSpecs . combineSpecs) (specsFromFiles files ++ nestedSpecs)
       where
         specsFromFiles = map (\x -> SpecNode (stripSuffix x) True []) . filter (isSuffixOf suffix)
           where
             suffix = "Spec.hs"
             stripSuffix = reverse . drop (length suffix) . reverse
+
+        -- remove empty leafs
+        filterSpecs :: [SpecNode] -> [SpecNode]
+        filterSpecs = filter (\x -> specNodeInhabited x || (not . null . specNodeChildren) x)
 
         -- sort specs, and merge nodes with the same name
         combineSpecs :: [SpecNode] -> [SpecNode]
