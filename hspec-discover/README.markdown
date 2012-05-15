@@ -73,13 +73,14 @@ main = hspecX $ do
 
 `hspec-discover` searches for specs in the same directory where the file with
 the preprocessor directive is located, and in all subdirectories.  All files
-with a name that ends in `Spec.hs` are include in the generated test suite.  And
-it is assumed, that they export a `spec` of type `Test.Hspec.Monadic.Specs`.
+with a name that ends in `Spec.hs` are include in the generated test suite.
+And it is assumed, that they export a `spec` of type
+`Test.Hspec.Monadic.Specs`.
 
 ## Customizing things
 
-If you rather want to get a nested spec for hierarchical modules, pass `--nested`
-to `hspec-discover`.
+If you rather want to get a nested spec for hierarchical modules, pass
+`--nested` to `hspec-discover`.
 
 ```haskell
 -- file Spec.hs
@@ -107,9 +108,13 @@ main = hspecX $ do
     BazSpec.spec
 ```
 
+Other aspects `hspec-discover` are not yet configurable.  If you need anything
+else, write me an email or [open an issue on GitHub]
+(https://github.com/sol/hspec-discover/issues).
+
 ## Limitations
 
 At the moment only monadic specs are supported.  It is possible to support
-non-monadic specs, or even your custom specs through type classes.  If you need
-any of those, write me an email or [open an issue on GitHub]
+non-monadic specs, or even your custom specs through type classes.  Again, if
+you need any of those, write me an email or [open an issue on GitHub]
 (https://github.com/sol/hspec-discover/issues).
