@@ -24,7 +24,7 @@ run args_ = case args_ of
       ["--nested"] -> return True
       _            -> exit
     specs <- findSpecs src
-    writeFile dst (mkSpecModule nested specs)
+    writeFile dst (mkSpecModule src nested specs)
   _ -> exit
   where
     exit = do
@@ -32,13 +32,14 @@ run args_ = case args_ of
       hPutStrLn stderr ("usage: " ++ name ++ " SRC CUR DST [--nested]")
       exitFailure
 
-mkSpecModule :: Bool -> [SpecNode] -> String
-mkSpecModule nested nodes =
-  ( showString "module Main where\n"
-  . showString "import Test.Hspec.Monadic\n"
+mkSpecModule :: FilePath -> Bool -> [SpecNode] -> String
+mkSpecModule src nested nodes =
+  ( "{-# LINE 1 " . shows src . " #-}"
+  . showString "module Main where\n"
+  . showString "import Test.Hspec.Discover\n"
   . importList nodes
   . showString "main :: IO ()\n"
-  . showString "main = hspecX $ "
+  . showString "main = hspec $ "
   . format nodes
   ) "\n"
   where
