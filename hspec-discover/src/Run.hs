@@ -17,24 +17,34 @@ instance IsString ShowS where
   fromString = showString
 
 run :: [String] -> IO ()
-run args = case args of
-  [src, _, dst] -> do
+run args_ = case args_ of
+  src : _ : dst : args -> do
+    nested <- case args of
+      []           -> return False
+      ["--nested"] -> return True
+      _            -> exit
     specs <- findSpecs src
-    writeFile dst (mkSpecModule specs)
-  _ -> do
-    name <- getProgName
-    hPutStrLn stderr ("usage: " ++ name ++ " SRC CUR DST")
-    exitFailure
+    writeFile dst (mkSpecModule nested specs)
+  _ -> exit
+  where
+    exit = do
+      name <- getProgName
+      hPutStrLn stderr ("usage: " ++ name ++ " SRC CUR DST [--nested]")
+      exitFailure
 
-mkSpecModule :: [SpecNode] -> String
-mkSpecModule specs =
+mkSpecModule :: Bool -> [SpecNode] -> String
+mkSpecModule nested nodes =
   ( showString "module Main where\n"
   . showString "import Test.Hspec.Monadic\n"
-  . importList specs
+  . importList nodes
   . showString "main :: IO ()\n"
   . showString "main = hspecX $ "
-  . formatSpecs specs
+  . format nodes
   ) "\n"
+  where
+    format
+      | nested    = formatSpecsNested
+      | otherwise = formatSpecs
 
 -- | Generate imports for a list of specs.
 importList :: [SpecNode] -> ShowS
@@ -58,7 +68,27 @@ formatSpecs = sequenceS . map formatSpec
 
 -- | Convert a spec to code.
 formatSpec :: SpecNode -> ShowS
-formatSpec = go ""
+formatSpec = sequenceS . go ""
+  where
+    go :: String -> SpecNode -> [ShowS]
+    go current (SpecNode name inhabited children) = addThis $ concatMap (go (current ++ name ++ ".")) children
+      where
+        addThis :: [ShowS] -> [ShowS]
+        addThis
+          | inhabited = ("describe " . shows (current ++ name) . " " . showString (current ++ name ++ "Spec.spec") :)
+          | otherwise = id
+
+-- | Convert a list of specs to code.
+--
+-- Hierarchical modules are mapped to nested specs.
+formatSpecsNested :: [SpecNode] -> ShowS
+formatSpecsNested = sequenceS . map formatSpecNested
+
+-- | Convert a spec to code.
+--
+-- Hierarchical modules are mapped to nested specs.
+formatSpecNested :: SpecNode -> ShowS
+formatSpecNested = go ""
   where
     go current (SpecNode name inhabited children) = "describe " . shows name . " (" . specs . ")"
       where

@@ -41,15 +41,28 @@ spec = do
 
   describe "formatSpec" $ do
     it "generates code for a spec" $
-      formatSpec (SpecNode "Foo" True []) "" `shouldBe` "describe \"Foo\" (FooSpec.spec)"
+      formatSpec (SpecNode "Foo" True []) "" `shouldBe` "describe \"Foo\" FooSpec.spec"
 
     it "generates code for a nested spec" $
       formatSpec (SpecNode "Foo" True [SpecNode "Bar" True [SpecNode "Baz" True []]]) "" `shouldBe`
-        "describe \"Foo\" (FooSpec.spec >> describe \"Bar\" (Foo.BarSpec.spec >> describe \"Baz\" (Foo.Bar.BazSpec.spec)))"
+        "describe \"Foo\" FooSpec.spec >> describe \"Foo.Bar\" Foo.BarSpec.spec >> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
 
   describe "formatSpecs" $ do
     it "generates code for a list of specs" $ do
       formatSpecs [SpecNode "Bar" True [], SpecNode "Baz" True [], SpecNode "Foo" True []] "" `shouldBe`
+        "describe \"Bar\" BarSpec.spec >> describe \"Baz\" BazSpec.spec >> describe \"Foo\" FooSpec.spec"
+
+  describe "formatSpecNested" $ do
+    it "generates code for a spec" $
+      formatSpecNested (SpecNode "Foo" True []) "" `shouldBe` "describe \"Foo\" (FooSpec.spec)"
+
+    it "generates code for a nested spec" $
+      formatSpecNested (SpecNode "Foo" True [SpecNode "Bar" True [SpecNode "Baz" True []]]) "" `shouldBe`
+        "describe \"Foo\" (FooSpec.spec >> describe \"Bar\" (Foo.BarSpec.spec >> describe \"Baz\" (Foo.Bar.BazSpec.spec)))"
+
+  describe "formatSpecsNested" $ do
+    it "generates code for a list of specs" $ do
+      formatSpecsNested [SpecNode "Bar" True [], SpecNode "Baz" True [], SpecNode "Foo" True []] "" `shouldBe`
         "describe \"Bar\" (BarSpec.spec) >> describe \"Baz\" (BazSpec.spec) >> describe \"Foo\" (FooSpec.spec)"
 
   describe "importList" $ do
