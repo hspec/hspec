@@ -24,6 +24,8 @@ executable hspec-discover
       src
   main-is:
       Main.hs
+  other-modules:
+      Run
   build-depends:
       base >= 4 && <= 5
     , filepath
