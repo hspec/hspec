@@ -114,7 +114,7 @@ main = hspecX $ do
 ```
 
 Other aspects of `hspec-discover` are not yet configurable.  If you need
-anything else, write me an email or [open an issue on GitHub]
+anything else, write me an email, [open an issue on GitHub]
 (https://github.com/sol/hspec-discover/issues), or discuss your ideas at
 `#hspec` on freenode.
 
