@@ -1,0 +1,18 @@
+name:             example
+version:          0.0.0
+build-type:       Simple
+cabal-version:    >= 1.8
+
+library
+
+test-suite spec
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  main-is:
+      Spec.hs
+  build-depends:
+      base >= 4 && <= 5
+    , hspec-shouldbe
+    , hspec-discover

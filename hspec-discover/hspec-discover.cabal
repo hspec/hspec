@@ -56,6 +56,20 @@ test-suite spec
     , hspec
     , hspec-shouldbe
 
+test-suite example
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  hs-source-dirs:
+      example
+  main-is:
+      Spec.hs
+  build-depends:
+      base >= 4 && <= 5
+    , hspec-shouldbe
+    , hspec-discover
+
 test-suite integration-test-empty
   type:
       exitcode-stdio-1.0
