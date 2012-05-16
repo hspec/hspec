@@ -65,7 +65,9 @@ sequenceS = foldr (.) "" . intersperse " >> "
 
 -- | Convert a list of specs to code.
 formatSpecs :: [SpecNode] -> ShowS
-formatSpecs = sequenceS . map formatSpec
+formatSpecs xs
+  | null xs   = "return ()"
+  | otherwise = sequenceS (map formatSpec xs)
 
 -- | Convert a spec to code.
 formatSpec :: SpecNode -> ShowS
@@ -83,7 +85,9 @@ formatSpec = sequenceS . go ""
 --
 -- Hierarchical modules are mapped to nested specs.
 formatSpecsNested :: [SpecNode] -> ShowS
-formatSpecsNested = sequenceS . map formatSpecNested
+formatSpecsNested xs
+  | null xs   = "return ()"
+  | otherwise = sequenceS (map formatSpecNested xs)
 
 -- | Convert a spec to code.
 --

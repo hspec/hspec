@@ -52,6 +52,10 @@ spec = do
       formatSpecs [SpecNode "Bar" True [], SpecNode "Baz" True [], SpecNode "Foo" True []] "" `shouldBe`
         "describe \"Bar\" BarSpec.spec >> describe \"Baz\" BazSpec.spec >> describe \"Foo\" FooSpec.spec"
 
+    it "generates code for an empty list" $ do
+      formatSpecs [] "" `shouldBe`
+        "return ()"
+
   describe "formatSpecNested" $ do
     it "generates code for a spec" $
       formatSpecNested (SpecNode "Foo" True []) "" `shouldBe` "describe \"Foo\" (FooSpec.spec)"
@@ -64,6 +68,10 @@ spec = do
     it "generates code for a list of specs" $ do
       formatSpecsNested [SpecNode "Bar" True [], SpecNode "Baz" True [], SpecNode "Foo" True []] "" `shouldBe`
         "describe \"Bar\" (BarSpec.spec) >> describe \"Baz\" (BazSpec.spec) >> describe \"Foo\" (FooSpec.spec)"
+
+    it "generates code for an empty list" $ do
+      formatSpecsNested [] "" `shouldBe`
+        "return ()"
 
   describe "importList" $ do
     it "generates imports for a spec" $ do
