@@ -10,7 +10,7 @@ module Test.Hspec.Monadic (
 -- * Introduction
 -- $intro
 -- * Types
-  Specs
+  Spec
 , Example
 , Pending
 
@@ -30,8 +30,9 @@ module Test.Hspec.Monadic (
 , runSpecM
 , fromSpecList
 
--- * Deprecated functions
+-- * Deprecated types and functions
 , descriptions
+, Specs
 ) where
 
 import           System.IO
@@ -116,47 +117,47 @@ import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 -- >   vectorOf n (elements "0123456789")
 --
 
-type Specs = SpecM ()
+type Spec = SpecM ()
 
 newtype SpecM a = SpecM (Writer [Core.Spec] a)
   deriving Monad
 
 -- | Create a document of the given specs and write it to stdout.
-hspec :: Specs -> IO [EvaluatedSpec]
+hspec :: Spec -> IO [EvaluatedSpec]
 hspec = Runner.hspec . runSpecM
 
 -- | Use in place of `hspec` to also exit the program with an @ExitCode@
-hspecX :: Specs -> IO a
+hspecX :: Spec -> IO a
 hspecX = Runner.hspecX . runSpecM
 
 -- | Use in place of hspec to also give a @Bool@ success indication
-hspecB :: Specs -> IO Bool
+hspecB :: Spec -> IO Bool
 hspecB = Runner.hspecB . runSpecM
 
 -- | Create a document of the given specs and write it to the given handle.
 --
 -- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
 --
-hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
+hHspec :: Handle -> Spec -> IO [EvaluatedSpec]
 hHspec h = Runner.hHspec h . runSpecM
 
 -- | Convert a monadic spec into a non-monadic spec.
-runSpecM :: Specs -> [Core.Spec]
+runSpecM :: Spec -> [Core.Spec]
 runSpecM (SpecM specs) = execWriter specs
 
 -- | Convert a non-monadic spec into a monadic spec.
-fromSpecList :: [Core.Spec] -> Specs
+fromSpecList :: [Core.Spec] -> Spec
 fromSpecList = SpecM . tell
 
-describe :: String -> Specs -> Specs
+describe :: String -> Spec -> Spec
 describe label action = SpecM . tell $ [Core.describe label (runSpecM action)]
 
 {-
-context :: String -> Specs -> Specs
+context :: String -> Spec -> Spec
 context = describe
 -}
 
-it :: Example v => String -> v -> Specs
+it :: Example v => String -> v -> Spec
 it label action = (SpecM . tell) [Core.it label action]
 
 -- | A pending example.
@@ -176,6 +177,9 @@ pending :: String  -> Pending
 pending = Pending.pending
 
 -- | DEPRECATED: Use `sequence_` instead.
-descriptions :: [Specs] -> Specs
+descriptions :: [Spec] -> Spec
 descriptions = sequence_
 {-# DEPRECATED descriptions "use sequence_ instead" #-}
+
+-- | DEPRECATED: Use `Spec` instead
+type Specs = SpecM ()

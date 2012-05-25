@@ -30,7 +30,7 @@ import qualified Test.QuickCheck as QC
 import qualified Test.Hspec.Monadic as DSL
 
 -- | Monadic DSL shortcut, use this instead of `DSL.it`.
-prop :: QC.Testable t => String -> t -> DSL.Specs
+prop :: QC.Testable t => String -> t -> DSL.Spec
 prop n p = DSL.it n (QC.property p)
 
 instance Example QC.Property where
