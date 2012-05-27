@@ -16,7 +16,7 @@ module Test.Hspec.Runner (
 , hspecX
 ) where
 
-import           Control.Monad ((>=>))
+import           Control.Monad (unless, (>=>))
 
 import           Test.Hspec.Internal
 import           Test.Hspec.Core (EvaluatedSpec, Specs)
@@ -58,7 +58,7 @@ failureDetails group requirement err i =
 -- Exit the program with `exitSuccess` if all examples passed, with
 -- `exitFailure` otherwise.
 hspec :: Specs -> IO ()
-hspec = hspecX
+hspec = hspecB >=> (`unless` exitFailure)
 
 -- | DEPRECATED: Use `hspec` instead.
 hspecX :: Specs -> IO a
