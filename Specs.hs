@@ -109,11 +109,11 @@ specs = do
             (HUnit.assertBool "example" True)
 
         it "will show the failed assertion text if available (e.g. assertBool)" $ do
-          (innerReport, _) <- capture $ hspec $ [H.describe "" [ H.it "" (HUnit.assertBool "trivial" False)]]
+          (innerReport, _) <- capture $ hHspec stdout $ [H.describe "" [ H.it "" (HUnit.assertBool "trivial" False)]]
           HUnit.assertBool "should find assertion text" $ any (=="trivial") (lines innerReport)
 
         it "will show the failed assertion expected and actual values if available (e.g. assertEqual)" $ do
-          (innerReportContents, _) <- capture $ hspec $ [H.describe "" [ H.it "" (HUnit.assertEqual "trivial" (1::Int) 2)]]
+          (innerReportContents, _) <- capture $ hHspec stdout $ [H.describe "" [ H.it "" (HUnit.assertEqual "trivial" (1::Int) 2)]]
           let innerReport = lines innerReportContents
           HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
           HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport
