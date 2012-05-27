@@ -34,11 +34,11 @@ module Test.Hspec (
 -- * Running a spec
 , hspec
 , hspecB
-, hspecX
 , hHspec
 
 -- * Deprecated functions
 , descriptions
+, hspecX
 ) where
 
 import           Test.Hspec.Core

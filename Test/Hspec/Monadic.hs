@@ -23,7 +23,6 @@ module Test.Hspec.Monadic (
 -- * Running a spec
 , hspec
 , hspecB
-, hspecX
 , hHspec
 
 -- * Interface to the non-monadic API
@@ -31,8 +30,9 @@ module Test.Hspec.Monadic (
 , fromSpecList
 
 -- * Deprecated types and functions
-, descriptions
 , Specs
+, descriptions
+, hspecX
 ) where
 
 import           System.IO
@@ -122,15 +122,16 @@ type Spec = SpecM ()
 newtype SpecM a = SpecM (Writer [Core.Spec] a)
   deriving Monad
 
--- | Create a document of the given specs and write it to stdout.
-hspec :: Spec -> IO [EvaluatedSpec]
+-- | Create a document of the given spec and write it to stdout.
+--
+-- Exit the program with `exitSuccess` if all examples passed, with
+-- `exitFailure` otherwise.
+hspec :: Spec -> IO ()
 hspec = Runner.hspec . runSpecM
 
--- | Use in place of `hspec` to also exit the program with an @ExitCode@
-hspecX :: Spec -> IO a
-hspecX = Runner.hspecX . runSpecM
-
--- | Use in place of hspec to also give a @Bool@ success indication
+-- | Create a document of the given spec and write it to stdout.
+--
+-- Return `True` if all examples passed, `False` otherwise.
 hspecB :: Spec -> IO Bool
 hspecB = Runner.hspecB . runSpecM
 
@@ -176,10 +177,14 @@ it label action = (SpecM . tell) [Core.it label action]
 pending :: String  -> Pending
 pending = Pending.pending
 
+-- | DEPRECATED: Use `Spec` instead
+type Specs = SpecM ()
+
 -- | DEPRECATED: Use `sequence_` instead.
 descriptions :: [Spec] -> Spec
 descriptions = sequence_
 {-# DEPRECATED descriptions "use sequence_ instead" #-}
 
--- | DEPRECATED: Use `Spec` instead
-type Specs = SpecM ()
+-- | DEPRECATED: Use `hspec` instead.
+hspecX :: Spec -> IO a
+hspecX = Runner.hspecX . runSpecM

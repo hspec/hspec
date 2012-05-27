@@ -3,8 +3,20 @@
 -- report to a given handle.
 --
 module Test.Hspec.Runner (
-  Specs, hspec, hspecX, hspecB, hHspec, hHspecWithFormat, describe, it, toExitCode
+  Specs
+, hspec
+, hspecB
+, hHspec
+, hHspecWithFormat
+, describe
+, it
+, toExitCode
+
+-- * Deprecated functions
+, hspecX
 ) where
+
+import           Control.Monad ((>=>))
 
 import           Test.Hspec.Internal
 import           Test.Hspec.Core (EvaluatedSpec, Specs)
@@ -41,13 +53,22 @@ failureDetails :: String -> String -> String -> Int -> String
 failureDetails group requirement err i =
   concat [ show i, ") ", group, " ",  requirement, " FAILED", if null err then "" else "\n" ++ err ]
 
--- | Use in place of `hspec` to also exit the program with an @ExitCode@
-hspecX :: Specs -> IO a
-hspecX ss = hspecB ss >>= exitWith . toExitCode
+-- | Create a document of the given specs and write it to stdout.
+--
+-- Exit the program with `exitSuccess` if all examples passed, with
+-- `exitFailure` otherwise.
+hspec :: Specs -> IO ()
+hspec = hspecX
 
--- | Use in place of hspec to also give a @Bool@ success indication
+-- | DEPRECATED: Use `hspec` instead.
+hspecX :: Specs -> IO a
+hspecX = hspecB >=> exitWith . toExitCode
+
+-- | Create a document of the given specs and write it to stdout.
+--
+-- Return `True` if all examples passed, `False` otherwise.
 hspecB :: Specs -> IO Bool
-hspecB ss = success `fmap` hspec ss
+hspecB = fmap success . hHspec stdout
   where
     success :: [EvaluatedSpec] -> Bool
     success = not . failure
@@ -61,10 +82,6 @@ hspecB ss = success `fmap` hspec ss
     isFailure :: Result -> Bool
     isFailure (Fail _) = True
     isFailure _        = False
-
--- | Create a document of the given specs and write it to stdout.
-hspec :: Specs -> IO [EvaluatedSpec]
-hspec = hHspec stdout
 
 -- | Create a document of the given specs and write it to the given handle.
 --
