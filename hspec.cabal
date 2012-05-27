@@ -71,6 +71,7 @@ test-suite spec
     , HUnit >= 1 && <= 2
     , QuickCheck >= 2.4.0.1 && <= 2.5
     , hspec-shouldbe
+    , hspec-discover
 
 -- this should be merged with spec
 test-suite old-spec
