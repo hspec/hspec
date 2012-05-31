@@ -1,4 +1,4 @@
-## Changes in 1.2.0
+## Changes in 1.1.1
 
  * Specs from Test.Hspec.Monadic has been renamed to Spec.  For backward
    compatibility Specs is still kept as an alias.
