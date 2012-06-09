@@ -8,8 +8,6 @@ module Test.Hspec.Runner (
 , hspecB
 , hHspec
 , hHspecWithFormat
-, describe
-, it
 , toExitCode
 
 -- * Deprecated functions
