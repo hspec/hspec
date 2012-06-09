@@ -50,9 +50,9 @@ spec = do
       r <- runSpec failed_examples
       r !! 1 `shouldBe` "1) Example fail 1 FAILED"
 
-  describe "hspecSummary" $ do
+  describe "hHspecWithFormat" $ do
     it "returns a summary of the test run" $ do
-      H.hspecSummary [
+      H.hHspecWithFormat silent False stdout [
           H.it "foo" True
         , H.it "foo" False
         , H.it "foo" False

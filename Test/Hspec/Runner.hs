@@ -10,7 +10,6 @@ module Test.Hspec.Runner (
 , hHspecWithFormat
 , toExitCode
 
-, hspecSummary
 , Summary (..)
 
 -- * Deprecated functions
@@ -80,14 +79,8 @@ hspecX = hspecB >=> exitWith . toExitCode
 hspecB :: Specs -> IO Bool
 hspecB = fmap success . hHspec stdout
   where
-    success :: [EvaluatedSpec] -> Bool
-    success = not . failure
-
-    failure :: [EvaluatedSpec] -> Bool
-    failure = any p
-      where
-        p (SpecGroup _ xs) = any p xs
-        p (SpecExample _ x) = isFailure x
+    success :: Summary -> Bool
+    success s = summaryFailures s == 0
 
 isFailure :: Result -> Bool
 isFailure (Fail _) = True
@@ -97,19 +90,25 @@ isFailure _        = False
 --
 -- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
 --
-hHspec :: Handle -> Specs -> IO [EvaluatedSpec]
+hHspec :: Handle -> Specs -> IO Summary
 hHspec h specs = do
   useColor <- hIsTerminalDevice h
   hHspecWithFormat specdoc useColor h specs
 
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
-hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO [EvaluatedSpec]
-hHspecWithFormat formatter useColor h ss = runFormatM useColor h $ do
+hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO Summary
+hHspecWithFormat formatter useColor h ss = fmap count $ runFormatM useColor h $ do
   specList <- mapM (runFormatter formatter) ss
   failedFormatter formatter
   footerFormatter formatter
   return specList
+  where
+    count :: [EvaluatedSpec] -> Summary
+    count = mconcat . map f
+      where
+        f (SpecGroup _ xs)  = mconcat (map f xs)
+        f (SpecExample _ x) = Summary 1 (if isFailure x then 1 else 0)
 
 toExitCode :: Bool -> ExitCode
 toExitCode True  = ExitSuccess
@@ -123,12 +122,3 @@ data Summary = Summary {
 instance Monoid Summary where
   mempty = Summary 0 0
   (Summary x1 x2) `mappend` (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
-
-hspecSummary :: Specs -> IO Summary
-hspecSummary spec = count `fmap` hHspec stdout spec
-  where
-    count :: [EvaluatedSpec] -> Summary
-    count = mconcat . map f
-      where
-        f (SpecGroup _ xs)  = mconcat (map f xs)
-        f (SpecExample _ x) = Summary 1 (if isFailure x then 1 else 0)

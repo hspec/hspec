@@ -36,9 +36,10 @@ module Test.Hspec.Monadic (
 ) where
 
 import           System.IO
-import           Test.Hspec.Core (EvaluatedSpec, Example)
+import           Test.Hspec.Core (Example)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
+import           Test.Hspec.Runner (Summary (..))
 import           Test.Hspec.Pending (Pending)
 import qualified Test.Hspec.Pending as Pending
 
@@ -139,7 +140,7 @@ hspecB = Runner.hspecB . runSpecM
 --
 -- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
 --
-hHspec :: Handle -> Spec -> IO [EvaluatedSpec]
+hHspec :: Handle -> Spec -> IO Summary
 hHspec h = Runner.hHspec h . runSpecM
 
 -- | Convert a monadic spec into a non-monadic spec.
