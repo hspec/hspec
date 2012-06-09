@@ -29,9 +29,9 @@ import           System.Exit
 
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Formatter -> Spec -> FormatM ()
-runFormatter formatter = go 0 [] . unSpec
+runFormatter formatter = go 0 []
   where
-    go :: Int -> [String] -> SpecTree (IO Result) -> FormatM ()
+    go :: Int -> [String] -> Spec -> FormatM ()
     go nesting groups (SpecGroup group xs) = do
       exampleGroupStarted formatter nesting group
       mapM_ (go (succ nesting) (group : groups)) xs

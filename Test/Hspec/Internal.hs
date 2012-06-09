@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Test.Hspec.Internal (
-  SpecTree (..)
-, Spec (..)
+  Spec (..)
 , Example (..)
 , safeEvaluateExample
 , Result (..)
@@ -20,8 +19,6 @@ import qualified Test.Hspec.Pending as Pending
 data Result = Success | Pending (Maybe String) | Fail String
   deriving (Eq, Show)
 
-newtype Spec = Spec {unSpec :: SpecTree (IO Result)}
-
 -- IMPORTANT: Remove this warnings and remove -fno-warn-deprecations from the
 -- following modules/files when making SpecGroup abstract.
 --
@@ -37,11 +34,11 @@ newtype Spec = Spec {unSpec :: SpecTree (IO Result)}
 -- This will be made abstract with the next release.  If you still need access
 -- to any constructors, open an issue and describe your use case:
 -- <https://github.com/hspec/hspec/issues>
-data SpecTree a = SpecGroup String [SpecTree a]
-            | SpecExample String a
+data Spec = SpecGroup String [Spec]
+          | SpecExample String (IO Result)
 
 describe :: String -> [Spec] -> Spec
-describe str specs = Spec . SpecGroup str $ map unSpec specs
+describe = SpecGroup
 
 safeEvaluateExample :: IO Result -> IO Result
 safeEvaluateExample action = do
@@ -65,7 +62,7 @@ safeEvaluateExample action = do
 -- >   ]
 --
 it :: Example a => String -> a -> Spec
-it requirement' = Spec . SpecExample requirement' . evaluateExample
+it requirement = SpecExample requirement . evaluateExample
 
 -- | A type class for examples.
 --

@@ -3,8 +3,7 @@
 -- This module contains the core types, constructors, classes, instances, and
 -- utility functions common to hspec.
 module Test.Hspec.Core (
-  SpecTree (..)
-, Example (..)
+  Example (..)
 , Result (..)
 , descriptions
 

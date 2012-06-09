@@ -55,12 +55,12 @@ spec = do
 
   describe "the \"it\" function" $ do
     it "takes a description of a desired behavior" $
-      case H.unSpec $ H.it "whatever" H.Success of
+      case H.it "whatever" H.Success of
         H.SpecExample requirement _ -> requirement == "whatever"
         _ -> False
 
     it "takes an example of that behavior" $ do
-      case H.unSpec $ H.it "whatever" H.Success of
+      case H.it "whatever" H.Success of
         H.SpecExample _ example -> do
           r <- example
           r `shouldBe` H.Success
