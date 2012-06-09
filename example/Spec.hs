@@ -1,4 +1,4 @@
-module Spec (main, spec) where
+module Main (main, spec) where
 
 import Test.Hspec.Monadic
 import Test.Hspec.HUnit ()

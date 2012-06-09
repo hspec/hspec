@@ -105,3 +105,31 @@ test-suite doctests
   build-depends:
       base
     , doctest >= 0.7
+
+test-suite example
+  type:
+      exitcode-stdio-1.0
+  main-is:
+      Spec.hs
+  hs-source-dirs:
+      example
+  ghc-options:
+      -Wall -Werror
+  build-depends:
+      base
+    , hspec
+    , HUnit
+
+test-suite example-non-monadic
+  type:
+      exitcode-stdio-1.0
+  main-is:
+      NonMonadic.hs
+  hs-source-dirs:
+      example
+  ghc-options:
+      -Wall -Werror
+  build-depends:
+      base
+    , hspec
+    , HUnit
