@@ -16,7 +16,7 @@ module Test.Hspec.Monadic (
 
 -- * Defining a spec
 , describe
--- , context
+, context
 , it
 , pending
 
@@ -153,10 +153,8 @@ fromSpecList = SpecM . tell
 describe :: String -> Spec -> Spec
 describe label action = SpecM . tell $ [Core.describe label (runSpecM action)]
 
-{-
 context :: String -> Spec -> Spec
 context = describe
--}
 
 it :: Example v => String -> v -> Spec
 it label action = (SpecM . tell) [Core.it label action]
