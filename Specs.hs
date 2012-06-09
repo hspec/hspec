@@ -127,19 +127,3 @@ specs = do
         it "is specified with the \"pending\" function and an explanation" True
 
         it "accepts a message to display in the report" True
-
-    describe "the \"hHspecWithFormat\" function" $ do
-        it "can use the \"silent\" formatter to show no output" $ do
-            (r, _) <- capture $ hHspecWithFormat silent False stdout testSpecs
-            r `shouldBe` ""
-
-        it "can use the \"progress\" formatter to show '..F...FF.F' style output" $ do
-            (r, _) <- capture $ hHspecWithFormat progress False stdout testSpecs
-            head (lines r) `shouldBe` ".F.FFF"
-
-        it "can use the \"specdoc\" formatter to show all examples (default)" $ do
-            (lines reportContents !! 1) `shouldBe` "Example"
-
-        it "can use the \"failed_examples\" formatter to show only failed examples" $ do
-            (r, _) <- capture $ hHspecWithFormat failed_examples False stdout testSpecs
-            (lines r !! 1) `shouldBe` "1) Example fail 1 FAILED"
