@@ -49,3 +49,13 @@ spec = do
     it "can use the \"failed_examples\" formatter to show only failed examples" $ do
       r <- runSpec failed_examples
       r !! 1 `shouldBe` "1) Example fail 1 FAILED"
+
+  describe "hspecSummary" $ do
+    it "returns a summary of the test run" $ do
+      H.hspecSummary [
+          H.it "foo" True
+        , H.it "foo" False
+        , H.it "foo" False
+        , H.it "foo" True
+        , H.it "foo" True
+        ] `shouldReturn` H.Summary 5 2

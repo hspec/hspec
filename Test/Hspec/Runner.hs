@@ -10,11 +10,15 @@ module Test.Hspec.Runner (
 , hHspecWithFormat
 , toExitCode
 
+, hspecSummary
+, Summary (..)
+
 -- * Deprecated functions
 , hspecX
 ) where
 
 import           Control.Monad (unless, (>=>))
+import           Data.Monoid
 
 import           Test.Hspec.Internal
 import           Test.Hspec.Core (EvaluatedSpec, Specs)
@@ -85,9 +89,9 @@ hspecB = fmap success . hHspec stdout
         p (SpecGroup _ xs) = any p xs
         p (SpecExample _ x) = isFailure x
 
-    isFailure :: Result -> Bool
-    isFailure (Fail _) = True
-    isFailure _        = False
+isFailure :: Result -> Bool
+isFailure (Fail _) = True
+isFailure _        = False
 
 -- | Create a document of the given specs and write it to the given handle.
 --
@@ -110,3 +114,21 @@ hHspecWithFormat formatter useColor h ss = runFormatM useColor h $ do
 toExitCode :: Bool -> ExitCode
 toExitCode True  = ExitSuccess
 toExitCode False = ExitFailure 1
+
+data Summary = Summary {
+  summaryExamples :: Int
+, summaryFailures :: Int
+} deriving (Eq, Show)
+
+instance Monoid Summary where
+  mempty = Summary 0 0
+  (Summary x1 x2) `mappend` (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
+
+hspecSummary :: Specs -> IO Summary
+hspecSummary spec = count `fmap` hHspec stdout spec
+  where
+    count :: [EvaluatedSpec] -> Summary
+    count = mconcat . map f
+      where
+        f (SpecGroup _ xs)  = mconcat (map f xs)
+        f (SpecExample _ x) = Summary 1 (if isFailure x then 1 else 0)
