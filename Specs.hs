@@ -100,13 +100,6 @@ specs = do
         it "is just an expression that evaluates to a Bool"
             (True)
 
-    describe "QuickCheck property as an example" $ do
-        it "is specified with the \"property\" function"
-            (property $ \ b -> b || True)
-
-        it "will show what falsified it"
-            (any (=="0") report)
-
     describe "pending as an example" $ do
         it "is specified with the \"pending\" function and an explanation" True
 
