@@ -6,7 +6,7 @@ import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX, shouldBe)
 import qualified Test.Hspec as H
 import           Test.Hspec hiding (Specs, describe, it, hspecX)
 import           Test.Hspec.Runner (hHspecWithFormat)
-import           Test.Hspec.Internal (SpecTree(..), Spec(..), Result(..), quantify)
+import           Test.Hspec.Internal (SpecTree(..), Spec(..), Result(..))
 import           Test.Hspec.Formatters
 import           Test.Hspec.QuickCheck
 import           Test.Hspec.HUnit ()
@@ -143,16 +143,3 @@ specs = do
         it "can use the \"failed_examples\" formatter to show only failed examples" $ do
             (r, _) <- capture $ hHspecWithFormat failed_examples False stdout testSpecs
             (lines r !! 1) `shouldBe` "1) Example fail 1 FAILED"
-
-    describe "quantify (an internal function)" $ do
-        it "returns an amount and a word given an amount and word"
-            (quantify (1::Int) "thing" == "1 thing")
-
-        it "returns a singular word given the number 1"
-            (quantify (1::Int) "thing" == "1 thing")
-
-        it "returns a plural word given a number greater than 1"
-            (quantify (2::Int) "thing" == "2 things")
-
-        it "returns a plural word given the number 0"
-            (quantify (0::Int) "thing" == "0 things")

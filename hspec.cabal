@@ -90,3 +90,16 @@ test-suite old-spec
     , HUnit >= 1 && <= 2
     , QuickCheck >= 2.4.0.1 && <= 2.5
     , hspec-shouldbe
+
+test-suite doctests
+  main-is:
+      doctests.hs
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror -threaded
+  hs-source-dirs:
+      test
+  build-depends:
+      base
+    , doctest >= 0.7

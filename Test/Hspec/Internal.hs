@@ -90,6 +90,17 @@ instance Example (String -> Pending.Pending) where
   evaluateExample _ = evaluateExample (Pending.Pending Nothing)
 
 -- | Create a more readable display of a quantity of something.
-quantify :: (Show a, Num a, Eq a) => a -> String -> String
+--
+-- Examples:
+--
+-- >>> quantify 0 "example"
+-- "0 examples"
+--
+-- >>> quantify 1 "example"
+-- "1 example"
+--
+-- >>> quantify 2 "example"
+-- "2 examples"
+quantify :: Int -> String -> String
 quantify 1 s = "1 " ++ s
 quantify n s = show n ++ " " ++ s ++ "s"
