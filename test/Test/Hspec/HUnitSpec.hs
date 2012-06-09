@@ -1,12 +1,11 @@
 module Test.Hspec.HUnitSpec (main, spec) where
 
 import           Test.Hspec.ShouldBe
+import           TestUtil
 
 import qualified Test.Hspec as H
 import           Test.Hspec.HUnit ()
 import           Test.HUnit
-import           System.IO.Silently
-import           System.IO
 
 main :: IO ()
 main = hspecX spec
@@ -30,6 +29,3 @@ spec = do
       assertBool "should find assertion text" $ any (=="trivial") r
       assertBool "should find 'expected: 1'"  $ any (=="expected: 1") r
       assertBool "should find ' but got: 2'"  $ any (==" but got: 2") r
-
-  where
-    runSpec s = (lines . fst) `fmap` capture (H.hHspec stdout s)

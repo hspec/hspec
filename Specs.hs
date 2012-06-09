@@ -1,20 +1,17 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Main (main) where
 
-import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX, shouldBe)
+import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX, shouldBe, shouldSatisfy)
 
 import qualified Test.Hspec as H
 import           Test.Hspec hiding (Specs, describe, it, hspecX)
-import           Test.Hspec.Runner (hHspecWithFormat)
 import           Test.Hspec.Internal (SpecTree(..), Spec(..), Result(..))
-import           Test.Hspec.Formatters
 import           Test.Hspec.QuickCheck
 import           Test.Hspec.HUnit ()
 import           Test.HUnit
-import           System.IO
-import           System.IO.Silently
 import           Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
+import           TestUtil
 
 main :: IO ()
 main = specs >>= hspecX
@@ -30,21 +27,26 @@ specs = do
           H.it "quickcheck" (property $ \ i -> i == (i+1::Integer))]
           ]
 
-  (reportContents, exampleSpecs)     <- capture $ hHspecWithFormat specdoc         False stdout testSpecs
-
-  let report = lines reportContents
+  report <- runSpec testSpecs
 
   return $ do
     describe "the \"describe\" function" $ do
-        it "takes a description of what the behavior is for" $
-            case exampleSpecs of
-              [SpecGroup "Example" _] -> True
-              _ -> False
 
-        it "groups behaviors for what's being described" $
-            case exampleSpecs of
-              [SpecGroup _ xs] -> length xs == 6
-              _ -> False
+        let testSpec = [
+              H.describe "some subject" [
+                H.it "foo" True
+              , H.it "bar" True
+              , H.it "baz" True
+              ]
+              ]
+
+        it "takes a description of what the behavior is for" $ do
+            r <- runSpec testSpec
+            r `shouldSatisfy` any (== "some subject")
+
+        it "groups behaviors for what's being described" $ do
+            r <- filter (isPrefixOf " - ") `fmap` runSpec testSpec
+            length r `shouldBe` 3
 
         describe "a nested description" $ do
             it "has it's own specs"
