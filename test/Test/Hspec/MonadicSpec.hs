@@ -28,3 +28,20 @@ spec = do
         H.it "foo" $ do
           H.pending "for some reason"
       r `shouldSatisfy` any (== "     # PENDING: for some reason")
+
+  describe "A failing example" $ do
+    it "is reported" $ do
+      r <- run $ do
+        H.describe "Foo" $ do
+          H.it "does something" False
+      r `shouldSatisfy` any (== "1) Foo does something FAILED")
+
+    context "when nested" $ do
+      it "is reported" $ do
+        r <- run $ do
+          H.describe "Foo" $ H.describe "Bar" $ H.describe "baz" $ H.context "when condition" $ do
+            H.it "does something" False
+        r `shouldSatisfy` any (== "1) Foo - Bar - baz - when condition - does something FAILED")
+
+  where
+    context = describe

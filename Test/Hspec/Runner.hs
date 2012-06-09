@@ -27,13 +27,13 @@ import           System.Exit
 
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Formatter -> Spec -> FormatM EvaluatedSpec
-runFormatter formatter = go 0 "" . unSpec
+runFormatter formatter = go 0 [] . unSpec
   where
-    go nesting _ (SpecGroup group xs) = do
+    go nesting groups (SpecGroup group xs) = do
       exampleGroupStarted formatter nesting group
-      ys <- mapM (go (succ nesting) group) xs
+      ys <- mapM (go (succ nesting) (group : groups)) xs
       return (SpecGroup group ys)
-    go nesting group (SpecExample requirement e) = do
+    go nesting groups (SpecExample requirement e) = do
       result <- liftIO $ safeEvaluateExample e
       case result of
         Success -> do
@@ -43,15 +43,23 @@ runFormatter formatter = go 0 "" . unSpec
           increaseFailCount
           exampleFailed  formatter nesting requirement err
           n <- getFailCount
-          addFailMessage $ failureDetails group requirement err n
+          addFailMessage $ failureDetails groups requirement err n
         Pending reason -> do
           increasePendingCount
           examplePending formatter nesting requirement reason
       return (SpecExample requirement result)
 
-failureDetails :: String -> String -> String -> Int -> String
-failureDetails group requirement err i =
-  concat [ show i, ") ", group, " ",  requirement, " FAILED", if null err then "" else "\n" ++ err ]
+failureDetails :: [String] -> String -> String -> Int -> String
+failureDetails groups requirement err i =
+  show i ++ ") " ++ groups_ ++ requirement ++ " FAILED" ++ err_
+  where
+    err_
+      | null err  = ""
+      | otherwise = "\n" ++ err
+    groups_ = case groups of
+      [x] -> x ++ " "
+      _   -> concatMap (++ " - ") (reverse groups)
+
 
 -- | Create a document of the given specs and write it to stdout.
 --
