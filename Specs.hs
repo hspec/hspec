@@ -95,8 +95,3 @@ specs = do
 
         it "outputs failed examples in red, pending in yellow, and successful in green"
             (True)
-
-    describe "pending as an example" $ do
-        it "is specified with the \"pending\" function and an explanation" True
-
-        it "accepts a message to display in the report" True

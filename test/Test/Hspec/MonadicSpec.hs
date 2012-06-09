@@ -16,19 +16,6 @@ run = fmap (lines . fst) . capture . H.hHspec stdout
 spec :: Specs
 spec = do
 
-  describe "A pending example" $ do
-    it "is specified with the \"pending\" function" $ do
-      r <- run $ do
-        H.it "foo" $ do
-          H.pending
-      r `shouldSatisfy` any (== "     # PENDING: No reason given")
-
-    it "includes an optional message in the report" $ do
-      r <- run $ do
-        H.it "foo" $ do
-          H.pending "for some reason"
-      r `shouldSatisfy` any (== "     # PENDING: for some reason")
-
   describe "A failing example" $ do
     it "is reported" $ do
       r <- run $ do

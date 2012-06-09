@@ -19,3 +19,12 @@ spec = do
 
     it "fails, when undefined" $ do
       hspecSummary [H.it "foo" (undefined :: Bool)] `shouldReturn` H.Summary 1 1
+
+  describe "pending" $ do
+    it "specifies a pending example" $ do
+      r <- runSpec [H.it "foo" H.pending]
+      r `shouldSatisfy` any (== "     # PENDING: No reason given")
+
+    it "accepts an optional message, which is included in the report" $ do
+      r <- runSpec [H.it "foo" $ H.pending "for some reason"]
+      r `shouldSatisfy` any (== "     # PENDING: for some reason")
