@@ -17,23 +17,24 @@ module Test.Hspec.Runner (
 ) where
 
 import           Control.Monad (unless, (>=>))
+import           Control.Applicative
 import           Data.Monoid
 
 import           Test.Hspec.Internal
-import           Test.Hspec.Core (EvaluatedSpec, Specs)
+import           Test.Hspec.Core (Specs)
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           System.IO
 import           System.Exit
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> Spec -> FormatM EvaluatedSpec
+runFormatter :: Formatter -> Spec -> FormatM ()
 runFormatter formatter = go 0 [] . unSpec
   where
+    go :: Int -> [String] -> SpecTree (IO Result) -> FormatM ()
     go nesting groups (SpecGroup group xs) = do
       exampleGroupStarted formatter nesting group
-      ys <- mapM (go (succ nesting) (group : groups)) xs
-      return (SpecGroup group ys)
+      mapM_ (go (succ nesting) (group : groups)) xs
     go nesting groups (SpecExample requirement e) = do
       result <- liftIO $ safeEvaluateExample e
       case result of
@@ -48,7 +49,6 @@ runFormatter formatter = go 0 [] . unSpec
         Pending reason -> do
           increasePendingCount
           examplePending formatter nesting requirement reason
-      return (SpecExample requirement result)
 
 failureDetails :: [String] -> String -> String -> Int -> String
 failureDetails groups requirement err i =
@@ -82,10 +82,6 @@ hspecB = fmap success . hHspec stdout
     success :: Summary -> Bool
     success s = summaryFailures s == 0
 
-isFailure :: Result -> Bool
-isFailure (Fail _) = True
-isFailure _        = False
-
 -- | Create a document of the given specs and write it to the given handle.
 --
 -- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
@@ -98,17 +94,11 @@ hHspec h specs = do
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
 hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO Summary
-hHspecWithFormat formatter useColor h ss = fmap count $ runFormatM useColor h $ do
-  specList <- mapM (runFormatter formatter) ss
+hHspecWithFormat formatter useColor h ss = runFormatM useColor h $ do
+  mapM_ (runFormatter formatter) ss
   failedFormatter formatter
   footerFormatter formatter
-  return specList
-  where
-    count :: [EvaluatedSpec] -> Summary
-    count = mconcat . map f
-      where
-        f (SpecGroup _ xs)  = mconcat (map f xs)
-        f (SpecExample _ x) = Summary 1 (if isFailure x then 1 else 0)
+  Summary <$> getTotalCount <*> getFailCount
 
 toExitCode :: Bool -> ExitCode
 toExitCode True  = ExitSuccess

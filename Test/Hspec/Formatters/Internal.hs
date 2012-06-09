@@ -32,6 +32,7 @@ module Test.Hspec.Formatters.Internal (
 import qualified System.IO as IO
 import           System.IO (Handle)
 import           Control.Monad (when)
+import           Control.Applicative
 import           Control.Exception (bracket_)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (gets, modify)
@@ -72,7 +73,7 @@ totalCount :: FormatterState -> Int
 totalCount s = successCount s + pendingCount s + failCount s
 
 newtype FormatM a = FormatM (StateT FormatterState IO a)
-  deriving (Functor, Monad)
+  deriving (Functor, Applicative, Monad)
 
 runFormatM :: Bool -> Handle -> FormatM a -> IO a
 runFormatM useColor handle (FormatM action) = do
