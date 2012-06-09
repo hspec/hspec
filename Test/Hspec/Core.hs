@@ -13,7 +13,6 @@ module Test.Hspec.Core (
 , Spec
 , Specs
 , UnevaluatedSpec
-, EvaluatedSpec
 
 , quantify
 
@@ -25,11 +24,6 @@ module Test.Hspec.Core (
 -- case: <https://github.com/hspec/hspec/issues>
 , AnyExample
 , safeEvaluateExample
-
-, success
-, failure
-, isFailure
-, failedCount
 ) where
 
 import           Test.Hspec.Internal hiding (safeEvaluateExample)
@@ -44,32 +38,6 @@ descriptions = id
 {-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 
 type Specs = [Spec]
-
-type EvaluatedSpec = SpecTree Result
-
-{-# DEPRECATED success "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
-success :: [EvaluatedSpec] -> Bool
-success = not . failure
-
-{-# DEPRECATED failure "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
-failure :: [EvaluatedSpec] -> Bool
-failure = any p
-  where
-    p (SpecGroup _ xs) = any p xs
-    p (SpecExample _ x) = isFailure x
-
-{-# DEPRECATED isFailure "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
-isFailure :: Result -> Bool
-isFailure (Fail _) = True
-isFailure _        = False
-
-{-# DEPRECATED failedCount "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
-failedCount :: [EvaluatedSpec] -> Int
-failedCount = sum . map count
-  where
-    count (SpecGroup _ xs) = sum (map count xs)
-    count (SpecExample _ x) = if isFailure x then 1 else 0
-
 {-# DEPRECATED AnyExample "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
 type AnyExample  = IO Result
 
