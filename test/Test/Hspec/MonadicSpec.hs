@@ -40,6 +40,3 @@ spec = do
           H.describe "Foo" $ H.describe "Bar" $ H.describe "baz" $ H.context "when condition" $ do
             H.it "does something" False
         r `shouldSatisfy` any (== "1) Foo - Bar - baz - when condition - does something FAILED")
-
-  where
-    context = describe
