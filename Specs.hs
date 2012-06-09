@@ -11,7 +11,7 @@ import           Test.Hspec.HUnit ()
 import           Test.HUnit
 import           Data.List (isPrefixOf)
 import qualified Test.HUnit as HUnit
-import           TestUtil
+import           Util
 
 main :: IO ()
 main = specs >>= hspecX

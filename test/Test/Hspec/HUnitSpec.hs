@@ -1,7 +1,7 @@
 module Test.Hspec.HUnitSpec (main, spec) where
 
 import           Test.Hspec.ShouldBe
-import           TestUtil
+import           Util
 
 import qualified Test.Hspec as H
 import           Test.Hspec.HUnit ()
@@ -13,11 +13,19 @@ main = hspecX spec
 spec :: Spec
 spec = do
   describe "HUnit TestCase as an example" $ do
-    it "is specified with the HUnit `TestCase` data constructor" $
-      TestCase $ assertBool "example" True
+    it "is specified with the HUnit `TestCase` data constructor" $ TestCase $ do
+      hspecSummary [
+          H.it "some behavior" (TestCase $ "foo" @?= "bar")
+        , H.it "some behavior" (TestCase $ "foo" @?= "foo")
+        ]
+      `shouldReturn` H.Summary 2 1
 
     it "is the assumed example for IO() actions" $
-      assertBool "example" True
+      hspecSummary [
+          H.it "some behavior" ("foo" @?= "bar")
+        , H.it "some behavior" ("foo" @?= "foo")
+        ]
+      `shouldReturn` H.Summary 2 1
 
     it "will show the failed assertion text if available (e.g. assertBool)" $ do
       let assertionText = "some assertion text"

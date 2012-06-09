@@ -35,6 +35,7 @@ module Test.Hspec (
 , hspec
 , hspecB
 , hHspec
+, Summary (..)
 
 -- * Deprecated functions
 , descriptions

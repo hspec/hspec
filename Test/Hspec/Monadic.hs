@@ -24,6 +24,7 @@ module Test.Hspec.Monadic (
 , hspec
 , hspecB
 , hHspec
+, Summary (..)
 
 -- * Interface to the non-monadic API
 , runSpecM
