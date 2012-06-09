@@ -1,3 +1,10 @@
+## Changes in 1.1.2
+
+ * All descriptions of nested examples are now included in summary for failing
+   examples
+
+ * `context` is now an alias for `describe`
+
 ## Changes in 1.1.1
 
  * Specs from Test.Hspec.Monadic has been renamed to Spec.  For backward
