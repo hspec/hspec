@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Main (main) where
 
-import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX)
+import           Test.Hspec.ShouldBe (Specs, describe, it, hspecX, shouldBe)
 
 import qualified Test.Hspec as H
 import           Test.Hspec hiding (Specs, describe, it, hspecX)
@@ -31,9 +31,6 @@ specs = do
           ]
 
   (reportContents, exampleSpecs)     <- capture $ hHspecWithFormat specdoc         False stdout testSpecs
-  (silentReportContents, _)          <- capture $ hHspecWithFormat silent          False stdout testSpecs
-  (progressReportContents, _)        <- capture $ hHspecWithFormat progress        False stdout testSpecs
-  (failed_examplesReportContents, _) <- capture $ hHspecWithFormat failed_examples False stdout testSpecs
 
   let report = lines reportContents
 
@@ -76,8 +73,8 @@ specs = do
         it "displays a header for each thing being described"
             (any (=="Example") report)
 
-        it "displays one row for each behavior"
-            (HUnit.assertEqual "" 29 (length report))
+        it "displays one row for each behavior" $ do
+            length report `shouldBe` 29
 
         it "displays a row for each successfull, failed, or pending example"
             (any (==" - success") report && any (==" - fail 1 FAILED [1]") report)
@@ -132,17 +129,20 @@ specs = do
         it "accepts a message to display in the report" True
 
     describe "the \"hHspecWithFormat\" function" $ do
-        it "can use the \"silent\" formatter to show no output"
-            (null silentReportContents)
+        it "can use the \"silent\" formatter to show no output" $ do
+            (r, _) <- capture $ hHspecWithFormat silent False stdout testSpecs
+            r `shouldBe` ""
 
-        it "can use the \"progress\" formatter to show '..F...FF.F' style output"
-            (HUnit.assertEqual "" ".F.FFF" (head $ lines progressReportContents))
+        it "can use the \"progress\" formatter to show '..F...FF.F' style output" $ do
+            (r, _) <- capture $ hHspecWithFormat progress False stdout testSpecs
+            head (lines r) `shouldBe` ".F.FFF"
 
-        it "can use the \"specdoc\" formatter to show all examples (default)"
-            (HUnit.assertEqual "" "Example" (lines reportContents !! 1))
+        it "can use the \"specdoc\" formatter to show all examples (default)" $ do
+            (lines reportContents !! 1) `shouldBe` "Example"
 
-        it "can use the \"failed_examples\" formatter to show only failed examples"
-            (HUnit.assertEqual "" "1) Example fail 1 FAILED" (lines failed_examplesReportContents !! 1))
+        it "can use the \"failed_examples\" formatter to show only failed examples" $ do
+            (r, _) <- capture $ hHspecWithFormat failed_examples False stdout testSpecs
+            (lines r !! 1) `shouldBe` "1) Example fail 1 FAILED"
 
     describe "quantify (an internal function)" $ do
         it "returns an amount and a word given an amount and word"
