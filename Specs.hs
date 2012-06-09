@@ -98,24 +98,6 @@ specs = do
         it "is just an expression that evaluates to a Bool"
             (True)
 
-    describe "HUnit TestCase as an example" $ do
-        it "is specified with the HUnit \"TestCase\" data constructor"
-            (HUnit.TestCase $ HUnit.assertBool "example" True)
-
-        it "is the assumed example for IO() actions"
-            (HUnit.assertBool "example" True)
-
-        it "will show the failed assertion text if available (e.g. assertBool)" $ do
-          (innerReport, _) <- capture $ hHspec stdout $ [H.describe "" [ H.it "" (HUnit.assertBool "trivial" False)]]
-          HUnit.assertBool "should find assertion text" $ any (=="trivial") (lines innerReport)
-
-        it "will show the failed assertion expected and actual values if available (e.g. assertEqual)" $ do
-          (innerReportContents, _) <- capture $ hHspec stdout $ [H.describe "" [ H.it "" (HUnit.assertEqual "trivial" (1::Int) 2)]]
-          let innerReport = lines innerReportContents
-          HUnit.assertBool "should find assertion text" $ any (=="trivial") innerReport
-          HUnit.assertBool "should find 'expected: 1'" $ any (=="expected: 1") innerReport
-          HUnit.assertBool "should find ' but got: 2'" $ any (==" but got: 2") innerReport
-
     describe "QuickCheck property as an example" $ do
         it "is specified with the \"property\" function"
             (property $ \ b -> b || True)
