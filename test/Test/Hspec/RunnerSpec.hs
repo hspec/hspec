@@ -4,6 +4,7 @@ import           Test.Hspec.ShouldBe
 
 import           System.Exit
 import qualified Test.Hspec.Runner as H
+import qualified Test.Hspec.Core as H
 
 main :: IO ()
 main = hspecX spec
