@@ -96,10 +96,6 @@ specs = do
         it "outputs failed examples in red, pending in yellow, and successful in green"
             (True)
 
-    describe "Bool as an example" $ do
-        it "is just an expression that evaluates to a Bool"
-            (True)
-
     describe "pending as an example" $ do
         it "is specified with the \"pending\" function and an explanation" True
 
