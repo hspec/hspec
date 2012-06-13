@@ -43,6 +43,7 @@ import           Test.Hspec.Core (quantify)
 import           Data.List (intersperse)
 import           Text.Printf
 import           Control.Monad (unless)
+import           Control.Applicative
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -134,12 +135,12 @@ defaultFailedFormatter = withFailColor $ do
 
 defaultFooter :: FormatM ()
 defaultFooter = do
-  cpuTime <- getCPUTime
-  time <- getRealTime
+
+  writeLine =<< printf "Finished in %1.4f seconds, used %1.4f seconds of CPU time" <$> getRealTime <*> getCPUTime
+
   fails <- getFailCount
   total <- getTotalCount
   (if fails == 0 then withSuccessColor else withFailColor) $ do
-    writeLine $ printf "Finished in %1.4f seconds, used %1.4f seconds of CPU time" time cpuTime
     writeLine ""
     write $ quantify total "example" ++ ", "
     writeLine $ quantify fails "failure"
