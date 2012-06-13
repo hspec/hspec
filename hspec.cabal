@@ -1,26 +1,26 @@
-name:           hspec
-version:        1.2.0
-cabal-version:  >= 1.8
-build-type:     Simple
-license:        BSD3
-license-file:   LICENSE
-copyright:      (c) 2011 Trystan Spangler
-category:       Testing
-author:         Trystan Spangler
-maintainer:     trystan.s@comcast.net
-stability:      experimental
-bug-reports:    https://github.com/hspec/hspec/issues
-homepage:       http://hspec.github.com/
-synopsis:       Behavior Driven Development for Haskell
-description:    Behavior Driven Development for Haskell
-                .
-                Hspec is roughly based on the Ruby library RSpec. However,
-                Hspec is just a framework for running HUnit and QuickCheck
-                tests. Compared to other options, it provides a much nicer
-                syntax that makes tests very easy to read.
-                .
-                New to Hspec?  Start with the introductory documentation:
-                <http://hspec.github.com/>
+name:             hspec
+version:          1.2.0
+license:          BSD3
+license-file:     LICENSE
+copyright:        (c) 2011 Trystan Spangler
+author:           Trystan Spangler
+maintainer:       trystan.s@comcast.net
+build-type:       Simple
+cabal-version:    >= 1.8
+category:         Testing
+stability:        experimental
+bug-reports:      https://github.com/hspec/hspec/issues
+homepage:         http://hspec.github.com/
+synopsis:         Behavior Driven Development for Haskell
+description:      Behavior Driven Development for Haskell
+                  .
+                  Hspec is roughly based on the Ruby library RSpec. However,
+                  Hspec is just a framework for running HUnit and QuickCheck
+                  tests. Compared to other options, it provides a much nicer
+                  syntax that makes tests very easy to read.
+                  .
+                  New to Hspec?  Start with the introductory documentation:
+                  <http://hspec.github.com/>
 
 source-repository head
   type: git
