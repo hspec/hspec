@@ -1,8 +1,1 @@
-module Main (main) where
-
-import           Test.Hspec.Monadic
-import qualified RunSpec
-
-main :: IO ()
-main = hspecX $ do
-  describe "Run" RunSpec.spec
+{-# OPTIONS_GHC -F -pgmF hspec-discover #-}
