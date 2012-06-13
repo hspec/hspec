@@ -88,6 +88,3 @@ spec = do
     it "generates imports for a nested spec that has no specs at the intermediate nodes" $ do
       importList [SpecNode "Foo" False [SpecNode "Bar" False [SpecNode "Baz" True []]]] "" `shouldBe`
         "import qualified Foo.Bar.BazSpec\n"
-
-  where
-    context = describe
