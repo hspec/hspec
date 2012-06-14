@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
 module Test.Hspec.Internal (
   Spec (..)
 , Example (..)
@@ -13,7 +12,6 @@ module Test.Hspec.Internal (
 where
 
 import           Control.Exception
-import qualified Test.Hspec.Pending as Pending
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
@@ -79,12 +77,6 @@ instance Example Bool where
 
 instance Example Result where
   evaluateExample r = r `seq` return r
-
-instance Example Pending.Pending where
-  evaluateExample (Pending.Pending reason) = evaluateExample (Pending reason)
-
-instance Example (String -> Pending.Pending) where
-  evaluateExample _ = evaluateExample (Pending.Pending Nothing)
 
 -- | Create a more readable display of a quantity of something.
 --

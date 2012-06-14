@@ -1,8 +1,18 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Test.Hspec.Pending where
+
+import qualified Test.Hspec.Internal as Internal
+import           Test.Hspec.Internal (Example(..))
 
 -- NOTE: This is defined in a separate packages, because it clashes with
 -- Result.Pending.
 newtype Pending = Pending (Maybe String)
+
+instance Example Pending where
+  evaluateExample (Pending reason) = evaluateExample (Internal.Pending reason)
+
+instance Example (String -> Pending) where
+  evaluateExample _ = evaluateExample (Pending Nothing)
 
 -- | A pending example.
 --
