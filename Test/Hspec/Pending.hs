@@ -1,5 +1,7 @@
 module Test.Hspec.Pending where
 
+-- NOTE: This is defined in a separate packages, because it clashes with
+-- Result.Pending.
 newtype Pending = Pending (Maybe String)
 
 -- | A pending example.
