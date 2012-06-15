@@ -36,9 +36,9 @@ prop n p = DSL.it n (QC.property p)
 instance Example QC.Property where
   evaluateExample p = do
     r <- silence $ QC.quickCheckResult p
-    let r' = case r of
-              QC.Success {}           -> Success
-              f@(QC.Failure {})       -> Fail (QC.output f)
-              g@(QC.GaveUp {})        -> Fail ("Gave up after " ++ quantify (QC.numTests g) "test" )
-              QC.NoExpectedFailure {} -> Fail ("No expected failure")
-    return r'
+    return $
+      case r of
+        QC.Success {}               -> Success
+        f@(QC.Failure {})           -> Fail (QC.output f)
+        QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
+        QC.NoExpectedFailure {}     -> Fail ("No expected failure")

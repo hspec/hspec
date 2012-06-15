@@ -23,8 +23,7 @@
 -- >     it "gives the original list, if applied twice" $ TestCase $
 -- >       (reverse . reverse) [1, 2, 3] @?= [1, 2, 3]
 --
-module Test.Hspec.HUnit (
-) where
+module Test.Hspec.HUnit () where
 
 import           System.IO.Silently
 import           Test.Hspec.Core
@@ -41,6 +40,6 @@ instance Example HU.Test where
              then Success
              else Fail (details $ fails "")
     return r
-
-details :: String -> String
-details = concat . intersperse "\n" . tail . init . lines
+    where
+      details :: String -> String
+      details = concat . intersperse "\n" . tail . init . lines
