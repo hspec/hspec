@@ -1,7 +1,27 @@
+{-# OPTIONS_HADDOCK prune #-}
 -- |
--- This module contains the core types, constructors, classes, instances, and
--- utility functions common to hspec.
+-- Hspec is a Behaviour-Driven Development tool for Haskell programmers. BDD is
+-- an approach to software development that combines Test-Driven Development,
+-- Domain Driven Design, and Acceptance Test-Driven Planning. Hspec helps you
+-- do the TDD part of that equation, focusing on the documentation and design
+-- aspects of TDD.
+--
+-- Hspec (and the preceding intro) are based on the Ruby library RSpec. Much of
+-- what applies to RSpec also applies to Hspec. Hspec ties together
+-- /descriptions/ of behavior and /examples/ of that behavior. The examples can
+-- also be run as tests and the output summarises what needs to be implemented.
+--
+-- NOTE: There is a monadic and a non-monadic API.  This is the documentation
+-- for the non-monadic API.  The monadic API is more stable, so you may prefer
+-- it over this one.  For documentation on the monadic API look at
+-- "Test.Hspec.Monadic".
+
 module Test.Hspec.Core (
+
+
+-- * Introduction
+-- $intro
+
 -- * Types
   Spec
 , Specs
@@ -23,16 +43,11 @@ module Test.Hspec.Core (
 , quantify
 , Result (..)
 
--- * Deprecated types and functions
--- | The following types and functions are deprecated and will be removed with
--- the next release.
---
--- If you still need any of those, please open an issue and describe your use
--- case: <https://github.com/hspec/hspec/issues>
+-- deprecated stuff
+, descriptions
+, hspecX
 , AnyExample
 , safeEvaluateExample
-, hspecX
-, descriptions
 , UnevaluatedSpec
 ) where
 
@@ -41,13 +56,85 @@ import qualified Test.Hspec.Internal as Internal
 import           Test.Hspec.Pending
 import           Test.Hspec.Runner
 
+-- $intro
+--
+-- The three functions you'll use the most are 'hspecX', 'describe', and 'it'.
+-- Here is an example of functions that format and unformat phone numbers and
+-- the specs for them.
+--
+-- > import Test.Hspec
+-- > import Test.Hspec.QuickCheck
+-- > import Test.Hspec.HUnit ()
+-- > import Test.QuickCheck
+-- > import Test.HUnit
+-- >
+-- > main = hspecX mySpecs
+--
+-- Since the specs are often used to tell you what to implement, it's best to
+-- start with undefined functions. Once we have some specs, then you can
+-- implement each behavior one at a time, ensuring that each behavior is met
+-- and there is no undocumented behavior.
+--
+-- > unformatPhoneNumber :: String -> String
+-- > unformatPhoneNumber number = undefined
+-- >
+-- > formatPhoneNumber :: String -> String
+-- > formatPhoneNumber number = undefined
+--
+-- The 'describe' function takes a list of behaviors and examples bound
+-- together with the 'it' function
+--
+-- > mySpecs = [describe "unformatPhoneNumber" [
+--
+-- A boolean expression can act as a behavior's example.
+--
+-- >   it "removes dashes, spaces, and parenthesies" $
+-- >     unformatPhoneNumber "(555) 555-1234" == "5555551234"
+-- >   ,
+--
+-- The 'pending' function marks a behavior as pending an example. The example
+-- doesn't count as failing.
+--
+-- >   it "handles non-US phone numbers" $
+-- >     pending "need to look up how other cultures format phone numbers"
+-- >   ,
+--
+-- An HUnit 'Test.HUnit.Test' can act as a behavior's example. (must import
+-- "Test.Hspec.HUnit")
+--
+-- >   it "removes the \"ext\" prefix of the extension" $ TestCase $ do
+-- >     let expected = "5555551234135"
+-- >         actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
+-- >     expected @?= actual
+-- >   ,
+--
+-- An @IO()@ action is treated like an HUnit 'TestCase'. (must import
+-- "Test.Hspec.HUnit")
+--
+-- >   it "converts letters to numbers" $ do
+-- >     let expected = "6862377"
+-- >         actual   = unformatPhoneNumber "NUMBERS"
+-- >     actual @?= expected
+-- >   ,
+--
+-- The 'property' function allows a QuickCheck property to act as an example.
+-- (must import "Test.Hspec.QuickCheck")
+--
+-- >   it "can add and remove formatting without changing the number" $ property $
+-- >     forAll phoneNumber $ \n -> unformatPhoneNumber (formatPhoneNumber n) == n
+-- >   ]]
+-- >
+-- > phoneNumber :: Gen String
+-- > phoneNumber = do
+-- >   n <- elements [7,10,11,12,13,14,15]
+-- >   vectorOf n (elements "0123456789")
+
 {-# DEPRECATED UnevaluatedSpec "use Spec instead" #-}
 type UnevaluatedSpec = Spec
 
--- | DEPRECATED: This is no longer needed (it's just an alias for `id` now).
+{-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 descriptions :: Specs -> Specs
 descriptions = id
-{-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 
 {-# DEPRECATED AnyExample "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
 type AnyExample  = IO Result

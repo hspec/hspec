@@ -1,11 +1,9 @@
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Test.Hspec.CoreSpec (main, spec) where
 
 import           Test.Hspec.ShouldBe
 
 import           Data.List (isPrefixOf)
 import           Util
-import qualified Test.Hspec as H
 import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Internal as H
 

@@ -6,6 +6,8 @@ import           Test.Hspec.Internal (Example(..))
 
 -- NOTE: This is defined in a separate packages, because it clashes with
 -- Result.Pending.
+
+-- | A pending example.
 newtype Pending = Pending (Maybe String)
 
 instance Example Pending where

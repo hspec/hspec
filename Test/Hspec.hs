@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK prune #-}
 -- |
 -- Hspec is a Behaviour-Driven Development tool for Haskell programmers. BDD is
 -- an approach to software development that combines Test-Driven Development,
@@ -37,12 +38,22 @@ module Test.Hspec {-# WARNING "This module will re-export Test.Hspec.Monadic in 
 , hHspec
 , Summary (..)
 
--- * Deprecated functions
+
+
+
+
+-- deprecated functions
 , descriptions
 , hspecX
+
+
+
 ) where
 
 import           Test.Hspec.Core
+
+
+
 
 -- $intro
 --

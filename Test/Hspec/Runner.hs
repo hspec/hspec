@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- | This module contains the runners that take a set of specs, evaluate their examples, and
 -- report to a given handle.
 --
@@ -68,7 +67,7 @@ failureDetails groups requirement err i =
 hspec :: Specs -> IO ()
 hspec = hspecB >=> (`unless` exitFailure)
 
--- | DEPRECATED: Use `hspec` instead.
+{-# DEPRECATED hspecX "use hspec instead" #-}
 hspecX :: Specs -> IO a
 hspecX = hspecB >=> exitWith . toExitCode
 
@@ -103,6 +102,7 @@ toExitCode :: Bool -> ExitCode
 toExitCode True  = ExitSuccess
 toExitCode False = ExitFailure 1
 
+-- | Summary of a test run.
 data Summary = Summary {
   summaryExamples :: Int
 , summaryFailures :: Int
