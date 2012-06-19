@@ -1,12 +1,17 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_HADDOCK prune #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- |
--- There is a monadic and a non-monadic API.  This is the documentation for the
--- monadic API.  The monadic API is suitable for most use cases, and it is more
--- stable than the non-monadic API.
+-- Hspec is a Behaviour-Driven Development tool for Haskell programmers. BDD is
+-- an approach to software development that combines Test-Driven Development,
+-- Domain Driven Design, and Acceptance Test-Driven Planning. Hspec helps you
+-- do the TDD part of that equation, focusing on the documentation and design
+-- aspects of TDD.
 --
--- For documentation on the non-monadic API look at "Test.Hspec".
---
+-- Hspec (and the preceding intro) are based on the Ruby library RSpec. Much of
+-- what applies to RSpec also applies to Hspec. Hspec ties together
+-- /descriptions/ of behavior and /examples/ of that behavior. The examples can
+-- also be run as tests and the output summarises what needs to be implemented.
 module Test.Hspec.Monadic (
 -- * Introduction
 -- $intro
@@ -31,7 +36,7 @@ module Test.Hspec.Monadic (
 , runSpecM
 , fromSpecList
 
--- * Deprecated types and functions
+-- deprecated stuff
 , Specs
 , descriptions
 , hspecX
@@ -153,12 +158,21 @@ runSpecM (SpecM specs) = execWriter specs
 fromSpecList :: [Core.Spec] -> Spec
 fromSpecList = SpecM . tell
 
+-- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
 describe label action = SpecM . tell $ [Core.describe label (runSpecM action)]
 
+-- | An alias for `describe`.
 context :: String -> Spec -> Spec
 context = describe
 
+-- |
+-- Create a set of specifications for a specific type being described.  Once
+-- you know what you want specs for, use this.
+--
+-- > describe "abs" $ do
+-- >   it "returns a positive number given a negative number" $
+-- >     abs (-1) == 1
 it :: Example v => String -> v -> Spec
 it label action = (SpecM . tell) [Core.it label action]
 
@@ -178,13 +192,12 @@ it label action = (SpecM . tell) [Core.it label action]
 pending :: String  -> Pending
 pending = Pending.pending
 
--- | DEPRECATED: Use `Spec` instead
+{-# DEPRECATED Specs "use Spec instead" #-}
 type Specs = SpecM ()
 
--- | DEPRECATED: Use `sequence_` instead.
+{-# DEPRECATED descriptions "use sequence_ instead" #-}
 descriptions :: [Spec] -> Spec
 descriptions = sequence_
-{-# DEPRECATED descriptions "use sequence_ instead" #-}
 
 {-# DEPRECATED hspecX "use hspec instead" #-}
 hspecX :: Spec -> IO a

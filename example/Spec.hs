@@ -11,7 +11,7 @@ actual `shouldBe` expected = actual @?= expected
 main :: IO ()
 main = hspec spec
 
-spec :: Specs
+spec :: Spec
 spec = do
   describe "reverse" $ do
     it "reverses a list" $ do
