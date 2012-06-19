@@ -9,11 +9,11 @@ import qualified Test.Hspec.Monadic as H
 main :: IO ()
 main = hspecX spec
 
-run :: H.Specs -> IO [String]
+run :: H.Spec -> IO [String]
 -- FIXME: use a mocked file handle for `stdout` instead of `capture`
 run = fmap (lines . fst) . capture . H.hHspec stdout
 
-spec :: Specs
+spec :: Spec
 spec = do
 
   describe "A failing example" $ do
