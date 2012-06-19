@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- |
 -- There is a monadic and a non-monadic API.  This is the documentation for the
 -- monadic API.  The monadic API is suitable for most use cases, and it is more
@@ -185,6 +186,6 @@ descriptions :: [Spec] -> Spec
 descriptions = sequence_
 {-# DEPRECATED descriptions "use sequence_ instead" #-}
 
--- | DEPRECATED: Use `hspec` instead.
+{-# DEPRECATED hspecX "use hspec instead" #-}
 hspecX :: Spec -> IO a
 hspecX = Runner.hspecX . runSpecM
