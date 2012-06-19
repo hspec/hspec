@@ -1,3 +1,9 @@
+## Changes in 1.3.0
+
+ - `Test.Hspec` now re-exports `Test.Hspec.Monadic`.  If you still use the
+   non-monadic API, you can use `Test.Hspec.Core` as a drop-in
+   replacement.
+
 ## Changes in 1.2.0
 
  - `hspec` has been removed, and `hspecX` has been renamed to `hspec` (see
