@@ -1,3 +1,12 @@
+## Changes in 1.2.0
+
+ - `hspec` has been removed, and `hspecX` has been renamed to `hspec` (see
+   [#71](https://github.com/hspec/hspec/issues/71))
+
+ - `hHspec` now returns a summary of the test run.
+
+ - The time reporting after a test run is not colored anymore.
+
 ## Changes in 1.1.3
 
  - `Test.Hspec` warns now about future changes: It will re-export
