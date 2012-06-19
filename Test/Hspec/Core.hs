@@ -1,19 +1,27 @@
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- |
 -- This module contains the core types, constructors, classes, instances, and
 -- utility functions common to hspec.
 module Test.Hspec.Core (
-  Example (..)
-, Result (..)
-, descriptions
+-- * Types
+  Spec
+, Specs
+, Example (..)
+, Pending
 
+-- * Defining a spec
 , describe
 , it
-, Spec
-, Specs
-, UnevaluatedSpec
+, pending
 
+-- * Running a spec
+, hspec
+, hspecB
+, hHspec
+, Summary (..)
+
+-- * Internals
 , quantify
+, Result (..)
 
 -- * Deprecated types and functions
 -- | The following types and functions are deprecated and will be removed with
@@ -23,10 +31,15 @@ module Test.Hspec.Core (
 -- case: <https://github.com/hspec/hspec/issues>
 , AnyExample
 , safeEvaluateExample
+, hspecX
+, descriptions
+, UnevaluatedSpec
 ) where
 
 import           Test.Hspec.Internal hiding (safeEvaluateExample)
 import qualified Test.Hspec.Internal as Internal
+import           Test.Hspec.Pending
+import           Test.Hspec.Runner
 
 {-# DEPRECATED UnevaluatedSpec "use Spec instead" #-}
 type UnevaluatedSpec = Spec
@@ -36,7 +49,6 @@ descriptions :: Specs -> Specs
 descriptions = id
 {-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
 
-type Specs = [Spec]
 {-# DEPRECATED AnyExample "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
 type AnyExample  = IO Result
 

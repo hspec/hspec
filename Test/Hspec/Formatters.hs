@@ -39,7 +39,7 @@ module Test.Hspec.Formatters (
 ) where
 
 import           Data.Maybe
-import           Test.Hspec.Core (quantify)
+import           Test.Hspec.Internal (quantify)
 import           Data.List (intersperse)
 import           Text.Printf
 import           Control.Monad (unless)

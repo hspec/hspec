@@ -3,7 +3,7 @@ module Test.Hspec.HUnitSpec (main, spec) where
 import           Test.Hspec.ShouldBe
 import           Util
 
-import qualified Test.Hspec as H
+import qualified Test.Hspec.Core as H
 import           Test.Hspec.HUnit ()
 import           Test.HUnit
 

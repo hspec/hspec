@@ -43,8 +43,6 @@ module Test.Hspec {-# WARNING "This module will re-export Test.Hspec.Monadic in 
 ) where
 
 import           Test.Hspec.Core
-import           Test.Hspec.Runner
-import           Test.Hspec.Pending
 
 -- $intro
 --

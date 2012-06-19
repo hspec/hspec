@@ -1,6 +1,6 @@
 module Main (main, spec) where
 
-import Test.Hspec
+import Test.Hspec.Core
 import Test.Hspec.HUnit ()
 import Test.Hspec.QuickCheck
 import Test.HUnit

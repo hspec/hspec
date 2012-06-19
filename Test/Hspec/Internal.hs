@@ -1,5 +1,6 @@
 module Test.Hspec.Internal (
   Spec (..)
+, Specs
 , Example (..)
 , safeEvaluateExample
 , Result (..)
@@ -12,6 +13,8 @@ module Test.Hspec.Internal (
 where
 
 import           Control.Exception
+
+type Specs = [Spec]
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String

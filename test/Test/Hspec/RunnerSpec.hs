@@ -4,7 +4,7 @@ import           Test.Hspec.ShouldBe
 
 import           System.Exit
 import qualified Test.Hspec.Runner as H
-import qualified Test.Hspec as H
+import qualified Test.Hspec.Core as H
 import           Test.Hspec.Formatters
 import           System.IO
 import           System.IO.Silently

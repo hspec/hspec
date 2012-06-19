@@ -3,8 +3,7 @@ module Test.Hspec.FormattersSpec (main, spec) where
 import           Test.Hspec.ShouldBe
 import           Data.List (isPrefixOf)
 
-import qualified Test.Hspec as H
-import qualified Test.Hspec.Internal as H
+import qualified Test.Hspec.Core as H
 import           Util
 
 main :: IO ()

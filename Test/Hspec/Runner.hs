@@ -21,7 +21,6 @@ import           Control.Applicative
 import           Data.Monoid
 
 import           Test.Hspec.Internal
-import           Test.Hspec.Core (Specs)
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           System.IO

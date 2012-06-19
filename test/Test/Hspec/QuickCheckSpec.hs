@@ -3,7 +3,7 @@ module Test.Hspec.QuickCheckSpec (main, spec) where
 import           Test.Hspec.ShouldBe
 import           Util
 
-import qualified Test.Hspec as H
+import qualified Test.Hspec.Core as H
 import           Test.Hspec.QuickCheck ()
 import           System.IO.Silently
 
