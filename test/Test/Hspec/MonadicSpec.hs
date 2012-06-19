@@ -7,7 +7,7 @@ import           System.IO.Silently
 import qualified Test.Hspec.Monadic as H
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
 run :: H.Spec -> IO [String]
 -- FIXME: use a mocked file handle for `stdout` instead of `capture`

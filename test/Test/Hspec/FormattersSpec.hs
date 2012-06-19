@@ -7,7 +7,7 @@ import qualified Test.Hspec.Core as H
 import           Util
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
 spec :: Spec
 spec = do

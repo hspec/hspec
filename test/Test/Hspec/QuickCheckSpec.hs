@@ -8,7 +8,7 @@ import           Test.Hspec.QuickCheck ()
 import           System.IO.Silently
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
 spec :: Spec
 spec = do

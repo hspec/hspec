@@ -8,7 +8,7 @@ import           Test.Hspec.HUnit ()
 import           Test.HUnit
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
 spec :: Spec
 spec = do

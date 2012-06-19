@@ -5,9 +5,9 @@ import           Test.Hspec.ShouldBe
 import           Test.Hspec.Internal (quantify)
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
-spec :: Specs
+spec :: Spec
 spec = do
   describe "quantify" $ do
     it "returns an amount and a word given an amount and word" $ do

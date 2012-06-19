@@ -8,7 +8,7 @@ import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Internal as H
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
 spec :: Spec
 spec = do
