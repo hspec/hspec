@@ -70,7 +70,7 @@ import qualified Foo.BarSpec
 import qualified BazSpec
 
 main :: IO ()
-main = hspecX $ do
+main = hspec $ do
   describe "Foo"     FooSpec.spec
   describe "Foo.Bar" Foo.BarSpec.spec
   describe "Baz"     BazSpec.spec
@@ -104,7 +104,7 @@ import qualified Foo.BarSpec
 import qualified BazSpec
 
 main :: IO ()
-main = hspecX $ do
+main = hspec $ do
   describe "Foo" $ do
     FooSpec.spec
     describe "Bar"

@@ -11,7 +11,7 @@
 -- > import qualified BazSpec
 -- >
 -- > main :: IO ()
--- > main = hspecX $ do
+-- > main = hspec $ do
 -- >   describe "Foo"     FooSpec.spec
 -- >   describe "Foo.Bar" Foo.BarSpec.spec
 -- >   describe "Baz"     BazSpec.spec
@@ -27,11 +27,11 @@
 -- Full documentation is here: <https://github.com/sol/hspec-discover#readme>
 module Test.Hspec.Discover (hspec, describe) where
 
-import           Test.Hspec.Monadic (Specs)
+import           Test.Hspec.Monadic (Spec)
 import qualified Test.Hspec.Monadic as Hspec
 
-hspec :: Specs -> IO ()
-hspec = Hspec.hspecX
+hspec :: Spec -> IO ()
+hspec = Hspec.hspec
 
-describe :: String -> Specs -> Specs
+describe :: String -> Spec -> Spec
 describe = Hspec.describe

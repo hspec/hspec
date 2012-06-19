@@ -6,9 +6,9 @@ import           Test.Hspec.ShouldBe
 import           Run
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
-spec :: Specs
+spec :: Spec
 spec = do
   describe "findSpecs" $ do
     context "when specs are not nested" $ do
