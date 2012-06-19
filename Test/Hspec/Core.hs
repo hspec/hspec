@@ -3,18 +3,27 @@
 -- This module contains the core types, constructors, classes, instances, and
 -- utility functions common to hspec.
 module Test.Hspec.Core (
-  SpecTree (..)
+-- * Types
+  Spec
+, Specs
 , Example (..)
-, Result (..)
-, descriptions
+, Pending
 
+-- * Defining a spec
 , describe
 , it
-, Spec
-, Specs
-, UnevaluatedSpec
-, EvaluatedSpec
+, pending
 
+-- * Running a spec
+, hspec
+, hspecB
+, hspecX
+, hHspec
+
+-- * Internals
+, SpecTree (..)
+, EvaluatedSpec
+, Result (..)
 , quantify
 
 -- * Deprecated types and functions
@@ -23,9 +32,10 @@ module Test.Hspec.Core (
 --
 -- If you still need any of those, please open an issue and describe your use
 -- case: <https://github.com/hspec/hspec/issues>
+, descriptions
 , AnyExample
 , safeEvaluateExample
-
+, UnevaluatedSpec
 , success
 , failure
 , isFailure
@@ -34,6 +44,8 @@ module Test.Hspec.Core (
 
 import           Test.Hspec.Internal hiding (safeEvaluateExample)
 import qualified Test.Hspec.Internal as Internal
+import           Test.Hspec.Pending
+import           Test.Hspec.Runner
 
 {-# DEPRECATED UnevaluatedSpec "use Spec instead" #-}
 type UnevaluatedSpec = Spec
@@ -42,10 +54,6 @@ type UnevaluatedSpec = Spec
 descriptions :: Specs -> Specs
 descriptions = id
 {-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
-
-type Specs = [Spec]
-
-type EvaluatedSpec = SpecTree Result
 
 {-# DEPRECATED success "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
 success :: [EvaluatedSpec] -> Bool

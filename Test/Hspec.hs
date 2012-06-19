@@ -42,8 +42,6 @@ module Test.Hspec (
 ) where
 
 import           Test.Hspec.Core
-import           Test.Hspec.Runner
-import           Test.Hspec.Pending
 
 -- $intro
 --

@@ -2,6 +2,8 @@
 module Test.Hspec.Internal (
   SpecTree (..)
 , Spec (..)
+, Specs
+, EvaluatedSpec
 , Example (..)
 , safeEvaluateExample
 , Result (..)
@@ -15,6 +17,9 @@ where
 
 import           Control.Exception
 import qualified Test.Hspec.Pending as Pending
+
+type Specs = [Spec]
+type EvaluatedSpec = SpecTree Result
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
