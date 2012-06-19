@@ -15,7 +15,7 @@
 -- it over this one.  For documentation on the monadic API look at
 -- "Test.Hspec.Monadic".
 
-module Test.Hspec (
+module Test.Hspec {-# WARNING "This module will re-export Test.Hspec.Monadic in the future.  Either use Test.Hspec.Core as a drop-in replacement, or migrate your code to the monadic API!" #-} (
 
 -- * Introduction
 -- $intro
