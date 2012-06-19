@@ -9,7 +9,7 @@ shouldBe :: (Show a, Eq a) => a -> a -> Assertion
 actual `shouldBe` expected = actual @?= expected
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
 spec :: Specs
 spec = do
