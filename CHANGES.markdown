@@ -1,3 +1,15 @@
+## Changes in 1.1.3
+
+ - `Test.Hspec` warns now about future changes: It will re-export
+   `Test.Hspec.Monadic` in the future.  If you still use the non-monadic API,
+   you can either use `Test.Hspec.Core` as a drop-in replacement, or migrate your
+   code to the monadic API.
+
+   The monadic API is more stable and easier to use.  Now is a good time to
+   switch!
+
+ - `Test.Hspec.Core` is now a proper superset of `Test.Hspec`
+
 ## Changes in 1.1.2
 
  * All descriptions of nested examples are now included in summary for failing
