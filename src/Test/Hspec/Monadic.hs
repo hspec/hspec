@@ -54,7 +54,7 @@ import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 -- $intro
 --
--- The three functions you'll use the most are 'hspecX', 'describe', and 'it'.
+-- The three functions you'll use the most are 'hspec', 'describe', and 'it'.
 -- Here is an example of functions that format and unformat phone numbers and
 -- the specs for them.
 --
@@ -64,7 +64,7 @@ import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 -- > import Test.QuickCheck
 -- > import Test.HUnit
 -- >
--- > main = hspecX mySpecs
+-- > main = hspec mySpecs
 --
 -- Since the specs are often used to tell you what to implement, it's best to
 -- start with undefined functions. Once we have some specs, then you can

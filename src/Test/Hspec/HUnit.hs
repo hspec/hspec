@@ -15,7 +15,7 @@
 -- > import Test.HUnit
 -- >
 -- > main :: IO ()
--- > main = hspecX $ do
+-- > main = hspec $ do
 -- >   describe "reverse" $ do
 -- >     it "reverses a list" $ do
 -- >       reverse [1, 2, 3] @?= [3, 2, 1]

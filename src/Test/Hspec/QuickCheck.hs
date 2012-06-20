@@ -12,7 +12,7 @@
 -- > import Test.Hspec.QuickCheck
 -- >
 -- > main :: IO ()
--- > main = hspecX $ do
+-- > main = hspec $ do
 -- >   describe "reverse" $ do
 -- >     it "gives the original list, if applied twice" $ property $
 -- >       \xs -> (reverse . reverse) xs == (xs :: [Int])
