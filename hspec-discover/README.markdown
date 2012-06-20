@@ -115,7 +115,7 @@ main = hspec $ do
 
 Other aspects of `hspec-discover` are not yet configurable.  If you need
 anything else, write me an email, [open an issue on GitHub]
-(https://github.com/sol/hspec-discover/issues), or discuss your ideas at
+(https://github.com/hspec/hspec/issues), or discuss your ideas at
 `#hspec` on freenode.
 
 ## Limitations
@@ -123,5 +123,5 @@ anything else, write me an email, [open an issue on GitHub]
 At the moment only monadic specs are supported.  It is possible to support
 non-monadic specs, or even your custom specs through type classes.  Again, if
 you need any of those, write me an email, [open an issue on GitHub]
-(https://github.com/sol/hspec-discover/issues), or discuss your ideas at
+(https://github.com/hspec/hspec/issues), or discuss your ideas at
 `#hspec` on freenode.

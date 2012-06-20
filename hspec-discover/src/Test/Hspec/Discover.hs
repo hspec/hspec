@@ -24,7 +24,7 @@
 -- test suite.  And it is assumed, that they export a @spec@ of type
 -- `Test.Hspec.Monadic.Specs`.
 --
--- Full documentation is here: <https://github.com/sol/hspec-discover#readme>
+-- Full documentation is here: <https://github.com/hspec/hspec/blob/master/hspec-discover/README.markdown>
 module Test.Hspec.Discover (hspec, describe) where
 
 import           Test.Hspec.Monadic (Spec)

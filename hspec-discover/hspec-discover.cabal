@@ -9,11 +9,11 @@ build-type:       Simple
 cabal-version:    >= 1.8
 category:         Testing
 synopsis:         Automatically discover and run Hspec tests
-description:      Documentation is here: <https://github.com/sol/hspec-discover#readme>
+description:      Documentation is here: <https://github.com/hspec/hspec/blob/master/hspec-discover/README.markdown>
 
 source-repository head
   type: git
-  location: https://github.com/sol/hspec-discover
+  location: https://github.com/hspec/hspec
 
 library
   ghc-options:
