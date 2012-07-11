@@ -43,12 +43,12 @@
 With this change, both of the following code snippets work.
 
 ```haskell
-it "some behaviour" $
+it "some behavior" $
   pending  -- no reason given
 ```
 
 ```haskell
-it "some other behaviour" $
+it "some other behavior" $
   pending "some reason"
 ```
 

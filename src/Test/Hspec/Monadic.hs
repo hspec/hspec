@@ -2,7 +2,7 @@
 {-# OPTIONS_HADDOCK prune #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- |
--- Hspec is a Behaviour-Driven Development tool for Haskell programmers. BDD is
+-- Hspec is a Behavior-Driven Development tool for Haskell programmers. BDD is
 -- an approach to software development that combines Test-Driven Development,
 -- Domain Driven Design, and Acceptance Test-Driven Planning. Hspec helps you
 -- do the TDD part of that equation, focusing on the documentation and design
@@ -11,7 +11,7 @@
 -- Hspec (and the preceding intro) are based on the Ruby library RSpec. Much of
 -- what applies to RSpec also applies to Hspec. Hspec ties together
 -- /descriptions/ of behavior and /examples/ of that behavior. The examples can
--- also be run as tests and the output summarises what needs to be implemented.
+-- also be run as tests and the output summarizes what needs to be implemented.
 module Test.Hspec.Monadic (
 -- * Introduction
 -- $intro
