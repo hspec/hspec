@@ -1,21 +1,9 @@
 {-# OPTIONS_HADDOCK prune #-}
 -- |
--- Hspec is a Behavior-Driven Development tool for Haskell programmers. BDD is
--- an approach to software development that combines Test-Driven Development,
--- Domain Driven Design, and Acceptance Test-Driven Planning. Hspec helps you
--- do the TDD part of that equation, focusing on the documentation and design
--- aspects of TDD.
---
--- Hspec (and the preceding intro) are based on the Ruby library RSpec. Much of
--- what applies to RSpec also applies to Hspec. Hspec ties together
--- /descriptions/ of behavior and /examples/ of that behavior. The examples can
--- also be run as tests and the output summarizes what needs to be implemented.
---
 -- NOTE: There is a monadic and a non-monadic API.  This is the documentation
 -- for the non-monadic API.  The monadic API is more stable, so you may prefer
 -- it over this one.  For documentation on the monadic API look at
--- "Test.Hspec.Monadic".
-
+-- "Test.Hspec".
 module Test.Hspec.Core (
 
 
@@ -68,7 +56,8 @@ import           Test.Hspec.Runner
 -- > import Test.QuickCheck
 -- > import Test.HUnit
 -- >
--- > main = hspec mySpecs
+-- > main :: IO ()
+-- > main = hspec spec
 --
 -- Since the specs are often used to tell you what to implement, it's best to
 -- start with undefined functions. Once we have some specs, then you can
@@ -84,7 +73,7 @@ import           Test.Hspec.Runner
 -- The 'describe' function takes a list of behaviors and examples bound
 -- together with the 'it' function
 --
--- > mySpecs = [describe "unformatPhoneNumber" [
+-- > spec = [describe "unformatPhoneNumber" [
 --
 -- A boolean expression can act as a behavior's example.
 --

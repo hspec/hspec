@@ -44,13 +44,12 @@ import           Test.Hspec.Expectations
 -- Here is an example of functions that format and unformat phone numbers and
 -- the specs for them.
 --
--- > import Test.Hspec.Monadic
--- > import Test.Hspec.QuickCheck
--- > import Test.Hspec.HUnit ()
+-- > import Test.Hspec
 -- > import Test.QuickCheck
 -- > import Test.HUnit
 -- >
--- > main = hspec mySpecs
+-- > main :: IO ()
+-- > main = hspec spec
 --
 -- Since the specs are often used to tell you what to implement, it's best to
 -- start with undefined functions. Once we have some specs, then you can
@@ -58,52 +57,51 @@ import           Test.Hspec.Expectations
 -- and there is no undocumented behavior.
 --
 -- > unformatPhoneNumber :: String -> String
--- > unformatPhoneNumber number = undefined
+-- > unformatPhoneNumber = undefined
 -- >
 -- > formatPhoneNumber :: String -> String
--- > formatPhoneNumber number = undefined
+-- > formatPhoneNumber = undefined
 --
 -- The 'describe' function takes a list of behaviors and examples bound
 -- together with the 'it' function
 --
--- > mySpecs = describe "unformatPhoneNumber" $ do
+-- > spec :: Spec
+-- > spec = do
+-- >   describe "unformatPhoneNumber" $ do
 --
 -- A boolean expression can act as a behavior's example.
 --
--- >   it "removes dashes, spaces, and parenthesies" $
--- >     unformatPhoneNumber "(555) 555-1234" == "5555551234"
+-- >     it "removes dashes, spaces, and parenthesies" $
+-- >       unformatPhoneNumber "(555) 555-1234" == "5555551234"
 --
 --
 -- The 'pending' function marks a behavior as pending an example. The example
 -- doesn't count as failing.
 --
--- >   it "handles non-US phone numbers" $
--- >     pending "need to look up how other cultures format phone numbers"
+-- >     it "handles non-US phone numbers" $
+-- >       pending "need to look up how other cultures format phone numbers"
 --
 --
--- An HUnit 'Test.HUnit.Test' can act as a behavior's example. (must import
--- "Test.Hspec.HUnit")
+-- An HUnit 'Test.HUnit.Test' can act as a behavior's example.
 --
--- >   it "removes the \"ext\" prefix of the extension" $ TestCase $ do
--- >     let expected = "5555551234135"
--- >         actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
--- >     expected @?= actual
+-- >     it "removes the \"ext\" prefix of the extension" $ TestCase $ do
+-- >       let expected = "5555551234135"
+-- >           actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
+-- >       expected @?= actual
 --
 --
--- An @IO()@ action is treated like an HUnit 'TestCase'. (must import
--- "Test.Hspec.HUnit")
+-- An @IO()@ action is treated like an HUnit 'TestCase'.
 --
--- >   it "converts letters to numbers" $ do
--- >     let expected = "6862377"
--- >         actual   = unformatPhoneNumber "NUMBERS"
--- >     actual @?= expected
+-- >     it "converts letters to numbers" $ do
+-- >       let expected = "6862377"
+-- >           actual   = unformatPhoneNumber "NUMBERS"
+-- >       actual @?= expected
 --
 --
 -- The 'property' function allows a QuickCheck property to act as an example.
--- (must import "Test.Hspec.QuickCheck")
 --
--- >   it "can add and remove formatting without changing the number" $ property $
--- >     forAll phoneNumber $ \n -> unformatPhoneNumber (formatPhoneNumber n) == n
+-- >     it "can add and remove formatting without changing the number" $ property $
+-- >       forAll phoneNumber $ \n -> unformatPhoneNumber (formatPhoneNumber n) == n
 -- >
 -- > phoneNumber :: Gen String
 -- > phoneNumber = do
