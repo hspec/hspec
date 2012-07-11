@@ -69,7 +69,7 @@ import           Test.Hspec.Expectations
 -- > spec = do
 -- >   describe "unformatPhoneNumber" $ do
 --
--- A boolean expression can act as a behavior's example.
+-- A `Bool` can be used as an example.
 --
 -- >     it "removes dashes, spaces, and parenthesies" $
 -- >       unformatPhoneNumber "(555) 555-1234" == "5555551234"
@@ -81,16 +81,7 @@ import           Test.Hspec.Expectations
 -- >     it "handles non-US phone numbers" $
 -- >       pending "need to look up how other cultures format phone numbers"
 --
---
--- An HUnit 'Test.HUnit.Test' can act as a behavior's example.
---
--- >     it "removes the \"ext\" prefix of the extension" $ TestCase $ do
--- >       let expected = "5555551234135"
--- >           actual   = unformatPhoneNumber "(555) 555-1234 ext 135"
--- >       expected @?= actual
---
---
--- An @IO()@ action is treated like an HUnit 'TestCase'.
+-- An HUnit 'Test.HUnit.Lang.Assertion' can be used as an example.
 --
 -- >     it "converts letters to numbers" $ do
 -- >       let expected = "6862377"
@@ -98,7 +89,7 @@ import           Test.Hspec.Expectations
 -- >       actual @?= expected
 --
 --
--- The 'property' function allows a QuickCheck property to act as an example.
+-- A QuickCheck 'Test.QuickCheck.Property' can be used as an example.
 --
 -- >     it "can add and remove formatting without changing the number" $ property $
 -- >       forAll phoneNumber $ \n -> unformatPhoneNumber (formatPhoneNumber n) == n
