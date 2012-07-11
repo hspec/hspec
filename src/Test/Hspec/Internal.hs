@@ -54,12 +54,6 @@ it :: Example a => String -> a -> Spec
 it requirement = SpecExample requirement . evaluateExample
 
 -- | A type class for examples.
---
--- To use an HUnit `Test.HUnit.Test` or an `Test.HUnit.Assertion` as an example
--- you need to import "Test.Hspec.HUnit".
---
--- To use a QuickCheck `Test.QuickCheck.Property` as an example you need to
--- import "Test.Hspec.QuickCheck".
 class Example a where
   evaluateExample :: a -> IO Result
 
