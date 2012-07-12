@@ -1,6 +1,6 @@
 module Test.Hspec.FormattersSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec.Meta
 import           Data.List (isPrefixOf)
 
 import qualified Test.Hspec.Core as H

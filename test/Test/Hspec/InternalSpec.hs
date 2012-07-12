@@ -1,6 +1,6 @@
 module Test.Hspec.InternalSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec.Meta
 
 import           Test.Hspec.Internal (quantify)
 

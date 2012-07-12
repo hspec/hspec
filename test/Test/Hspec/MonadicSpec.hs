@@ -1,6 +1,6 @@
 module Test.Hspec.MonadicSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec.Meta
 import           System.IO (stdout)
 import           System.IO.Silently
 

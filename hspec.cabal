@@ -70,8 +70,8 @@ test-suite spec
     , transformers >= 0.2.0 && < 0.4.0
     , HUnit >= 1 && <= 2
     , QuickCheck >= 2.4.0.1 && <= 2.5
-    , hspec-shouldbe
-    , hspec-discover
+    , hspec-expectations
+    , hspec-meta
 
 test-suite doctests
   main-is:
@@ -113,3 +113,61 @@ test-suite example-non-monadic
       base
     , hspec
     , HUnit
+
+-- hspec-discover
+executable hspec-discover
+  ghc-options:
+      -Wall
+  hs-source-dirs:
+      hspec-discover/src
+  main-is:
+      Main.hs
+  other-modules:
+      Run
+  build-depends:
+      base >= 4 && <= 5
+    , filepath
+    , directory
+
+test-suite hspec-discover-spec
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  hs-source-dirs:
+      hspec-discover/src
+    , hspec-discover/test
+  main-is:
+      Spec.hs
+  build-depends:
+      base >= 4 && <= 5
+    , filepath
+    , directory
+    , hspec-meta
+
+test-suite hspec-discover-example
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  hs-source-dirs:
+      hspec-discover/example
+  main-is:
+      Spec.hs
+  build-depends:
+      base >= 4 && <= 5
+    , hspec
+    , QuickCheck
+
+test-suite hspec-discover-integration-test-empty
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  hs-source-dirs:
+      hspec-discover/integration-test/empty
+  main-is:
+      Spec.hs
+  build-depends:
+      base >= 4 && <= 5
+    , hspec

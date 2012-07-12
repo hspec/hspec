@@ -14,5 +14,5 @@ test-suite spec
       Spec.hs
   build-depends:
       base >= 4 && <= 5
-    , hspec-shouldbe
-    , hspec-discover
+    , hspec
+    , QuickCheck

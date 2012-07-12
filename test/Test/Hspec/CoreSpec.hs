@@ -1,6 +1,6 @@
 module Test.Hspec.CoreSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec.Meta
 
 import           Data.List (isPrefixOf)
 import           Util

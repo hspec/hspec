@@ -2,5 +2,6 @@ language: haskell
 
 install:
     - cabal update
-    - cabal install hspec-shouldbe hspec-discover doctest
+    - cabal install doctest
+    - git clone https://github.com/sol/hspec -b hspec-meta --depth=1 && cd hspec && cabal install && cd .. && rm -rf hspec
     - cabal install

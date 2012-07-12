@@ -1,6 +1,6 @@
 module Test.Hspec.RunnerSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec.Meta
 
 import           System.Exit
 import qualified Test.Hspec.Runner as H

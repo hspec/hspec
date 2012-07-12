@@ -1,10 +1,11 @@
 module Test.Hspec.QuickCheckSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec.Meta
 import           Util
 
 import qualified Test.Hspec.Core as H
 import           Test.Hspec.QuickCheck ()
+import           Test.QuickCheck
 import           System.IO.Silently
 
 main :: IO ()

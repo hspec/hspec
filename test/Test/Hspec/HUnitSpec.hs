@@ -1,6 +1,6 @@
 module Test.Hspec.HUnitSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec.Meta
 import           Util
 
 import qualified Test.Hspec.Core as H
