@@ -42,12 +42,12 @@ Library
     , hspec-expectations
   exposed-modules:
       Test.Hspec
-    , Test.Hspec.Core
-    , Test.Hspec.Monadic
-    , Test.Hspec.Runner
-    , Test.Hspec.Formatters
-    , Test.Hspec.HUnit
-    , Test.Hspec.QuickCheck
+      Test.Hspec.Core
+      Test.Hspec.Monadic
+      Test.Hspec.Runner
+      Test.Hspec.Formatters
+      Test.Hspec.HUnit
+      Test.Hspec.QuickCheck
   other-modules:
       Test.Hspec.Pending
       Test.Hspec.Internal
