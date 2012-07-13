@@ -26,10 +26,10 @@ To run the test suite do:
 ## Contributors
 
  * Trystan Spangler
- * Simon Hengel
  * Greg Weber
  * Björn Buckwalter
  * Yi Huang
- * Lucas (Kmiecik) Severyn
+ * Lucas Severyn
+ * Simon Hengel
  * Niklas Hambüchen
  * Clark Gaebel
