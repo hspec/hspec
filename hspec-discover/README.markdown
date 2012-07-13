@@ -1,6 +1,34 @@
 # Automatically discover and run Hspec tests
 
-If you are new to Hspec, start with the [introductory documentation](http://hspec.github.com/).
+> What follows is a short summary of the underlying problem.  If you are only
+> interested in the solution, jump right into [getting started]
+> (https://github.com/hspec/hspec/tree/master/hspec-discover#getting-started).
+
+It is a common convention to have one spec file for each source file.  To run
+all specs for a given project together, it is necessary to combine all the
+specs from all spec files into a single spec.  For example, if we have three
+modules, `Foo`, `Foo.Bar` and `Baz`, and corresponding specs in `FooSpec`,
+`Foo.BarSpec` and `BazSpec`, we are required to write the following
+boilerplate:
+
+```haskell
+module Main where
+
+import Test.Hspec
+
+import qualified FooSpec
+import qualified Foo.BarSpec
+import qualified BazSpec
+
+main :: IO ()
+main = hspec $ do
+  describe "Foo"     FooSpec.spec
+  describe "Foo.Bar" Foo.BarSpec.spec
+  describe "Baz"     BazSpec.spec
+```
+
+This is error prone, and neither challenging nor interesting.  So it should be
+automated.  `hspec-discover` comes to the rescue.
 
 ## Getting started
 
