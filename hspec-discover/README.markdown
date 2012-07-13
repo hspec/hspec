@@ -49,7 +49,7 @@ test-suite spec
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: src, test
-  build-depends:  base, hspec, hspec-discover
+  build-depends:  base, hspec
 ```
 
 ## How it works
@@ -63,7 +63,7 @@ For the above example something like this is generated.
 ```haskell
 module Main where
 
-import Test.Hspec.Monadic
+import Test.Hspec
 
 import qualified FooSpec
 import qualified Foo.BarSpec
@@ -79,8 +79,7 @@ main = hspec $ do
 `hspec-discover` searches for specs in the same directory where the file with
 the preprocessor directive is located, and in all subdirectories.  All files
 with a name that ends in `Spec.hs` are include in the generated test suite.
-And it is assumed, that they export a `spec` of type
-`Test.Hspec.Monadic.Specs`.
+And it is assumed, that they export a `spec` of type `Spec`.
 
 ## Customizing things
 
@@ -97,7 +96,7 @@ For the above example this will result in:
 ```haskell
 module Main where
 
-import Test.Hspec.Monadic
+import Test.Hspec
 
 import qualified FooSpec
 import qualified Foo.BarSpec
@@ -120,8 +119,8 @@ anything else, write me an email, [open an issue on GitHub]
 
 ## Limitations
 
-At the moment only monadic specs are supported.  It is possible to support
-non-monadic specs, or even your custom specs through type classes.  Again, if
-you need any of those, write me an email, [open an issue on GitHub]
-(https://github.com/hspec/hspec/issues), or discuss your ideas at
-`#hspec` on freenode.
+At the moment only monadic specs are supported.  It would be possible to
+support non-monadic specs, or even your custom specs through type classes.
+Again, if you need any of those, write me an email, [open an issue on GitHub]
+(https://github.com/hspec/hspec/issues), or discuss your ideas at `#hspec` on
+freenode.
