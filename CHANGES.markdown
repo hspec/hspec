@@ -1,7 +1,19 @@
-## Planned for 1.3.0
+## Changes in 1.3.0
 
- - `Test.Hspec` will re-exports `Test.Hspec.Monadic`.  If you still use the
+ - `Test.Hspec` now re-exports the monadic API.  If you still use the
    non-monadic API, you can use `Test.Hspec.Core` as a drop-in replacement.
+
+ - `hspec-expectations`, a set of combinators that allow to express
+   expectations about the outcome of code examples, is now included with Hspec.
+   Have a look at the [README of `hspec-expectations`]
+   (https://github.com/sol/hspec-expectations#readme)
+   for a short introduction.
+
+ - `hspec-discover`, a mechanism for automatic spec discovery, is now an
+   official part of Hspec.
+   Have a look at [`hspec-discover`'s README]
+   (https://github.com/hspec/hspec/tree/master/hspec-discover#readme)
+   for a short introduction.
 
 ## Changes in 1.2.0
 
