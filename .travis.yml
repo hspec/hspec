@@ -3,4 +3,8 @@ language: haskell
 install:
     - cabal update
     - git clone https://github.com/hspec/hspec -b hspec-meta --depth=1 && cd hspec && cabal install && cd .. && rm -rf hspec
+
+    # to install hspec-discover
+    - cabal install
+
     - cabal install --enable-tests
