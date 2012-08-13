@@ -24,6 +24,7 @@ module Test.Hspec.QuickCheck (
 
 import           System.IO.Silently
 import           Test.Hspec.Core
+import           Test.Hspec.Config (Config(..))
 import qualified Test.QuickCheck as QC
 
 -- just for the prop shortcut
@@ -34,8 +35,8 @@ prop :: QC.Testable t => String -> t -> DSL.Spec
 prop n p = DSL.it n (QC.property p)
 
 instance Example QC.Property where
-  evaluateExample p = do
-    r <- silence $ QC.quickCheckResult p
+  evaluateExample c p = do
+    r <- silence $ QC.quickCheckWithResult (configQuickCheckArgs c) p
     return $
       case r of
         QC.Success {}               -> Success

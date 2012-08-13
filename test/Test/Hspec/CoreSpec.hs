@@ -5,6 +5,7 @@ import           Test.Hspec.Meta
 import           Data.List (isPrefixOf)
 import           Util
 import qualified Test.Hspec.Core as H
+import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Internal as H
 
 main :: IO ()
@@ -57,10 +58,10 @@ spec = do
         H.SpecExample requirement _ -> requirement == "whatever"
         _ -> False
 
-    it "takes an example of that behavior" $ do
+    it "takes an example of that behavior" $ (`asTypeOf` (undefined :: IO ())) $ do
       case H.it "whatever" H.Success of
         H.SpecExample _ example -> do
-          r <- example
+          r <- example H.defaultConfig
           r `shouldBe` H.Success
         H.SpecGroup _ _ -> error "unexpected SpecGroup"
 

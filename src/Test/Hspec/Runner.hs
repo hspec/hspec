@@ -11,6 +11,9 @@ module Test.Hspec.Runner (
 
 , Summary (..)
 
+, Config (..)
+, defaultConfig
+
 -- * Deprecated functions
 , hspecX
 ) where
@@ -20,21 +23,22 @@ import           Control.Applicative
 import           Data.Monoid
 
 import           Test.Hspec.Internal
+import           Test.Hspec.Config
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           System.IO
 import           System.Exit
 
 -- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Formatter -> Spec -> FormatM ()
-runFormatter formatter = go 0 []
+runFormatter :: Config -> Formatter -> Spec -> FormatM ()
+runFormatter c formatter = go 0 []
   where
     go :: Int -> [String] -> Spec -> FormatM ()
     go nesting groups (SpecGroup group xs) = do
       exampleGroupStarted formatter nesting group
       mapM_ (go (succ nesting) (group : groups)) xs
     go nesting groups (SpecExample requirement e) = do
-      result <- liftIO $ safeEvaluateExample e
+      result <- liftIO $ safeEvaluateExample (e c)
       case result of
         Success -> do
           increaseSuccessCount
@@ -65,7 +69,7 @@ failureDetails groups requirement err i =
 -- Exit the program with `exitSuccess` if all examples passed, with
 -- `exitFailure` otherwise.
 hspec :: Specs -> IO ()
-hspec = hspecB >=> (`unless` exitFailure)
+hspec specs = getConfig >>= (`hspecB_` specs) >>= (`unless` exitFailure)
 
 {-# DEPRECATED hspecX "use hspec instead" #-}
 hspecX :: Specs -> IO a
@@ -75,7 +79,10 @@ hspecX = hspecB >=> exitWith . toExitCode
 --
 -- Return `True` if all examples passed, `False` otherwise.
 hspecB :: Specs -> IO Bool
-hspecB = fmap success . hHspec stdout
+hspecB = hspecB_ defaultConfig
+
+hspecB_ :: Config -> Specs -> IO Bool
+hspecB_ c = fmap success . hHspec_ c stdout
   where
     success :: Summary -> Bool
     success s = summaryFailures s == 0
@@ -85,15 +92,18 @@ hspecB = fmap success . hHspec stdout
 -- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
 --
 hHspec :: Handle -> Specs -> IO Summary
-hHspec h specs = do
+hHspec = hHspec_ defaultConfig
+
+hHspec_ :: Config -> Handle -> Specs -> IO Summary
+hHspec_ c h specs = do
   useColor <- hIsTerminalDevice h
-  hHspecWithFormat specdoc useColor h specs
+  hHspecWithFormat c specdoc useColor h specs
 
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
-hHspecWithFormat :: Formatter -> Bool -> Handle -> Specs -> IO Summary
-hHspecWithFormat formatter useColor h ss = runFormatM useColor h $ do
-  mapM_ (runFormatter formatter) ss
+hHspecWithFormat :: Config -> Formatter -> Bool -> Handle -> Specs -> IO Summary
+hHspecWithFormat c formatter useColor h ss = runFormatM useColor h $ do
+  mapM_ (runFormatter c formatter) ss
   failedFormatter formatter
   footerFormatter formatter
   Summary <$> getTotalCount <*> getFailCount
