@@ -13,6 +13,7 @@ module Test.Hspec.Internal (
 where
 
 import           Control.Exception
+import           Test.Hspec.Config (Config)
 
 -- | A list of specs.
 type Specs = [Spec]
@@ -23,7 +24,7 @@ data Result = Success | Pending (Maybe String) | Fail String
 
 -- | Internal representation of a spec.
 data Spec = SpecGroup String [Spec]
-          | SpecExample String (IO Result)
+          | SpecExample String (Config -> IO Result)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [Spec] -> Spec
@@ -51,17 +52,17 @@ safeEvaluateExample action = do
 -- >   ]
 --
 it :: Example a => String -> a -> Spec
-it requirement = SpecExample requirement . evaluateExample
+it s e = SpecExample s (`evaluateExample` e)
 
 -- | A type class for examples.
 class Example a where
-  evaluateExample :: a -> IO Result
+  evaluateExample :: Config -> a -> IO Result
 
 instance Example Bool where
-  evaluateExample b = if b then return Success else return (Fail "")
+  evaluateExample _ b = if b then return Success else return (Fail "")
 
 instance Example Result where
-  evaluateExample r = r `seq` return r
+  evaluateExample _ r = r `seq` return r
 
 -- | Create a more readable display of a quantity of something.
 --

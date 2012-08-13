@@ -11,10 +11,10 @@ import           Test.Hspec.Internal (Example(..))
 newtype Pending = Pending (Maybe String)
 
 instance Example Pending where
-  evaluateExample (Pending reason) = evaluateExample (Internal.Pending reason)
+  evaluateExample c (Pending reason) = evaluateExample c (Internal.Pending reason)
 
 instance Example (String -> Pending) where
-  evaluateExample _ = evaluateExample (Pending Nothing)
+  evaluateExample c _ = evaluateExample c (Pending Nothing)
 
 -- | A pending example.
 --
