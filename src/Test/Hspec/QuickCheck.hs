@@ -20,6 +20,9 @@
 module Test.Hspec.QuickCheck (
   QC.property
 , prop
+, QuickCheckExample
+-- ** QuickCheck customizations
+, quickCheckExample
 ) where
 
 import           System.IO.Silently
@@ -43,3 +46,18 @@ instance Example QC.Property where
         f@(QC.Failure {})           -> Fail (QC.output f)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
+
+-- | A custom QuickCheck test to be run by hspec.
+data QuickCheckExample = QuickCheckExample QC.Args QC.Property
+
+-- | Runs a QuickCheck property with custom settings. Overrides `configQuickCheckArgs`.
+-- Example:
+--
+-- > it "passes 1000 checks" $
+-- >   quickCheckExample stdArgs{ maxSuccess = 1000 } myprop
+quickCheckExample :: QC.Args -> QC.Property -> QuickCheckExample
+quickCheckExample = QuickCheckExample
+
+instance Example QuickCheckExample where
+  evaluateExample c (QuickCheckExample args p) =
+    evaluateExample c {configQuickCheckArgs = args} p
