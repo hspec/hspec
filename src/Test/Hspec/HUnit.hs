@@ -31,10 +31,10 @@ import qualified Test.HUnit as HU
 import           Data.List (intersperse)
 
 instance Example HU.Assertion where
-  evaluateExample io = evaluateExample (HU.TestCase io)
+  evaluateExample c io = evaluateExample c (HU.TestCase io)
 
 instance Example HU.Test where
-  evaluateExample test = do
+  evaluateExample _ test = do
     (counts, fails) <- silence $ HU.runTestText HU.putTextToShowS test
     let r = if HU.errors counts + HU.failures counts == 0
              then Success

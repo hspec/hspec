@@ -50,6 +50,7 @@ Library
   other-modules:
       Test.Hspec.Pending
       Test.Hspec.Internal
+      Test.Hspec.Config
       Test.Hspec.Formatters.Internal
 
 test-suite spec
