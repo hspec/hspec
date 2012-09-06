@@ -33,7 +33,7 @@ spec = do
           , H.it "fail 3"    False
           ]
           ]
-        runSpec f = (lines . fst) `fmap` capture (H.hHspecWithFormat H.defaultConfig f False stdout testSpecs)
+        runSpec f = (lines . fst) `fmap` capture (H.hHspecWithFormat H.defaultConfig f stdout testSpecs)
 
     it "can use the \"silent\" formatter to show no output" $ do
       runSpec silent `shouldReturn` []
@@ -52,7 +52,7 @@ spec = do
 
   describe "hHspecWithFormat" $ do
     it "returns a summary of the test run" $ do
-      H.hHspecWithFormat H.defaultConfig silent False stdout [
+      H.hHspecWithFormat H.defaultConfig silent stdout [
           H.it "foo" True
         , H.it "foo" False
         , H.it "foo" False
