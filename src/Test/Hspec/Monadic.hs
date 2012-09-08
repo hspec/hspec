@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# OPTIONS_HADDOCK prune #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Test.Hspec.Monadic (
 -- * Types
@@ -15,18 +14,21 @@ module Test.Hspec.Monadic (
 
 -- * Running a spec
 , hspec
+, hspecWith
 , hspecB
-, hHspec
 , Summary (..)
+, Config (..)
+, defaultConfig
 
 -- * Interface to the non-monadic API
 , runSpecM
 , fromSpecList
 
--- deprecated stuff
+-- * Deprecated types and functions
 , Specs
 , descriptions
 , hspecX
+, hHspec
 ) where
 
 import           System.IO
@@ -34,6 +36,7 @@ import           Test.Hspec.Core (Example)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary (..))
+import           Test.Hspec.Config
 import           Test.Hspec.Pending (Pending)
 import qualified Test.Hspec.Pending as Pending
 
@@ -48,21 +51,20 @@ newtype SpecM a = SpecM (Writer [Core.Spec] a)
 -- | Create a document of the given spec and write it to stdout.
 --
 -- Exit the program with `System.Exit.exitFailure` if at least one example fails.
+--
+-- (see also `hspecWith`)
 hspec :: Spec -> IO ()
 hspec = Runner.hspec . runSpecM
+
+-- | Run a spec.  This is similar to `hspec`, but more flexible.
+hspecWith :: Config -> Spec -> IO Summary
+hspecWith c = Runner.hspecWith c . runSpecM
 
 -- | Create a document of the given spec and write it to stdout.
 --
 -- Return `True` if all examples passed, `False` otherwise.
 hspecB :: Spec -> IO Bool
 hspecB = Runner.hspecB . runSpecM
-
--- | Create a document of the given specs and write it to the given handle.
---
--- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
---
-hHspec :: Handle -> Spec -> IO Summary
-hHspec h = Runner.hHspec h . runSpecM
 
 -- | Convert a monadic spec into a non-monadic spec.
 runSpecM :: Spec -> [Core.Spec]
@@ -116,3 +118,7 @@ descriptions = sequence_
 {-# DEPRECATED hspecX "use hspec instead" #-}
 hspecX :: Spec -> IO a
 hspecX = Runner.hspecX . runSpecM
+
+{-# DEPRECATED hHspec "use hspecWith instead" #-}
+hHspec :: Handle -> Spec -> IO Summary
+hHspec h = Runner.hHspec h . runSpecM

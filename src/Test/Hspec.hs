@@ -1,4 +1,3 @@
-{-# OPTIONS_HADDOCK prune #-}
 -- |
 -- Hspec is a framework for /Behavior-Driven Development (BDD)/ in Haskell. BDD
 -- is an approach to software development that combines Test-Driven

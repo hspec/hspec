@@ -1,7 +1,6 @@
 module Test.Hspec.MonadicSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           System.IO (stdout)
 import           System.IO.Silently
 
 import qualified Test.Hspec.Monadic as H
@@ -11,7 +10,7 @@ main = hspec spec
 
 run :: H.Spec -> IO [String]
 -- FIXME: use a mocked file handle for `stdout` instead of `capture`
-run = fmap (lines . fst) . capture . H.hHspec stdout
+run = fmap (lines . fst) . capture . H.hspecWith H.defaultConfig
 
 spec :: Spec
 spec = do

@@ -6,17 +6,18 @@ module Test.Hspec.Runner (
 , hspec
 , hspecWith
 , hspecB
-, hHspec
-, hHspecWithFormat
 , toExitCode
 
 , Summary (..)
 
 , Config (..)
+, ColorMode (..)
 , defaultConfig
 
 -- * Deprecated functions
 , hspecX
+, hHspec
+, hHspecWithFormat
 ) where
 
 import           Control.Monad (unless, (>=>))
@@ -95,6 +96,7 @@ hspecB_ c = fmap success . hspecWith c
     success :: Summary -> Bool
     success s = summaryFailures s == 0
 
+-- | Run given specs.  This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Specs -> IO Summary
 hspecWith c ss = do
   useColor <- doesUseColor h c

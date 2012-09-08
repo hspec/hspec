@@ -1,4 +1,3 @@
-{-# OPTIONS_HADDOCK prune #-}
 -- |
 -- NOTE: There is a monadic and a non-monadic API.  This is the documentation
 -- for the non-monadic API.  The monadic API is more stable, so you may prefer
@@ -24,16 +23,16 @@ module Test.Hspec.Core (
 -- * Running a spec
 , hspec
 , hspecB
-, hHspec
 , Summary (..)
 
 -- * Internals
 , quantify
 , Result (..)
 
--- deprecated stuff
+-- * Deprecated types and functions
 , descriptions
 , hspecX
+, hHspec
 , AnyExample
 , safeEvaluateExample
 , UnevaluatedSpec
