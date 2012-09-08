@@ -3,6 +3,7 @@
 module Test.Hspec.Monadic (
 -- * Types
   Spec
+, SpecM
 , Example
 , Pending
 
