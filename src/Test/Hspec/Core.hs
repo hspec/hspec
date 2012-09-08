@@ -43,6 +43,7 @@ import           Test.Hspec.Internal hiding (safeEvaluateExample)
 import qualified Test.Hspec.Internal as Internal
 import           Test.Hspec.Pending
 import           Test.Hspec.Runner
+import           Test.Hspec.Util
 
 -- $intro
 --

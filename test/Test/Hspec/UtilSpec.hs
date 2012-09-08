@@ -1,8 +1,8 @@
-module Test.Hspec.InternalSpec (main, spec) where
+module Test.Hspec.UtilSpec (main, spec) where
 
 import           Test.Hspec.Meta
 
-import           Test.Hspec.Internal (quantify)
+import           Test.Hspec.Util (quantify)
 
 main :: IO ()
 main = hspec spec

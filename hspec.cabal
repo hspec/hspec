@@ -48,6 +48,7 @@ Library
       Test.Hspec.HUnit
       Test.Hspec.QuickCheck
   other-modules:
+      Test.Hspec.Util
       Test.Hspec.Pending
       Test.Hspec.Internal
       Test.Hspec.Config
