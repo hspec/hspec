@@ -73,8 +73,7 @@ import Test.Hspec.Formatters.Internal (
 
 silent :: Formatter
 silent = Formatter {
-  formatterName       = "silent"
-, exampleGroupStarted = \_ _ -> return ()
+  exampleGroupStarted = \_ _ -> return ()
 , exampleSucceeded    = \_ _ -> return ()
 , exampleFailed       = \_ _ _ -> return ()
 , examplePending      = \_ _ _  -> return ()
@@ -85,9 +84,7 @@ silent = Formatter {
 
 specdoc :: Formatter
 specdoc = silent {
-  formatterName = "specdoc"
-
-, exampleGroupStarted = \nesting name -> do
+  exampleGroupStarted = \nesting name -> do
     writeLine ("\n" ++ indentationForGroup nesting ++ name)
 
 , exampleSucceeded = \nesting requirement -> withSuccessColor $ do
@@ -110,8 +107,7 @@ specdoc = silent {
 
 progress :: Formatter
 progress = silent {
-  formatterName    = "progress"
-, exampleSucceeded = \_ _ -> withSuccessColor $ write "."
+  exampleSucceeded = \_ _ -> withSuccessColor $ write "."
 , exampleFailed    = \_ _ _ -> withFailColor    $ write "F"
 , examplePending   = \_ _ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter
@@ -121,8 +117,7 @@ progress = silent {
 
 failed_examples :: Formatter
 failed_examples   = silent {
-  formatterName   = "failed_examples"
-, failedFormatter = defaultFailedFormatter
+  failedFormatter = defaultFailedFormatter
 , footerFormatter = defaultFooter
 }
 
