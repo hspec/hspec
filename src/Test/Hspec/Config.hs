@@ -11,16 +11,29 @@ import           System.Exit
 import           System.Environment
 import           System.Console.GetOpt
 import qualified Test.QuickCheck as QC
+import           Test.Hspec.Formatters
 
 data Config = Config {
   configQuickCheckArgs :: QC.Args
 , configColorMode      :: ColorMode
+, configFormatter      :: Formatter
 }
 
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config QC.stdArgs ColorAuto
+defaultConfig = Config QC.stdArgs ColorAuto specdoc
+
+formatters :: [(String, Formatter)]
+formatters = [
+    ("specdoc", specdoc)
+  , ("progress", progress)
+  , ("failed-examples", failed_examples)
+  , ("silent", silent)
+  ]
+
+formatHelp :: String
+formatHelp = unlines ("Use a custom formatter.  This can be one of:" : map (("  " ++) . fst) formatters)
 
 type Result = Either NoConfig Config
 
@@ -30,9 +43,14 @@ options :: [OptDescr (Result -> Result)]
 options = [
     Option []  ["help"]                    (NoArg (const $ Left Help))        "display this help and exit"
   , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to `always' or can be `never' or `auto'."
+  , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
   , Option "a" ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
   ]
   where
+    setFormatter name x = x >>= \c -> case lookup name formatters of
+      Nothing -> Left (InvalidArgument "format" name)
+      Just f  -> return c {configFormatter = f}
+
     setQC_MaxSuccess n x = x >>= \c -> return c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.maxSuccess = read n}}
 
     setColor mValue x = x >>= \c -> parseColor mValue >>= \v -> return c {configColorMode = v}

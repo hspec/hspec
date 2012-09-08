@@ -95,18 +95,20 @@ hHspec :: Handle -> Specs -> IO Summary
 hHspec = hHspec_ defaultConfig
 
 hHspec_ :: Config -> Handle -> Specs -> IO Summary
-hHspec_ c h specs = hHspecWithFormat c specdoc h specs
+hHspec_ c h specs = hHspecWithFormat c h specs
 
 -- | Create a document of the given specs and write it to the given handle.
 -- THIS IS LIKELY TO CHANGE
-hHspecWithFormat :: Config -> Formatter -> Handle -> Specs -> IO Summary
-hHspecWithFormat c formatter h ss = do
+hHspecWithFormat :: Config -> Handle -> Specs -> IO Summary
+hHspecWithFormat c h ss = do
   useColor <- doesUseColor h c
   runFormatM useColor h $ do
     mapM_ (runFormatter c formatter) ss
     failedFormatter formatter
     footerFormatter formatter
     Summary <$> getTotalCount <*> getFailCount
+  where
+    formatter = configFormatter c
 
 doesUseColor :: Handle -> Config -> IO Bool
 doesUseColor h c = case configColorMode c of
