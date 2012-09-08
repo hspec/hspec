@@ -67,8 +67,7 @@ failureDetails groups requirement err i =
 
 -- | Create a document of the given specs and write it to stdout.
 --
--- Exit the program with `exitSuccess` if all examples passed, with
--- `exitFailure` otherwise.
+-- Exit the program with `exitFailure` if at least one example fails.
 hspec :: Specs -> IO ()
 hspec specs = getConfig >>= (`hspecB_` specs) >>= (`unless` exitFailure)
 

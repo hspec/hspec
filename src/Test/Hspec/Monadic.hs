@@ -47,8 +47,7 @@ newtype SpecM a = SpecM (Writer [Core.Spec] a)
 
 -- | Create a document of the given spec and write it to stdout.
 --
--- Exit the program with `exitSuccess` if all examples passed, with
--- `exitFailure` otherwise.
+-- Exit the program with `System.Exit.exitFailure` if at least one example fails.
 hspec :: Spec -> IO ()
 hspec = Runner.hspec . runSpecM
 
