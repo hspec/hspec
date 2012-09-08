@@ -6,7 +6,6 @@ import           System.Exit
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H
 import           Test.Hspec.Formatters
-import           System.IO
 import           System.IO.Silently
 
 main :: IO ()
@@ -22,7 +21,7 @@ spec = do
     it "exits with exitFailure, if not all examples pass" $ do
       H.hspec [H.it "foobar" False] `shouldThrow` (== ExitFailure 1)
 
-  describe "the \"hHspecWithFormat\" function" $ do
+  describe "hspecWith" $ do
     let testSpecs = [
           H.describe "Example" [
             H.it "success"   True
@@ -33,7 +32,7 @@ spec = do
           , H.it "fail 3"    False
           ]
           ]
-        runSpec f = (lines . fst) `fmap` capture (H.hHspecWithFormat H.defaultConfig {H.configFormatter = f} stdout testSpecs)
+        runSpec f = (lines . fst) `fmap` capture (H.hspecWith H.defaultConfig {H.configFormatter = f} testSpecs)
 
     it "can use the \"silent\" formatter to show no output" $ do
       runSpec silent `shouldReturn` []
@@ -50,9 +49,8 @@ spec = do
       r <- runSpec failed_examples
       r !! 1 `shouldBe` "1) Example fail 1 FAILED"
 
-  describe "hHspecWithFormat" $ do
     it "returns a summary of the test run" $ do
-      H.hHspecWithFormat H.defaultConfig {H.configFormatter = silent} stdout [
+      H.hspecWith H.defaultConfig {H.configFormatter = silent} [
           H.it "foo" True
         , H.it "foo" False
         , H.it "foo" False

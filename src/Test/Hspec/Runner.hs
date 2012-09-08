@@ -4,6 +4,7 @@
 module Test.Hspec.Runner (
   Specs
 , hspec
+, hspecWith
 , hspecB
 , hHspec
 , hHspecWithFormat
@@ -75,6 +76,14 @@ hspec specs = getConfig >>= (`hspecB_` specs) >>= (`unless` exitFailure)
 hspecX :: Specs -> IO a
 hspecX = hspecB >=> exitWith . toExitCode
 
+{-# DEPRECATED hHspec "use hspecWith instead" #-}
+hHspec :: Handle -> Specs -> IO Summary
+hHspec h = hspecWith defaultConfig {configHandle = h}
+
+{-# DEPRECATED hHspecWithFormat "use hspecWith instead" #-}
+hHspecWithFormat :: Config -> Handle -> Specs -> IO Summary
+hHspecWithFormat c h = hspecWith c {configHandle = h}
+
 -- | Create a document of the given specs and write it to stdout.
 --
 -- Return `True` if all examples passed, `False` otherwise.
@@ -82,25 +91,13 @@ hspecB :: Specs -> IO Bool
 hspecB = hspecB_ defaultConfig
 
 hspecB_ :: Config -> Specs -> IO Bool
-hspecB_ c = fmap success . hHspec_ c stdout
+hspecB_ c = fmap success . hspecWith c
   where
     success :: Summary -> Bool
     success s = summaryFailures s == 0
 
--- | Create a document of the given specs and write it to the given handle.
---
--- > writeReport filename specs = withFile filename WriteMode (\h -> hHspec h specs)
---
-hHspec :: Handle -> Specs -> IO Summary
-hHspec = hHspec_ defaultConfig
-
-hHspec_ :: Config -> Handle -> Specs -> IO Summary
-hHspec_ c h specs = hHspecWithFormat c h specs
-
--- | Create a document of the given specs and write it to the given handle.
--- THIS IS LIKELY TO CHANGE
-hHspecWithFormat :: Config -> Handle -> Specs -> IO Summary
-hHspecWithFormat c h ss = do
+hspecWith :: Config -> Specs -> IO Summary
+hspecWith c ss = do
   useColor <- doesUseColor h c
   runFormatM useColor h $ do
     mapM_ (runFormatter c formatter) ss
@@ -109,6 +106,7 @@ hHspecWithFormat c h ss = do
     Summary <$> getTotalCount <*> getFailCount
   where
     formatter = configFormatter c
+    h = configHandle c
 
 doesUseColor :: Handle -> Config -> IO Bool
 doesUseColor h c = case configColorMode c of

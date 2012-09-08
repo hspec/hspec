@@ -7,6 +7,7 @@ module Test.Hspec.Config (
 
 import           Control.Monad (unless)
 import           Control.Applicative
+import           System.IO
 import           System.Exit
 import           System.Environment
 import           System.Console.GetOpt
@@ -17,12 +18,13 @@ data Config = Config {
   configQuickCheckArgs :: QC.Args
 , configColorMode      :: ColorMode
 , configFormatter      :: Formatter
+, configHandle         :: Handle
 }
 
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config QC.stdArgs ColorAuto specdoc
+defaultConfig = Config QC.stdArgs ColorAuto specdoc stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
