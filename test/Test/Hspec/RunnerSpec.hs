@@ -15,10 +15,10 @@ spec :: Spec
 spec = do
 
   describe "hspec" $ do
-    it "returns (), if all examples pass" $ do
+    it "runs a spec" $ do
       H.hspec [H.it "foobar" True] `shouldReturn` ()
 
-    it "exits with exitFailure, if not all examples pass" $ do
+    it "exits with exitFailure if not all examples pass" $ do
       H.hspec [H.it "foobar" False] `shouldThrow` (== ExitFailure 1)
 
   describe "hspecWith" $ do
