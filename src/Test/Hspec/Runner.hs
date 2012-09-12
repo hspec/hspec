@@ -23,13 +23,14 @@ module Test.Hspec.Runner (
 import           Control.Monad (unless, (>=>))
 import           Control.Applicative
 import           Data.Monoid
+import           System.IO
+import           System.Exit
 
+import           Test.Hspec.Util (safeEvaluate)
 import           Test.Hspec.Internal
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
-import           System.IO
-import           System.Exit
 
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Config -> Formatter -> Spec -> FormatM ()
@@ -39,19 +40,23 @@ runFormatter c formatter = go []
     go groups (SpecGroup group xs) = do
       exampleGroupStarted formatter groups group
       mapM_ (go (group : groups)) xs
-    go groups (SpecExample requirement e) = do
-      result <- liftIO $ safeEvaluateExample (e c)
+    go groups (SpecExample requirement example) = do
+      result <- liftIO $ safeEvaluate (example c)
       case result of
-        Success -> do
+        Right Success -> do
           increaseSuccessCount
           exampleSucceeded formatter groups requirement
-        Fail err -> do
+        Right (Pending reason) -> do
+          increasePendingCount
+          examplePending formatter groups requirement reason
+
+        Right (Fail err) -> failed (Right err)
+        Left e           -> failed (Left  e)
+      where
+        failed err = do
           increaseFailCount
           addFailMessage groups requirement err
           exampleFailed  formatter groups requirement err
-        Pending reason -> do
-          increasePendingCount
-          examplePending formatter groups requirement reason
 
 -- | Create a document of the given specs and write it to stdout.
 --

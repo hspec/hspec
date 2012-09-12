@@ -47,6 +47,8 @@ import           Data.List (intersperse)
 import           Text.Printf
 import           Control.Monad (unless)
 import           Control.Applicative
+import qualified Control.Exception as E
+import           Data.Typeable (typeOf)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -134,12 +136,12 @@ defaultFailedFormatter = withFailColor $ do
   unless (null failures) (writeLine "")
   where
     formatFailure :: (Int, FailureRecord) -> String
-    formatFailure (i, FailureRecord groups requirement err) =
-      show i ++ ") " ++ groups_ ++ requirement ++ " FAILED" ++ err_
+    formatFailure (i, FailureRecord groups requirement reason) =
+      show i ++ ") " ++ groups_ ++ requirement ++ " FAILED" ++ err
       where
-        err_
-          | null err  = ""
-          | otherwise = "\n" ++ err
+        err = case reason of
+          Left (E.SomeException e)  -> " (uncaught exception)\n" ++ (show . typeOf) e ++ " (" ++ show e ++ ")"
+          Right e -> if null e then "" else "\n" ++ e
         groups_ = case groups of
           [x] -> x ++ " "
           _   -> concatMap (++ " - ") (reverse groups)

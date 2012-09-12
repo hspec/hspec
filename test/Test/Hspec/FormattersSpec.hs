@@ -1,7 +1,7 @@
 module Test.Hspec.FormattersSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Data.List (isPrefixOf)
+import           Data.List
 
 import qualified Test.Hspec.Core as H
 import           Util
@@ -52,3 +52,10 @@ spec = do
 
     it "outputs failed examples in red, pending in yellow, and successful in green" $ do
       pending
+
+    it "marks examples that throw exceptions, includes the exception type" $ do
+      r <- runSpec [H.it "foobar" (undefined :: Bool)]
+      r `shouldSatisfy` isInfixOf [
+          "1) foobar FAILED (uncaught exception)"
+        , "ErrorCall (Prelude.undefined)"
+        ]

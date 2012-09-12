@@ -3,7 +3,6 @@ module Test.Hspec.Internal (
   Spec (..)
 , Specs
 , Example (..)
-, safeEvaluateExample
 , Result (..)
 
 , describe
@@ -30,26 +29,14 @@ data Spec = SpecGroup String [Spec]
 describe :: String -> [Spec] -> Spec
 describe = SpecGroup
 
-safeEvaluateExample :: IO Result -> IO Result
-safeEvaluateExample action = action `E.catches` [
-  -- Re-throw AsyncException, otherwise execution will not terminate on
-  -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
-  -- UserInterrupt) because all of them indicate severe conditions and
-  -- should not occur during normal test runs.
-    E.Handler $ \e -> E.throw (e :: E.AsyncException)
-
-  , E.Handler $ \e -> return . Fail $ "Uncaught exception: " ++ show (e :: E.SomeException)
-  ]
-
-
--- | Create a set of specifications for a specific type being described.
--- Once you know what you want specs for, use this.
+-- |
+-- Create a set of specifications for a specific type being described.  Once
+-- you know what you want specs for, use this.
 --
 -- > describe "abs" [
 -- >   it "returns a positive number given a negative number"
 -- >     (abs (-1) == 1)
 -- >   ]
---
 it :: Example a => String -> a -> Spec
 it s e = SpecExample s (`evaluateExample` e)
 

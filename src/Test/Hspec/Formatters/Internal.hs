@@ -36,7 +36,7 @@ import qualified System.IO as IO
 import           System.IO (Handle)
 import           Control.Monad (when)
 import           Control.Applicative
-import           Control.Exception (bracket_)
+import           Control.Exception (SomeException, bracket_)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (gets, modify)
 import qualified Control.Monad.Trans.State as State
@@ -113,7 +113,7 @@ getTotalCount :: FormatM Int
 getTotalCount = gets totalCount
 
 -- | Append to the list of accumulated failure messages.
-addFailMessage :: [String] -> String -> String -> FormatM ()
+addFailMessage :: [String] -> String -> (Either SomeException String) -> FormatM ()
 addFailMessage n r m = modify $ \s -> s {failMessages = FailureRecord n r m : failMessages s}
 
 -- | Get the list of accumulated failure messages.
@@ -123,7 +123,7 @@ getFailMessages = reverse `fmap` gets failMessages
 data FailureRecord = FailureRecord {
   failureRecordNesting      :: [String]
 , failureRecordRequirement  :: String
-, failureRecordMessage      :: String
+, failureRecordMessage      :: Either SomeException String
 }
 
 data Formatter = Formatter {
@@ -132,7 +132,7 @@ data Formatter = Formatter {
 -- | evaluated after each successful example
 , exampleSucceeded    :: [String] -> String -> FormatM ()
 -- | evaluated after each failed example
-, exampleFailed       :: [String] -> String -> String -> FormatM ()
+, exampleFailed       :: [String] -> String -> Either SomeException String -> FormatM ()
 -- | evaluated after each pending example
 , examplePending      :: [String] -> String -> Maybe String -> FormatM ()
 -- | evaluated after a test run
