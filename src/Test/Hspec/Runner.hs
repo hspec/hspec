@@ -47,24 +47,11 @@ runFormatter c formatter = go []
           exampleSucceeded formatter groups requirement
         Fail err -> do
           increaseFailCount
+          addFailMessage groups requirement err
           exampleFailed  formatter groups requirement err
-          n <- getFailCount
-          addFailMessage $ failureDetails groups requirement err n
         Pending reason -> do
           increasePendingCount
           examplePending formatter groups requirement reason
-
-failureDetails :: [String] -> String -> String -> Int -> String
-failureDetails groups requirement err i =
-  show i ++ ") " ++ groups_ ++ requirement ++ " FAILED" ++ err_
-  where
-    err_
-      | null err  = ""
-      | otherwise = "\n" ++ err
-    groups_ = case groups of
-      [x] -> x ++ " "
-      _   -> concatMap (++ " - ") (reverse groups)
-
 
 -- | Create a document of the given specs and write it to stdout.
 --

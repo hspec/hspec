@@ -24,7 +24,10 @@ module Test.Hspec.Formatters (
 , getPendingCount
 , getFailCount
 , getTotalCount
+
+, FailureRecord (..)
 , getFailMessages
+
 , getCPUTime
 , getRealTime
 
@@ -58,7 +61,10 @@ import Test.Hspec.Formatters.Internal (
   , getPendingCount
   , getFailCount
   , getTotalCount
+
+  , FailureRecord (..)
   , getFailMessages
+
   , getCPUTime
   , getRealTime
 
@@ -121,12 +127,22 @@ failed_examples   = silent {
 , footerFormatter = defaultFooter
 }
 
-
 defaultFailedFormatter :: FormatM ()
 defaultFailedFormatter = withFailColor $ do
-  failures <- getFailMessages
+  failures <- map formatFailure . zip [1..] <$> getFailMessages
   mapM_ writeLine ("" : intersperse "" failures)
   unless (null failures) (writeLine "")
+  where
+    formatFailure :: (Int, FailureRecord) -> String
+    formatFailure (i, FailureRecord groups requirement err) =
+      show i ++ ") " ++ groups_ ++ requirement ++ " FAILED" ++ err_
+      where
+        err_
+          | null err  = ""
+          | otherwise = "\n" ++ err
+        groups_ = case groups of
+          [x] -> x ++ " "
+          _   -> concatMap (++ " - ") (reverse groups)
 
 defaultFooter :: FormatM ()
 defaultFooter = do

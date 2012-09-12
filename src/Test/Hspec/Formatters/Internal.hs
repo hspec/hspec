@@ -9,7 +9,10 @@ module Test.Hspec.Formatters.Internal (
 , getPendingCount
 , getFailCount
 , getTotalCount
+
+, FailureRecord (..)
 , getFailMessages
+
 , getCPUTime
 , getRealTime
 
@@ -63,7 +66,7 @@ data FormatterState = FormatterState {
 , successCount  :: Int
 , pendingCount  :: Int
 , failCount     :: Int
-, failMessages  :: [String]
+, failMessages  :: [FailureRecord]
 , cpuStartTime  :: Integer
 , startTime     :: POSIXTime
 }
@@ -110,12 +113,18 @@ getTotalCount :: FormatM Int
 getTotalCount = gets totalCount
 
 -- | Append to the list of accumulated failure messages.
-addFailMessage :: String -> FormatM ()
-addFailMessage err = modify $ \s -> s {failMessages = err : failMessages s}
+addFailMessage :: [String] -> String -> String -> FormatM ()
+addFailMessage n r m = modify $ \s -> s {failMessages = FailureRecord n r m : failMessages s}
 
 -- | Get the list of accumulated failure messages.
-getFailMessages :: FormatM [String]
+getFailMessages :: FormatM [FailureRecord]
 getFailMessages = reverse `fmap` gets failMessages
+
+data FailureRecord = FailureRecord {
+  failureRecordNesting      :: [String]
+, failureRecordRequirement  :: String
+, failureRecordMessage      :: String
+}
 
 data Formatter = Formatter {
 -- | evaluated before each test group
