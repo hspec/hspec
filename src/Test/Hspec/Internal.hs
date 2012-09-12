@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 module Test.Hspec.Internal (
   Spec (..)
 , Specs
@@ -7,11 +8,12 @@ module Test.Hspec.Internal (
 
 , describe
 , it
-)
-where
+) where
 
-import           Control.Exception
+import qualified Control.Exception as E
 import           Test.Hspec.Config (Config)
+import           Test.Hspec.Expectations
+import           Test.HUnit.Lang (HUnitFailure(..))
 
 -- | A list of specs.
 type Specs = [Spec]
@@ -29,16 +31,15 @@ describe :: String -> [Spec] -> Spec
 describe = SpecGroup
 
 safeEvaluateExample :: IO Result -> IO Result
-safeEvaluateExample action = do
-  action `catches` [
-    -- Re-throw AsyncException, otherwise execution will not terminate on
-    -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
-    -- UserInterrupt) because all of them indicate severe conditions and
-    -- should not occur during normal test runs.
-    Handler $ \e -> throw (e :: AsyncException),
+safeEvaluateExample action = action `E.catches` [
+  -- Re-throw AsyncException, otherwise execution will not terminate on
+  -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
+  -- UserInterrupt) because all of them indicate severe conditions and
+  -- should not occur during normal test runs.
+    E.Handler $ \e -> E.throw (e :: E.AsyncException)
 
-    Handler $ \e -> return . Fail $ "Uncaught exception: " ++ show (e :: SomeException)
-    ]
+  , E.Handler $ \e -> return . Fail $ "Uncaught exception: " ++ show (e :: E.SomeException)
+  ]
 
 
 -- | Create a set of specifications for a specific type being described.
@@ -58,6 +59,9 @@ class Example a where
 
 instance Example Bool where
   evaluateExample _ b = if b then return Success else return (Fail "")
+
+instance Example Expectation where
+  evaluateExample _ action = (action >> return Success) `E.catch` \(HUnitFailure err) -> return (Fail err)
 
 instance Example Result where
   evaluateExample _ r = r `seq` return r

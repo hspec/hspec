@@ -4,7 +4,6 @@ import           Test.Hspec.Meta
 import           Util
 
 import qualified Test.Hspec.Core as H
-import qualified Test.Hspec.Runner as H
 import           Test.Hspec.HUnit ()
 import           Test.HUnit
 
@@ -13,20 +12,6 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "evaluateExample" $ do
-    context "for Assertion" $ do
-      it "returns Success if no assertion fails" $ do
-        H.evaluateExample H.defaultConfig (assertEqual "" (23 :: Int) 23) `shouldReturn` H.Success
-
-      it "returns Fail on assertFailure" $ do
-        H.evaluateExample H.defaultConfig (assertFailure "foobar") `shouldReturn` H.Fail "foobar"
-
-      it "returns Fail on failing assertEqual" $ do
-        H.evaluateExample H.defaultConfig (assertEqual "" (42 :: Int) 23) `shouldReturn` H.Fail "expected: 42\n but got: 23"
-
-      it "propagates exceptions" $ do
-        H.evaluateExample H.defaultConfig (error "foobar" :: Assertion) `shouldThrow` errorCall "foobar"
-
   describe "HUnit TestCase as an example" $ do
     it "is specified with the HUnit `TestCase` data constructor" $ TestCase $ do
       hspecSummary [
