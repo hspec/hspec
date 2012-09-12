@@ -1,12 +1,7 @@
 module Main (main, spec) where
 
-import Test.Hspec.Monadic
-import Test.Hspec.HUnit ()
+import Test.Hspec
 import Test.Hspec.QuickCheck
-import Test.HUnit
-
-shouldBe :: (Show a, Eq a) => a -> a -> Assertion
-actual `shouldBe` expected = actual @?= expected
 
 main :: IO ()
 main = hspec spec

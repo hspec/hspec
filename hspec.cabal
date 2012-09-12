@@ -99,7 +99,6 @@ test-suite example
   build-depends:
       base
     , hspec
-    , HUnit
 
 test-suite example-non-monadic
   type:
