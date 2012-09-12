@@ -119,13 +119,13 @@ getFailMessages = reverse `fmap` gets failMessages
 
 data Formatter = Formatter {
 -- | evaluated before each test group
-  exampleGroupStarted :: Int -> String -> FormatM ()
+  exampleGroupStarted :: [String] -> String -> FormatM ()
 -- | evaluated after each successful example
-, exampleSucceeded    :: Int -> String -> FormatM ()
+, exampleSucceeded    :: [String] -> String -> FormatM ()
 -- | evaluated after each failed example
-, exampleFailed       :: Int -> String -> String -> FormatM ()
+, exampleFailed       :: [String] -> String -> String -> FormatM ()
 -- | evaluated after each pending example
-, examplePending      :: Int -> String -> Maybe String -> FormatM ()
+, examplePending      :: [String] -> String -> Maybe String -> FormatM ()
 -- | evaluated after a test run
 , failedFormatter     :: FormatM ()
 -- | evaluated after `failuresFormatter`

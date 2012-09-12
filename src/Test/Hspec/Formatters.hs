@@ -101,8 +101,8 @@ specdoc = silent {
 
 , footerFormatter = defaultFooter
 } where
-    indentationForExample nesting = replicate (pred nesting * 2) ' '
-    indentationForGroup nesting = replicate (nesting * 2) ' '
+    indentationForExample nesting = replicate (pred (length nesting) * 2) ' '
+    indentationForGroup nesting = replicate (length nesting * 2) ' '
 
 
 progress :: Formatter

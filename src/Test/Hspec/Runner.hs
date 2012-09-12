@@ -33,26 +33,26 @@ import           System.Exit
 
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Config -> Formatter -> Spec -> FormatM ()
-runFormatter c formatter = go 0 []
+runFormatter c formatter = go []
   where
-    go :: Int -> [String] -> Spec -> FormatM ()
-    go nesting groups (SpecGroup group xs) = do
-      exampleGroupStarted formatter nesting group
-      mapM_ (go (succ nesting) (group : groups)) xs
-    go nesting groups (SpecExample requirement e) = do
+    go :: [String] -> Spec -> FormatM ()
+    go groups (SpecGroup group xs) = do
+      exampleGroupStarted formatter groups group
+      mapM_ (go (group : groups)) xs
+    go groups (SpecExample requirement e) = do
       result <- liftIO $ safeEvaluateExample (e c)
       case result of
         Success -> do
           increaseSuccessCount
-          exampleSucceeded formatter nesting requirement
+          exampleSucceeded formatter groups requirement
         Fail err -> do
           increaseFailCount
-          exampleFailed  formatter nesting requirement err
+          exampleFailed  formatter groups requirement err
           n <- getFailCount
           addFailMessage $ failureDetails groups requirement err n
         Pending reason -> do
           increasePendingCount
-          examplePending formatter nesting requirement reason
+          examplePending formatter groups requirement reason
 
 failureDetails :: [String] -> String -> String -> Int -> String
 failureDetails groups requirement err i =
