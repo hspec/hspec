@@ -112,7 +112,7 @@ test-suite example-non-monadic
   build-depends:
       base
     , hspec
-    , HUnit
+    , hspec-expectations
 
 -- hspec-discover
 executable hspec-discover
