@@ -35,9 +35,9 @@ safeEvaluateExample action = do
     -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
     -- UserInterrupt) because all of them indicate severe conditions and
     -- should not occur during normal test runs.
-    Handler (\e -> throw (e :: AsyncException)),
+    Handler $ \e -> throw (e :: AsyncException),
 
-    Handler (\e -> return $ Fail (show (e :: SomeException)))
+    Handler $ \e -> return . Fail $ "Uncaught exception: " ++ show (e :: SomeException)
     ]
 
 

@@ -28,10 +28,12 @@ module Test.Hspec.HUnit () where
 import           System.IO.Silently
 import           Test.Hspec.Core
 import qualified Test.HUnit as HU
+import           Test.HUnit.Lang (HUnitFailure(..))
 import           Data.List (intersperse)
+import qualified Control.Exception as E
 
 instance Example HU.Assertion where
-  evaluateExample c io = evaluateExample c (HU.TestCase io)
+  evaluateExample _ action = (action >> return Success) `E.catch` \(HUnitFailure err) -> return (Fail err)
 
 instance Example HU.Test where
   evaluateExample _ test = do

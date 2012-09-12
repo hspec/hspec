@@ -36,7 +36,7 @@ Library
     , ansi-terminal == 0.5.5
     , time < 1.5
     , transformers >= 0.2.0 && < 0.4.0
-    , HUnit >= 1 && <= 2
+    , HUnit >= 1.2.5
     , QuickCheck >= 2.4.0.1 && <= 2.5
     , hspec-expectations
   exposed-modules:
@@ -69,7 +69,7 @@ test-suite spec
     , ansi-terminal == 0.5.5
     , time < 1.5
     , transformers >= 0.2.0 && < 0.4.0
-    , HUnit >= 1 && <= 2
+    , HUnit >= 1.2.5
     , QuickCheck >= 2.4.0.1 && <= 2.5
     , hspec-expectations
     , hspec-meta

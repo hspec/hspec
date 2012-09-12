@@ -11,7 +11,7 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "The `specdoc` Formatter" $ do
+  describe "specdoc" $ do
     let testSpecs = [H.describe "Example" [
             H.it "success"    (H.Success)
           , H.it "fail 1"     (H.Fail "fail message")
