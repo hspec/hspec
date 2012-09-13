@@ -10,6 +10,7 @@ module Test.Hspec.Internal (
 ) where
 
 import qualified Control.Exception as E
+import           System.IO.Silently
 import           Test.Hspec.Config (Config)
 import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
@@ -48,7 +49,7 @@ instance Example Bool where
   evaluateExample _ b = if b then return Success else return (Fail "")
 
 instance Example Expectation where
-  evaluateExample _ action = (action >> return Success) `E.catch` \(HUnitFailure err) -> return (Fail err)
+  evaluateExample _ action = (silence action >> return Success) `E.catch` \(HUnitFailure err) -> return (Fail err)
 
 instance Example Result where
   evaluateExample _ r = r `seq` return r

@@ -2,6 +2,7 @@ module Test.Hspec.InternalSpec (main, spec) where
 
 import           Test.Hspec.Meta
 
+import           System.IO.Silently
 import qualified Test.Hspec.Internal as H
 import qualified Test.Hspec.Config as H
 
@@ -31,3 +32,6 @@ spec = do
 
       it "propagates exceptions" $ do
         H.evaluateExample H.defaultConfig (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
+
+      it "silences any output to stdout" $ do
+        (capture . H.evaluateExample H.defaultConfig $ putStrLn "foobar") `shouldReturn` ("", H.Success)
