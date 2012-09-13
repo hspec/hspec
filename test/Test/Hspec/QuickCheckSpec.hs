@@ -1,7 +1,7 @@
 module Test.Hspec.QuickCheckSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Util
+import           Util hiding (capture)
 
 import qualified Test.Hspec.Core as H
 import           Test.Hspec.QuickCheck ()

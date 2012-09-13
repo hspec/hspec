@@ -3,8 +3,11 @@ module Test.Hspec.FormattersSpec (main, spec) where
 import           Test.Hspec.Meta
 import           Data.List
 
-import qualified Test.Hspec.Core as H
 import           Util
+import           System.Console.ANSI
+
+import qualified Test.Hspec.Core as H
+import qualified Test.Hspec.Runner as H
 
 main :: IO ()
 main = hspec spec
@@ -46,10 +49,6 @@ spec = do
       r <- runSpec testSpecs
       r `shouldSatisfy` any ("Finished in " `isPrefixOf`)
 
-    it "summarizes the number of examples and failures" $ do
-      r <- runSpec testSpecs
-      r `shouldSatisfy` any (== "6 examples, 4 failures")
-
     it "outputs failed examples in red, pending in yellow, and successful in green" $ do
       pending
 
@@ -59,3 +58,19 @@ spec = do
           "1) foobar FAILED (uncaught exception)"
         , "ErrorCall (Prelude.undefined)"
         ]
+
+    it "summarizes the number of examples and failures" $ do
+      r <- runSpec testSpecs
+      r `shouldSatisfy` any (== "6 examples, 4 failures")
+
+    it "shows summary in green if there are no failures" $ do
+      r <- capture $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} [H.it "foobar" True]
+      r `shouldSatisfy` any (== (green ++ "1 example, 0 failures" ++ reset))
+
+    it "shows summary in red if there are failures" $ do
+      r <- capture $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} [H.it "foobar" False]
+      r `shouldSatisfy` any (== (red ++ "1 example, 1 failure" ++ reset))
+  where
+    green  = setSGRCode [SetColor Foreground Dull Green]
+    red    = setSGRCode [SetColor Foreground Dull Red]
+    reset  = setSGRCode [Reset]

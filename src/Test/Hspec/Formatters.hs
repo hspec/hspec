@@ -153,7 +153,8 @@ defaultFooter = do
 
   fails <- getFailCount
   total <- getTotalCount
+  writeLine ""
   (if fails == 0 then withSuccessColor else withFailColor) $ do
-    writeLine ""
     write $ quantify total "example" ++ ", "
-    writeLine $ quantify fails "failure"
+    write $ quantify fails "failure"
+  writeLine ""
