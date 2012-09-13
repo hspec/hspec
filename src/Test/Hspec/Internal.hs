@@ -11,9 +11,11 @@ module Test.Hspec.Internal (
 
 import qualified Control.Exception as E
 import           System.IO.Silently
-import           Test.Hspec.Config (Config)
+import           Test.Hspec.Util
+import           Test.Hspec.Config (Config(..))
 import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
+import qualified Test.QuickCheck as QC
 
 -- | A list of specs.
 type Specs = [Spec]
@@ -53,3 +55,13 @@ instance Example Expectation where
 
 instance Example Result where
   evaluateExample _ r = r `seq` return r
+
+instance Example QC.Property where
+  evaluateExample c p = do
+    r <- silence $ QC.quickCheckWithResult (configQuickCheckArgs c) p
+    return $
+      case r of
+        QC.Success {}               -> Success
+        f@(QC.Failure {})           -> Fail (QC.output f)
+        QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
+        QC.NoExpectedFailure {}     -> Fail ("No expected failure")
