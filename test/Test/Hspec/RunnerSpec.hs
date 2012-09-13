@@ -5,8 +5,8 @@ import           Test.Hspec.Meta
 import           System.Exit
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H
-import           Test.Hspec.Formatters
-import           System.IO.Silently
+import qualified Test.Hspec.Formatters as H
+import           Util
 
 main :: IO ()
 main = hspec spec
@@ -22,38 +22,22 @@ spec = do
       H.hspec [H.it "foobar" False] `shouldThrow` (== ExitFailure 1)
 
   describe "hspecWith" $ do
-    let testSpecs = [
-          H.describe "Example" [
-            H.it "success"   True
-          , H.it "fail 1"    False
-          , H.it "pending"   H.pending
-          , H.it "fail 2"    False
-          , H.it "exception" (undefined :: Bool)
-          , H.it "fail 3"    False
-          ]
-          ]
-        runSpec f = (lines . fst) `fmap` capture (H.hspecWith H.defaultConfig {H.configFormatter = f} testSpecs)
-
-    it "can use the \"silent\" formatter to show no output" $ do
-      runSpec silent `shouldReturn` []
-
-    it "can use the \"progress\" formatter to show '..F...FF.F' style output" $ do
-      r <- runSpec progress
-      head r `shouldBe` ".F.FFF"
-
-    it "can use the \"specdoc\" formatter to show all examples (default)" $ do
-      r <- runSpec specdoc
-      r !! 1 `shouldBe` "Example"
-
-    it "can use the \"failed_examples\" formatter to show only failed examples" $ do
-      r <- runSpec failed_examples
-      r !! 1 `shouldBe` "1) Example fail 1 FAILED"
-
     it "returns a summary of the test run" $ do
-      H.hspecWith H.defaultConfig {H.configFormatter = silent} [
-          H.it "foo" True
-        , H.it "foo" False
-        , H.it "foo" False
-        , H.it "foo" True
-        , H.it "foo" True
-        ] `shouldReturn` H.Summary 5 2
+      let testSpec = [
+              H.it "foo" True
+            , H.it "foo" False
+            , H.it "foo" False
+            , H.it "foo" True
+            , H.it "foo" True
+            ]
+      H.hspecWith H.defaultConfig testSpec `shouldReturn` H.Summary 5 2
+
+    it "uses the specdoc formatter by default" $ do
+      let testSpec = [H.describe "Foo.Bar" []]
+      _:r:_ <- capture $ H.hspecWith H.defaultConfig testSpec
+      r `shouldBe` "Foo.Bar"
+
+    it "can use a custom formatter" $ do
+      let testSpec = [H.describe "Foo.Bar" []]
+      [] <- capture $ H.hspecWith H.defaultConfig {H.configFormatter = H.silent} testSpec
+      return ()
