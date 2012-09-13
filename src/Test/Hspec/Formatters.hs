@@ -151,10 +151,16 @@ defaultFooter = do
 
   writeLine =<< printf "Finished in %1.4f seconds, used %1.4f seconds of CPU time" <$> getRealTime <*> getCPUTime
 
-  fails <- getFailCount
-  total <- getTotalCount
+  fails   <- getFailCount
+  pending <- getPendingCount
+  total   <- getTotalCount
   writeLine ""
-  (if fails == 0 then withSuccessColor else withFailColor) $ do
-    write $ quantify total "example" ++ ", "
+
+  let c | fails /= 0   = withFailColor
+        | pending /= 0 = withPendingColor
+        | otherwise    = withSuccessColor
+  c $ do
+    write $ quantify total   "example"
+    write (", " ++ show pending ++ " pending, ")
     write $ quantify fails "failure"
   writeLine ""
