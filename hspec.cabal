@@ -52,7 +52,6 @@ Library
   build-depends:
       base          == 4.*
     , setenv
-    , silently      >= 1.1.1
     , ansi-terminal >= 0.5
     , time
     , transformers  >= 0.2.2.0 && < 0.4.0

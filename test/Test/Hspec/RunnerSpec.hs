@@ -41,11 +41,11 @@ spec = do
         H.it "foobar" False
       `shouldThrow` (== ExitFailure 1)
 
-    it "suppresses output to stdout when evaluating examples" $ do
+    it "allows output to stdout" $ do
       r <- captureLines . H.hspec $ do
         H.it "foobar" $ do
           putStrLn "baz"
-      r `shouldSatisfy` notElem "baz"
+      r `shouldSatisfy` elem "baz"
 
     it "prints an error message on unrecognized command-line options" $ do
       withProgName "myspec" . withArgs ["--foo"] $ do
@@ -94,13 +94,6 @@ spec = do
         r <- (captureLines . ignoreExitCode) printHelp
         r `shouldSatisfy` all ((<= 80) . length)
         r `shouldSatisfy` any ((78 <=) . length)
-
-    context "with --verbose" $ do
-      it "does not suppress output to stdout" $ do
-        r <- captureLines . withArgs ["--verbose"] . H.hspec $ do
-          H.it "foobar" $ do
-            putStrLn "baz"
-        r `shouldSatisfy` elem "baz"
 
     context "with --dry-run" $ do
       it "produces a report" $ do

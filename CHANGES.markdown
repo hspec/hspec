@@ -1,5 +1,6 @@
 ## Next
  - Rename `--fast-fail` to `--fail-fast` (for consistency with RSpec)
+ - Do not suppress output to `stdout`
 
 ## Changes in 1.4.5
  - hspec-discover now discovers .lhs files, too

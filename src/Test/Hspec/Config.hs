@@ -39,6 +39,8 @@ data Config = Config {
 , configHandle          :: Handle
 }
 
+{-# DEPRECATED configVerbose "this has no effect anymore and will be removed with a future release" #-} -- deprecated since 1.5.0
+
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
@@ -80,7 +82,6 @@ addLineBreaks = lineBreaksAt 44
 options :: [OptDescr (Result -> Result)]
 options = [
     Option []  ["help"]                    (NoArg (const $ Left Help))        (h "display this help and exit")
-  , Option "v" ["verbose"]                 (NoArg setVerbose)                 (h "do not suppress output to stdout when evaluating examples")
   , Option "m" ["match"]                   (ReqArg setFilter "PATTERN")       (h "only run examples that match given PATTERN")
   , Option []  ["color"]                   (OptArg setColor "WHEN")           (h "colorize the output; WHEN defaults to `always' or can be `never' or `auto'")
   , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
@@ -95,7 +96,6 @@ options = [
     setFilter :: String -> Result -> Result
     setFilter pattern x = configAddFilter (filterPredicate pattern) <$> x
 
-    setVerbose      x = x >>= \c -> return c {configVerbose      = True}
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun       = True}
     setFastFail     x = x >>= \c -> return c {configFastFail     = True}
@@ -123,6 +123,9 @@ undocumentedOptions = [
     -- undocumented for now, as we probably want to change this to produce a
     -- standalone HTML report in the future
   , Option []  ["html"]                    (NoArg setHtml)                    "produce HTML output"
+
+    -- now a noop
+  , Option "v" ["verbose"]                 (NoArg id)                         "do not suppress output to stdout when evaluating examples"
   ]
   where
     setReRun :: Result -> Result

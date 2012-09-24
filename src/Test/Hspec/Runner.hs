@@ -21,7 +21,6 @@ import           Data.Maybe
 import           System.IO
 import           System.Environment
 import           System.Exit
-import           System.IO.Silently (silence)
 
 import           Test.Hspec.Util (Path, safeEvaluate)
 import           Test.Hspec.Core.Type
@@ -59,13 +58,9 @@ runFormatter c formatter specs = headerFormatter formatter >> zip [0..] specs `e
       unless (configFastFail c && fails /= 0) $ do
         xs `each` f
 
-    silence_
-      | configVerbose c = id
-      | otherwise       = silence
-
     eval
       | configDryRun c = \_ -> return (Right Success)
-      | otherwise      = liftIO . safeEvaluate . silence_
+      | otherwise      = liftIO . safeEvaluate
 
     go :: [String] -> (Int, SpecTree) -> FormatM ()
     go rGroups (n, SpecGroup group xs) = do
