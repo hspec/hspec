@@ -22,7 +22,6 @@ module Test.Hspec.QuickCheck (
 , prop
 ) where
 
-import           System.IO.Silently
 import           Test.Hspec.Core
 import           Test.Hspec.Config (Config(..))
 import qualified Test.QuickCheck as QC
@@ -36,7 +35,7 @@ prop n p = DSL.it n (QC.property p)
 
 instance Example QC.Property where
   evaluateExample c p = do
-    r <- silence $ QC.quickCheckWithResult (configQuickCheckArgs c) p
+    r <- QC.quickCheckWithResult (configQuickCheckArgs c) p
     return $
       case r of
         QC.Success {}               -> Success
