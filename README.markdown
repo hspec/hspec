@@ -17,7 +17,7 @@ Join in at `#hspec` on freenode.
 Hspec is tested with `hspec-meta`.  You need to install `hspec-meta` before you
 can run the test suite:
 
-    git checkout hspec-meta && caba install && git checkout master
+    git checkout hspec-meta && cabal install && git checkout master
 
 To run the test suite do:
 
