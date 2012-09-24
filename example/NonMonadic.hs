@@ -2,7 +2,7 @@ module Main (main, spec) where
 
 import Test.Hspec.Core
 import Test.Hspec.Expectations
-import Test.Hspec.QuickCheck
+import Test.QuickCheck
 
 main :: IO ()
 main = hspec spec

@@ -99,6 +99,7 @@ test-suite example
   build-depends:
       base
     , hspec
+    , QuickCheck
 
 test-suite example-non-monadic
   type:
@@ -113,6 +114,7 @@ test-suite example-non-monadic
       base
     , hspec
     , hspec-expectations
+    , QuickCheck
 
 -- hspec-discover
 executable hspec-discover
