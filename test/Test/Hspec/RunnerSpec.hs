@@ -22,15 +22,16 @@ spec = do
     it "exits with exitFailure if not all examples pass" $ do
       H.hspec [H.it "foobar" False] `shouldThrow` (== ExitFailure 1)
 
-    it "suppresses output to stdout from examples" $ do
+    it "suppresses output to stdout when evaluating examples" $ do
       r <- capture $
         H.hspec [H.it "foobar" $ putStrLn "baz"]
       r `shouldSatisfy` notElem "baz"
 
-    it "does not suppress output to stdout from examples when invoked with --verbose" $ do
-      r <- capture . withArgs ["--verbose"] $
-        H.hspec [H.it "foobar" $ putStrLn "baz"]
-      r `shouldSatisfy` elem "baz"
+    describe "command-line option '--verbose'" $ do
+      it "does not suppress output to stdout when evaluating examples" $ do
+        r <- capture . withArgs ["--verbose"] $
+          H.hspec [H.it "foobar" $ putStrLn "baz"]
+        r `shouldSatisfy` elem "baz"
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do
