@@ -22,6 +22,10 @@ spec = do
     it "exits with exitFailure if not all examples pass" $ do
       H.hspec [H.it "foobar" False] `shouldThrow` (== ExitFailure 1)
 
+    it "does not leak command-line arguments to examples" $ do
+      withArgs ["--verbose"] $
+        H.hspec [H.it "foobar" $ getArgs `shouldReturn` []] `shouldReturn` ()
+
     it "suppresses output to stdout when evaluating examples" $ do
       r <- capture $
         H.hspec [H.it "foobar" $ putStrLn "baz"]

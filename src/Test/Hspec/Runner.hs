@@ -24,6 +24,7 @@ import           Control.Monad (unless, (>=>))
 import           Control.Applicative
 import           Data.Monoid
 import           System.IO
+import           System.Environment
 import           System.Exit
 import           System.IO.Silently (silence)
 
@@ -67,7 +68,11 @@ runFormatter c formatter = go []
 --
 -- Exit the program with `exitFailure` if at least one example fails.
 hspec :: Specs -> IO ()
-hspec specs = getConfig >>= (`hspecB_` specs) >>= (`unless` exitFailure)
+hspec specs =
+  getConfig >>=
+  withArgs [] .             -- do not leak command-line arguments to examples
+  (`hspecB_` specs) >>=
+  (`unless` exitFailure)
 
 {-# DEPRECATED hspecX "use hspec instead" #-}
 hspecX :: Specs -> IO a
