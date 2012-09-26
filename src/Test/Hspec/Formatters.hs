@@ -137,14 +137,11 @@ defaultFailedFormatter = withFailColor $ do
   where
     formatFailure :: (Int, FailureRecord) -> String
     formatFailure (i, FailureRecord groups requirement reason) =
-      show i ++ ") " ++ groups_ ++ requirement ++ " FAILED" ++ err
+      show i ++ ") " ++ formatRequirement (reverse groups) requirement ++ " FAILED" ++ err
       where
         err = case reason of
           Left (E.SomeException e)  -> " (uncaught exception)\n" ++ (show . typeOf) e ++ " (" ++ show e ++ ")"
           Right e -> if null e then "" else "\n" ++ e
-        groups_ = case groups of
-          [x] -> x ++ " "
-          _   -> concatMap (++ ", ") (reverse groups)
 
 defaultFooter :: FormatM ()
 defaultFooter = do

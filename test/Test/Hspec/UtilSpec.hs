@@ -49,3 +49,22 @@ spec = do
     it "accepts partial matches" $ do
       let p = filterPredicate "bar/baz"
       p ["foo", "bar", "baz"] "example 1" `shouldBe` True
+
+  describe "formatRequirement" $ do
+    it "creates a sentence from a subject and a requirement" $ do
+      formatRequirement ["reverse"] "reverses a list" `shouldBe` "reverse reverses a list"
+
+    it "creates a sentence from a subject and a requirement when the subject consits of multiple words" $ do
+      formatRequirement ["The reverse function"] "reverses a list" `shouldBe` "The reverse function reverses a list"
+
+    it "returns the requirement if no subject is given" $ do
+      formatRequirement [] "reverses a list" `shouldBe` "reverses a list"
+
+    it "inserts context separated by commas" $ do
+      formatRequirement ["reverse", "when applied twice"] "reverses a list" `shouldBe` "reverse, when applied twice, reverses a list"
+
+    it "joins components of a subject with a dot" $ do
+      formatRequirement ["Data", "List", "reverse"] "reverses a list" `shouldBe` "Data.List.reverse reverses a list"
+
+    it "properly handles context after a subject that consists of several components" $ do
+      formatRequirement ["Data", "List", "reverse", "when applied twice"] "reverses a list" `shouldBe` "Data.List.reverse, when applied twice, reverses a list"
