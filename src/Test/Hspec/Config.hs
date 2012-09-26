@@ -88,9 +88,7 @@ getConfig = do
     Right config -> do
       return config
   where
-    printAndExit :: String -> IO a
-    printAndExit s = putStr s >> exitFailure
-
     tryHelp message = do
       name <- getProgName
-      printAndExit $ name ++ ": " ++ message ++ "Try `" ++ name ++ " --help' for more information.\n"
+      hPutStr stderr $ name ++ ": " ++ message ++ "Try `" ++ name ++ " --help' for more information.\n"
+      exitFailure

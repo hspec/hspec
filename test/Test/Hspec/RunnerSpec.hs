@@ -1,13 +1,22 @@
 module Test.Hspec.RunnerSpec (main, spec) where
 
 import           Test.Hspec.Meta
+import           System.IO.Silently (hCapture, hSilence)
+import           System.IO (stderr)
 
 import           System.Environment
 import           System.Exit
+import qualified Control.Exception as E
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Formatters as H
 import           Util
+
+ignoreExitCode :: IO () -> IO ()
+ignoreExitCode action = action `E.catch` ignore
+  where
+    ignore :: ExitCode -> IO ()
+    ignore _ = return ()
 
 main :: IO ()
 main = hspec spec
@@ -22,20 +31,30 @@ spec = do
     it "exits with exitFailure if not all examples pass" $ do
       H.hspec [H.it "foobar" False] `shouldThrow` (== ExitFailure 1)
 
-    it "does not leak command-line flags to examples" $ do
-      withArgs ["--verbose"] $
-        H.hspec [H.it "foobar" $ getArgs `shouldReturn` []] `shouldReturn` ()
-
     it "suppresses output to stdout when evaluating examples" $ do
       r <- capture $
         H.hspec [H.it "foobar" $ putStrLn "baz"]
       r `shouldSatisfy` notElem "baz"
 
-    describe "command-line flag '--verbose'" $ do
-      it "does not suppress output to stdout when evaluating examples" $ do
-        r <- capture . withArgs ["--verbose"] $
-          H.hspec [H.it "foobar" $ putStrLn "baz"]
-        r `shouldSatisfy` elem "baz"
+    context "command-line options" $ do
+      it "prints error message on unrecognized option" $ do
+        withProgName "myspec" . withArgs ["--foo"] $ do
+          hSilence [stderr] (H.hspec []) `shouldThrow` (== ExitFailure 1)
+          fst `fmap` hCapture [stderr] (ignoreExitCode (H.hspec [])) `shouldReturn` unlines [
+              "myspec: unrecognized option `--foo'"
+            , "Try `myspec --help' for more information."
+            ]
+
+      it "does not leak command-line flags to examples" $ do
+        withArgs ["--verbose"] $
+          H.hspec [H.it "foobar" $ getArgs `shouldReturn` []] `shouldReturn` ()
+
+      describe "option '--verbose'" $ do
+        it "does not suppress output to stdout when evaluating examples" $ do
+          r <- capture . withArgs ["--verbose"] $
+            H.hspec [H.it "foobar" $ putStrLn "baz"]
+          r `shouldSatisfy` elem "baz"
+
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do
