@@ -25,6 +25,7 @@ import           Control.Applicative
 import           Data.Monoid
 import           System.IO
 import           System.Exit
+import           System.IO.Silently (silence)
 
 import           Test.Hspec.Util (safeEvaluate)
 import           Test.Hspec.Internal
@@ -36,12 +37,16 @@ import           Test.Hspec.Formatters.Internal
 runFormatter :: Config -> Formatter -> Spec -> FormatM ()
 runFormatter c formatter = go []
   where
+    silence_
+      | configVerbose c = id
+      | otherwise       = silence
+
     go :: [String] -> Spec -> FormatM ()
     go groups (SpecGroup group xs) = do
       exampleGroupStarted formatter groups group
       mapM_ (go (group : groups)) xs
     go groups (SpecExample requirement example) = do
-      result <- liftIO $ safeEvaluate (example c)
+      result <- (liftIO . safeEvaluate . silence_) (example c)
       case result of
         Right Success -> do
           increaseSuccessCount

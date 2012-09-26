@@ -24,14 +24,13 @@
 --
 module Test.Hspec.HUnit () where
 
-import           System.IO.Silently
 import           Test.Hspec.Core
 import qualified Test.HUnit as HU
 import           Data.List (intersperse)
 
 instance Example HU.Test where
   evaluateExample _ test = do
-    (counts, fails) <- silence $ HU.runTestText HU.putTextToShowS test
+    (counts, fails) <- HU.runTestText HU.putTextToShowS test
     let r = if HU.errors counts + HU.failures counts == 0
              then Success
              else Fail (details $ fails "")

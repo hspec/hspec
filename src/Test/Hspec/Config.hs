@@ -15,7 +15,8 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Formatters
 
 data Config = Config {
-  configQuickCheckArgs :: QC.Args
+  configVerbose        :: Bool
+, configQuickCheckArgs :: QC.Args
 , configColorMode      :: ColorMode
 , configFormatter      :: Formatter
 , configHandle         :: Handle
@@ -24,7 +25,7 @@ data Config = Config {
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config QC.stdArgs ColorAuto specdoc stdout
+defaultConfig = Config False QC.stdArgs ColorAuto specdoc stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -44,11 +45,14 @@ data NoConfig = Help | InvalidArgument String String
 options :: [OptDescr (Result -> Result)]
 options = [
     Option []  ["help"]                    (NoArg (const $ Left Help))        "display this help and exit"
+  , Option "v" ["verbose"]                 (NoArg setVerbose)                 "do not suppress output to stdout when evaluating examples"
   , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to `always' or can be `never' or `auto'."
   , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
   , Option "a" ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
   ]
   where
+    setVerbose x = x >>= \c -> return c {configVerbose = True}
+
     setFormatter name x = x >>= \c -> case lookup name formatters of
       Nothing -> Left (InvalidArgument "format" name)
       Just f  -> return c {configFormatter = f}

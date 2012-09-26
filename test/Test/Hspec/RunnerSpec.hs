@@ -2,6 +2,7 @@ module Test.Hspec.RunnerSpec (main, spec) where
 
 import           Test.Hspec.Meta
 
+import           System.Environment
 import           System.Exit
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H
@@ -20,6 +21,16 @@ spec = do
 
     it "exits with exitFailure if not all examples pass" $ do
       H.hspec [H.it "foobar" False] `shouldThrow` (== ExitFailure 1)
+
+    it "suppresses output to stdout from examples" $ do
+      r <- capture $
+        H.hspec [H.it "foobar" $ putStrLn "baz"]
+      r `shouldSatisfy` notElem "baz"
+
+    it "does not suppress output to stdout from examples when invoked with --verbose" $ do
+      r <- capture . withArgs ["--verbose"] $
+        H.hspec [H.it "foobar" $ putStrLn "baz"]
+      r `shouldSatisfy` elem "baz"
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do

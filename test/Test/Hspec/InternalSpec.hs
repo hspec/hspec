@@ -2,7 +2,6 @@ module Test.Hspec.InternalSpec (main, spec) where
 
 import           Test.Hspec.Meta
 
-import           System.IO.Silently
 import qualified Test.Hspec.Internal as H
 import qualified Test.Hspec.Config as H
 import           Test.QuickCheck
@@ -36,9 +35,6 @@ spec = do
 
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
-
-      it "silences any output to stdout" $ do
-        (capture . evaluateExample $ putStrLn "foobar") `shouldReturn` ("", H.Success)
 
     context "for Property" $ do
       it "returns Success if property hold" $ do

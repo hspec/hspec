@@ -10,7 +10,6 @@ module Test.Hspec.Internal (
 ) where
 
 import qualified Control.Exception as E
-import           System.IO.Silently
 import           Test.Hspec.Util
 import           Test.Hspec.Config (Config(..))
 import           Test.Hspec.Expectations
@@ -51,14 +50,14 @@ instance Example Bool where
   evaluateExample _ b = if b then return Success else return (Fail "")
 
 instance Example Expectation where
-  evaluateExample _ action = (silence action >> return Success) `E.catch` \(HUnitFailure err) -> return (Fail err)
+  evaluateExample _ action = (action >> return Success) `E.catch` \(HUnitFailure err) -> return (Fail err)
 
 instance Example Result where
   evaluateExample _ r = r `seq` return r
 
 instance Example QC.Property where
   evaluateExample c p = do
-    r <- silence $ QC.quickCheckWithResult (configQuickCheckArgs c) p
+    r <- QC.quickCheckWithResult (configQuickCheckArgs c) p
     return $
       case r of
         QC.Success {}               -> Success
