@@ -74,20 +74,21 @@ failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do
   let runSpec = capture . H.hspecWith H.defaultConfig {H.configFormatter = formatter}
 
-  it "displays a detailed list of failed examples" $ do
-    r <- runSpec testSpec
-    r `shouldSatisfy` any (== "1) Example fail 1 FAILED")
-
   it "summarizes the time it takes to finish" $ do
-    r <- runSpec testSpec
+    r <- runSpec []
     r `shouldSatisfy` any ("Finished in " `isPrefixOf`)
 
-  it "marks examples that throw exceptions, includes the exception type" $ do
-    r <- runSpec [H.it "foobar" (undefined :: Bool)]
-    r `shouldSatisfy` isInfixOf [
-        "1) foobar FAILED (uncaught exception)"
-      , "ErrorCall (Prelude.undefined)"
-      ]
+  context "displays a detailed list of failures" $ do
+    it "prints all requirements that are not met" $ do
+      r <- runSpec testSpec
+      r `shouldSatisfy` any (== "1) Example fail 1 FAILED")
+
+    it "prints the exception type for requirements that fail due to an uncaught exception" $ do
+      r <- runSpec [H.it "foobar" (undefined :: Bool)]
+      r `shouldSatisfy` isInfixOf [
+          "1) foobar FAILED (uncaught exception)"
+        , "ErrorCall (Prelude.undefined)"
+        ]
 
   it "summarizes the number of examples and failures" $ do
     r <- runSpec testSpec
