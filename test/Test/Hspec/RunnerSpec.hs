@@ -22,7 +22,7 @@ spec = do
     it "exits with exitFailure if not all examples pass" $ do
       H.hspec [H.it "foobar" False] `shouldThrow` (== ExitFailure 1)
 
-    it "does not leak command-line arguments to examples" $ do
+    it "does not leak command-line flags to examples" $ do
       withArgs ["--verbose"] $
         H.hspec [H.it "foobar" $ getArgs `shouldReturn` []] `shouldReturn` ()
 
@@ -31,7 +31,7 @@ spec = do
         H.hspec [H.it "foobar" $ putStrLn "baz"]
       r `shouldSatisfy` notElem "baz"
 
-    describe "command-line option '--verbose'" $ do
+    describe "command-line flag '--verbose'" $ do
       it "does not suppress output to stdout when evaluating examples" $ do
         r <- capture . withArgs ["--verbose"] $
           H.hspec [H.it "foobar" $ putStrLn "baz"]
