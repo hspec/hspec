@@ -90,6 +90,10 @@ failed_examplesSpec formatter = do
         , "ErrorCall (Prelude.undefined)"
         ]
 
+    it "prints all descriptions when a nested requirement fails" $ do
+      r <- runSpec [H.describe "foo" [H.describe "bar" [H.it "baz" False]]]
+      r `shouldSatisfy` any (== "1) foo, bar, baz FAILED")
+
   it "summarizes the number of examples and failures" $ do
     r <- runSpec testSpec
     r `shouldSatisfy` any (== "6 examples, 1 pending, 4 failures")

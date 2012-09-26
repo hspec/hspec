@@ -144,7 +144,7 @@ defaultFailedFormatter = withFailColor $ do
           Right e -> if null e then "" else "\n" ++ e
         groups_ = case groups of
           [x] -> x ++ " "
-          _   -> concatMap (++ " - ") (reverse groups)
+          _   -> concatMap (++ ", ") (reverse groups)
 
 defaultFooter :: FormatM ()
 defaultFooter = do
