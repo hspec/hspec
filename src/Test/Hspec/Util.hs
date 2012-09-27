@@ -1,10 +1,12 @@
 module Test.Hspec.Util (
   quantify
 , safeEvaluate
+, filterPredicate
 ) where
 
 import           Control.Applicative
 import qualified Control.Exception as E
+import           Data.List
 
 -- | Create a more readable display of a quantity of something.
 --
@@ -32,3 +34,9 @@ safeEvaluate action = (Right <$> action) `E.catches` [
 
   , E.Handler $ \e -> (return . Left) (e :: E.SomeException)
   ]
+
+-- | A predicate that can be used to filter a specs.
+filterPredicate :: String -> [String] -> String -> Bool
+filterPredicate pattern descriptions requirement = pattern `isInfixOf` path
+  where
+    path = intercalate "/" (descriptions ++ [requirement])

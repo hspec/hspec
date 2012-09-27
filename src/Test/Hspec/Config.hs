@@ -14,8 +14,11 @@ import           System.Console.GetOpt
 import qualified Test.QuickCheck as QC
 import           Test.Hspec.Formatters
 
+import           Test.Hspec.Util
+
 data Config = Config {
   configVerbose        :: Bool
+, configFilter         :: [String] -> String -> Bool
 , configQuickCheckArgs :: QC.Args
 , configColorMode      :: ColorMode
 , configFormatter      :: Formatter
@@ -25,7 +28,7 @@ data Config = Config {
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False QC.stdArgs ColorAuto specdoc stdout
+defaultConfig = Config False (const . const True) QC.stdArgs ColorAuto specdoc stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -46,11 +49,14 @@ options :: [OptDescr (Result -> Result)]
 options = [
     Option []  ["help"]                    (NoArg (const $ Left Help))        "display this help and exit"
   , Option "v" ["verbose"]                 (NoArg setVerbose)                 "do not suppress output to stdout when evaluating examples"
+  , Option "m" ["match"]                   (ReqArg setFilter "PATTERN")       "only run examples that match given PATTERN"
   , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to `always' or can be `never' or `auto'."
   , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
   , Option "a" ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
   ]
   where
+    setFilter pattern x = x >>= \c -> return c {configFilter = filterPredicate pattern}
+
     setVerbose x = x >>= \c -> return c {configVerbose = True}
 
     setFormatter name x = x >>= \c -> case lookup name formatters of

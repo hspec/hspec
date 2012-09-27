@@ -34,3 +34,18 @@ spec = do
 
     it "re-throws AsyncException" $ do
       safeEvaluate (E.throwIO E.UserInterrupt :: IO Int) `shouldThrow` (== E.UserInterrupt)
+
+  describe "filterPredicate" $ do
+    it "tries to match a pattern against a list of descriptions and a requirement" $ do
+      let p = filterPredicate "foo/bar/example 1"
+      p ["foo", "bar"] "example 1" `shouldBe` True
+      p ["foo", "bar"] "example 2" `shouldBe` False
+
+    it "is ambiguous" $ do
+      let p = filterPredicate "foo/bar/baz"
+      p ["foo", "bar"] "baz" `shouldBe` True
+      p ["foo"] "bar/baz" `shouldBe` True
+
+    it "accepts partial matches" $ do
+      let p = filterPredicate "bar/baz"
+      p ["foo", "bar", "baz"] "example 1" `shouldBe` True

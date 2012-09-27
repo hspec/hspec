@@ -20,9 +20,10 @@ module Test.Hspec.Runner (
 , hHspecWithFormat
 ) where
 
-import           Control.Monad (unless, (>=>))
+import           Control.Monad (unless, (>=>), guard)
 import           Control.Applicative
 import           Data.Monoid
+import           Data.Maybe
 import           System.IO
 import           System.Environment
 import           System.Exit
@@ -33,6 +34,22 @@ import           Test.Hspec.Internal
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
+
+-- | Filter specs by given predicate.
+--
+-- The predicate takes a list of "describe" labels and a "requirement".
+filterSpecs :: ([String] -> String -> Bool) -> Specs -> Specs
+filterSpecs p = goSpecs []
+  where
+    goSpecs :: [String] -> [Spec] -> [Spec]
+    goSpecs groups = catMaybes . map (goSpec groups)
+
+    goSpec :: [String] -> Spec -> Maybe Spec
+    goSpec groups spec = case spec of
+      SpecExample requirement _ -> guard (p groups requirement) >> return spec
+      SpecGroup group specs     -> case goSpecs (groups ++ [group]) specs of
+        [] -> Nothing
+        xs -> Just (SpecGroup group xs)
 
 -- | Evaluate and print the result of checking the spec examples.
 runFormatter :: Config -> Formatter -> Spec -> FormatM ()
@@ -100,10 +117,10 @@ hspecB_ c = fmap success . hspecWith c
 
 -- | Run given specs.  This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Specs -> IO Summary
-hspecWith c ss = do
+hspecWith c specs = do
   useColor <- doesUseColor h c
   runFormatM useColor h $ do
-    mapM_ (runFormatter c formatter) ss
+    mapM_ (runFormatter c formatter) (filterSpecs (configFilter c) specs)
     failedFormatter formatter
     footerFormatter formatter
     Summary <$> getTotalCount <*> getFailCount

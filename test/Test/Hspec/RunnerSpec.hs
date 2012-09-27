@@ -12,6 +12,8 @@ import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Formatters as H
 import           Util
 
+import           Mock
+
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` ignore
   where
@@ -55,6 +57,26 @@ spec = do
             H.hspec [H.it "foobar" $ putStrLn "baz"]
           r `shouldSatisfy` elem "baz"
 
+      describe "option '--match'" $ do
+        it "only runs examples that match a given pattern" $ do
+          e1 <- newMock
+          e2 <- newMock
+          e3 <- newMock
+          withArgs ["-m", "/bar/example"] $
+            H.hspec [
+              H.describe "foo" [
+                H.describe "bar" [
+                  H.it "example 1" $ mockAction e1
+                , H.it "example 2" $ mockAction e2
+                ]
+              , H.describe "baz" [
+                  H.it "example 3" $ mockAction e3
+              ]
+              ]
+            ]
+          mockCounter e1 `shouldReturn` 1
+          mockCounter e2 `shouldReturn` 1
+          mockCounter e3 `shouldReturn` 0
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do
@@ -68,7 +90,7 @@ spec = do
       H.hspecWith H.defaultConfig testSpec `shouldReturn` H.Summary 5 2
 
     it "uses the specdoc formatter by default" $ do
-      let testSpec = [H.describe "Foo.Bar" []]
+      let testSpec = [H.describe "Foo.Bar" [H.it "some example" True]]
       _:r:_ <- capture $ H.hspecWith H.defaultConfig testSpec
       r `shouldBe` "Foo.Bar"
 
