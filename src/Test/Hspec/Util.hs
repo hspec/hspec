@@ -39,9 +39,12 @@ safeEvaluate action = (Right <$> action) `E.catches` [
 
 -- | A predicate that can be used to filter a specs.
 filterPredicate :: String -> [String] -> String -> Bool
-filterPredicate pattern descriptions requirement = pattern `isInfixOf` path
+filterPredicate pattern descriptions requirement =
+     pattern `isInfixOf` path
+  || pattern `isInfixOf` formatted
   where
     path = intercalate "/" (descriptions ++ [requirement])
+    formatted = formatRequirement descriptions requirement
 
 -- |
 -- Format a list of nested descriptions and a requirement by applying some

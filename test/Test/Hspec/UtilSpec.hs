@@ -46,9 +46,13 @@ spec = do
       p ["foo", "bar"] "baz" `shouldBe` True
       p ["foo"] "bar/baz" `shouldBe` True
 
-    it "accepts partial matches" $ do
+    it "succeeds on a partial match" $ do
       let p = filterPredicate "bar/baz"
       p ["foo", "bar", "baz"] "example 1" `shouldBe` True
+
+    it "succeeds with a pattern that matches the message give in the failure list" $ do
+      let p = filterPredicate "ModuleA.ModuleB.foo does something"
+      p ["ModuleA", "ModuleB", "foo"] "does something" `shouldBe` True
 
   describe "formatRequirement" $ do
     it "creates a sentence from a subject and a requirement" $ do
