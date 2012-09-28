@@ -87,7 +87,7 @@ failed_examplesSpec formatter = do
       r <- runSpec [H.it "foobar" (undefined :: Bool)]
       r `shouldSatisfy` isInfixOf [
           "1) foobar FAILED (uncaught exception)"
-        , "ErrorCall (Prelude.undefined)"
+        , "GHC.Exception.ErrorCall (Prelude.undefined)"
         ]
 
     it "prints all descriptions when a nested requirement fails" $ do

@@ -48,7 +48,7 @@ import           Text.Printf
 import           Control.Monad (unless)
 import           Control.Applicative
 import qualified Control.Exception as E
-import           Data.Typeable (typeOf)
+import           Data.Typeable (typeOf, typeRepTyCon, tyConModule, tyConName)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -140,8 +140,12 @@ defaultFailedFormatter = withFailColor $ do
       show i ++ ") " ++ formatRequirement (reverse groups) requirement ++ " FAILED" ++ err
       where
         err = case reason of
-          Left (E.SomeException e)  -> " (uncaught exception)\n" ++ (show . typeOf) e ++ " (" ++ show e ++ ")"
+          Left (E.SomeException e)  -> " (uncaught exception)\n" ++ formatException e
           Right e -> if null e then "" else "\n" ++ e
+
+        formatException e = tyConModule t ++ "." ++ tyConName t ++ " (" ++ show e ++ ")"
+          where
+            t = typeRepTyCon (typeOf e)
 
 defaultFooter :: FormatM ()
 defaultFooter = do
