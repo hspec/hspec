@@ -48,3 +48,11 @@ after the each test run.  E.g. the following would work instead:
 ```
 ghci> :main --match "foo.bar example 1"
 ```
+
+## FAQ
+
+**I try to print something to `stdout` for debugging, but Hspec seems to
+suppress any output.  What can I do?**
+
+By default, Hspec suppress output to `stdout`.  You can prevent this by running
+your tests with `--verbose`.
