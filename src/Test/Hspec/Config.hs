@@ -61,7 +61,7 @@ options = [
         set c = c {configFilterPredicate = Just p}
           where
             -- if there is already a predicate, we combine them with ||
-            p  = maybe p1 (\p0 xs x -> p0 xs x || p1 xs x) mp
+            p  = maybe p1 (\p0 ds r -> p0 ds r || p1 ds r) mp
             mp = configFilterPredicate c
             p1 = filterPredicate pattern
 
