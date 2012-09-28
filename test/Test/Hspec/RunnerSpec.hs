@@ -4,6 +4,7 @@ import           Test.Hspec.Meta
 import           System.IO.Silently (hCapture, hSilence)
 import           System.IO (stderr)
 
+import           Control.Applicative
 import           System.Environment
 import           System.Exit
 import qualified Control.Exception as E
@@ -71,12 +72,28 @@ spec = do
                 ]
               , H.describe "baz" [
                   H.it "example 3" $ mockAction e3
-              ]
+                ]
               ]
             ]
-          mockCounter e1 `shouldReturn` 1
-          mockCounter e2 `shouldReturn` 1
-          mockCounter e3 `shouldReturn` 0
+          (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 1, 0)
+
+        it "can be given multiple times" $ do
+          e1 <- newMock
+          e2 <- newMock
+          e3 <- newMock
+          withArgs ["-m", "foo", "-m", "baz"] $
+            H.hspec [
+              H.describe "foo" [
+                H.it "example 1" $ mockAction e1
+              ]
+            , H.describe "bar" [
+                H.it "example 2" $ mockAction e2
+              ]
+            , H.describe "baz" [
+                H.it "example 3" $ mockAction e3
+              ]
+            ]
+          (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 0, 1)
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do

@@ -120,7 +120,7 @@ hspecWith :: Config -> Specs -> IO Summary
 hspecWith c specs = do
   useColor <- doesUseColor h c
   runFormatM useColor h $ do
-    mapM_ (runFormatter c formatter) (filterSpecs (configFilter c) specs)
+    mapM_ (runFormatter c formatter) (maybe id filterSpecs (configFilterPredicate c) specs)
     failedFormatter formatter
     footerFormatter formatter
     Summary <$> getTotalCount <*> getFailCount

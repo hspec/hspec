@@ -17,18 +17,18 @@ import           Test.Hspec.Formatters
 import           Test.Hspec.Util
 
 data Config = Config {
-  configVerbose        :: Bool
-, configFilter         :: [String] -> String -> Bool
-, configQuickCheckArgs :: QC.Args
-, configColorMode      :: ColorMode
-, configFormatter      :: Formatter
-, configHandle         :: Handle
+  configVerbose         :: Bool
+, configFilterPredicate :: Maybe ([String] -> String -> Bool)
+, configQuickCheckArgs  :: QC.Args
+, configColorMode       :: ColorMode
+, configFormatter       :: Formatter
+, configHandle          :: Handle
 }
 
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False (const . const True) QC.stdArgs ColorAuto specdoc stdout
+defaultConfig = Config False Nothing QC.stdArgs ColorAuto specdoc stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -55,7 +55,15 @@ options = [
   , Option "a" ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
   ]
   where
-    setFilter pattern x = x >>= \c -> return c {configFilter = filterPredicate pattern}
+    setFilter :: String -> Result -> Result
+    setFilter pattern x = set <$> x
+      where
+        set c = c {configFilterPredicate = Just p}
+          where
+            -- if there is already a predicate, we combine them with ||
+            p  = maybe p1 (\p0 xs x -> p0 xs x || p1 xs x) mp
+            mp = configFilterPredicate c
+            p1 = filterPredicate pattern
 
     setVerbose x = x >>= \c -> return c {configVerbose = True}
 
