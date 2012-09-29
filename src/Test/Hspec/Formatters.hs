@@ -82,9 +82,9 @@ import Test.Hspec.Formatters.Internal (
 silent :: Formatter
 silent = Formatter {
   exampleGroupStarted = \_ _ -> return ()
-, exampleSucceeded    = \_ _ -> return ()
-, exampleFailed       = \_ _ _ -> return ()
-, examplePending      = \_ _ _  -> return ()
+, exampleSucceeded    = \_ -> return ()
+, exampleFailed       = \_ _ -> return ()
+, examplePending      = \_ _  -> return ()
 , failedFormatter     = return ()
 , footerFormatter     = return ()
 }
@@ -95,14 +95,14 @@ specdoc = silent {
   exampleGroupStarted = \nesting name -> do
     writeLine ("\n" ++ indentationForGroup nesting ++ name)
 
-, exampleSucceeded = \nesting requirement -> withSuccessColor $ do
+, exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
     writeLine $ indentationForExample nesting ++ " - " ++ requirement
 
-, exampleFailed = \nesting requirement _ -> withFailColor $ do
+, exampleFailed = \(nesting, requirement) _ -> withFailColor $ do
     n <- getFailCount
     writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ " FAILED [" ++ show n ++ "]"
 
-, examplePending = \nesting requirement reason -> withPendingColor $ do
+, examplePending = \(nesting, requirement) reason -> withPendingColor $ do
     writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ "\n     # PENDING: " ++ fromMaybe "No reason given" reason
 
 , failedFormatter = defaultFailedFormatter
@@ -115,9 +115,9 @@ specdoc = silent {
 
 progress :: Formatter
 progress = silent {
-  exampleSucceeded = \_ _ -> withSuccessColor $ write "."
-, exampleFailed    = \_ _ _ -> withFailColor    $ write "F"
-, examplePending   = \_ _ _ -> withPendingColor $ write "."
+  exampleSucceeded = \_ -> withSuccessColor $ write "."
+, exampleFailed    = \_ _ -> withFailColor    $ write "F"
+, examplePending   = \_ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter
 , footerFormatter  = defaultFooter
 }
@@ -136,8 +136,8 @@ defaultFailedFormatter = withFailColor $ do
   unless (null failures) (writeLine "")
   where
     formatFailure :: (Int, FailureRecord) -> String
-    formatFailure (i, FailureRecord groups requirement reason) =
-      show i ++ ") " ++ formatRequirement (reverse groups) requirement ++ " FAILED" ++ err
+    formatFailure (i, FailureRecord path reason) =
+      show i ++ ") " ++ formatRequirement path ++ " FAILED" ++ err
       where
         err = case reason of
           Left (E.SomeException e)  -> " (uncaught exception)\n" ++ formatException e

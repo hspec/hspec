@@ -1,8 +1,9 @@
 module Test.Hspec.Util (
   quantify
-, formatRequirement
 , safeEvaluate
+, Path
 , filterPredicate
+, formatRequirement
 ) where
 
 import           Data.List
@@ -37,20 +38,26 @@ safeEvaluate action = (Right <$> action) `E.catches` [
   , E.Handler $ \e -> (return . Left) (e :: E.SomeException)
   ]
 
--- | A predicate that can be used to filter a specs.
-filterPredicate :: String -> [String] -> String -> Bool
-filterPredicate pattern descriptions requirement =
-     pattern `isInfixOf` path
+-- |
+-- A tuple that describes the location of a test within an example in a Spec.
+--
+-- It consists of a list of group descriptions and a requirement description,
+type Path = ([String], String)
+
+-- | A predicate that can be used to filter specs.
+filterPredicate :: String -> Path -> Bool
+filterPredicate pattern path@(groups, requirement) =
+     pattern `isInfixOf` plain
   || pattern `isInfixOf` formatted
   where
-    path = intercalate "/" (descriptions ++ [requirement])
-    formatted = formatRequirement descriptions requirement
+    plain = intercalate "/" (groups ++ [requirement])
+    formatted = formatRequirement path
 
 -- |
--- Format a list of nested descriptions and a requirement by applying some
+-- Try to create a proper English sentence from a path by applying some
 -- heuristics.
-formatRequirement :: [String] -> String -> String
-formatRequirement groups requirement = groups_ ++ requirement
+formatRequirement :: Path -> String
+formatRequirement (groups, requirement) = groups_ ++ requirement
   where
     groups_ = case break (any isSpace) groups of
       ([], ys) -> join ys

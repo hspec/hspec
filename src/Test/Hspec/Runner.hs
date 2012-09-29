@@ -29,7 +29,7 @@ import           System.Environment
 import           System.Exit
 import           System.IO.Silently (silence)
 
-import           Test.Hspec.Util (safeEvaluate)
+import           Test.Hspec.Util (Path, safeEvaluate)
 import           Test.Hspec.Internal
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
@@ -38,7 +38,7 @@ import           Test.Hspec.Formatters.Internal
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
-filterSpecs :: ([String] -> String -> Bool) -> Specs -> Specs
+filterSpecs :: (Path -> Bool) -> Specs -> Specs
 filterSpecs p = goSpecs []
   where
     goSpecs :: [String] -> [Spec] -> [Spec]
@@ -46,7 +46,7 @@ filterSpecs p = goSpecs []
 
     goSpec :: [String] -> Spec -> Maybe Spec
     goSpec groups spec = case spec of
-      SpecExample requirement _ -> guard (p groups requirement) >> return spec
+      SpecExample requirement _ -> guard (p (groups, requirement)) >> return spec
       SpecGroup group specs     -> case goSpecs (groups ++ [group]) specs of
         [] -> Nothing
         xs -> Just (SpecGroup group xs)
@@ -60,26 +60,28 @@ runFormatter c formatter = go []
       | otherwise       = silence
 
     go :: [String] -> Spec -> FormatM ()
-    go groups (SpecGroup group xs) = do
-      exampleGroupStarted formatter groups group
-      mapM_ (go (group : groups)) xs
-    go groups (SpecExample requirement example) = do
+    go rGroups (SpecGroup group xs) = do
+      exampleGroupStarted formatter (reverse rGroups) group
+      mapM_ (go (group : rGroups)) xs
+    go rGroups (SpecExample requirement example) = do
       result <- (liftIO . safeEvaluate . silence_) (example c)
       case result of
         Right Success -> do
           increaseSuccessCount
-          exampleSucceeded formatter groups requirement
+          exampleSucceeded formatter path
         Right (Pending reason) -> do
           increasePendingCount
-          examplePending formatter groups requirement reason
+          examplePending formatter path reason
 
         Right (Fail err) -> failed (Right err)
         Left e           -> failed (Left  e)
       where
+        path = (groups, requirement)
+        groups = reverse rGroups
         failed err = do
           increaseFailCount
-          addFailMessage groups requirement err
-          exampleFailed  formatter groups requirement err
+          addFailMessage path err
+          exampleFailed  formatter path err
 
 -- | Create a document of the given specs and write it to stdout.
 --

@@ -18,7 +18,7 @@ import           Test.Hspec.Util
 
 data Config = Config {
   configVerbose         :: Bool
-, configFilterPredicate :: Maybe ([String] -> String -> Bool)
+, configFilterPredicate :: Maybe (Path -> Bool)
 , configQuickCheckArgs  :: QC.Args
 , configColorMode       :: ColorMode
 , configFormatter       :: Formatter
@@ -61,7 +61,7 @@ options = [
         set c = c {configFilterPredicate = Just p}
           where
             -- if there is already a predicate, we combine them with ||
-            p  = maybe p1 (\p0 ds r -> p0 ds r || p1 ds r) mp
+            p  = maybe p1 (\p0 path -> p0 path || p1 path) mp
             mp = configFilterPredicate c
             p1 = filterPredicate pattern
 

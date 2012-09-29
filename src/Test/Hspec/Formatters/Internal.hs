@@ -44,6 +44,8 @@ import qualified Control.Monad.IO.Class as IOClass
 import qualified System.CPUTime as CPUTime
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
+import           Test.Hspec.Util (Path)
+
 -- | A lifted version of `State.gets`
 gets :: (FormatterState -> a) -> FormatM a
 gets f = FormatM (State.gets f)
@@ -113,28 +115,27 @@ getTotalCount :: FormatM Int
 getTotalCount = gets totalCount
 
 -- | Append to the list of accumulated failure messages.
-addFailMessage :: [String] -> String -> (Either SomeException String) -> FormatM ()
-addFailMessage n r m = modify $ \s -> s {failMessages = FailureRecord n r m : failMessages s}
+addFailMessage :: Path -> (Either SomeException String) -> FormatM ()
+addFailMessage p m = modify $ \s -> s {failMessages = FailureRecord p m : failMessages s}
 
 -- | Get the list of accumulated failure messages.
 getFailMessages :: FormatM [FailureRecord]
 getFailMessages = reverse `fmap` gets failMessages
 
 data FailureRecord = FailureRecord {
-  failureRecordNesting      :: [String]
-, failureRecordRequirement  :: String
-, failureRecordMessage      :: Either SomeException String
+  failureRecordPath     :: Path
+, failureRecordMessage  :: Either SomeException String
 }
 
 data Formatter = Formatter {
 -- | evaluated before each test group
   exampleGroupStarted :: [String] -> String -> FormatM ()
 -- | evaluated after each successful example
-, exampleSucceeded    :: [String] -> String -> FormatM ()
+, exampleSucceeded    :: Path -> FormatM ()
 -- | evaluated after each failed example
-, exampleFailed       :: [String] -> String -> Either SomeException String -> FormatM ()
+, exampleFailed       :: Path -> Either SomeException String -> FormatM ()
 -- | evaluated after each pending example
-, examplePending      :: [String] -> String -> Maybe String -> FormatM ()
+, examplePending      :: Path -> Maybe String -> FormatM ()
 -- | evaluated after a test run
 , failedFormatter     :: FormatM ()
 -- | evaluated after `failuresFormatter`
