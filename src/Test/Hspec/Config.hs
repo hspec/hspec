@@ -3,6 +3,7 @@ module Test.Hspec.Config (
 , ColorMode (..)
 , defaultConfig
 , getConfig
+, configAddFilter
 ) where
 
 import           Control.Monad (unless)

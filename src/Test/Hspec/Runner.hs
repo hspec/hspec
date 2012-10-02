@@ -12,7 +12,9 @@ module Test.Hspec.Runner (
 
 , Config (..)
 , ColorMode (..)
+, Path
 , defaultConfig
+, configAddFilter
 
 -- * Deprecated functions
 , hspecX
