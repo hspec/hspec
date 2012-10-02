@@ -39,9 +39,9 @@ safeEvaluate action = (Right <$> action) `E.catches` [
   ]
 
 -- |
--- A tuple that describes the location of a test within an example in a Spec.
+-- A tuple that describes the location of an example in a Spec.
 --
--- It consists of a list of group descriptions and a requirement description,
+-- It consists of a list of group descriptions and a requirement description.
 type Path = ([String], String)
 
 -- | A predicate that can be used to filter specs.
