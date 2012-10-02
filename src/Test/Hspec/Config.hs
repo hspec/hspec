@@ -18,6 +18,10 @@ import           Test.Hspec.Util
 
 data Config = Config {
   configVerbose         :: Bool
+
+-- |
+-- A predicate that is used to filter the spec before it is run.  Only examples
+-- that satisfy the predicate are run.
 , configFilterPredicate :: Maybe (Path -> Bool)
 , configQuickCheckArgs  :: QC.Args
 , configColorMode       :: ColorMode
@@ -45,6 +49,16 @@ type Result = Either NoConfig Config
 
 data NoConfig = Help | InvalidArgument String String
 
+-- | Add a filter predicate to config.
+--
+-- If there is already a filter predicate, they are combined with `||`.
+configAddFilter :: (Path -> Bool) -> Config -> Config
+configAddFilter p1 c = c {configFilterPredicate = Just p}
+  where
+    -- if there is already a predicate, we combine them with ||
+    p  = maybe p1 (\p0 path -> p0 path || p1 path) mp
+    mp = configFilterPredicate c
+
 options :: [OptDescr (Result -> Result)]
 options = [
     Option []  ["help"]                    (NoArg (const $ Left Help))        "display this help and exit"
@@ -56,14 +70,7 @@ options = [
   ]
   where
     setFilter :: String -> Result -> Result
-    setFilter pattern x = set <$> x
-      where
-        set c = c {configFilterPredicate = Just p}
-          where
-            -- if there is already a predicate, we combine them with ||
-            p  = maybe p1 (\p0 path -> p0 path || p1 path) mp
-            mp = configFilterPredicate c
-            p1 = filterPredicate pattern
+    setFilter pattern x = configAddFilter (filterPredicate pattern) <$> x
 
     setVerbose x = x >>= \c -> return c {configVerbose = True}
 

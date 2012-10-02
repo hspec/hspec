@@ -17,10 +17,7 @@ import           Util
 import           Mock
 
 ignoreExitCode :: IO () -> IO ()
-ignoreExitCode action = action `E.catch` ignore
-  where
-    ignore :: ExitCode -> IO ()
-    ignore _ = return ()
+ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
 
 main :: IO ()
 main = hspec spec
@@ -46,7 +43,7 @@ spec = do
       r `shouldSatisfy` notElem "baz"
 
     context "command-line options" $ do
-      it "prints error message on unrecognized option" $ do
+      it "prints an error message on unrecognized options" $ do
         withProgName "myspec" . withArgs ["--foo"] $ do
           hSilence [stderr] (H.hspec []) `shouldThrow` (== ExitFailure 1)
           fst `fmap` hCapture [stderr] (ignoreExitCode (H.hspec [])) `shouldReturn` unlines [

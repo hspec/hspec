@@ -120,15 +120,16 @@ hspecB_ c = fmap success . hspecWith c
 -- | Run given specs.  This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Specs -> IO Summary
 hspecWith c specs = do
+
+  let formatter = configFormatter c
+      h = configHandle c
+
   useColor <- doesUseColor h c
   runFormatM useColor h $ do
     mapM_ (runFormatter c formatter) (maybe id filterSpecs (configFilterPredicate c) specs)
     failedFormatter formatter
     footerFormatter formatter
     Summary <$> getTotalCount <*> getFailCount
-  where
-    formatter = configFormatter c
-    h = configHandle c
 
 doesUseColor :: Handle -> Config -> IO Bool
 doesUseColor h c = case configColorMode c of
