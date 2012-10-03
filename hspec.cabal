@@ -85,7 +85,7 @@ test-suite doctests
       test
   build-depends:
       base
-    , doctest >= 0.7
+    , doctest >= 0.8
 
 test-suite example
   type:
