@@ -36,6 +36,7 @@ import           Test.Hspec.Internal
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
+import           Test.Hspec.FailureReport
 
 -- | Filter specs by given predicate.
 --
@@ -121,7 +122,13 @@ hspecB_ c = fmap success . hspecWith c
 
 -- | Run given specs.  This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Specs -> IO Summary
-hspecWith c specs = do
+hspecWith c_ specs = do
+  -- read failure report on --re-run
+  c <- if configReRun c_
+    then do
+      readFailureReport c_
+    else do
+      return c_
 
   let formatter = configFormatter c
       h = configHandle c
@@ -131,6 +138,11 @@ hspecWith c specs = do
     mapM_ (runFormatter c formatter) (maybe id filterSpecs (configFilterPredicate c) specs)
     failedFormatter formatter
     footerFormatter formatter
+
+    -- dump failure report
+    xs <- map failureRecordPath <$> getFailMessages
+    liftIO $ writeFailureReport (show xs)
+
     Summary <$> getTotalCount <*> getFailCount
 
 doesUseColor :: Handle -> Config -> IO Bool

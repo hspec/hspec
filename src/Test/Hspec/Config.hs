@@ -19,6 +19,7 @@ import           Test.Hspec.Util
 
 data Config = Config {
   configVerbose         :: Bool
+, configReRun           :: Bool
 
 -- |
 -- A predicate that is used to filter the spec before it is run.  Only examples
@@ -33,7 +34,7 @@ data Config = Config {
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False Nothing QC.stdArgs ColorAuto specdoc stdout
+defaultConfig = Config False False Nothing QC.stdArgs ColorAuto specdoc stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -90,9 +91,17 @@ options = [
           Just "always" -> return ColorAlway
           Just v        -> Left (InvalidArgument "color" v)
 
+undocumentedOptions :: [OptDescr (Result -> Result)]
+undocumentedOptions = [
+    Option "r" ["re-run"]                  (NoArg  setReRun)                  "only re-run examples that previously failed"
+  ]
+  where
+    setReRun :: Result -> Result
+    setReRun x = x >>= \c -> return c {configReRun = True}
+
 getConfig :: IO Config
 getConfig = do
-  (opts, args, errors) <- getOpt Permute options <$> getArgs
+  (opts, args, errors) <- getOpt Permute (options ++ undocumentedOptions) <$> getArgs
 
   unless (null errors)
     (tryHelp $ head errors)

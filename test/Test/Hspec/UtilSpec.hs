@@ -5,6 +5,8 @@ import           Test.Hspec.Meta
 import qualified Control.Exception as E
 import           Test.Hspec.Util
 
+import           System.SetEnv
+
 main :: IO ()
 main = hspec spec
 
@@ -72,3 +74,12 @@ spec = do
 
     it "properly handles context after a subject that consists of several components" $ do
       formatRequirement (["Data", "List", "reverse", "when applied twice"], "reverses a list") `shouldBe` "Data.List.reverse, when applied twice, reverses a list"
+
+  describe "getEnv" $ do
+    it "returns value of specified environment variable" $ do
+      setEnv "FOO" "bar"
+      getEnv "FOO" `shouldReturn` Just "bar"
+
+    it "returns Nothing if specified environment variable is not set" $ do
+      unsetEnv "FOO"
+      getEnv "FOO" `shouldReturn` Nothing

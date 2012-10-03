@@ -4,12 +4,16 @@ module Test.Hspec.Util (
 , Path
 , filterPredicate
 , formatRequirement
+, readMaybe
+, getEnv
 ) where
 
 import           Data.List
+import           Data.Maybe
 import           Data.Char (isSpace)
 import           Control.Applicative
 import qualified Control.Exception as E
+import qualified System.Environment as Environment
 
 -- | Create a more readable display of a quantity of something.
 --
@@ -66,3 +70,11 @@ formatRequirement (groups, requirement) = groups_ ++ requirement
     join xs = case xs of
       [x] -> x ++ " "
       ys  -> concatMap (++ ", ") ys
+
+-- NOTE: base-4.6.0.0 provides a function with that name and type.  For
+-- compatibility with earlier versions, we define our own version here.
+readMaybe :: Read a => String -> Maybe a
+readMaybe = fmap fst . listToMaybe . reads
+
+getEnv :: String -> IO (Maybe String)
+getEnv key = either (const Nothing) Just <$> safeEvaluate (Environment.getEnv key)

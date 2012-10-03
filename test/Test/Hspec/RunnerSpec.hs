@@ -5,16 +5,19 @@ import           System.IO.Silently (hCapture, hSilence)
 import           System.IO (stderr)
 
 import           Control.Applicative
-import           System.Environment
+import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import qualified Control.Exception as E
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Monadic as H (describe, it)
 import           Test.Hspec.Monadic (runSpecM)
 import qualified Test.Hspec.Formatters as H
-import           Util
+import           Util (capture)
 
 import           Mock
+
+import           System.SetEnv
+import           Test.Hspec.Util (getEnv)
 
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
@@ -91,6 +94,55 @@ spec = do
             H.describe "baz" $ do
               H.it "example 3" $ mockAction e3
           (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 0, 1)
+
+    describe "experimental features" $ do
+      it "keeps a failure report in the environment" $ do
+        ignoreExitCode . H.hspec . runSpecM $ do
+          H.describe "foo" $ do
+            H.describe "bar" $ do
+              H.it "example 1" True
+              H.it "example 2" False
+          H.describe "baz" $ do
+            H.it "example 3" False
+        getEnv "HSPEC_FAILURES" `shouldReturn` Just "[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")]"
+
+      describe "option '--re-run'" $ do
+        let testSpec = runSpecM $ do
+              H.it "example 1" True
+              H.it "example 2" False
+              H.it "example 3" False
+              H.it "example 4" True
+              H.it "example 5" False
+            runSpec = (capture . ignoreExitCode . H.hspec) testSpec
+
+        it "re-runs examples that previously failed" $ do
+          r0 <- runSpec
+          r0 `shouldSatisfy` elem "5 examples, 0 pending, 3 failures"
+
+          r1 <- withArgs ["-r"] runSpec
+          r1 `shouldSatisfy` elem "3 examples, 0 pending, 3 failures"
+
+        context "when there is no failure report in the environment" $ do
+          it "runs everything" $ do
+            unsetEnv "HSPEC_FAILURES"
+            r <- hSilence [stderr] $ withArgs ["-r"] runSpec
+            r `shouldSatisfy` elem "5 examples, 0 pending, 3 failures"
+
+          it "prints a warning to stderr" $ do
+            unsetEnv "HSPEC_FAILURES"
+            r <- hCapture [stderr] $ withArgs ["-r"] runSpec
+            fst r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--re-run' is ignored!\n"
+
+        context "when parsing of failure report fails" $ do
+          it "runs everything" $ do
+            setEnv "HSPEC_FAILURES" "some invalid report"
+            r <- hSilence [stderr] $ withArgs ["-r"] runSpec
+            r `shouldSatisfy` elem "5 examples, 0 pending, 3 failures"
+
+          it "prints a warning to stderr" $ do
+            setEnv "HSPEC_FAILURES" "some invalid report"
+            r <- hCapture [stderr] $ withArgs ["-r"] runSpec
+            fst r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--re-run' is ignored!\n"
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do

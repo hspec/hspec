@@ -32,6 +32,7 @@ Library
       src
   build-depends:
       base >= 4 && <= 5
+    , setenv
     , silently >= 1.1.1 && < 2
     , ansi-terminal == 0.5.5
     , time < 1.5
@@ -52,6 +53,7 @@ Library
       Test.Hspec.Pending
       Test.Hspec.Internal
       Test.Hspec.Config
+      Test.Hspec.FailureReport
       Test.Hspec.Formatters.Internal
 
 test-suite spec
@@ -65,6 +67,7 @@ test-suite spec
       -Wall -Werror
   build-depends:
       base >= 4 && <= 5
+    , setenv
     , silently >= 1.1.1 && < 2
     , ansi-terminal == 0.5.5
     , time < 1.5
