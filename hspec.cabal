@@ -75,7 +75,10 @@ test-suite spec
     , HUnit >= 1.2.5
     , QuickCheck >= 2.4.0.1 && <= 2.5
     , hspec-expectations
+
     , hspec-meta
+    , process
+    , ghc-paths
 
 test-suite doctests
   main-is:
