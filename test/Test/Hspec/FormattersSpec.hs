@@ -6,6 +6,7 @@ import           Data.List
 import           Util (capture)
 import           System.Console.ANSI
 import qualified System.IO.Silently as S
+import           Data.Char
 
 import qualified Test.Hspec.Monadic as H
 import qualified Test.Hspec.Core as H (Result(..))
@@ -24,6 +25,15 @@ testSpec = do
     H.it "fail 2"     (H.Fail "")
     H.it "exceptions" (undefined :: H.Result)
     H.it "fail 3"     (H.Fail "")
+
+-- replace times in summary with zeroes
+normalizeSummary :: [String] -> [String]
+normalizeSummary xs = map f xs
+  where
+    f x | "Finished in " `isPrefixOf` x = map g x
+        | otherwise = x
+    g x | isNumber x = '0'
+        | otherwise  = x
 
 spec :: Spec
 spec = do
@@ -53,7 +63,28 @@ spec = do
       x `shouldBe` "Example"
 
     it "displays one row for each behavior" $ do
-      pending
+      r <- runSpec $ do
+        H.describe "List as a Monoid" $ do
+          H.describe "mappend" $ do
+            H.it "is associative" True
+          H.describe "mempty" $ do
+            H.it "is a left identity" True
+            H.it "is a right identity" True
+      normalizeSummary r `shouldBe` [
+          ""
+        , "List as a Monoid"
+        , ""
+        , "  mappend"
+        , "   - is associative"
+        , ""
+        , "  mempty"
+        , "   - is a left identity"
+        , "   - is a right identity"
+        , ""
+        , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
+        , ""
+        , "3 examples, 0 pending, 0 failures"
+        ]
 
     it "displays a row for each successfull, failed, or pending example" $ do
       r <- runSpec testSpec
@@ -76,7 +107,7 @@ failed_examplesSpec formatter = do
 
   it "summarizes the time it takes to finish" $ do
     r <- runSpec (return ())
-    r `shouldSatisfy` any ("Finished in " `isPrefixOf`)
+    normalizeSummary r `shouldSatisfy` any (== "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time")
 
   context "displays a detailed list of failures" $ do
     it "prints all requirements that are not met" $ do
