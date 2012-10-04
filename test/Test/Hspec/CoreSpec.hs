@@ -45,7 +45,7 @@ spec = do
       r `shouldSatisfy` any (== "some subject")
 
     it "groups behaviors for what's being described" $ do
-      r <- filter (isPrefixOf " - ") `fmap` runSpec testSpec
+      r <- filter (isPrefixOf "  - ") `fmap` runSpec testSpec
       length r `shouldBe` 3
 
     describe "a nested description" $ do

@@ -93,24 +93,23 @@ silent = Formatter {
 specdoc :: Formatter
 specdoc = silent {
   exampleGroupStarted = \nesting name -> do
-    writeLine ("\n" ++ indentationForGroup nesting ++ name)
+    writeLine ("\n" ++ indentationFor nesting ++ name)
 
 , exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
-    writeLine $ indentationForExample nesting ++ " - " ++ requirement
+    writeLine $ indentationFor nesting ++ "- " ++ requirement
 
 , exampleFailed = \(nesting, requirement) _ -> withFailColor $ do
     n <- getFailCount
-    writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ " FAILED [" ++ show n ++ "]"
+    writeLine $ indentationFor nesting ++ "- " ++ requirement ++ " FAILED [" ++ show n ++ "]"
 
 , examplePending = \(nesting, requirement) reason -> withPendingColor $ do
-    writeLine $ indentationForExample nesting ++ " - " ++ requirement ++ "\n     # PENDING: " ++ fromMaybe "No reason given" reason
+    writeLine $ indentationFor nesting ++ "- " ++ requirement ++ "\n     # PENDING: " ++ fromMaybe "No reason given" reason
 
 , failedFormatter = defaultFailedFormatter
 
 , footerFormatter = defaultFooter
 } where
-    indentationForExample nesting = replicate (pred (length nesting) * 2) ' '
-    indentationForGroup nesting = replicate (length nesting * 2) ' '
+    indentationFor nesting = replicate (length nesting * 2) ' '
 
 
 progress :: Formatter

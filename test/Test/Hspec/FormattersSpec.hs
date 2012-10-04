@@ -75,11 +75,11 @@ spec = do
         , "List as a Monoid"
         , ""
         , "  mappend"
-        , "   - is associative"
+        , "    - is associative"
         , ""
         , "  mempty"
-        , "   - is a left identity"
-        , "   - is a right identity"
+        , "    - is a left identity"
+        , "    - is a right identity"
         , ""
         , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
         , ""
@@ -88,8 +88,8 @@ spec = do
 
     it "displays a row for each successfull, failed, or pending example" $ do
       r <- runSpec testSpec
-      r `shouldSatisfy` any (== " - fail 1 FAILED [1]")
-      r `shouldSatisfy` any (== " - success")
+      r `shouldSatisfy` any (== "  - fail 1 FAILED [1]")
+      r `shouldSatisfy` any (== "  - success")
 
     it "displays a '#' with an additional message for pending examples" $ do
       r <- runSpec testSpec
