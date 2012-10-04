@@ -70,10 +70,23 @@ spec = do
           H.describe "mempty" $ do
             H.it "is a left identity" True
             H.it "is a right identity" True
+        H.describe "Maybe as a Monoid" $ do
+          H.describe "mappend" $ do
+            H.it "is associative" True
+          H.describe "mempty" $ do
+            H.it "is a left identity" True
+            H.it "is a right identity" True
       normalizeSummary r `shouldBe` [
           ""
         , "List as a Monoid"
+        , "  mappend"
+        , "    - is associative"
         , ""
+        , "  mempty"
+        , "    - is a left identity"
+        , "    - is a right identity"
+        , ""
+        , "Maybe as a Monoid"
         , "  mappend"
         , "    - is associative"
         , ""
@@ -83,7 +96,7 @@ spec = do
         , ""
         , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
         , ""
-        , "3 examples, 0 pending, 0 failures"
+        , "6 examples, 0 pending, 0 failures"
         ]
 
     it "displays a row for each successfull, failed, or pending example" $ do

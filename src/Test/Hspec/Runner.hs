@@ -54,19 +54,19 @@ filterSpecs p = goSpecs []
         [] -> Nothing
         xs -> Just (SpecGroup group xs)
 
--- | Evaluate and print the result of checking the spec examples.
-runFormatter :: Config -> Formatter -> Spec -> FormatM ()
-runFormatter c formatter = go []
+-- | Evaluate and print the result of checking the specs examples.
+runFormatter :: Config -> Formatter -> [Spec] -> FormatM ()
+runFormatter c formatter specs = mapM_ (go []) (zip [0..] specs)
   where
     silence_
       | configVerbose c = id
       | otherwise       = silence
 
-    go :: [String] -> Spec -> FormatM ()
-    go rGroups (SpecGroup group xs) = do
-      exampleGroupStarted formatter (reverse rGroups) group
-      mapM_ (go (group : rGroups)) xs
-    go rGroups (SpecExample requirement example) = do
+    go :: [String] -> (Int, Spec) -> FormatM ()
+    go rGroups (n, SpecGroup group xs) = do
+      exampleGroupStarted formatter n (reverse rGroups) group
+      mapM_ (go (group : rGroups)) (zip [0..] xs)
+    go rGroups (_, SpecExample requirement example) = do
       result <- (liftIO . safeEvaluate . silence_) (example c)
       case result of
         Right Success -> do
@@ -135,7 +135,7 @@ hspecWith c_ specs = do
 
   useColor <- doesUseColor h c
   runFormatM useColor h $ do
-    mapM_ (runFormatter c formatter) (maybe id filterSpecs (configFilterPredicate c) specs)
+    runFormatter c formatter (maybe id filterSpecs (configFilterPredicate c) specs)
     failedFormatter formatter
     footerFormatter formatter
 

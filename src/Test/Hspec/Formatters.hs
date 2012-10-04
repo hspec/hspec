@@ -45,7 +45,7 @@ import           Data.Maybe
 import           Test.Hspec.Util
 import           Data.List (intersperse)
 import           Text.Printf
-import           Control.Monad (unless)
+import           Control.Monad (when, unless)
 import           Control.Applicative
 import qualified Control.Exception as E
 import           Data.Typeable (typeOf, typeRepTyCon, tyConModule, tyConName)
@@ -81,7 +81,7 @@ import Test.Hspec.Formatters.Internal (
 
 silent :: Formatter
 silent = Formatter {
-  exampleGroupStarted = \_ _ -> return ()
+  exampleGroupStarted = \_ _ _ -> return ()
 , exampleSucceeded    = \_ -> return ()
 , exampleFailed       = \_ _ -> return ()
 , examplePending      = \_ _  -> return ()
@@ -92,8 +92,14 @@ silent = Formatter {
 
 specdoc :: Formatter
 specdoc = silent {
-  exampleGroupStarted = \nesting name -> do
-    writeLine ("\n" ++ indentationFor nesting ++ name)
+  exampleGroupStarted = \n nesting name -> do
+
+    -- do not print newline for first describe in a group, unless it's the
+    -- first top-level item.
+    when (n /= 0 || n == 0 && null nesting) $ do
+      writeLine ""
+
+    writeLine (indentationFor nesting ++ name)
 
 , exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ "- " ++ requirement

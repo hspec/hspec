@@ -129,7 +129,9 @@ data FailureRecord = FailureRecord {
 
 data Formatter = Formatter {
 -- | evaluated before each test group
-  exampleGroupStarted :: [String] -> String -> FormatM ()
+--
+-- The given number indicates the position within the parent group.
+  exampleGroupStarted :: Int -> [String] -> String -> FormatM ()
 -- | evaluated after each successful example
 , exampleSucceeded    :: Path -> FormatM ()
 -- | evaluated after each failed example
