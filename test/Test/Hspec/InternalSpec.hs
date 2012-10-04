@@ -37,7 +37,7 @@ spec = do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
 
     context "for Property" $ do
-      it "returns Success if property hold" $ do
+      it "returns Success if property holds" $ do
         evaluateExample (property $ \n -> n == (n :: Int)) `shouldReturn` H.Success
 
       it "returns Fail if property does not hold" $ do
