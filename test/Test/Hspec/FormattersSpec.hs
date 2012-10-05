@@ -99,6 +99,52 @@ spec = do
         , "6 examples, 0 pending, 0 failures"
         ]
 
+    it "prints an empty line before each group" $ do
+      r <- runSpec $ do
+        H.describe "foo" $ do
+          H.it "example 1" True
+          H.it "example 2" True
+          H.describe "bar" $ do
+            H.it "example 3" True
+            H.it "example 4" True
+      normalizeSummary r `shouldBe` [
+          ""
+        , "foo"
+        , "  - example 1"
+        , "  - example 2"
+        , ""
+        , "  bar"
+        , "    - example 3"
+        , "    - example 4"
+        , ""
+        , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
+        , ""
+        , "4 examples, 0 pending, 0 failures"
+        ]
+
+    it "prints an empty line after each group" $ do
+      r <- runSpec $ do
+        H.describe "foo" $ do
+          H.describe "bar" $ do
+            H.it "example 1" True
+            H.it "example 2" True
+          H.it "example 3" True
+          H.it "example 4" True
+      normalizeSummary r `shouldBe` [
+          ""
+        , "foo"
+        , "  bar"
+        , "    - example 1"
+        , "    - example 2"
+        , ""
+        , "  - example 3"
+        , "  - example 4"
+        , ""
+        , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
+        , ""
+        , "4 examples, 0 pending, 0 failures"
+        ]
+
     it "displays a row for each successfull, failed, or pending example" $ do
       r <- runSpec testSpec
       r `shouldSatisfy` any (== "  - fail 1 FAILED [1]")

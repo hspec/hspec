@@ -66,6 +66,7 @@ runFormatter c formatter specs = mapM_ (go []) (zip [0..] specs)
     go rGroups (n, SpecGroup group xs) = do
       exampleGroupStarted formatter n (reverse rGroups) group
       mapM_ (go (group : rGroups)) (zip [0..] xs)
+      exampleGroupDone formatter
     go rGroups (_, SpecExample requirement example) = do
       result <- (liftIO . safeEvaluate . silence_) (example c)
       case result of

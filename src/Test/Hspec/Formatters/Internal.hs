@@ -18,6 +18,7 @@ module Test.Hspec.Formatters.Internal (
 
 , write
 , writeLine
+, newParagraph
 
 , withSuccessColor
 , withPendingColor
@@ -34,7 +35,7 @@ module Test.Hspec.Formatters.Internal (
 
 import qualified System.IO as IO
 import           System.IO (Handle)
-import           Control.Monad (when)
+import           Control.Monad (when, unless)
 import           Control.Applicative
 import           Control.Exception (SomeException, bracket_)
 import           System.Console.ANSI
@@ -65,6 +66,7 @@ liftIO action = FormatM (IOClass.liftIO action)
 data FormatterState = FormatterState {
   stateHandle   :: Handle
 , stateUseColor :: Bool
+, lastIsEmptyLine :: Bool    -- True, if last line was empty
 , successCount  :: Int
 , pendingCount  :: Int
 , failCount     :: Int
@@ -84,7 +86,7 @@ runFormatM :: Bool -> Handle -> FormatM a -> IO a
 runFormatM useColor handle (FormatM action) = do
   time <- getPOSIXTime
   cpuTime <- CPUTime.getCPUTime
-  evalStateT action (FormatterState handle useColor 0 0 0 [] cpuTime time)
+  evalStateT action (FormatterState handle useColor False 0 0 0 [] cpuTime time)
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()
@@ -132,29 +134,49 @@ data Formatter = Formatter {
 --
 -- The given number indicates the position within the parent group.
   exampleGroupStarted :: Int -> [String] -> String -> FormatM ()
+
+, exampleGroupDone    :: FormatM ()
+
 -- | evaluated after each successful example
 , exampleSucceeded    :: Path -> FormatM ()
+
 -- | evaluated after each failed example
 , exampleFailed       :: Path -> Either SomeException String -> FormatM ()
+
 -- | evaluated after each pending example
 , examplePending      :: Path -> Maybe String -> FormatM ()
+
 -- | evaluated after a test run
 , failedFormatter     :: FormatM ()
+
 -- | evaluated after `failuresFormatter`
 , footerFormatter     :: FormatM ()
 }
+
+
+-- | Append an empty line to the report.
+--
+-- Calling this multiple times has the same effect as calling it once.
+newParagraph :: FormatM ()
+newParagraph = do
+  f <- gets lastIsEmptyLine
+  unless f $ do
+    writeLine ""
+    setLastIsEmptyLine True
+
+setLastIsEmptyLine :: Bool -> FormatM ()
+setLastIsEmptyLine f = modify $ \s -> s {lastIsEmptyLine = f}
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
 write s = do
   h <- gets stateHandle
   liftIO $ IO.hPutStr h s
+  setLastIsEmptyLine False
 
 -- | The same as `write`, but adds a newline character.
 writeLine :: String -> FormatM ()
-writeLine s = do
-  h <- gets stateHandle
-  liftIO $ IO.hPutStrLn h s
+writeLine s = write s >> write "\n"
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.

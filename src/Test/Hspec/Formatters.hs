@@ -34,6 +34,7 @@ module Test.Hspec.Formatters (
 -- ** Appending to the gerenated report
 , write
 , writeLine
+, newParagraph
 
 -- ** Dealing with colors
 , withSuccessColor
@@ -72,6 +73,7 @@ import Test.Hspec.Formatters.Internal (
 
   , write
   , writeLine
+  , newParagraph
 
   , withSuccessColor
   , withPendingColor
@@ -82,6 +84,7 @@ import Test.Hspec.Formatters.Internal (
 silent :: Formatter
 silent = Formatter {
   exampleGroupStarted = \_ _ _ -> return ()
+, exampleGroupDone    = return ()
 , exampleSucceeded    = \_ -> return ()
 , exampleFailed       = \_ _ -> return ()
 , examplePending      = \_ _  -> return ()
@@ -94,12 +97,17 @@ specdoc :: Formatter
 specdoc = silent {
   exampleGroupStarted = \n nesting name -> do
 
-    -- do not print newline for first describe in a group, unless it's the
-    -- first top-level item.
-    when (n /= 0 || n == 0 && null nesting) $ do
+    -- print an empty line at the beginning of the document
+    when (n == 0 && null nesting) $ do
       writeLine ""
 
+    unless (n == 0) $ do
+      newParagraph
+
     writeLine (indentationFor nesting ++ name)
+
+, exampleGroupDone = do
+    newParagraph
 
 , exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ "- " ++ requirement
@@ -136,8 +144,9 @@ failed_examples   = silent {
 
 defaultFailedFormatter :: FormatM ()
 defaultFailedFormatter = withFailColor $ do
+  newParagraph
   failures <- map formatFailure . zip [1..] <$> getFailMessages
-  mapM_ writeLine ("" : intersperse "" failures)
+  mapM_ writeLine (intersperse "" failures)
   unless (null failures) (writeLine "")
   where
     formatFailure :: (Int, FailureRecord) -> String
