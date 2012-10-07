@@ -58,7 +58,7 @@ spec = do
         H.SpecExample requirement _ -> requirement == "whatever"
         _ -> False
 
-    it "takes an example of that behavior" $ (`asTypeOf` (undefined :: IO ())) $ do
+    it "takes an example of that behavior" $ do
       case H.it "whatever" H.Success of
         H.SpecExample _ example -> do
           r <- example H.defaultConfig
@@ -66,4 +66,4 @@ spec = do
         H.SpecGroup _ _ -> error "unexpected SpecGroup"
 
     it "can use a Bool, HUnit Test, QuickCheck property, or `pending` as an example"
-      True
+      pending
