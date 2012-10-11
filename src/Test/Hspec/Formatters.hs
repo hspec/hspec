@@ -46,7 +46,7 @@ import           Data.Maybe
 import           Test.Hspec.Util
 import           Data.List (intersperse)
 import           Text.Printf
-import           Control.Monad (when, unless)
+import           Control.Monad (unless)
 import           Control.Applicative
 import qualified Control.Exception as E
 import           Data.Typeable (typeOf, typeRepTyCon, tyConModule, tyConName)
@@ -83,7 +83,8 @@ import Test.Hspec.Formatters.Internal (
 
 silent :: Formatter
 silent = Formatter {
-  exampleGroupStarted = \_ _ _ -> return ()
+  formatterHeader     = return ()
+, exampleGroupStarted = \_ _ _ -> return ()
 , exampleGroupDone    = return ()
 , exampleSucceeded    = \_ -> return ()
 , exampleFailed       = \_ _ -> return ()
@@ -95,12 +96,13 @@ silent = Formatter {
 
 specdoc :: Formatter
 specdoc = silent {
-  exampleGroupStarted = \n nesting name -> do
 
-    -- print an empty line at the beginning of the document
-    when (n == 0 && null nesting) $ do
-      writeLine ""
+  formatterHeader = do
+    writeLine ""
 
+, exampleGroupStarted = \n nesting name -> do
+
+    -- separate groups with an empty line
     unless (n == 0) $ do
       newParagraph
 

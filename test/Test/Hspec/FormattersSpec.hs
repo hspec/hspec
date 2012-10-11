@@ -145,6 +145,20 @@ spec = do
         , "4 examples, 0 pending, 0 failures"
         ]
 
+    it "outputs an empty line at the beginning (even for non-nested specs)" $ do
+      r <- runSpec $ do
+        H.it "example 1" True
+        H.it "example 2" True
+      normalizeSummary r `shouldBe` [
+          ""
+        , "- example 1"
+        , "- example 2"
+        , ""
+        , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
+        , ""
+        , "2 examples, 0 pending, 0 failures"
+        ]
+
     it "displays a row for each successfull, failed, or pending example" $ do
       r <- runSpec testSpec
       r `shouldSatisfy` any (== "  - fail 1 FAILED [1]")

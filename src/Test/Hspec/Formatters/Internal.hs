@@ -130,10 +130,13 @@ data FailureRecord = FailureRecord {
 }
 
 data Formatter = Formatter {
+
+  formatterHeader :: FormatM ()
+
 -- | evaluated before each test group
 --
 -- The given number indicates the position within the parent group.
-  exampleGroupStarted :: Int -> [String] -> String -> FormatM ()
+, exampleGroupStarted :: Int -> [String] -> String -> FormatM ()
 
 , exampleGroupDone    :: FormatM ()
 
