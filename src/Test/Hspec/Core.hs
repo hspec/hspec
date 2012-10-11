@@ -8,6 +8,7 @@ module Test.Hspec.Core (
   Spec
 , Specs
 , Example (..)
+, Result (..)
 , Pending
 
 -- * Defining a spec
@@ -20,10 +21,6 @@ module Test.Hspec.Core (
 , hspecB
 , Summary (..)
 
--- * Internals
-, quantify
-, Result (..)
-
 -- * Deprecated types and functions
 , hspecX
 , hHspec
@@ -32,4 +29,3 @@ module Test.Hspec.Core (
 import           Test.Hspec.Internal
 import           Test.Hspec.Pending
 import           Test.Hspec.Runner
-import           Test.Hspec.Util
