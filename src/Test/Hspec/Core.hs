@@ -25,24 +25,11 @@ module Test.Hspec.Core (
 , Result (..)
 
 -- * Deprecated types and functions
-, descriptions
 , hspecX
 , hHspec
-, AnyExample
-, UnevaluatedSpec
 ) where
 
 import           Test.Hspec.Internal
 import           Test.Hspec.Pending
 import           Test.Hspec.Runner
 import           Test.Hspec.Util
-
-{-# DEPRECATED UnevaluatedSpec "use Spec instead" #-}
-type UnevaluatedSpec = Spec
-
-{-# DEPRECATED descriptions "this is no longer needed, and will be removed in a future release" #-}
-descriptions :: Specs -> Specs
-descriptions = id
-
-{-# DEPRECATED AnyExample "This will be removed with the next major release.  If you still need this, raise your voice!" #-}
-type AnyExample  = IO Result
