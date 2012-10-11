@@ -1,8 +1,6 @@
 -- |
--- NOTE: There is a monadic and a non-monadic API.  This is the documentation
--- for the non-monadic API.  The monadic API is more stable, so you may prefer
--- it over this one.  For documentation on the monadic API look at
--- "Test.Hspec".
+-- This module provides Hspec's core primitives.  It is less stable than other
+-- parts of the API.  For most use cases "Test.Hspec" is more suitable.
 module Test.Hspec.Core (
 -- * Types
   Spec
