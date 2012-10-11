@@ -130,7 +130,7 @@ specdoc = silent {
 
 progress :: Formatter
 progress = silent {
-  exampleSucceeded = \_ -> withSuccessColor $ write "."
+  exampleSucceeded = \_   -> withSuccessColor $ write "."
 , exampleFailed    = \_ _ -> withFailColor    $ write "F"
 , examplePending   = \_ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter
