@@ -83,7 +83,7 @@ import Test.Hspec.Formatters.Internal (
 
 silent :: Formatter
 silent = Formatter {
-  formatterHeader     = return ()
+  headerFormatter     = return ()
 , exampleGroupStarted = \_ _ _ -> return ()
 , exampleGroupDone    = return ()
 , exampleSucceeded    = \_ -> return ()
@@ -97,7 +97,7 @@ silent = Formatter {
 specdoc :: Formatter
 specdoc = silent {
 
-  formatterHeader = do
+  headerFormatter = do
     writeLine ""
 
 , exampleGroupStarted = \n nesting name -> do

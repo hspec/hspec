@@ -131,7 +131,7 @@ data FailureRecord = FailureRecord {
 
 data Formatter = Formatter {
 
-  formatterHeader :: FormatM ()
+  headerFormatter :: FormatM ()
 
 -- | evaluated before each test group
 --

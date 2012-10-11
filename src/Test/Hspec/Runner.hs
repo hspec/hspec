@@ -56,7 +56,7 @@ filterSpecs p = goSpecs []
 
 -- | Evaluate and print the result of checking the specs examples.
 runFormatter :: Config -> Formatter -> [Spec] -> FormatM ()
-runFormatter c formatter specs = formatterHeader formatter >> mapM_ (go []) (zip [0..] specs)
+runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip [0..] specs)
   where
     silence_
       | configVerbose c = id
