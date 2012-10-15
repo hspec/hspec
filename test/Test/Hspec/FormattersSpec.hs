@@ -1,17 +1,20 @@
+{-# LANGUAGE CPP #-}
 module Test.Hspec.FormattersSpec (main, spec) where
 
 import           Test.Hspec.Meta
 import           Data.List
 
 import           Util (capture)
-import           System.Console.ANSI
 import qualified System.IO.Silently as S
 import           Data.Char
-
 import qualified Test.Hspec.Monadic as H
 import qualified Test.Hspec.Core as H (Result(..))
-import qualified Test.Hspec.Runner as H (ColorMode(..))
 import qualified Test.Hspec.Formatters as H
+
+#ifndef mingw32_HOST_OS
+import           System.Console.ANSI
+import qualified Test.Hspec.Runner as H (ColorMode(..))
+#endif
 
 main :: IO ()
 main = hspec spec
@@ -206,6 +209,9 @@ failed_examplesSpec formatter = do
     r <- runSpec testSpec
     r `shouldSatisfy` any (== "6 examples, 1 pending, 4 failures")
 
+  -- Windows has no support for ANSI escape codes.  The Console API is used for
+  -- colorized output, hence the following tests do not work on Windows.
+#ifndef mingw32_HOST_OS
   it "shows summary in green if there are no failures" $ do
     r <- capture $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" True
@@ -231,3 +237,4 @@ failed_examplesSpec formatter = do
     yellow = setSGRCode [SetColor Foreground Dull Yellow]
     red    = setSGRCode [SetColor Foreground Dull Red]
     reset  = setSGRCode [Reset]
+#endif
