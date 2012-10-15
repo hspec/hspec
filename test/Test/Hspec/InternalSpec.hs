@@ -1,16 +1,15 @@
 module Test.Hspec.InternalSpec (main, spec) where
 
 import           Test.Hspec.Meta
+import           Test.QuickCheck
 
 import qualified Test.Hspec.Internal as H
-import qualified Test.Hspec.Config as H
-import           Test.QuickCheck
 
 main :: IO ()
 main = hspec spec
 
 evaluateExample :: H.Example e => e -> IO H.Result
-evaluateExample = H.evaluateExample H.defaultConfig
+evaluateExample = H.evaluateExample H.defaultParams
 
 spec :: Spec
 spec = do

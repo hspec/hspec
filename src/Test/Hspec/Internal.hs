@@ -5,13 +5,15 @@ module Test.Hspec.Internal (
 , Example (..)
 , Result (..)
 
+, Params (..)
+, defaultParams
+
 , describe
 , it
 ) where
 
 import qualified Control.Exception as E
 import           Test.Hspec.Util
-import           Test.Hspec.Config (Config(..))
 import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
@@ -23,9 +25,16 @@ type Specs = [Spec]
 data Result = Success | Pending (Maybe String) | Fail String
   deriving (Eq, Show)
 
+data Params = Params {
+  paramsQuickCheckArgs :: QC.Args
+}
+
+defaultParams :: Params
+defaultParams = Params QC.stdArgs
+
 -- | Internal representation of a spec.
 data Spec = SpecGroup String [Spec]
-          | SpecExample String (Config -> IO Result)
+          | SpecExample String (Params -> IO Result)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [Spec] -> Spec
@@ -44,7 +53,7 @@ it s e = SpecExample s (`evaluateExample` e)
 
 -- | A type class for examples.
 class Example a where
-  evaluateExample :: Config -> a -> IO Result
+  evaluateExample :: Params -> a -> IO Result
 
 instance Example Bool where
   evaluateExample _ b = if b then return Success else return (Fail "")
@@ -57,7 +66,7 @@ instance Example Result where
 
 instance Example QC.Property where
   evaluateExample c p = do
-    r <- QC.quickCheckWithResult (configQuickCheckArgs c) p
+    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) p
     return $
       case r of
         QC.Success {}               -> Success

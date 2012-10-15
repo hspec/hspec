@@ -16,6 +16,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Formatters
 
 import           Test.Hspec.Util
+import           Test.Hspec.Internal (Params (..), defaultParams)
 
 data Config = Config {
   configVerbose         :: Bool
@@ -25,7 +26,7 @@ data Config = Config {
 -- A predicate that is used to filter the spec before it is run.  Only examples
 -- that satisfy the predicate are run.
 , configFilterPredicate :: Maybe (Path -> Bool)
-, configQuickCheckArgs  :: QC.Args
+, configParams          :: Params
 , configColorMode       :: ColorMode
 , configFormatter       :: Formatter
 , configHandle          :: Handle
@@ -34,7 +35,7 @@ data Config = Config {
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False False Nothing QC.stdArgs ColorAuto specdoc stdout
+defaultConfig = Config False False Nothing defaultParams ColorAuto specdoc stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -80,7 +81,11 @@ options = [
       Nothing -> Left (InvalidArgument "format" name)
       Just f  -> return c {configFormatter = f}
 
-    setQC_MaxSuccess n x = x >>= \c -> return c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.maxSuccess = read n}}
+    setQC_MaxSuccess :: String -> Result -> Result
+    setQC_MaxSuccess n x = (mapParams $ \p -> p {paramsQuickCheckArgs = (paramsQuickCheckArgs p) {QC.maxSuccess = read n}}) <$> x
+
+    mapParams :: (Params -> Params) -> Config -> Config
+    mapParams f c = c {configParams = f (configParams c)}
 
     setColor mValue x = x >>= \c -> parseColor mValue >>= \v -> return c {configColorMode = v}
       where

@@ -68,7 +68,7 @@ runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip
       mapM_ (go (group : rGroups)) (zip [0..] xs)
       exampleGroupDone formatter
     go rGroups (_, SpecExample requirement example) = do
-      result <- (liftIO . safeEvaluate . silence_) (example c)
+      result <- (liftIO . safeEvaluate . silence_) (example $ configParams c)
       case result of
         Right Success -> do
           increaseSuccessCount
