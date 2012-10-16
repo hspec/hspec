@@ -18,7 +18,7 @@ import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
 
--- | A forrest of `SpecTree`s.
+-- | A forest of `SpecTree`s.
 type Specs = [SpecTree]
 
 -- | The result of running an example.

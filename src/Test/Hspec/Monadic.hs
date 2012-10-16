@@ -33,7 +33,7 @@ module Test.Hspec.Monadic (
 ) where
 
 import           System.IO
-import           Test.Hspec.Core (Example)
+import           Test.Hspec.Core (SpecTree, Example)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary (..))
@@ -46,7 +46,8 @@ import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 type Spec = SpecM ()
 
-newtype SpecM a = SpecM (Writer [Core.Spec] a)
+-- | A writer monad for `SpecTree` forests.
+newtype SpecM a = SpecM (Writer [SpecTree] a)
   deriving Monad
 
 -- | Create a document of the given spec and write it to stdout.
@@ -67,12 +68,12 @@ hspecWith c = Runner.hspecWith c . runSpecM
 hspecB :: Spec -> IO Bool
 hspecB = Runner.hspecB . runSpecM
 
--- | Convert a monadic spec into a non-monadic spec.
-runSpecM :: Spec -> [Core.Spec]
+-- | Convert a `Spec` to a forest of `SpecTree`s.
+runSpecM :: Spec -> [SpecTree]
 runSpecM (SpecM specs) = execWriter specs
 
--- | Convert a non-monadic spec into a monadic spec.
-fromSpecList :: [Core.Spec] -> Spec
+-- | Create a `Spec` from a forest of `SpecTree`s.
+fromSpecList :: [SpecTree] -> Spec
 fromSpecList = SpecM . tell
 
 -- | The @describe@ function combines a list of specs into a larger spec.
