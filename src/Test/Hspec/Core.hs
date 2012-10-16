@@ -3,7 +3,7 @@
 -- parts of the API.  For most use cases "Test.Hspec" is more suitable.
 module Test.Hspec.Core (
 -- * Types
-  Spec
+  SpecTree
 , Specs
 , Example (..)
 , Result (..)
@@ -20,6 +20,7 @@ module Test.Hspec.Core (
 , Summary (..)
 
 -- * Deprecated types and functions
+, Spec
 , hspecX
 , hHspec
 ) where
@@ -27,3 +28,6 @@ module Test.Hspec.Core (
 import           Test.Hspec.Internal
 import           Test.Hspec.Pending
 import           Test.Hspec.Runner
+
+-- {-# DEPRECATED Spec "use `SpecTree` instead" #-}
+type Spec = SpecTree

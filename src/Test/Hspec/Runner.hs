@@ -44,10 +44,10 @@ import           Test.Hspec.FailureReport
 filterSpecs :: (Path -> Bool) -> Specs -> Specs
 filterSpecs p = goSpecs []
   where
-    goSpecs :: [String] -> [Spec] -> [Spec]
+    goSpecs :: [String] -> [SpecTree] -> [SpecTree]
     goSpecs groups = catMaybes . map (goSpec groups)
 
-    goSpec :: [String] -> Spec -> Maybe Spec
+    goSpec :: [String] -> SpecTree -> Maybe SpecTree
     goSpec groups spec = case spec of
       SpecExample requirement _ -> guard (p (groups, requirement)) >> return spec
       SpecGroup group specs     -> case goSpecs (groups ++ [group]) specs of
@@ -55,14 +55,14 @@ filterSpecs p = goSpecs []
         xs -> Just (SpecGroup group xs)
 
 -- | Evaluate and print the result of checking the specs examples.
-runFormatter :: Config -> Formatter -> [Spec] -> FormatM ()
+runFormatter :: Config -> Formatter -> [SpecTree] -> FormatM ()
 runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip [0..] specs)
   where
     silence_
       | configVerbose c = id
       | otherwise       = silence
 
-    go :: [String] -> (Int, Spec) -> FormatM ()
+    go :: [String] -> (Int, SpecTree) -> FormatM ()
     go rGroups (n, SpecGroup group xs) = do
       exampleGroupStarted formatter n (reverse rGroups) group
       mapM_ (go (group : rGroups)) (zip [0..] xs)

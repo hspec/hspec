@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 module Test.Hspec.Internal (
-  Spec (..)
+  SpecTree (..)
 , Specs
 , Example (..)
 , Result (..)
@@ -18,8 +18,8 @@ import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
 
--- | A list of specs.
-type Specs = [Spec]
+-- | A forrest of `SpecTree`s.
+type Specs = [SpecTree]
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
@@ -33,11 +33,12 @@ defaultParams :: Params
 defaultParams = Params QC.stdArgs
 
 -- | Internal representation of a spec.
-data Spec = SpecGroup String [Spec]
-          | SpecExample String (Params -> IO Result)
+data SpecTree =
+    SpecGroup String [SpecTree]
+  | SpecExample String (Params -> IO Result)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
-describe :: String -> [Spec] -> Spec
+describe :: String -> [SpecTree] -> SpecTree
 describe = SpecGroup
 
 -- |
@@ -48,7 +49,7 @@ describe = SpecGroup
 -- >   it "returns a positive number given a negative number"
 -- >     (abs (-1) == 1)
 -- >   ]
-it :: Example a => String -> a -> Spec
+it :: Example a => String -> a -> SpecTree
 it s e = SpecExample s (`evaluateExample` e)
 
 -- | A type class for examples.
