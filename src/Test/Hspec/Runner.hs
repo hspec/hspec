@@ -41,7 +41,7 @@ import           Test.Hspec.FailureReport
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
-filterSpecs :: (Path -> Bool) -> Specs -> Specs
+filterSpecs :: (Path -> Bool) -> [SpecTree] -> [SpecTree]
 filterSpecs p = goSpecs []
   where
     goSpecs :: [String] -> [SpecTree] -> [SpecTree]
@@ -90,7 +90,7 @@ runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip
 -- | Create a document of the given specs and write it to stdout.
 --
 -- Exit the program with `exitFailure` if at least one example fails.
-hspec :: Specs -> IO ()
+hspec :: [SpecTree] -> IO ()
 hspec specs =
   getConfig >>=
   withArgs [] .             -- do not leak command-line arguments to examples
@@ -98,31 +98,31 @@ hspec specs =
   (`unless` exitFailure)
 
 {-# DEPRECATED hspecX "use hspec instead" #-}
-hspecX :: Specs -> IO a
+hspecX :: [SpecTree] -> IO a
 hspecX = hspecB >=> exitWith . toExitCode
 
 {-# DEPRECATED hHspec "use hspecWith instead" #-}
-hHspec :: Handle -> Specs -> IO Summary
+hHspec :: Handle -> [SpecTree] -> IO Summary
 hHspec h = hspecWith defaultConfig {configHandle = h}
 
 {-# DEPRECATED hHspecWithFormat "use hspecWith instead" #-}
-hHspecWithFormat :: Config -> Handle -> Specs -> IO Summary
+hHspecWithFormat :: Config -> Handle -> [SpecTree] -> IO Summary
 hHspecWithFormat c h = hspecWith c {configHandle = h}
 
 -- | Create a document of the given specs and write it to stdout.
 --
 -- Return `True` if all examples passed, `False` otherwise.
-hspecB :: Specs -> IO Bool
+hspecB :: [SpecTree] -> IO Bool
 hspecB = hspecB_ defaultConfig
 
-hspecB_ :: Config -> Specs -> IO Bool
+hspecB_ :: Config -> [SpecTree] -> IO Bool
 hspecB_ c = fmap success . hspecWith c
   where
     success :: Summary -> Bool
     success s = summaryFailures s == 0
 
 -- | Run given specs.  This is similar to `hspec`, but more flexible.
-hspecWith :: Config -> Specs -> IO Summary
+hspecWith :: Config -> [SpecTree] -> IO Summary
 hspecWith c_ specs = do
   -- read failure report on --re-run
   c <- if configReRun c_
