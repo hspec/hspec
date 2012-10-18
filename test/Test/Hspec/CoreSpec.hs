@@ -1,9 +1,9 @@
 module Test.Hspec.CoreSpec (main, spec) where
 
 import           Test.Hspec.Meta
-
-import           Data.List (isPrefixOf)
 import           Util
+import           Data.List (isPrefixOf)
+
 import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Internal as H
 
@@ -12,6 +12,10 @@ main = hspec spec
 
 spec :: Spec
 spec = do
+  describe "hspec" $ do
+    it "runs a forrest of `SpecTree`s" $ do
+      H.hspec [H.it "foo" H.pending] `shouldReturn` ()
+
   describe "Bool as an example" $ do
     it "succeds, when True" $ do
       hspecSummary [H.it "foo" True] `shouldReturn` H.Summary 1 0

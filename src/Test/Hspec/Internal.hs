@@ -15,18 +15,19 @@ module Test.Hspec.Internal (
 ) where
 
 import qualified Control.Exception as E
+import           Control.Applicative
+import           Control.Monad.Trans.Writer (Writer, execWriter)
+
 import           Test.Hspec.Util
 import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
 
-import           Control.Monad.Trans.Writer (Writer, execWriter)
-
 type Spec = SpecM ()
 
 -- | A writer monad for `SpecTree` forests.
 newtype SpecM a = SpecM (Writer [SpecTree] a)
-  deriving Monad
+  deriving (Functor, Applicative, Monad)
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
 runSpecM :: Spec -> [SpecTree]

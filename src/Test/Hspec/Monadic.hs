@@ -13,7 +13,7 @@ module Test.Hspec.Monadic (
 , pending
 
 -- * Running a spec
-, hspec
+, Runner.hspec
 , hspecWith
 , hspecB
 , Summary (..)
@@ -35,20 +35,12 @@ import           System.IO
 import           Control.Monad.Trans.Writer (tell)
 
 import           Test.Hspec.Internal hiding (describe, it)
-import qualified Test.Hspec.Core as Core
+import qualified Test.Hspec.Internal as Internal
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary (..))
 import           Test.Hspec.Config
 import           Test.Hspec.Pending (Pending)
 import qualified Test.Hspec.Pending as Pending
-
--- | Create a document of the given spec and write it to stdout.
---
--- Exit the program with `System.Exit.exitFailure` if at least one example fails.
---
--- (see also `hspecWith`)
-hspec :: Spec -> IO ()
-hspec = Runner.hspec . runSpecM
 
 -- | Run a spec.  This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Spec -> IO Summary
@@ -66,7 +58,7 @@ fromSpecList = SpecM . tell
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
-describe label action = SpecM . tell $ [Core.describe label (runSpecM action)]
+describe label action = SpecM . tell $ [Internal.describe label (runSpecM action)]
 
 -- | An alias for `describe`.
 context :: String -> Spec -> Spec
@@ -80,7 +72,7 @@ context = describe
 -- >   it "returns a positive number given a negative number" $
 -- >     abs (-1) == 1
 it :: Example v => String -> v -> Spec
-it label action = (SpecM . tell) [Core.it label action]
+it label action = (SpecM . tell) [Internal.it label action]
 
 -- | A pending example.
 --

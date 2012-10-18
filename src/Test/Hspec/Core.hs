@@ -27,7 +27,12 @@ module Test.Hspec.Core (
 
 import           Test.Hspec.Internal hiding (Spec)
 import           Test.Hspec.Pending
-import           Test.Hspec.Runner
+import           Test.Hspec.Runner hiding (hspec)
+import qualified Test.Hspec.Runner as Runner
+import           Test.Hspec.Monadic (fromSpecList)
+
+hspec :: [SpecTree] -> IO ()
+hspec = Runner.hspec . fromSpecList
 
 -- | A forest of `SpecTree`s.
 type Specs = [SpecTree]

@@ -30,17 +30,17 @@ spec = do
 
   describe "hspec" $ do
     it "runs a spec" $ do
-      H.hspec . runSpecM $ do
+      H.hspec $ do
         H.it "foobar" True
       `shouldReturn` ()
 
     it "exits with exitFailure if not all examples pass" $ do
-      H.hspec . runSpecM $ do
+      H.hspec $ do
         H.it "foobar" False
       `shouldThrow` (== ExitFailure 1)
 
     it "suppresses output to stdout when evaluating examples" $ do
-      r <- capture . H.hspec . runSpecM $ do
+      r <- capture . H.hspec $ do
         H.it "foobar" $ do
           putStrLn "baz"
       r `shouldSatisfy` notElem "baz"
@@ -48,22 +48,22 @@ spec = do
     context "command-line options" $ do
       it "prints an error message on unrecognized options" $ do
         withProgName "myspec" . withArgs ["--foo"] $ do
-          hSilence [stderr] (H.hspec []) `shouldThrow` (== ExitFailure 1)
-          fst `fmap` hCapture [stderr] (ignoreExitCode (H.hspec [])) `shouldReturn` unlines [
+          hSilence [stderr] (H.hspec $ pure ()) `shouldThrow` (== ExitFailure 1)
+          fst `fmap` hCapture [stderr] (ignoreExitCode (H.hspec $ pure ())) `shouldReturn` unlines [
               "myspec: unrecognized option `--foo'"
             , "Try `myspec --help' for more information."
             ]
 
       it "does not leak command-line flags to examples" $ do
         withArgs ["--verbose"] $ do
-          H.hspec . runSpecM $ do
+          H.hspec $ do
             H.it "foobar" $ do
               getArgs `shouldReturn` []
           `shouldReturn` ()
 
       describe "option '--verbose'" $ do
         it "does not suppress output to stdout when evaluating examples" $ do
-          r <- capture . withArgs ["--verbose"] .  H.hspec . runSpecM $ do
+          r <- capture . withArgs ["--verbose"] .  H.hspec $ do
             H.it "foobar" $ do
               putStrLn "baz"
           r `shouldSatisfy` elem "baz"
@@ -73,7 +73,7 @@ spec = do
           e1 <- newMock
           e2 <- newMock
           e3 <- newMock
-          withArgs ["-m", "/bar/example"] .  H.hspec . runSpecM $ do
+          withArgs ["-m", "/bar/example"] .  H.hspec $ do
             H.describe "foo" $ do
               H.describe "bar" $ do
                 H.it "example 1" $ mockAction e1
@@ -86,7 +86,7 @@ spec = do
           e1 <- newMock
           e2 <- newMock
           e3 <- newMock
-          withArgs ["-m", "foo", "-m", "baz"] .  H.hspec . runSpecM $ do
+          withArgs ["-m", "foo", "-m", "baz"] .  H.hspec $ do
             H.describe "foo" $ do
               H.it "example 1" $ mockAction e1
             H.describe "bar" $ do
@@ -97,7 +97,7 @@ spec = do
 
     describe "experimental features" $ do
       it "keeps a failure report in the environment" $ do
-        ignoreExitCode . H.hspec . runSpecM $ do
+        ignoreExitCode . H.hspec $ do
           H.describe "foo" $ do
             H.describe "bar" $ do
               H.it "example 1" True
@@ -107,13 +107,12 @@ spec = do
         getEnv "HSPEC_FAILURES" `shouldReturn` Just "[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")]"
 
       describe "option '--re-run'" $ do
-        let testSpec = runSpecM $ do
+        let runSpec = (capture . ignoreExitCode . H.hspec) $ do
               H.it "example 1" True
               H.it "example 2" False
               H.it "example 3" False
               H.it "example 4" True
               H.it "example 5" False
-            runSpec = (capture . ignoreExitCode . H.hspec) testSpec
 
         it "re-runs examples that previously failed" $ do
           r0 <- runSpec

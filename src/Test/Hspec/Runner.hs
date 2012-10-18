@@ -86,14 +86,17 @@ runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip
           addFailMessage path err
           exampleFailed  formatter path err
 
--- | Create a document of the given specs and write it to stdout.
+
+-- | Create a document of the given spec and write it to stdout.
 --
 -- Exit the program with `exitFailure` if at least one example fails.
-hspec :: [SpecTree] -> IO ()
-hspec specs =
+--
+-- (see also `hspecWith`)
+hspec :: Spec -> IO ()
+hspec spec =
   getConfig >>=
   withArgs [] .             -- do not leak command-line arguments to examples
-  (`hspecB_` specs) >>=
+  (`hspecB_` runSpecM spec) >>=
   (`unless` exitFailure)
 
 {-# DEPRECATED hspecX "use hspec instead" #-}
