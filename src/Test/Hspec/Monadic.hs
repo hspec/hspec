@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Test.Hspec.Monadic (
 -- * Types
@@ -33,22 +32,15 @@ module Test.Hspec.Monadic (
 ) where
 
 import           System.IO
-import           Test.Hspec.Core (SpecTree, Example)
+import           Control.Monad.Trans.Writer (tell)
+
+import           Test.Hspec.Internal hiding (describe, it)
 import qualified Test.Hspec.Core as Core
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary (..))
 import           Test.Hspec.Config
 import           Test.Hspec.Pending (Pending)
 import qualified Test.Hspec.Pending as Pending
-
-import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
-
-
-type Spec = SpecM ()
-
--- | A writer monad for `SpecTree` forests.
-newtype SpecM a = SpecM (Writer [SpecTree] a)
-  deriving Monad
 
 -- | Create a document of the given spec and write it to stdout.
 --
@@ -67,10 +59,6 @@ hspecWith c = Runner.hspecWith c . runSpecM
 -- Return `True` if all examples passed, `False` otherwise.
 hspecB :: Spec -> IO Bool
 hspecB = Runner.hspecB . runSpecM
-
--- | Convert a `Spec` to a forest of `SpecTree`s.
-runSpecM :: Spec -> [SpecTree]
-runSpecM (SpecM specs) = execWriter specs
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
 fromSpecList :: [SpecTree] -> Spec

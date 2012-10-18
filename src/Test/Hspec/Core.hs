@@ -25,9 +25,12 @@ module Test.Hspec.Core (
 , hHspec
 ) where
 
-import           Test.Hspec.Internal
+import           Test.Hspec.Internal hiding (Spec)
 import           Test.Hspec.Pending
 import           Test.Hspec.Runner
+
+-- | A forest of `SpecTree`s.
+type Specs = [SpecTree]
 
 -- {-# DEPRECATED Spec "use `SpecTree` instead" #-}
 type Spec = SpecTree

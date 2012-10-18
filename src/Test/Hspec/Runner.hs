@@ -2,8 +2,7 @@
 -- report to a given handle.
 --
 module Test.Hspec.Runner (
-  Specs
-, hspec
+  hspec
 , hspecWith
 , hspecB
 , toExitCode

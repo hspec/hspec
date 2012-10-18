@@ -1,7 +1,9 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Internal (
-  SpecTree (..)
-, Specs
+  Spec
+, SpecM (..)
+, runSpecM
+, SpecTree (..)
 , Example (..)
 , Result (..)
 
@@ -18,8 +20,17 @@ import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
 
--- | A forest of `SpecTree`s.
-type Specs = [SpecTree]
+import           Control.Monad.Trans.Writer (Writer, execWriter)
+
+type Spec = SpecM ()
+
+-- | A writer monad for `SpecTree` forests.
+newtype SpecM a = SpecM (Writer [SpecTree] a)
+  deriving Monad
+
+-- | Convert a `Spec` to a forest of `SpecTree`s.
+runSpecM :: Spec -> [SpecTree]
+runSpecM (SpecM specs) = execWriter specs
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
