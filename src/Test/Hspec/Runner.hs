@@ -1,11 +1,6 @@
--- | This module contains the runners that take a set of specs, evaluate their examples, and
--- report to a given handle.
---
 module Test.Hspec.Runner (
   hspec
 , hspecWith
-, hspecB
-, toExitCode
 
 , Summary (..)
 
@@ -14,14 +9,9 @@ module Test.Hspec.Runner (
 , Path
 , defaultConfig
 , configAddFilter
-
--- * Deprecated functions
-, hspecX
-, hHspec
-, hHspecWithFormat
 ) where
 
-import           Control.Monad (unless, (>=>), guard)
+import           Control.Monad
 import           Control.Applicative
 import           Data.Monoid
 import           Data.Maybe
@@ -93,39 +83,15 @@ runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip
 --
 -- (see also `hspecWith`)
 hspec :: Spec -> IO ()
-hspec spec =
-  getConfig >>=
-  withArgs [] .             -- do not leak command-line arguments to examples
-  (`hspecB_` runSpecM spec) >>=
-  (`unless` exitFailure)
-
-{-# DEPRECATED hspecX "use hspec instead" #-}
-hspecX :: [SpecTree] -> IO a
-hspecX = hspecB >=> exitWith . toExitCode
-
-{-# DEPRECATED hHspec "use hspecWith instead" #-}
-hHspec :: Handle -> [SpecTree] -> IO Summary
-hHspec h = hspecWith defaultConfig {configHandle = h}
-
-{-# DEPRECATED hHspecWithFormat "use hspecWith instead" #-}
-hHspecWithFormat :: Config -> Handle -> [SpecTree] -> IO Summary
-hHspecWithFormat c h = hspecWith c {configHandle = h}
-
--- | Create a document of the given specs and write it to stdout.
---
--- Return `True` if all examples passed, `False` otherwise.
-hspecB :: [SpecTree] -> IO Bool
-hspecB = hspecB_ defaultConfig
-
-hspecB_ :: Config -> [SpecTree] -> IO Bool
-hspecB_ c = fmap success . hspecWith c
-  where
-    success :: Summary -> Bool
-    success s = summaryFailures s == 0
+hspec spec = do
+  c <- getConfig
+  withArgs [] {- do not leak command-line arguments to examples -} $ do
+    r <- hspecWith c spec
+    unless (summaryFailures r == 0) exitFailure
 
 -- | Run given specs.  This is similar to `hspec`, but more flexible.
-hspecWith :: Config -> [SpecTree] -> IO Summary
-hspecWith c_ specs = do
+hspecWith :: Config -> Spec -> IO Summary
+hspecWith c_ spec = do
   -- read failure report on --re-run
   c <- if configReRun c_
     then do
@@ -138,7 +104,7 @@ hspecWith c_ specs = do
 
   useColor <- doesUseColor h c
   runFormatM useColor h $ do
-    runFormatter c formatter (maybe id filterSpecs (configFilterPredicate c) specs)
+    runFormatter c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec)
     failedFormatter formatter
     footerFormatter formatter
 
@@ -147,16 +113,12 @@ hspecWith c_ specs = do
     liftIO $ writeFailureReport (show xs)
 
     Summary <$> getTotalCount <*> getFailCount
-
-doesUseColor :: Handle -> Config -> IO Bool
-doesUseColor h c = case configColorMode c of
-  ColorAuto  -> hIsTerminalDevice h
-  ColorNever -> return False
-  ColorAlway -> return True
-
-toExitCode :: Bool -> ExitCode
-toExitCode True  = ExitSuccess
-toExitCode False = ExitFailure 1
+  where
+    doesUseColor :: Handle -> Config -> IO Bool
+    doesUseColor h c = case configColorMode c of
+      ColorAuto  -> hIsTerminalDevice h
+      ColorNever -> return False
+      ColorAlway -> return True
 
 -- | Summary of a test run.
 data Summary = Summary {

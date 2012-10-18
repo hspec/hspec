@@ -3,21 +3,18 @@ module Test.Hspec.RunnerSpec (main, spec) where
 import           Test.Hspec.Meta
 import           System.IO.Silently (hCapture, hSilence)
 import           System.IO (stderr)
-
 import           Control.Applicative
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import qualified Control.Exception as E
-import qualified Test.Hspec.Runner as H
-import qualified Test.Hspec.Monadic as H (describe, it)
-import           Test.Hspec.Monadic (runSpecM)
-import qualified Test.Hspec.Formatters as H
 import           Util (capture)
-
 import           Mock
-
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
+
+import qualified Test.Hspec.Runner as H
+import qualified Test.Hspec as H (describe, it)
+import qualified Test.Hspec.Formatters as H (silent)
 
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
@@ -145,7 +142,7 @@ spec = do
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do
-      H.hspecWith H.defaultConfig . runSpecM $ do
+      H.hspecWith H.defaultConfig $ do
         H.it "foo" True
         H.it "foo" False
         H.it "foo" False
@@ -154,11 +151,13 @@ spec = do
       `shouldReturn` H.Summary 5 2
 
     it "uses the specdoc formatter by default" $ do
-      let testSpec = (runSpecM $ H.describe "Foo.Bar" $ H.it "some example" True)
-      _:r:_ <- capture $ H.hspecWith H.defaultConfig testSpec
+      _:r:_ <- capture . H.hspecWith H.defaultConfig $ do
+        H.describe "Foo.Bar" $ do
+          H.it "some example" True
       r `shouldBe` "Foo.Bar"
 
     it "can use a custom formatter" $ do
-      let testSpec = (runSpecM $ H.describe "Foo.Bar" $ return ())
-      [] <- capture $ H.hspecWith H.defaultConfig {H.configFormatter = H.silent} testSpec
-      return ()
+      r <- capture . H.hspecWith H.defaultConfig {H.configFormatter = H.silent} $ do
+        H.describe "Foo.Bar" $ do
+          H.it "some example" True
+      r `shouldBe` []

@@ -7,13 +7,13 @@ import           Data.List
 import           Util (capture)
 import qualified System.IO.Silently as S
 import           Data.Char
-import qualified Test.Hspec.Monadic as H
+import qualified Test.Hspec as H
 import qualified Test.Hspec.Core as H (Result(..))
+import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Formatters as H
 
 #ifndef mingw32_HOST_OS
 import           System.Console.ANSI
-import qualified Test.Hspec.Runner as H (ColorMode(..))
 #endif
 
 main :: IO ()

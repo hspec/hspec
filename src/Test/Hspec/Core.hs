@@ -4,8 +4,8 @@
 module Test.Hspec.Core (
 -- * Types
   SpecTree
-, Specs
 , Example (..)
+, Params (..)
 , Result (..)
 , Pending
 
@@ -16,26 +16,49 @@ module Test.Hspec.Core (
 
 -- * Running a spec
 , hspec
-, hspecB
+, hspecWith
 , Summary (..)
 
 -- * Deprecated types and functions
 , Spec
+, Specs
+, hspecB
 , hspecX
 , hHspec
 ) where
 
+import           Control.Applicative
+import           System.IO (Handle)
+
 import           Test.Hspec.Internal hiding (Spec)
 import           Test.Hspec.Pending
-import           Test.Hspec.Runner hiding (hspec)
 import qualified Test.Hspec.Runner as Runner
+import           Test.Hspec.Runner (Summary(..), Config(..), defaultConfig)
 import           Test.Hspec.Monadic (fromSpecList)
 
 hspec :: [SpecTree] -> IO ()
 hspec = Runner.hspec . fromSpecList
 
--- | A forest of `SpecTree`s.
-type Specs = [SpecTree]
+-- | Create a document of the given specs and write it to stdout.
+--
+-- Return `True` if all examples passe, `False` otherwise.
+hspecWith :: Config -> [SpecTree] -> IO Summary
+hspecWith c = Runner.hspecWith c . fromSpecList
 
--- {-# DEPRECATED Spec "use `SpecTree` instead" #-}
+{-# DEPRECATED hspecX "use `hspec` instead" #-}           -- since 1.2.0
+hspecX :: [SpecTree] -> IO ()
+hspecX = hspec
+
+{-# DEPRECATED hspecB "use `hspecWith` instead" #-}       -- since 1.4.0
+hspecB :: [SpecTree] -> IO Bool
+hspecB spec = (== 0) . summaryFailures <$> hspecWith defaultConfig spec
+
+{-# DEPRECATED hHspec "use `hspecWith` instead" #-}       -- since 1.4.0
+hHspec :: Handle -> [SpecTree] -> IO Summary
+hHspec h = hspecWith defaultConfig {configHandle = h}
+
+{-# DEPRECATED Spec "use `SpecTree` instead" #-}          -- since 1.4.0
 type Spec = SpecTree
+
+{-# DEPRECATED Specs "use `[SpecTree]` instead" #-}       -- since 1.4.0
+type Specs = [SpecTree]

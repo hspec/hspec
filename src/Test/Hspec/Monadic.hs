@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Test.Hspec.Monadic (
 -- * Types
   Spec
@@ -13,12 +12,7 @@ module Test.Hspec.Monadic (
 , pending
 
 -- * Running a spec
-, Runner.hspec
-, hspecWith
-, hspecB
-, Summary (..)
-, Config (..)
-, defaultConfig
+, hspec
 
 -- * Interface to the non-monadic API
 , runSpecM
@@ -27,30 +21,20 @@ module Test.Hspec.Monadic (
 -- * Deprecated types and functions
 , Specs
 , descriptions
+, hspecB
 , hspecX
 , hHspec
 ) where
 
 import           System.IO
+import           Control.Applicative
 import           Control.Monad.Trans.Writer (tell)
 
 import           Test.Hspec.Internal hiding (describe, it)
 import qualified Test.Hspec.Internal as Internal
-import qualified Test.Hspec.Runner as Runner
-import           Test.Hspec.Runner (Summary (..))
-import           Test.Hspec.Config
+import           Test.Hspec.Runner
 import           Test.Hspec.Pending (Pending)
 import qualified Test.Hspec.Pending as Pending
-
--- | Run a spec.  This is similar to `hspec`, but more flexible.
-hspecWith :: Config -> Spec -> IO Summary
-hspecWith c = Runner.hspecWith c . runSpecM
-
--- | Create a document of the given spec and write it to stdout.
---
--- Return `True` if all examples passed, `False` otherwise.
-hspecB :: Spec -> IO Bool
-hspecB = Runner.hspecB . runSpecM
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
 fromSpecList :: [SpecTree] -> Spec
@@ -90,17 +74,21 @@ it label action = (SpecM . tell) [Internal.it label action]
 pending :: String  -> Pending
 pending = Pending.pending
 
-{-# DEPRECATED Specs "use Spec instead" #-}
+{-# DEPRECATED Specs "use `Spec` instead" #-}             -- since 1.2.0
 type Specs = SpecM ()
 
-{-# DEPRECATED descriptions "use sequence_ instead" #-}
+{-# DEPRECATED descriptions "use `sequence_` instead" #-} -- since 1.0.0
 descriptions :: [Spec] -> Spec
 descriptions = sequence_
 
-{-# DEPRECATED hspecX "use hspec instead" #-}
-hspecX :: Spec -> IO a
-hspecX = Runner.hspecX . runSpecM
+{-# DEPRECATED hspecX "use `hspec` instead" #-}           -- since 1.2.0
+hspecX :: Spec -> IO ()
+hspecX = hspec
 
-{-# DEPRECATED hHspec "use hspecWith instead" #-}
+{-# DEPRECATED hspecB "use `hspecWith` instead" #-}       -- since 1.4.0
+hspecB :: Spec -> IO Bool
+hspecB spec = (== 0) . summaryFailures <$> hspecWith defaultConfig spec
+
+{-# DEPRECATED hHspec "use hspecWith instead" #-}         -- since 1.4.0
 hHspec :: Handle -> Spec -> IO Summary
-hHspec h = Runner.hHspec h . runSpecM
+hHspec h = hspecWith defaultConfig {configHandle = h}
