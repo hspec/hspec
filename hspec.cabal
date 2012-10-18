@@ -107,21 +107,6 @@ test-suite example
     , hspec
     , QuickCheck
 
-test-suite example-non-monadic
-  type:
-      exitcode-stdio-1.0
-  main-is:
-      NonMonadic.hs
-  hs-source-dirs:
-      example
-  ghc-options:
-      -Wall -Werror
-  build-depends:
-      base
-    , hspec
-    , hspec-expectations
-    , QuickCheck
-
 -- hspec-discover
 executable hspec-discover
   ghc-options:
