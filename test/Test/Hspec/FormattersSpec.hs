@@ -4,8 +4,8 @@ module Test.Hspec.FormattersSpec (main, spec) where
 import           Test.Hspec.Meta
 import           Data.List
 
-import           Util (capture)
-import qualified System.IO.Silently as S
+import           Util (capture_)
+import           System.IO.Silently (capture)
 import           Data.Char
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Core as H (Result(..))
@@ -41,7 +41,7 @@ normalizeSummary xs = map f xs
 spec :: Spec
 spec = do
   describe "silent" $ do
-    let runSpec = fmap fst . S.capture . H.hspecWith H.defaultConfig {H.configFormatter = H.silent}
+    let runSpec = fmap fst . capture . H.hspecWith H.defaultConfig {H.configFormatter = H.silent}
     it "produces no output" $ do
       runSpec testSpec `shouldReturn` ""
 
@@ -49,7 +49,7 @@ spec = do
     failed_examplesSpec H.failed_examples
 
   describe "progress" $ do
-    let runSpec = capture . H.hspecWith H.defaultConfig {H.configFormatter = H.progress}
+    let runSpec = capture_ . H.hspecWith H.defaultConfig {H.configFormatter = H.progress}
 
     it "produces '..F...FF.F' style output" $ do
       r <- runSpec testSpec
@@ -59,7 +59,7 @@ spec = do
       failed_examplesSpec H.progress
 
   describe "specdoc" $ do
-    let runSpec = capture . H.hspecWith H.defaultConfig {H.configFormatter = H.specdoc}
+    let runSpec = capture_ . H.hspecWith H.defaultConfig {H.configFormatter = H.specdoc}
 
     it "displays a header for each thing being described" $ do
       _:x:_ <- runSpec testSpec
@@ -179,7 +179,7 @@ spec = do
 
 failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do
-  let runSpec = capture . H.hspecWith H.defaultConfig {H.configFormatter = formatter}
+  let runSpec = capture_ . H.hspecWith H.defaultConfig {H.configFormatter = formatter}
 
   it "summarizes the time it takes to finish" $ do
     r <- runSpec (return ())
@@ -213,22 +213,22 @@ failed_examplesSpec formatter = do
   -- colorized output, hence the following tests do not work on Windows.
 #ifndef mingw32_HOST_OS
   it "shows summary in green if there are no failures" $ do
-    r <- capture $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- capture_ $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" True
     r `shouldSatisfy` any (== (green ++ "1 example, 0 pending, 0 failures" ++ reset))
 
   it "shows summary in yellow if there are pending examples" $ do
-    r <- capture $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- capture_ $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" H.pending
     r `shouldSatisfy` any (== (yellow ++ "1 example, 1 pending, 0 failures" ++ reset))
 
   it "shows summary in red if there are failures" $ do
-    r <- capture $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- capture_ $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" False
     r `shouldSatisfy` any (== (red ++ "1 example, 0 pending, 1 failure" ++ reset))
 
   it "shows summary in red if there are both failures and pending examples" $ do
-    r <- capture $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- capture_ $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foo" False
       H.it "bar" H.pending
     r `shouldSatisfy` any (== (red ++ "2 examples, 1 pending, 1 failure" ++ reset))

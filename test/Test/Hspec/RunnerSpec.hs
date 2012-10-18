@@ -4,10 +4,11 @@ import           Test.Hspec.Meta
 import           System.IO.Silently (hCapture, hSilence)
 import           System.IO (stderr)
 import           Control.Applicative
+import           Control.Monad (void)
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import qualified Control.Exception as E
-import           Util (capture)
+import           Util (capture_)
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
@@ -37,7 +38,7 @@ spec = do
       `shouldThrow` (== ExitFailure 1)
 
     it "suppresses output to stdout when evaluating examples" $ do
-      r <- capture . H.hspec $ do
+      r <- capture_ . H.hspec $ do
         H.it "foobar" $ do
           putStrLn "baz"
       r `shouldSatisfy` notElem "baz"
@@ -60,7 +61,7 @@ spec = do
 
       describe "option '--verbose'" $ do
         it "does not suppress output to stdout when evaluating examples" $ do
-          r <- capture . withArgs ["--verbose"] .  H.hspec $ do
+          r <- capture_ . withArgs ["--verbose"] .  H.hspec $ do
             H.it "foobar" $ do
               putStrLn "baz"
           r `shouldSatisfy` elem "baz"
@@ -104,7 +105,7 @@ spec = do
         getEnv "HSPEC_FAILURES" `shouldReturn` Just "[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")]"
 
       describe "option '--re-run'" $ do
-        let runSpec = (capture . ignoreExitCode . H.hspec) $ do
+        let runSpec = (capture_ . ignoreExitCode . H.hspec) $ do
               H.it "example 1" True
               H.it "example 2" False
               H.it "example 3" False
@@ -150,14 +151,19 @@ spec = do
         H.it "foo" True
       `shouldReturn` H.Summary 5 2
 
+    it "treats uncaught exceptions as failure" $ do
+      H.hspecWith H.defaultConfig  $ do
+        H.it "foobar" (void . E.throwIO $ E.ErrorCall "foobar")
+      `shouldReturn` H.Summary 1 1
+
     it "uses the specdoc formatter by default" $ do
-      _:r:_ <- capture . H.hspecWith H.defaultConfig $ do
+      _:r:_ <- capture_ . H.hspecWith H.defaultConfig $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` "Foo.Bar"
 
     it "can use a custom formatter" $ do
-      r <- capture . H.hspecWith H.defaultConfig {H.configFormatter = H.silent} $ do
+      r <- capture_ . H.hspecWith H.defaultConfig {H.configFormatter = H.silent} $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` []

@@ -43,6 +43,10 @@ spec = do
         H.Fail _ <- evaluateExample $ property $ \n -> n /= (n :: Int)
         return ()
 
+      it "shows what falsified it" $ do
+        H.Fail r <- evaluateExample $ property $ \ n -> n == (n + 1 :: Int)
+        lines r `shouldSatisfy` any (== "0")
+
       it "propagates exceptions" $ do
         pending "this probaly needs a patch to QuickCheck"
         -- evaluateExample (property $ (error "foobar" :: Int -> Bool)) `shouldThrow` errorCall "foobar"

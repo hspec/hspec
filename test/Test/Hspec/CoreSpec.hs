@@ -1,11 +1,12 @@
 module Test.Hspec.CoreSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Util
+import           Util (capture_)
 import           Data.List (isPrefixOf)
 
-import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Internal as H
+import qualified Test.Hspec.Core as H
+import           Test.Hspec.Runner (defaultConfig)
 
 main :: IO ()
 main = hspec spec
@@ -15,16 +16,6 @@ spec = do
   describe "hspec" $ do
     it "runs a forrest of `SpecTree`s" $ do
       H.hspec [H.it "foo" H.pending] `shouldReturn` ()
-
-  describe "Bool as an example" $ do
-    it "succeds, when True" $ do
-      hspecSummary [H.it "foo" True] `shouldReturn` H.Summary 1 0
-
-    it "fails, when False" $ do
-      hspecSummary [H.it "foo" False] `shouldReturn` H.Summary 1 1
-
-    it "fails, when undefined" $ do
-      hspecSummary [H.it "foo" (undefined :: Bool)] `shouldReturn` H.Summary 1 1
 
   describe "pending" $ do
     it "specifies a pending example" $ do
@@ -70,3 +61,6 @@ spec = do
 
     it "can use a Bool, HUnit Test, QuickCheck property, or `pending` as an example"
       pending
+  where
+    runSpec :: [H.SpecTree] -> IO [String]
+    runSpec s = capture_ (H.hspecWith defaultConfig s)
