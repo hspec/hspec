@@ -17,7 +17,6 @@ module Test.Hspec.Core (
 -- * Running a spec
 , hspec
 , hspecWith
-, Summary (..)
 
 -- * Deprecated types and functions
 , Spec
