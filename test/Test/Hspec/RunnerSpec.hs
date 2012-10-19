@@ -12,6 +12,7 @@ import           Util
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
+import           Test.QuickCheck.Property (morallyDubiousIOProperty)
 
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec as H (describe, it, pending)
@@ -91,6 +92,14 @@ spec = do
           H.describe "baz" $ do
             H.it "example 3" $ mockAction e3
         (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 0, 1)
+
+    context "with --maximum-generated-tests=n" $ do
+      it "tries QuickCheck properties n times" $ do
+        m <- newMock
+        withArgs ["--maximum-generated-tests=23"] . H.hspec $ do
+          H.it "foo" $ do
+            morallyDubiousIOProperty (mockAction m >> pure True)
+        mockCounter m `shouldReturn` 23
 
     context "with --html" $ do
       it "produces HTML output" $ do
