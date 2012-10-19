@@ -61,7 +61,7 @@ spec = do
 
       describe "option '--verbose'" $ do
         it "does not suppress output to stdout when evaluating examples" $ do
-          r <- capture_ . withArgs ["--verbose"] .  H.hspec $ do
+          r <- capture_ . withArgs ["--verbose"] . H.hspec $ do
             H.it "foobar" $ do
               putStrLn "baz"
           r `shouldSatisfy` elem "baz"
@@ -71,7 +71,7 @@ spec = do
           e1 <- newMock
           e2 <- newMock
           e3 <- newMock
-          withArgs ["-m", "/bar/example"] .  H.hspec $ do
+          withArgs ["-m", "/bar/example"] . H.hspec $ do
             H.describe "foo" $ do
               H.describe "bar" $ do
                 H.it "example 1" $ mockAction e1
@@ -84,7 +84,7 @@ spec = do
           e1 <- newMock
           e2 <- newMock
           e3 <- newMock
-          withArgs ["-m", "foo", "-m", "baz"] .  H.hspec $ do
+          withArgs ["-m", "foo", "-m", "baz"] . H.hspec $ do
             H.describe "foo" $ do
               H.it "example 1" $ mockAction e1
             H.describe "bar" $ do
