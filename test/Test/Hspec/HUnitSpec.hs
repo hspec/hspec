@@ -1,7 +1,7 @@
 module Test.Hspec.HUnitSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Util (capture_)
+import           Util (capture__)
 import           Control.Applicative
 
 import qualified Test.Hspec as H
@@ -67,13 +67,13 @@ spec = do
 
     it "will show the failed assertion text if available (e.g. assertBool)" $ do
       let assertionText = "some assertion text"
-      r <- capture_ . runSpec $ do
+      r <- capture__ . runSpec $ do
         H.describe "foo" $ do
           H.it "bar" (assertFailure assertionText)
       r `shouldSatisfy` any (== assertionText)
 
     it "will show the failed assertion expected and actual values if available (e.g. assertEqual)" $ do
-      r <- capture_ . runSpec $ do
+      r <- capture__ . runSpec $ do
         H.describe "foo" $ do
           H.it "bar" (assertEqual "trivial" (1::Int) 2)
       assertBool "should find assertion text" $ any (=="trivial") r

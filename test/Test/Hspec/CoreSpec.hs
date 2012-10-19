@@ -1,7 +1,7 @@
 module Test.Hspec.CoreSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Util (capture_)
+import           Util (capture__)
 import           Data.List (isPrefixOf)
 
 import qualified Test.Hspec.Internal as H
@@ -63,4 +63,4 @@ spec = do
       pending
   where
     runSpec :: [H.SpecTree] -> IO [String]
-    runSpec s = capture_ (H.hspecWith defaultConfig s)
+    runSpec s = capture__ (H.hspecWith defaultConfig s)
