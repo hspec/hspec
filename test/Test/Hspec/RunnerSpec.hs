@@ -8,13 +8,13 @@ import           Control.Monad (void)
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import qualified Control.Exception as E
-import           Util (capture__)
+import           Util
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
 
 import qualified Test.Hspec.Runner as H
-import qualified Test.Hspec as H (describe, it)
+import qualified Test.Hspec as H (describe, it, pending)
 import qualified Test.Hspec.Formatters as H (silent)
 
 ignoreExitCode :: IO () -> IO ()
@@ -141,6 +141,28 @@ spec = do
             r <- hCapture [stderr] $ withArgs ["-r"] runSpec
             fst r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--re-run' is ignored!\n"
 
+      context "when producing HTML (command-line option --html)" $ do
+        it "wraps output in pre-tag" $ do
+          r <- capture_ . withArgs ["--html"] . H.hspec $ do
+            H.it "foo" True
+          r `shouldStartWith` "<pre class=\"hspec-report\">"
+          r `shouldEndWith`   "</pre>\n"
+
+        it "marks successful examples with CSS class hspec-success" $ do
+          r <- capture_ . withArgs ["--html"] . H.hspec $ do
+            H.it "foo" True
+          r `shouldContain` "<span class=\"hspec-success\">- foo\n</span>"
+
+        it "marks pending examples with CSS class hspec-pending" $ do
+          r <- capture_ . withArgs ["--html"] . H.hspec $ do
+            H.it "foo" H.pending
+          r `shouldContain` "<span class=\"hspec-pending\">- foo"
+
+        it "marks failed examples with CSS class hspec-failure" $ do
+          r <- capture_ . ignoreExitCode . withArgs ["--html"] . H.hspec $ do
+            H.it "foo" False
+          r `shouldContain` "<span class=\"hspec-failure\">- foo"
+
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do
       H.hspecWith H.defaultConfig $ do
@@ -163,7 +185,7 @@ spec = do
       r `shouldBe` "Foo.Bar"
 
     it "can use a custom formatter" $ do
-      r <- capture__ . H.hspecWith H.defaultConfig {H.configFormatter = H.silent} $ do
+      r <- capture_ . H.hspecWith H.defaultConfig {H.configFormatter = H.silent} $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
-      r `shouldBe` []
+      r `shouldBe` ""

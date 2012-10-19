@@ -29,13 +29,14 @@ data Config = Config {
 , configParams          :: Params
 , configColorMode       :: ColorMode
 , configFormatter       :: Formatter
+, configHtmlOutput      :: Bool
 , configHandle          :: Handle
 }
 
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False False Nothing defaultParams ColorAuto specdoc stdout
+defaultConfig = Config False False Nothing defaultParams ColorAuto specdoc False stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -69,9 +70,13 @@ options = [
   , Option "m" ["match"]                   (ReqArg setFilter "PATTERN")       "only run examples that match given PATTERN"
   , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to `always' or can be `never' or `auto'."
   , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
+  , Option []  ["html"]                    (NoArg setHtml)                    "produce HTML output"
   , Option "a" ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
   ]
   where
+    setHtml :: Result -> Result
+    setHtml x = x >>= \c -> return c {configHtmlOutput = True}
+
     setFilter :: String -> Result -> Result
     setFilter pattern x = configAddFilter (filterPredicate pattern) <$> x
 

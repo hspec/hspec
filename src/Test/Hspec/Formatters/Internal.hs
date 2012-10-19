@@ -64,15 +64,16 @@ liftIO :: IO a -> FormatM a
 liftIO action = FormatM (IOClass.liftIO action)
 
 data FormatterState = FormatterState {
-  stateHandle   :: Handle
-, stateUseColor :: Bool
+  stateHandle     :: Handle
+, stateUseColor   :: Bool
+, produceHTML     :: Bool
 , lastIsEmptyLine :: Bool    -- True, if last line was empty
-, successCount  :: Int
-, pendingCount  :: Int
-, failCount     :: Int
-, failMessages  :: [FailureRecord]
-, cpuStartTime  :: Integer
-, startTime     :: POSIXTime
+, successCount    :: Int
+, pendingCount    :: Int
+, failCount       :: Int
+, failMessages    :: [FailureRecord]
+, cpuStartTime    :: Integer
+, startTime       :: POSIXTime
 }
 
 -- | The total number of examples encountered so far.
@@ -82,11 +83,15 @@ totalCount s = successCount s + pendingCount s + failCount s
 newtype FormatM a = FormatM (StateT FormatterState IO a)
   deriving (Functor, Applicative, Monad)
 
-runFormatM :: Bool -> Handle -> FormatM a -> IO a
-runFormatM useColor handle (FormatM action) = do
+runFormatM :: Bool -> Bool -> Handle -> FormatM a -> IO a
+runFormatM useColor produceHTML_ handle action_ = do
   time <- getPOSIXTime
   cpuTime <- CPUTime.getCPUTime
-  evalStateT action (FormatterState handle useColor False 0 0 0 [] cpuTime time)
+  evalStateT action (FormatterState handle useColor produceHTML_ False 0 0 0 [] cpuTime time)
+  where
+    FormatM action
+      | produceHTML_ = write "<pre class=\"hspec-report\">" *> action_ <* writeLine "</pre>"
+      | otherwise    = action_
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()
@@ -184,21 +189,32 @@ writeLine s = write s >> write "\n"
 -- | Set output color to red, run given action, and finally restore the default
 -- color.
 withFailColor :: FormatM a -> FormatM a
-withFailColor = withColor (SetColor Foreground Dull Red)
+withFailColor = withColor (SetColor Foreground Dull Red) "hspec-failure"
 
 -- | Set output to color green, run given action, and finally restore the
 -- default color.
 withSuccessColor :: FormatM a -> FormatM a
-withSuccessColor = withColor (SetColor Foreground Dull Green)
+withSuccessColor = withColor (SetColor Foreground Dull Green) "hspec-success"
 
 -- | Set output color to yellow, run given action, and finally restore the
 -- default color.
 withPendingColor :: FormatM a -> FormatM a
-withPendingColor = withColor (SetColor Foreground Dull Yellow)
+withPendingColor = withColor (SetColor Foreground Dull Yellow) "hspec-pending"
 
 -- | Set a color, run an action, and finally reset colors.
-withColor :: SGR -> FormatM a -> FormatM a
-withColor color (FormatM action) = FormatM . StateT $ \st -> do
+withColor :: SGR -> String -> FormatM a -> FormatM a
+withColor color cls action = do
+  r <- gets produceHTML
+  if r then
+    htmlSpan cls action
+  else
+    withColor_ color action
+
+htmlSpan :: String -> FormatM a -> FormatM a
+htmlSpan cls action = write ("<span class=\"" ++ cls ++ "\">") *> action <* write "</span>"
+
+withColor_ :: SGR -> FormatM a -> FormatM a
+withColor_ color (FormatM action) = FormatM . StateT $ \st -> do
   let useColor = stateUseColor st
       h        = stateHandle st
 

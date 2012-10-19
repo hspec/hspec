@@ -145,11 +145,12 @@ failed_examples   = silent {
 }
 
 defaultFailedFormatter :: FormatM ()
-defaultFailedFormatter = withFailColor $ do
+defaultFailedFormatter = do
   newParagraph
-  failures <- map formatFailure . zip [1..] <$> getFailMessages
-  mapM_ writeLine (intersperse "" failures)
-  unless (null failures) (writeLine "")
+  withFailColor $ do
+    failures <- map formatFailure . zip [1..] <$> getFailMessages
+    mapM_ writeLine (intersperse "" failures)
+    unless (null failures) (writeLine "")
   where
     formatFailure :: (Int, FailureRecord) -> String
     formatFailure (i, FailureRecord path reason) =
