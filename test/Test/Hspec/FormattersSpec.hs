@@ -2,9 +2,9 @@
 module Test.Hspec.FormattersSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Data.List
+import           Data.List (isPrefixOf)
 
-import           Util (capture__)
+import           Util
 import           System.IO.Silently (capture)
 import           Data.Char
 import qualified Test.Hspec as H
@@ -193,7 +193,7 @@ failed_examplesSpec formatter = do
     it "prints the exception type for requirements that fail due to an uncaught exception" $ do
       r <- runSpec $ do
         H.it "foobar" (undefined :: Bool)
-      r `shouldSatisfy` isInfixOf [
+      r `shouldContain` [
           "1) foobar FAILED (uncaught exception)"
         , "GHC.Exception.ErrorCall (Prelude.undefined)"
         ]
