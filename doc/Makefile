@@ -1,17 +1,20 @@
-SRC=src
-DST=_site
 jekyll=jekyll/bin/jekyll
 
-all:
+all: jekyll
 	$(jekyll)
 
 watch: jekyll
 	$(jekyll) --auto
 
-jekyll:
-	git clone git@github.com:sol/jekyll.git -b redcarpet-update
+jekyll: pygments
+	git clone https://github.com/sol/jekyll -b hspec-doc
 	cd jekyll && bundle install
+
+
+pygments:
+	git clone https://github.com/sol/pygments -b hspec-doc
 
 clean:
 	rm -rf jekyll
-	rm -r $(DST)
+	rm -rf pygments
+	rm -r _site
