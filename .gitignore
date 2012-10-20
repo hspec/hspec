@@ -1,4 +1,6 @@
 /dist/
-/doc/_site/
+
 /doc/jekyll/
 /doc/pygments/
+/doc/_site/
+/doc/.cache/
