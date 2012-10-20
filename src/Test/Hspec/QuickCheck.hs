@@ -6,8 +6,8 @@
 -- NOTE: Any output from the example to @stdout@ is ignored.  If you need to
 -- write out for debugging, you can write to @stderr@ or a file handle.
 --
--- > import Test.Hspec.Monadic
--- > import Test.Hspec.QuickCheck
+-- > import Test.Hspec
+-- > import Test.QuickCheck
 -- >
 -- > main :: IO ()
 -- > main = hspec $ do
