@@ -84,14 +84,10 @@ newtype FormatM a = FormatM (StateT FormatterState IO a)
   deriving (Functor, Applicative, Monad)
 
 runFormatM :: Bool -> Bool -> Handle -> FormatM a -> IO a
-runFormatM useColor produceHTML_ handle action_ = do
+runFormatM useColor produceHTML_ handle (FormatM action) = do
   time <- getPOSIXTime
   cpuTime <- CPUTime.getCPUTime
   evalStateT action (FormatterState handle useColor produceHTML_ False 0 0 0 [] cpuTime time)
-  where
-    FormatM action
-      | produceHTML_ = write "<pre class=\"hspec-report\">" *> action_ <* writeLine "</pre>"
-      | otherwise    = action_
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()

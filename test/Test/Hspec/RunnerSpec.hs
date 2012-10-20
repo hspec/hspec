@@ -105,8 +105,7 @@ spec = do
       it "produces HTML output" $ do
         r <- capture_ . withArgs ["--html"] . H.hspec $ do
           H.it "foo" True
-        r `shouldStartWith` "<pre class=\"hspec-report\">"
-        r `shouldEndWith`   "</pre>\n"
+        r `shouldContain` "</span>"
 
       it "marks successful examples with CSS class hspec-success" $ do
         r <- capture_ . withArgs ["--html"] . H.hspec $ do

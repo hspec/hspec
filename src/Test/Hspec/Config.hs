@@ -70,13 +70,9 @@ options = [
   , Option "m" ["match"]                   (ReqArg setFilter "PATTERN")       "only run examples that match given PATTERN"
   , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to `always' or can be `never' or `auto'."
   , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
-  , Option []  ["html"]                    (NoArg setHtml)                    "produce HTML output"
   , Option "a" ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
   ]
   where
-    setHtml :: Result -> Result
-    setHtml x = x >>= \c -> return c {configHtmlOutput = True}
-
     setFilter :: String -> Result -> Result
     setFilter pattern x = configAddFilter (filterPredicate pattern) <$> x
 
@@ -104,10 +100,17 @@ options = [
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [
     Option "r" ["re-run"]                  (NoArg  setReRun)                  "only re-run examples that previously failed"
+
+    -- undocumented for now, as we probably want to change this to produce a
+    -- standalone HTML report in the future
+  , Option []  ["html"]                    (NoArg setHtml)                    "produce HTML output"
   ]
   where
     setReRun :: Result -> Result
     setReRun x = x >>= \c -> return c {configReRun = True}
+
+    setHtml :: Result -> Result
+    setHtml x = x >>= \c -> return c {configHtmlOutput = True}
 
 getConfig :: IO Config
 getConfig = do
