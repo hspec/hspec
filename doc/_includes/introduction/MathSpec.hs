@@ -1,5 +1,4 @@
 -- file MathSpec.hs
-
 module MathSpec where
 
 import Test.Hspec

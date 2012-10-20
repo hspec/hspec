@@ -5,18 +5,22 @@ Pygments.start(File.join(File.dirname(__FILE__), "../pygments"))
 
 module Hspec
   module CustomFilters
-    def runhaskell(input)
-      digest = Digest::MD5.hexdigest(input)
+    def runhaskell(cmd)
+      digest = Digest::MD5.hexdigest(cmd)
       file   = File.join ".cache/runhaskell", digest
-      puts "#{digest} (#{input})"
+      puts "#{digest} (#{cmd})"
 
       if File.exists? file
         File.read file
       else
-        r = `runhaskell -i../src -fobject-code -outputdircache/ghc #{input}`
+        r = runhaskell_ cmd
         File.write file, r
         r
       end
+    end
+
+    def runhaskell_(cmd)
+      `runhaskell -i../src -fobject-code -outputdircache/ghc #{cmd}`
     end
   end
 end
