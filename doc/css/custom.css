@@ -13,3 +13,22 @@
 .highlight .hspec .sd {
   color: #009B00;
 }
+
+.container {
+  padding-top: 2em;
+  padding-bottom: 2em;
+}
+
+/* page heading */
+h1 > a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1 > a:hover {
+  text-decoration: none;
+}
+
+h1 > a span.sub {
+  color: gray;
+}
