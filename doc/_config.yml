@@ -1,0 +1,3 @@
+exclude:  jekyll pygments Makefile
+pygments: true
+markdown: redcarpet
