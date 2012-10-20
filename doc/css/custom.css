@@ -1,0 +1,15 @@
+.hspec-failure {
+  color: #CC3700;
+}
+
+.hspec-pending {
+  color: DarkGoldenRod;
+}
+
+.hspec-success {
+  color: #009B00;
+}
+
+.highlight .hspec .sd {
+  color: #009B00;
+}
