@@ -1,4 +1,7 @@
 source :rubygems
-gem 'jekyll', :github => 'sol/jekyll', :branch => 'hspec-doc'
 gem 'redcarpet'
 gem 'RedCloth'
+gem 'jekyll', :github => 'sol/jekyll', :branch => 'hspec-doc'
+
+gem "therubyracer" # required by less
+gem "jekyll-less"
