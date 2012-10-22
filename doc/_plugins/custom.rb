@@ -6,8 +6,11 @@ Pygments.start(File.join(File.dirname(__FILE__), "../pygments"))
 module Hspec
   module CustomFilters
     def runhaskell(cmd)
+      cache  = ".cache/runhaskell"
+      system "mkdir -p #{cache}"
+
       digest = Digest::MD5.hexdigest(cmd)
-      file   = File.join ".cache/runhaskell", digest
+      file   = File.join cache, digest
       puts "#{digest} (#{cmd})"
 
       if File.exists? file

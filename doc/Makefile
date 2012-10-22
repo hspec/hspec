@@ -1,19 +1,13 @@
-jekyll=jekyll/bin/jekyll
+jekyll=bundle exec jekyll
 
-all: setup
+all:
 	$(jekyll)
 
-watch: setup
+watch:
 	$(jekyll) --auto
 
-setup: jekyll pygments
-	mkdir -p .cache/ghc
-	mkdir -p .cache/runhaskell
-
-jekyll:
-	git clone https://github.com/sol/jekyll -b hspec-doc
-	cd jekyll && bundle install
-
+setup: pygments
+	bundle install
 
 pygments:
 	git clone https://github.com/sol/pygments -b hspec-doc
