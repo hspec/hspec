@@ -10,7 +10,7 @@ setup: jekyll pygments
 	mkdir -p .cache/ghc
 	mkdir -p .cache/runhaskell
 
-jekyll: pygments
+jekyll:
 	git clone https://github.com/sol/jekyll -b hspec-doc
 	cd jekyll && bundle install
 
