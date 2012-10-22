@@ -20,7 +20,7 @@ module Hspec
     end
 
     def runhaskell_(cmd)
-      `runhaskell -i../src -fobject-code -outputdircache/ghc #{cmd}`
+      `runhaskell -i../src -fobject-code -outputdir.cache/ghc #{cmd}`
     end
   end
 end
