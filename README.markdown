@@ -1,4 +1,4 @@
-# hspec: Behavior Driven Development for Haskell
+# Hspec: Behavior Driven Development for Haskell
 
 ## Getting started
 
