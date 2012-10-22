@@ -1,17 +1,21 @@
+@failure-color: #CC3700;
+@pending-color: DarkGoldenRod;
+@success-color: #009B00;
+
 .hspec-failure {
-  color: #CC3700;
+  color: @failure-color;
 }
 
 .hspec-pending {
-  color: DarkGoldenRod;
+  color: @pending-color;
 }
 
 .hspec-success {
-  color: #009B00;
+  color: @success-color;
 }
 
 .highlight .hspec .sd {
-  color: #009B00;
+  color: @success-color;
 }
 
 .container {
