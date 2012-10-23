@@ -1,4 +1,43 @@
 @import "pygments";
+@import "use";
+
+* {
+  margin:  0;
+  padding: 0;
+}
+
+html {
+  // Arimo and "Liberation Sans" are basically the same font, both are metric
+  // compatible with Arial.  So showing "Liberation Sans"/Arial until Arimo is
+  // loaded should make FOUT almost unnoticeable.
+  font-family: Arimo, "Liberation Sans", Arial, sans-serif;
+}
+
+body {
+  .font-size(14);
+  .line-height(20);
+  color: #333;
+}
+
+p, ul, ol, pre, h1, h2, h3, h4, h5, h6 {
+  .margin-bottom(20);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  .margin-top(40);
+  color: #222;
+  font-weight: 400;
+}
+
+h1 { .font-size(24); }
+h2 { .font-size(22); }
+h3 { .font-size(18); }
+
+pre, code, kbd, samp, tt {
+  font-family: Cousine, "Liberation Mono", "Courier New", monospace;
+  background-color: #F8F8F8;
+  .font-size(12);
+}
 
 @failure-color: #CC3700;
 @pending-color: DarkGoldenRod;
@@ -21,8 +60,8 @@
 }
 
 .container {
-  padding-top: 2em;
-  padding-bottom: 2em;
+  margin: 0 auto;
+  .max-width(560);
 }
 
 h1.page-heading {
