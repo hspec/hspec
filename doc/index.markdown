@@ -16,8 +16,8 @@ layout: default
 
 ### Step 3: Run and watch it fail
 <pre>
-$ runhaskell MathSpec.hs
-{{ "-i_includes/introduction/step2/ _includes/introduction/MathSpec.hs --html" | runhaskell }}</pre>
+<code>$ runhaskell MathSpec.hs</code>
+<samp>{{ "-i_includes/introduction/step2/ _includes/introduction/MathSpec.hs --html" | runhaskell }}</samp></pre>
 
 ### Step 4: Implement your desired behavior
 
@@ -27,8 +27,8 @@ $ runhaskell MathSpec.hs
 
 ### Step 5: Run again and see it pass
 <pre>
-$ runhaskell MathSpec.hs
-{{ "-i_includes/introduction/step4/ _includes/introduction/MathSpec.hs --html" | runhaskell }}</pre>
+<code>$ runhaskell MathSpec.hs</code>
+<samp>{{ "-i_includes/introduction/step4/ _includes/introduction/MathSpec.hs --html" | runhaskell }}</samp></pre>
 
 ## Where to go from here?
 
