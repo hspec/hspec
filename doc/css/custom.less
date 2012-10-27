@@ -35,8 +35,30 @@ h3 { .font-size(18); }
 
 pre, code, kbd, samp, tt {
   font-family: Cousine, "Liberation Mono", "Courier New", monospace;
-  background-color: #F8F8F8;
   .font-size(12);
+  background-color: #F8F8F8;
+}
+
+p code {
+  line-height: 1em;
+
+  .margin-left(2);
+  .margin-right(2);
+  .padding-left(5);
+  .padding-right(5);
+
+  border: 1px dotted #CCC;
+  border: (@scaleRem) dotted #CCC;
+}
+
+pre {
+  white-space: pre-wrap;       /* css-3 */
+  word-wrap:   break-word;     /* Internet Explorer 5.5+ */
+
+  .padding(9);
+
+  border: 1px dotted #CCC;
+  border: (@scaleRem) dotted #CCC;
 }
 
 @failure-color: #CC3700;
