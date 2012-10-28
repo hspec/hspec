@@ -11,6 +11,9 @@ html {
   // compatible with Arial.  So showing "Liberation Sans"/Arial until Arimo is
   // loaded should make FOUT almost unnoticeable.
   font-family: Arimo, "Liberation Sans", Arial, sans-serif;
+
+  // always show vertical scroll bar
+  overflow-y: scroll;
 }
 
 body {
@@ -84,6 +87,8 @@ pre {
 
 .container {
   margin: 0 auto;
+  .padding-left(20);
+  .padding-right(20);
   .max-width(560);
 }
 

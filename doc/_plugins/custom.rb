@@ -12,11 +12,12 @@ module Hspec
 
       digest = Digest::MD5.hexdigest(cmd)
       file   = File.join cache, digest
-      puts "#{digest} (#{cmd})"
 
       if File.exists? file
+        puts "#{digest} (#{cmd}) (cached)"
         File.read file
       else
+        puts "#{digest} (#{cmd})"
         r = runhaskell_ cmd
         File.write file, r
         r

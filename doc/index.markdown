@@ -34,7 +34,7 @@ layout: default
 
 * Have a look at the [API documentation][api-docs].
 * Use [QuickCheck][api-quickcheck] and [HUnit][api-hunit] for your examples.
-* Use [RSpec-style expectation terminology][expectations] for your examples.
+* Use [RSpec-style expectation terminology](expectations.html) for your examples.
 * Learn about [automatic spec discovery][hspec-discover]
 * Have a look at a [report of hspec's behavior][hspec-report].
 
@@ -47,5 +47,3 @@ layout: default
                       "Haddock documentation for QuickCheck integartion"
 [hspec-discover]:   https://github.com/hspec/hspec/tree/master/hspec-discover#readme
                       "README for hspec-discover"
-[expectations]:     https://github.com/sol/hspec-expectations#readme
-                      "README for hspec-expectations"
