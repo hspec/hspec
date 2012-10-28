@@ -118,6 +118,41 @@ It does not look at the arguments of that contructor.
 </div>
 </div>
 
+#### Beware of GHC's _semantics for imprecise exceptions_
+
+GHC's semantics for imprecise exceptions can be tricky.  But simple examples
+are evident.  If we look at the _exceptional value_ `error "foo" + error "bar"` it may
+be tempting to assume that the following expectation holds:
+
+```hspec
+evaluate (error "foo" + error "bar" :: Int) `shouldThrow` errorCall "foo"
+```
+
+There is a pretty good chance that this will indeed hold, but it may equally
+well fail.  The reason is that `+` does not give any guarantees about the
+evaluation order of it's arguments.
+
+Semantically an exceptional value contains a set of exceptions.  When we "look"
+at the value, one _representative_ from the set is chosen in a
+non-deterministic way.
+For our simple example we can accommodate for that by combining `errorCall
+"foo"` and `errorCall "bar"` with `||`:
+
+```hspec
+evaluate (error "foo" + error "bar" :: Int)
+  `shouldThrow` (||) <$> errorCall "foo" <*> errorCall "bar"
+```
+
+The details of imprecise exceptions are described in the paper
+[_A semantics for imprecise exceptions_]
+(http://research.microsoft.com/en-us/um/people/simonpj/papers/imprecise-exn.htm).
+But beware that GHC does not fully adhere to those semantics (see
+[#1171](http://hackage.haskell.org/trac/ghc/ticket/1171),
+[#2273](http://hackage.haskell.org/trac/ghc/ticket/2273),
+<del>[#5561](http://hackage.haskell.org/trac/ghc/ticket/5561)</del>,
+<del>[#5129](http://hackage.haskell.org/trac/ghc/ticket/5129)</del>).
+
+
 
 [t:Selector]:    http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#t:Selector
 [v:shouldThrow]: http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:shouldThrow
