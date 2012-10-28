@@ -2,8 +2,40 @@
 layout: default
 ---
 
-
 ## Expecting exceptions
+
+Hspec provides a mechanism to state that an action throws an exception.  Here
+is a basic example:
+
+```haskell
+launchMissiles `shouldThrow` anyException
+```
+
+### Expecting exceptions of a specific type
+
+The type of [`shouldThrow`][v:shouldThrow] is:
+
+```haskell
+shouldThrow :: Exception e => IO a -> Selector e -> Expectation
+```
+
+It takes an `IO` action and a [`Selector`][t:Selector].  The `Selector`
+describes the precise nature of the expected exception.
+
+There are several predefined selectors:
+
+```haskell
+anyException      :: Selector SomeException
+anyErrorCall      :: Selector ErrorCall
+anyIOException    :: Selector IOException
+anyArithException :: Selector ArithException
+```
+
+The selector `anyException` can be used to expect an arbitrary exception.
+Likewise `anyErrorCall`, `anyArithException` and `anyIOException` can be used
+to expect arbitrary exceptions of type `ErrorCall`, `ArithException` and
+`IOException` respectively.
+
 
 ### Expecting exceptions from pure code
 
@@ -47,5 +79,8 @@ It does not look at the arguments of that contructor.
 </div>
 </div>
 
-[v:evaluate]:   http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#v:evaluate
-[v:deep-apply]: http://hackage.haskell.org/packages/archive/deepseq/1.3.0.1/doc/html/Control-DeepSeq.html#v:-36--33--33-
+
+[t:Selector]:    http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#t:Selector
+[v:evaluate]:    http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#v:evaluate
+[v:deep-apply]:  http://hackage.haskell.org/packages/archive/deepseq/latest/doc/html/Control-DeepSeq.html#v:-36--33--33-
+[v:shouldThrow]: http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:shouldThrow
