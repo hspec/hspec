@@ -81,6 +81,8 @@ used:
 error "foo" `shouldThrow` errorCall "foo"
 ```
 
+{% extended_example Error.hs %}
+
 ### Expecting exceptions from pure code
 
 [`evaluate`][v:evaluate] can be used to expect exceptions from pure code:
