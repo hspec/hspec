@@ -49,18 +49,22 @@ module Hspec
 
     def add_wrapping(file)
       source = File.read(file)
+
+      # It is crucial to indent nested HTML tags, otherwise a bug in sundowns
+      # parser is triggered, which leads to invalid HTML!  See
+      # https://github.com/vmg/sundown/issues/139.
       <<-HTML
-<div class="example">
-<h4 class="example-heading">show example code</h4>
 <div>
-{% highlight hspec %}
--- file Spec.hs
-#{source}
-{% endhighlight %}
-<pre>
-<code>$ runhaskell Spec.hs</code>
-<samp>{{ "#{file} --html" | runhaskell }}</samp></pre>
-</div>
+  <h4 class="foldable">show example code</h4>
+  <div>
+  {% highlight hspec %}
+  -- file Spec.hs
+  #{source}
+  {% endhighlight %}
+  <pre>
+  <code>$ runhaskell Spec.hs</code>
+  <samp>{{ "#{file} --html" | runhaskell }}</samp></pre>
+  </div>
 </div>
       HTML
     end

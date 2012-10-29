@@ -1,13 +1,14 @@
 $(document).ready(function() {
 
-  // enable jquery.collapse.js plugin
-  $(".example").collapse().bind("open", function(e, section) {
-    section.$details.scrollintoview();
-  })
-
-  // prevent dotted outline in Firefox when example is expanded/collapsed
-  $(".example-heading a").click(function () {
-    $(this).blur();
+  $(".foldable").click(function() {
+    var control = $(this);
+    control.toggleClass("expanded")
+    control.next().slideToggle(100, function () {
+      control.parent().scrollintoview();
+    });
   });
 
+  $(".foldable").each(function() {
+    $(this).next().hide();
+  });
 });
