@@ -142,6 +142,8 @@ But beware that GHC does not fully adhere to those semantics (see
 <del>[#5561](http://hackage.haskell.org/trac/ghc/ticket/5561)</del>,
 <del>[#5129](http://hackage.haskell.org/trac/ghc/ticket/5129)</del>).
 
+{% extended_example ImpreciseExceptions.hs %}
+
 
 
 [t:Selector]:    http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#t:Selector

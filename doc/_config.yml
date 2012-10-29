@@ -1,3 +1,10 @@
-exclude:  pygments Makefile Gemfile Gemfile.lock
+exclude:
+  - pygments
+  - Makefile
+  - Gemfile
+  - Gemfile.lock
+  - use.less
+  - pygments.less
+  - pygments.trac.less
 pygments: true
 markdown: redcarpet
