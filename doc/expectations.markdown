@@ -59,6 +59,8 @@ Those can be used in combination with `shouldThrow` to expect specific
 launchMissiles `shouldThrow` isPermissionError
 ```
 
+{% extended_example IOExceptions.hs %}
+
 #### Dealing with \`error\` and \`undefined\`
 
 Both `error` and `undefined` throw exceptions of type
@@ -104,19 +106,7 @@ It does not look at the arguments of that contructor.
 (return $!! 'a' : undefined) `shouldThrow` errorCall "Prelude.undefined"
 ```
 
-<div class="example">
-<h4 class="example-heading">show example code</h4>
-
-<div>
-{% highlight hspec %}
--- file Spec.hs
-{% include ExceptionsFromPureCode.hs %}
-{% endhighlight %}
-<pre>
-<code>$ runhaskell Spec.hs</code>
-<samp>{{ "-i_includes/introduction/step4/ _includes/ExceptionsFromPureCode.hs --html" | runhaskell }}</samp></pre>
-</div>
-</div>
+{% extended_example ExceptionsFromPureCode.hs %}
 
 #### Beware of GHC's _semantics for imprecise exceptions_
 

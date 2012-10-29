@@ -25,9 +25,46 @@ module Hspec
     end
 
     def runhaskell_(cmd)
-      `runhaskell -i../src -fobject-code -outputdir.cache/ghc #{cmd}`
+      `runhaskell -i../src #{cmd}`
     end
   end
 end
 
 Liquid::Template.register_filter(Hspec::CustomFilters)
+
+module Hspec
+  class ExtendedExampleTag < Liquid::Tag
+    def initialize(tag_name, file, tokens)
+      super
+      @file = file.strip
+    end
+
+    def render(context)
+      file = File.join context.registers[:site].source, '_includes', @file
+      partial = Liquid::Template.parse(add_wrapping file)
+      context.stack do
+        partial.render(context)
+      end
+    end
+
+    def add_wrapping(file)
+      source = File.read(file)
+      <<-HTML
+<div class="example">
+<h4 class="example-heading">show example code</h4>
+<div>
+{% highlight hspec %}
+-- file Spec.hs
+#{source}
+{% endhighlight %}
+<pre>
+<code>$ runhaskell Spec.hs</code>
+<samp>{{ "#{file} --html" | runhaskell }}</samp></pre>
+</div>
+</div>
+      HTML
+    end
+  end
+end
+
+Liquid::Template.register_tag('extended_example', Hspec::ExtendedExampleTag)
