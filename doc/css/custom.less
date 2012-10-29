@@ -27,15 +27,29 @@ p, ul, ol, pre, h1, h2, h3, h4, h5, h6 {
   .margin-bottom(20);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3 {
   .margin-top(40);
+}
+
+h1, h2, h3, h4, h5, h6 {
   color: #222;
-  font-weight: 400;
 }
 
 h1 { .font-size(24); }
 h2 { .font-size(22); }
 h3 { .font-size(18); }
+h4 { .font-size(14); }
+h5 { .font-size(14); }
+
+h5 {
+  font-weight: 400;
+}
+
+h2 {
+  .margin-top(39);
+  border-bottom: 1px solid #CCC;
+  border-bottom: @scaleRem solid #CCC;
+}
 
 pre, code, kbd, samp, tt {
   font-family: Cousine, "Liberation Mono", "Courier New", monospace;
@@ -102,7 +116,7 @@ h1.page-heading {
   }
 }
 
-.foldable {
+.foldable-control {
   cursor: pointer;
   background-image: url("plus.png");
   background-repeat: no-repeat;
@@ -111,6 +125,6 @@ h1.page-heading {
   padding-left: 14px;
 }
 
-.foldable.expanded {
+.foldable-control.expanded {
   background-image: url("minus.png");
 }

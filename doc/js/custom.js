@@ -2,13 +2,19 @@ $(document).ready(function() {
 
   $(".foldable").click(function() {
     var control = $(this);
+
     control.toggleClass("expanded")
-    control.next().slideToggle(100, function () {
+    control.text(control.hasClass("expanded") ? "hide example code" : "show example code");
+
+    control.next().slideToggle(150, function () {
       control.parent().scrollintoview();
     });
   });
 
   $(".foldable").each(function() {
-    $(this).next().hide();
+    var control = $(this);
+    control.text("show example code");
+    control.addClass("foldable-control");
+    control.next().hide();
   });
 });
