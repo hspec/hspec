@@ -15,7 +15,7 @@ describe "read" $ do
 ```
 
 
-{% extended_example QuickCheck.hs %}
+{% example QuickCheck.hs %}
 
 [t:Property]: http://hackage.haskell.org/packages/archive/QuickCheck/latest/doc/html/Test-QuickCheck.html#t:Property
 [t:Testable]: http://hackage.haskell.org/packages/archive/QuickCheck/latest/doc/html/Test-QuickCheck-Property.html#t:Testable

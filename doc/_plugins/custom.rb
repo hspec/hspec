@@ -71,4 +71,4 @@ $ <kbd>runhaskell Spec.hs</kbd>
   end
 end
 
-Liquid::Template.register_tag('extended_example', Hspec::ExtendedExampleTag)
+Liquid::Template.register_tag('example', Hspec::ExtendedExampleTag)

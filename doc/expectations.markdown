@@ -59,7 +59,7 @@ Those can be used in combination with `shouldThrow` to expect specific
 launchMissiles `shouldThrow` isPermissionError
 ```
 
-{% extended_example IOExceptions.hs %}
+{% example IOExceptions.hs %}
 
 #### Dealing with \`error\` and \`undefined\`
 
@@ -81,7 +81,7 @@ used:
 error "foo" `shouldThrow` errorCall "foo"
 ```
 
-{% extended_example Error.hs %}
+{% example Error.hs %}
 
 ### Expecting exceptions from pure code
 
@@ -108,7 +108,7 @@ It does not look at the arguments of that contructor.
 (return $!! 'a' : undefined) `shouldThrow` errorCall "Prelude.undefined"
 ```
 
-{% extended_example ExceptionsFromPureCode.hs %}
+{% example ExceptionsFromPureCode.hs %}
 
 #### Beware of GHC's _semantics for imprecise exceptions_
 
@@ -144,7 +144,7 @@ But beware that GHC does not fully adhere to those semantics (see
 <del>[#5561](http://hackage.haskell.org/trac/ghc/ticket/5561)</del>,
 <del>[#5129](http://hackage.haskell.org/trac/ghc/ticket/5129)</del>).
 
-{% extended_example ImpreciseExceptions.hs %}
+{% example ImpreciseExceptions.hs %}
 
 
 
