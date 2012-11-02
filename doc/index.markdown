@@ -32,16 +32,15 @@ layout: default
 
 ## Where to go from here?
 
+* Use [QuickCheck properties](quickcheck.html) with Hspec
+* Use Hspec's [expectation language](expectations.html)
+* Learn about [interoperability with HUnit](hunit.html)
 * Have a look at the [API documentation][api-docs].
-* Use [QuickCheck](quickcheck.html) and [HUnit][api-hunit] for your examples.
-* Use [RSpec-style expectation terminology](expectations.html) for your examples.
 * Learn about [automatic spec discovery][hspec-discover]
 * Have a look at a [report of hspec's behavior][hspec-report].
 
 [hspec-report]:     report.html
 [api-docs]:  http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html
                       "Haddock documentation for the non-monadic API"
-[api-hunit]:        http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-HUnit.html
-                      "Haddock documentation for HUnit integartion"
 [hspec-discover]:   https://github.com/hspec/hspec/tree/master/hspec-discover#readme
                       "README for hspec-discover"

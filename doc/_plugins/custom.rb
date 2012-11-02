@@ -60,7 +60,7 @@ module Hspec
   {% highlight hspec %}
 -- file Spec.hs
 #{source}
-  {% endhighlight %}
+{% endhighlight %}
   <pre>
 $ <kbd>runhaskell Spec.hs</kbd>
   <samp>{{ "#{file} --html" | runhaskell }}</samp></pre>
