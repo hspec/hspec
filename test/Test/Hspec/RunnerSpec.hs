@@ -143,16 +143,16 @@ spec = do
 
       it "re-runs examples that previously failed" $ do
         r0 <- runSpec
-        r0 `shouldSatisfy` elem "5 examples, 0 pending, 3 failures"
+        r0 `shouldSatisfy` elem "5 examples, 3 failures"
 
         r1 <- withArgs ["-r"] runSpec
-        r1 `shouldSatisfy` elem "3 examples, 0 pending, 3 failures"
+        r1 `shouldSatisfy` elem "3 examples, 3 failures"
 
       context "when there is no failure report in the environment" $ do
         it "runs everything" $ do
           unsetEnv "HSPEC_FAILURES"
           r <- hSilence [stderr] $ withArgs ["-r"] runSpec
-          r `shouldSatisfy` elem "5 examples, 0 pending, 3 failures"
+          r `shouldSatisfy` elem "5 examples, 3 failures"
 
         it "prints a warning to stderr" $ do
           unsetEnv "HSPEC_FAILURES"
@@ -163,7 +163,7 @@ spec = do
         it "runs everything" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"
           r <- hSilence [stderr] $ withArgs ["-r"] runSpec
-          r `shouldSatisfy` elem "5 examples, 0 pending, 3 failures"
+          r `shouldSatisfy` elem "5 examples, 3 failures"
 
         it "prints a warning to stderr" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"

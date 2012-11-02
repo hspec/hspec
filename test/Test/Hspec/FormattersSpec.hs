@@ -99,7 +99,7 @@ spec = do
         , ""
         , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
         , ""
-        , "6 examples, 0 pending, 0 failures"
+        , "6 examples, 0 failures"
         ]
 
     it "prints an empty line before each group" $ do
@@ -122,7 +122,7 @@ spec = do
         , ""
         , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
         , ""
-        , "4 examples, 0 pending, 0 failures"
+        , "4 examples, 0 failures"
         ]
 
     it "prints an empty line after each group" $ do
@@ -145,7 +145,7 @@ spec = do
         , ""
         , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
         , ""
-        , "4 examples, 0 pending, 0 failures"
+        , "4 examples, 0 failures"
         ]
 
     it "outputs an empty line at the beginning (even for non-nested specs)" $ do
@@ -159,7 +159,7 @@ spec = do
         , ""
         , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
         , ""
-        , "2 examples, 0 pending, 0 failures"
+        , "2 examples, 0 failures"
         ]
 
     it "displays a row for each successfull, failed, or pending example" $ do
@@ -207,7 +207,7 @@ failed_examplesSpec formatter = do
 
   it "summarizes the number of examples and failures" $ do
     r <- runSpec testSpec
-    r `shouldSatisfy` any (== "6 examples, 1 pending, 4 failures")
+    r `shouldSatisfy` any (== "6 examples, 4 failures, 1 pending")
 
   -- Windows has no support for ANSI escape codes.  The Console API is used for
   -- colorized output, hence the following tests do not work on Windows.
@@ -215,23 +215,23 @@ failed_examplesSpec formatter = do
   it "shows summary in green if there are no failures" $ do
     r <- capture__ $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" True
-    r `shouldSatisfy` any (== (green ++ "1 example, 0 pending, 0 failures" ++ reset))
+    r `shouldSatisfy` any (== (green ++ "1 example, 0 failures" ++ reset))
 
   it "shows summary in yellow if there are pending examples" $ do
     r <- capture__ $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" H.pending
-    r `shouldSatisfy` any (== (yellow ++ "1 example, 1 pending, 0 failures" ++ reset))
+    r `shouldSatisfy` any (== (yellow ++ "1 example, 0 failures, 1 pending" ++ reset))
 
   it "shows summary in red if there are failures" $ do
     r <- capture__ $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" False
-    r `shouldSatisfy` any (== (red ++ "1 example, 0 pending, 1 failure" ++ reset))
+    r `shouldSatisfy` any (== (red ++ "1 example, 1 failure" ++ reset))
 
   it "shows summary in red if there are both failures and pending examples" $ do
     r <- capture__ $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foo" False
       H.it "bar" H.pending
-    r `shouldSatisfy` any (== (red ++ "2 examples, 1 pending, 1 failure" ++ reset))
+    r `shouldSatisfy` any (== (red ++ "2 examples, 1 failure, 1 pending" ++ reset))
   where
     green  = setSGRCode [SetColor Foreground Dull Green]
     yellow = setSGRCode [SetColor Foreground Dull Yellow]
