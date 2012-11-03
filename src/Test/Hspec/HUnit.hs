@@ -43,8 +43,8 @@ instance Example Test where
       details :: String -> String
       details = concat . intersperse "\n" . tail . init . lines
 
-fromHUnitTest :: Test -> [SpecTree]
-fromHUnitTest t = case t of
+fromHUnitTest :: Test -> Spec
+fromHUnitTest t = fromSpecList $ case t of
   TestList xs -> map go xs
   x           -> [go x]
   where

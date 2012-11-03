@@ -33,7 +33,6 @@ import           Test.Hspec.Internal hiding (Spec)
 import           Test.Hspec.Pending
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary(..), Config(..), defaultConfig)
-import           Test.Hspec.Monadic (fromSpecList)
 
 hspec :: [SpecTree] -> IO ()
 hspec = Runner.hspec . fromSpecList

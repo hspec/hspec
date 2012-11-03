@@ -3,6 +3,7 @@ module Test.Hspec.Internal (
   Spec
 , SpecM (..)
 , runSpecM
+, fromSpecList
 , SpecTree (..)
 , Example (..)
 , Result (..)
@@ -16,7 +17,7 @@ module Test.Hspec.Internal (
 
 import qualified Control.Exception as E
 import           Control.Applicative
-import           Control.Monad.Trans.Writer (Writer, execWriter)
+import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 import           Test.Hspec.Util
 import           Test.Hspec.Expectations
@@ -32,6 +33,10 @@ newtype SpecM a = SpecM (Writer [SpecTree] a)
 -- | Convert a `Spec` to a forest of `SpecTree`s.
 runSpecM :: Spec -> [SpecTree]
 runSpecM (SpecM specs) = execWriter specs
+
+-- | Create a `Spec` from a forest of `SpecTree`s.
+fromSpecList :: [SpecTree] -> Spec
+fromSpecList = SpecM . tell
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String

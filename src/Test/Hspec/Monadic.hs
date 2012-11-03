@@ -28,7 +28,6 @@ module Test.Hspec.Monadic (
 
 import           System.IO
 import           Control.Applicative
-import           Control.Monad.Trans.Writer (tell)
 
 import           Test.Hspec.Internal hiding (describe, it)
 import qualified Test.Hspec.Internal as Internal
@@ -36,13 +35,9 @@ import           Test.Hspec.Runner
 import           Test.Hspec.Pending (Pending)
 import qualified Test.Hspec.Pending as Pending
 
--- | Create a `Spec` from a forest of `SpecTree`s.
-fromSpecList :: [SpecTree] -> Spec
-fromSpecList = SpecM . tell
-
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
-describe label action = SpecM . tell $ [Internal.describe label (runSpecM action)]
+describe label action = fromSpecList [Internal.describe label (runSpecM action)]
 
 -- | An alias for `describe`.
 context :: String -> Spec -> Spec
@@ -56,7 +51,7 @@ context = describe
 -- >   it "returns a positive number given a negative number" $
 -- >     abs (-1) == 1
 it :: Example v => String -> v -> Spec
-it label action = (SpecM . tell) [Internal.it label action]
+it label action = fromSpecList [Internal.it label action]
 
 -- | A pending example.
 --

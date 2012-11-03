@@ -6,7 +6,7 @@ import           Control.Applicative
 
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H
-import           Test.Hspec.Internal (SpecTree(..))
+import           Test.Hspec.Internal (SpecTree(..), runSpecM)
 import           Test.Hspec.HUnit
 import           Test.HUnit
 
@@ -18,7 +18,7 @@ data Tree = Group String [Tree] | Example String
   deriving (Eq, Show)
 
 shouldYield :: Test -> [Tree] -> Expectation
-a `shouldYield` b = (convert . fromHUnitTest) a `shouldBe` b
+a `shouldYield` b = (convert . runSpecM . fromHUnitTest) a `shouldBe` b
   where
     convert :: [SpecTree] -> [Tree]
     convert = map go
@@ -52,7 +52,7 @@ spec = do
       (TestLabel "foo" . TestLabel "bar" . TestList) [TestLabel "one" e, TestLabel "two" e, TestLabel "three" e]
         `shouldYield` [Group "foo" [Group "bar" [Example "one", Example "two", Example "three"]]]
 
-  describe "HUnit TestCase as an example" $ do
+  describe "HUnit TestCase as an example (deprecated!)" $ do
     it "is specified with the HUnit `TestCase` data constructor" $ TestCase $ do
       runSpec $ do
         H.it "some behavior" (TestCase $ "foo" @?= "bar")
