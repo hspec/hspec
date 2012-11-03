@@ -4,6 +4,15 @@ layout: default
 
 # User's Manual
 
+{% highlight hspec %}
+{% include Example.hs %}
+{% endhighlight %}
+
+<pre>
+$ <kbd>runhaskell Spec.hs</kbd>
+<samp>{{ "_includes/Example.hs --html" | runhaskell }}</samp></pre>
+
+
 ## Table of contents
 
 * [Five-step introduction](getting-started.html)

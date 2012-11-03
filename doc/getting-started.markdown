@@ -16,7 +16,7 @@ layout: default
 
 ### Step 3: Run and watch it fail
 <pre>
-<code>$ runhaskell MathSpec.hs</code>
+$ <kbd>runhaskell MathSpec.hs</kbd>
 <samp>{{ "-i_includes/introduction/step2/ _includes/introduction/MathSpec.hs --html" | runhaskell }}</samp></pre>
 
 ### Step 4: Implement your desired behavior
@@ -27,5 +27,5 @@ layout: default
 
 ### Step 5: Run again and see it pass
 <pre>
-<code>$ runhaskell MathSpec.hs</code>
+$ <kbd>runhaskell MathSpec.hs</kbd>
 <samp>{{ "-i_includes/introduction/step4/ _includes/introduction/MathSpec.hs --html" | runhaskell }}</samp></pre>
