@@ -33,4 +33,5 @@ To run the test suite do:
  * Simon Hengel
  * Niklas Hambüchen
  * Clark Gaebel
+ * Fujimura Daisuke
  * Michael Snoyman
