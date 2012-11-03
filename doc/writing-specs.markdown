@@ -17,7 +17,7 @@ main = hspec $ do
     it "can parse integers" $ do
       read "10" `shouldBe` (10 :: Int)
 
-    it "can parse floting-point numbers" $ do
+    it "can parse floating-point numbers" $ do
       read "2.5" `shouldBe` (2.5 :: Float)
 ```
 
