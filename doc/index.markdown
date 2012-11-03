@@ -2,45 +2,25 @@
 layout: default
 ---
 
-## Getting started
+# User's Manual
 
-### Step 1: Describe your desired behavior
-{% highlight hspec %}
-{% include introduction/MathSpec.hs %}
-{% endhighlight %}
+## Table of contents
 
-### Step 2: Write some code
-{% highlight hspec %}
-{% include introduction/step2/Math.hs %}
-{% endhighlight %}
+* [Five-step introduction](getting-started.html)
+* [Using QuickCheck with Hspec](quickcheck.html)
+* [Setting expectations](expectations.html)
+* [Interoperability with HUnit](hunit.html)
 
-### Step 3: Run and watch it fail
-<pre>
-<code>$ runhaskell MathSpec.hs</code>
-<samp>{{ "-i_includes/introduction/step2/ _includes/introduction/MathSpec.hs --html" | runhaskell }}</samp></pre>
+## About this manual
 
-### Step 4: Implement your desired behavior
+We currently brush this manual up for the upcoming `1.4.0` release of Hspec.
+If you want to help,
+[grab the sources from GitHub](https://github.com/hspec/hspec) and
+`/join #hspec` on freenode!
 
-{% highlight hspec %}
-{% include introduction/step4/Math.hs %}
-{% endhighlight %}
+## Other resources
 
-### Step 5: Run again and see it pass
-<pre>
-<code>$ runhaskell MathSpec.hs</code>
-<samp>{{ "-i_includes/introduction/step4/ _includes/introduction/MathSpec.hs --html" | runhaskell }}</samp></pre>
+* [Automatic spec discovery with hspec-discover](https://github.com/hspec/hspec/tree/master/hspec-discover#readme)
+* [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
+* [A report of Hspec's behavior](report.html)
 
-## Where to go from here?
-
-* Use [QuickCheck properties](quickcheck.html) with Hspec
-* Use Hspec's [expectation language](expectations.html)
-* Learn about [interoperability with HUnit](hunit.html)
-* Have a look at the [API documentation][api-docs].
-* Learn about [automatic spec discovery][hspec-discover]
-* Have a look at a [report of hspec's behavior][hspec-report].
-
-[hspec-report]:     report.html
-[api-docs]:  http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html
-                      "Haddock documentation for the non-monadic API"
-[hspec-discover]:   https://github.com/hspec/hspec/tree/master/hspec-discover#readme
-                      "README for hspec-discover"
