@@ -7,6 +7,7 @@ layout: default
 ## Table of contents
 
 * [Five-step introduction](getting-started.html)
+* [Writing tests with Hspec](writing-specs.html)
 * [Using QuickCheck with Hspec](quickcheck.html)
 * [Setting expectations](expectations.html)
 * [Interoperability with HUnit](hunit.html)
