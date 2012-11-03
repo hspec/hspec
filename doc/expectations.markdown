@@ -2,6 +2,43 @@
 layout: default
 ---
 
+## Setting expectations
+
+Hspec provides several combinators that can be used to set expectations about
+the outcome of code examples.
+
+### Expecting equality
+
+A common expectation is that two values are equal.  `shouldBe` can be used
+here:
+
+```haskell
+x `shouldBe` 23
+```
+
+`shouldBe` can be used in combination with `IO` actions.  Here is an example:
+
+```haskell
+launchMissiles >>= (`shouldBe` Left "permission error")
+```
+
+`shouldReturn` is a shortcut for that.  The above code can be simplified to:
+
+```haskell
+launchMissiles `shouldReturn` Left "permission error"
+```
+
+### Require, that a predicate holds
+
+`shouldSatisfy` requires that some predicate holds for a given value.
+
+```haskell
+xs `shouldSatisfy` (not . null)
+```
+
+It is similar to HUnit's `assertBool`, but it gives a more detailed error
+message if the expectation fails.
+
 ## Expecting exceptions
 
 Hspec provides a mechanism to state that an action throws an exception.  Here
