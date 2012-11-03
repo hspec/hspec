@@ -28,7 +28,7 @@ launchMissiles >>= (`shouldBe` Left "permission error")
 launchMissiles `shouldReturn` Left "permission error"
 ```
 
-### Require, that a predicate holds
+### Require that a predicate holds
 
 `shouldSatisfy` requires that some predicate holds for a given value.
 
