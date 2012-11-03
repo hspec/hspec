@@ -127,8 +127,11 @@ evaluation order of it's arguments.
 Semantically an exceptional value contains a set of exceptions.  When we "look"
 at the value, one _representative_ from the set is chosen in a
 non-deterministic way.
-For our simple example we can accommodate for that by combining `errorCall
-"foo"` and `errorCall "bar"` with `||`:
+
+For our simple example the set of exceptions is `{ErrorCall "foo", ErrorCall
+"bar"}`, so we have to be prepared to encounter any of those.  We can
+accommodate for this by combining `errorCall "foo"` and `errorCall "bar"` with
+`||`:
 
 ```hspec
 evaluate (error "foo" + error "bar" :: Int)
