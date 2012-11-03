@@ -23,10 +23,12 @@ $ <kbd>runhaskell Spec.hs</kbd>
 
 ## About this manual
 
-We currently brush this manual up for the upcoming `1.4.0` release of Hspec.
+We are currently brushing up this manual for the upcoming 1.4 release of Hspec.
 If you want to help,
 [grab the sources from GitHub](https://github.com/hspec/hspec) and
 `/join #hspec` on freenode!
+
+
 
 ## Other resources
 
