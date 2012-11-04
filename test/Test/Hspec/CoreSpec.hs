@@ -5,8 +5,8 @@ import           Util (capture__)
 import           Data.List (isPrefixOf)
 
 import qualified Test.Hspec.Core.Type as H
-import qualified Test.Hspec.Core as H hiding (pending)
 import qualified Test.Hspec as H (pending)
+import qualified Test.Hspec.Runner as H (hspecWith)
 import           Test.Hspec.Runner (defaultConfig)
 
 main :: IO ()
@@ -14,10 +14,6 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "hspec" $ do
-    it "runs a forrest of `SpecTree`s" $ do
-      H.hspec [H.it "foo" H.pending] `shouldReturn` ()
-
   describe "pending" $ do
     it "specifies a pending example" $ do
       r <- runSpec [H.it "foo" H.pending]
@@ -64,4 +60,4 @@ spec = do
       pending
   where
     runSpec :: [H.SpecTree] -> IO [String]
-    runSpec s = capture__ (H.hspecWith defaultConfig s)
+    runSpec = capture__ . H.hspecWith defaultConfig . H.fromSpecList
