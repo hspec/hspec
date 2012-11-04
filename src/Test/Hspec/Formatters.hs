@@ -1,6 +1,8 @@
--- | This module contains formatters that take a set of specs and write to a given handle.
--- They follow a structure similar to RSpec formatters.
+-- |
+-- Stability: experimental
 --
+-- This module contains formatters that can be used with
+-- `Test.Hspec.Runner.hspecWith`.
 module Test.Hspec.Formatters (
 
 -- * Formatters

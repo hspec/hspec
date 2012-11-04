@@ -58,14 +58,7 @@ data SpecTree =
 describe :: String -> [SpecTree] -> SpecTree
 describe = SpecGroup
 
--- |
--- Create a set of specifications for a specific type being described.  Once
--- you know what you want specs for, use this.
---
--- > describe "abs" [
--- >   it "returns a positive number given a negative number"
--- >     (abs (-1) == 1)
--- >   ]
+-- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
 it s e = SpecExample s (`evaluateExample` e)
 

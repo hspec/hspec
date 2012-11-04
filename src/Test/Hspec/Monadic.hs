@@ -1,3 +1,5 @@
+-- |
+-- Stability: provisional
 module Test.Hspec.Monadic (
 -- * Types
   Spec
@@ -34,7 +36,7 @@ import qualified Test.Hspec.Core.Type as Core
 import           Test.Hspec.Runner
 import           Test.Hspec.Pending
 
--- | The @describe@ function combines a list of specs into a larger spec.
+-- | Combine a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
 describe label action = fromSpecList [Core.describe label (runSpecM action)]
 
@@ -42,13 +44,17 @@ describe label action = fromSpecList [Core.describe label (runSpecM action)]
 context :: String -> Spec -> Spec
 context = describe
 
--- |
--- Create a set of specifications for a specific type being described.  Once
--- you know what you want specs for, use this.
+-- | Create a spec item.
 --
--- > describe "abs" $ do
--- >   it "returns a positive number given a negative number" $
--- >     abs (-1) == 1
+-- A spec item consists of:
+--
+-- * a textual description of a desired behavior
+--
+-- * an example for that behavior
+--
+-- > describe "absolute" $ do
+-- >   it "returns a positive number when given a negative number" $
+-- >     absolute (-1) == 1
 it :: Example v => String -> v -> Spec
 it label action = fromSpecList [Core.it label action]
 

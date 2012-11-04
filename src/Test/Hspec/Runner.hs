@@ -1,9 +1,12 @@
+-- |
+-- Stability: provisional
 module Test.Hspec.Runner (
+-- * Running a spec
   hspec
 , hspecWith
 
+-- * Types
 , Summary (..)
-
 , Config (..)
 , ColorMode (..)
 , Path
@@ -43,7 +46,7 @@ filterSpecs p = goSpecs []
         [] -> Nothing
         xs -> Just (SpecGroup group xs)
 
--- | Evaluate and print the result of checking the specs examples.
+-- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: Config -> Formatter -> [SpecTree] -> FormatM ()
 runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip [0..] specs)
   where
@@ -77,9 +80,8 @@ runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip
           exampleFailed  formatter path err
 
 
--- | Create a document of the given spec and write it to stdout.
---
--- Exit the program with `exitFailure` if at least one example fails.
+-- | Run given spec and write a report to `stdout`.
+-- Exit with `exitFailure` if at least one spec item fails.
 --
 -- (see also `hspecWith`)
 hspec :: Spec -> IO ()
@@ -89,7 +91,12 @@ hspec spec = do
     r <- hspecWith c spec
     unless (summaryFailures r == 0) exitFailure
 
--- | Run given specs.  This is similar to `hspec`, but more flexible.
+-- | Run given spec with custom options.
+-- This is similar to `hspec`, but more flexible.
+--
+-- /Note/: `hspecWith` does not exit with `exitFailure` on failing spec items.
+-- If you need this, you have to check the `Summary` yourself and act
+-- accordingly.
 hspecWith :: Config -> Spec -> IO Summary
 hspecWith c_ spec = do
   -- read failure report on --re-run

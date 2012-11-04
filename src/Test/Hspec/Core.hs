@@ -1,5 +1,5 @@
 -- |
--- Stability: provisional
+-- Stability: experimental
 --
 -- This module provides Hspec's core primitives.  It is less stable than other
 -- parts of the API.  For most use cases "Test.Hspec" is more suitable.

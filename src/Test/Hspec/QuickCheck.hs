@@ -1,3 +1,5 @@
+-- |
+-- Stability: provisional
 module Test.Hspec.QuickCheck (
 -- * Re-exports from QuickCheck
   property

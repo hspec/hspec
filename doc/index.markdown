@@ -4,6 +4,10 @@ layout: default
 
 # User's Manual
 
+```console
+$ cabal update && cabal install hspec
+```
+
 {% inline_example Example.hs %}
 
 ## Table of contents

@@ -1,3 +1,8 @@
+## Changes in 1.4.0
+
+ - Indicate the stability of each exposed module
+
+
 ## Changes in 1.3.0
 
  - `Test.Hspec` now re-exports the monadic API.  If you still use the

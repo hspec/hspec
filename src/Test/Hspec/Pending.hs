@@ -16,15 +16,16 @@ instance Example Pending where
 instance Example (String -> Pending) where
   evaluateExample c _ = evaluateExample c (Pending Nothing)
 
--- | A pending example.
+-- | Create a pending spec item.
 --
--- If you want to report on a behavior but don't have an example yet, use this.
+-- If you want to textually specify a behavior but do not have an example yet,
+-- use this:
 --
 -- > describe "fancyFormatter" $ do
 -- >   it "can format text in a way that everyone likes" $
 -- >     pending
 --
--- You can give an optional reason for why it's pending.
+-- You can give an optional reason for why it's pending:
 --
 -- > describe "fancyFormatter" $ do
 -- >   it "can format text in a way that everyone likes" $

@@ -9,8 +9,10 @@
 --
 -- Hspec (and the preceding intro) are based on the Ruby library RSpec. Much of
 -- what applies to RSpec also applies to Hspec. Hspec ties together
--- /descriptions/ of behavior and /examples/ of that behavior. The examples can
--- also be run as tests and the output summarizes what needs to be implemented.
+-- /textual descriptions/ of behavior and /examples/ for that behavior.  The
+-- examples serve as test cases for the specified behavior.  Hspec's mechanism
+-- for examples is extensible.  Support for QuickCheck properties and HUnit
+-- tests is included in the core package.
 module Test.Hspec (
 
 -- * Introduction
