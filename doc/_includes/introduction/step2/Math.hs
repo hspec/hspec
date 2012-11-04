@@ -1,4 +1,5 @@
 -- file Math.hs
 module Math where
 
-absolute n = undefined
+absolute :: Int -> Int
+absolute = undefined
