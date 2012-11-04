@@ -3,7 +3,7 @@
 -- parts of the API.  For most use cases "Test.Hspec" is more suitable.
 module Test.Hspec.Core (
 -- * Types
-  SpecTree
+  SpecTree (..)
 , Example (..)
 , Params (..)
 , Result (..)
@@ -29,7 +29,7 @@ module Test.Hspec.Core (
 import           Control.Applicative
 import           System.IO (Handle)
 
-import           Test.Hspec.Internal hiding (Spec)
+import           Test.Hspec.Core.Type hiding (Spec)
 import           Test.Hspec.Pending
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary(..), Config(..), defaultConfig)

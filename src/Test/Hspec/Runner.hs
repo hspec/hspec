@@ -21,7 +21,7 @@ import           System.Exit
 import           System.IO.Silently (silence)
 
 import           Test.Hspec.Util (Path, safeEvaluate)
-import           Test.Hspec.Internal
+import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal

@@ -1,9 +1,9 @@
-module Test.Hspec.InternalSpec (main, spec) where
+module Test.Hspec.Core.TypeSpec (main, spec) where
 
 import           Test.Hspec.Meta
 import           Test.QuickCheck
 
-import qualified Test.Hspec.Internal as H
+import qualified Test.Hspec.Core.Type as H
 
 main :: IO ()
 main = hspec spec

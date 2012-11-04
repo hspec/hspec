@@ -4,7 +4,7 @@ import           Test.Hspec.Meta
 import           Util (capture__)
 import           Data.List (isPrefixOf)
 
-import qualified Test.Hspec.Internal as H
+import qualified Test.Hspec.Core.Type as H
 import qualified Test.Hspec.Core as H
 import           Test.Hspec.Runner (defaultConfig)
 

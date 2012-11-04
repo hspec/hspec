@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving #-}
-module Test.Hspec.Internal (
+module Test.Hspec.Core.Type (
   Spec
 , SpecM (..)
 , runSpecM

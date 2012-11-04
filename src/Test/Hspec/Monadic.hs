@@ -29,15 +29,15 @@ module Test.Hspec.Monadic (
 import           System.IO
 import           Control.Applicative
 
-import           Test.Hspec.Internal hiding (describe, it)
-import qualified Test.Hspec.Internal as Internal
+import           Test.Hspec.Core.Type hiding (describe, it)
+import qualified Test.Hspec.Core.Type as Core
 import           Test.Hspec.Runner
 import           Test.Hspec.Pending (Pending)
 import qualified Test.Hspec.Pending as Pending
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
-describe label action = fromSpecList [Internal.describe label (runSpecM action)]
+describe label action = fromSpecList [Core.describe label (runSpecM action)]
 
 -- | An alias for `describe`.
 context :: String -> Spec -> Spec
@@ -51,7 +51,7 @@ context = describe
 -- >   it "returns a positive number given a negative number" $
 -- >     abs (-1) == 1
 it :: Example v => String -> v -> Spec
-it label action = fromSpecList [Internal.it label action]
+it label action = fromSpecList [Core.it label action]
 
 -- | A pending example.
 --

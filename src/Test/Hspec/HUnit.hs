@@ -8,7 +8,7 @@ import           Data.List (intersperse)
 import qualified Test.HUnit as HU
 import           Test.HUnit (Test (..))
 
-import           Test.Hspec.Internal
+import           Test.Hspec.Core.Type
 
 -- |
 -- This instance is deprecated and will be removed in a future release!  Use

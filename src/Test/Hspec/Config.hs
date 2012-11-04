@@ -16,7 +16,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Formatters
 
 import           Test.Hspec.Util
-import           Test.Hspec.Internal (Params (..), defaultParams)
+import           Test.Hspec.Core.Type (Params (..), defaultParams)
 
 data Config = Config {
   configVerbose         :: Bool

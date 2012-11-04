@@ -52,7 +52,7 @@ Library
   other-modules:
       Test.Hspec.Util
       Test.Hspec.Pending
-      Test.Hspec.Internal
+      Test.Hspec.Core.Type
       Test.Hspec.Config
       Test.Hspec.FailureReport
       Test.Hspec.Formatters.Internal

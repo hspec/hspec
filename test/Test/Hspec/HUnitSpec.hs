@@ -6,7 +6,7 @@ import           Control.Applicative
 
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H
-import           Test.Hspec.Internal (SpecTree(..), runSpecM)
+import           Test.Hspec.Core.Type (SpecTree(..), runSpecM)
 import           Test.Hspec.HUnit
 import           Test.HUnit
 
