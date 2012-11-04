@@ -26,7 +26,7 @@ a `shouldYield` b = (convert . runSpecM . fromHUnitTest) a `shouldBe` b
         go :: SpecTree -> Tree
         go x = case x of
           SpecGroup s xs  -> Group s (map go xs)
-          SpecExample s _ -> Example s
+          SpecItem  s _   -> Example s
 
 spec :: Spec
 spec = do

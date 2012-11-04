@@ -41,7 +41,7 @@ filterSpecs p = goSpecs []
 
     goSpec :: [String] -> SpecTree -> Maybe SpecTree
     goSpec groups spec = case spec of
-      SpecExample requirement _ -> guard (p (groups, requirement)) >> return spec
+      SpecItem requirement _ -> guard (p (groups, requirement)) >> return spec
       SpecGroup group specs     -> case goSpecs (groups ++ [group]) specs of
         [] -> Nothing
         xs -> Just (SpecGroup group xs)
@@ -59,7 +59,7 @@ runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip
       exampleGroupStarted formatter n (reverse rGroups) group
       mapM_ (go (group : rGroups)) (zip [0..] xs)
       exampleGroupDone formatter
-    go rGroups (_, SpecExample requirement example) = do
+    go rGroups (_, SpecItem requirement example) = do
       result <- (liftIO . safeEvaluate . silence_) (example $ configParams c)
       case result of
         Right Success -> do

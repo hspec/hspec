@@ -52,7 +52,7 @@ defaultParams = Params QC.stdArgs
 -- | Internal representation of a spec.
 data SpecTree =
     SpecGroup String [SpecTree]
-  | SpecExample String (Params -> IO Result)
+  | SpecItem  String (Params -> IO Result)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree] -> SpecTree
@@ -60,7 +60,7 @@ describe = SpecGroup
 
 -- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
-it s e = SpecExample s (`evaluateExample` e)
+it s e = SpecItem s (`evaluateExample` e)
 
 -- | A type class for examples.
 class Example a where
