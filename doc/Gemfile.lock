@@ -1,4 +1,12 @@
 GIT
+  remote: git://github.com/sol/jekyll-less.git
+  revision: e7bdf25c9d8c5bf50c32ad8134686ae806d55dc5
+  specs:
+    jekyll-less (0.0.4)
+      jekyll (>= 0.10.0)
+      less (>= 2.0.5)
+
+GIT
   remote: git://github.com/sol/jekyll.git
   revision: 949c5c546ca4a9a18006f1145bb3968f3d59e26f
   branch: hspec-doc
@@ -20,9 +28,6 @@ GEM
     commonjs (0.2.6)
     directory_watcher (1.4.1)
     fast-stemmer (1.0.1)
-    jekyll-less (0.0.4)
-      jekyll (>= 0.10.0)
-      less (>= 2.0.5)
     kramdown (0.13.8)
     less (2.2.2)
       commonjs (~> 0.2.6)
@@ -46,6 +51,6 @@ PLATFORMS
 DEPENDENCIES
   RedCloth
   jekyll!
-  jekyll-less
+  jekyll-less!
   redcarpet
   therubyracer

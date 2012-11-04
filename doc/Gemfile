@@ -4,4 +4,4 @@ gem 'RedCloth'
 gem 'jekyll', :github => 'sol/jekyll', :branch => 'hspec-doc'
 
 gem "therubyracer" # required by less
-gem "jekyll-less"
+gem 'jekyll-less',  :github => 'sol/jekyll-less'
