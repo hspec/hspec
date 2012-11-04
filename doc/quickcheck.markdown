@@ -4,9 +4,10 @@ layout: default
 
 ## Using QuickCheck with Hspec
 
-You can use arbitrary QuickCheck properties with Hspec, but they must be
-wrapped with QuickCheck's [`property`][v:property] function.  Here is an
-example:
+You can use arbitrary QuickCheck properties with Hspec, but they must be of
+type [`Property`][t:Property].  QuickCheck's [`property`][v:property] function
+can be used to turn anything that is a member of the [`Testable`][t:Testable]
+class into a `Property`.  Here is an example:
 
 ```hspec
 describe "read" $ do
