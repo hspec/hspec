@@ -20,16 +20,14 @@ instance Example (String -> Pending) where
 --
 -- If you want to report on a behavior but don't have an example yet, use this.
 --
--- > describe "fancyFormatter" [
+-- > describe "fancyFormatter" $ do
 -- >   it "can format text in a way that everyone likes" $
 -- >     pending
--- > ]
 --
 -- You can give an optional reason for why it's pending.
 --
--- > describe "fancyFormatter" [
+-- > describe "fancyFormatter" $ do
 -- >   it "can format text in a way that everyone likes" $
 -- >     pending "waiting for clarification from the designers"
--- > ]
 pending :: String -> Pending
 pending = Pending . Just

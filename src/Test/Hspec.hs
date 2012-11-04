@@ -1,4 +1,6 @@
 -- |
+-- Stability: stable
+--
 -- Hspec is a framework for /Behavior-Driven Development (BDD)/ in Haskell. BDD
 -- is an approach to software development that combines Test-Driven
 -- Development, Domain-Driven Design, and Acceptance Test-Driven Planning.

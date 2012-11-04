@@ -32,8 +32,7 @@ import           Control.Applicative
 import           Test.Hspec.Core.Type hiding (describe, it)
 import qualified Test.Hspec.Core.Type as Core
 import           Test.Hspec.Runner
-import           Test.Hspec.Pending (Pending)
-import qualified Test.Hspec.Pending as Pending
+import           Test.Hspec.Pending
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
@@ -52,22 +51,6 @@ context = describe
 -- >     abs (-1) == 1
 it :: Example v => String -> v -> Spec
 it label action = fromSpecList [Core.it label action]
-
--- | A pending example.
---
--- If you want to report on a behavior but don't have an example yet, use this.
---
--- > describe "fancyFormatter" $ do
--- >   it "can format text in a way that everyone likes" $
--- >     pending
---
--- You can give an optional reason for why it's pending.
---
--- > describe "fancyFormatter" $ do
--- >   it "can format text in a way that everyone likes" $
--- >     pending "waiting for clarification from the designers"
-pending :: String  -> Pending
-pending = Pending.pending
 
 {-# DEPRECATED Specs "use `Spec` instead" #-}             -- since 1.2.0
 type Specs = SpecM ()

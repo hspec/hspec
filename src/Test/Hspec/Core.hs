@@ -1,4 +1,6 @@
 -- |
+-- Stability: provisional
+--
 -- This module provides Hspec's core primitives.  It is less stable than other
 -- parts of the API.  For most use cases "Test.Hspec" is more suitable.
 module Test.Hspec.Core (
@@ -7,12 +9,10 @@ module Test.Hspec.Core (
 , Example (..)
 , Params (..)
 , Result (..)
-, Pending
 
 -- * Defining a spec
 , describe
 , it
-, pending
 
 -- * Running a spec
 , hspec
@@ -24,13 +24,15 @@ module Test.Hspec.Core (
 , hspecB
 , hspecX
 , hHspec
+, Pending
+, pending
 ) where
 
 import           Control.Applicative
 import           System.IO (Handle)
 
 import           Test.Hspec.Core.Type hiding (Spec)
-import           Test.Hspec.Pending
+import qualified Test.Hspec.Pending as Pending
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary(..), Config(..), defaultConfig)
 
@@ -60,3 +62,10 @@ type Spec = SpecTree
 
 {-# DEPRECATED Specs "use `[SpecTree]` instead" #-}       -- since 1.4.0
 type Specs = [SpecTree]
+
+{-# DEPRECATED pending "use `Test.Hspec.pending` instead" #-} -- since 1.4.0
+pending :: String -> Pending
+pending = Pending.pending
+
+{-# DEPRECATED Pending "use `Test.Hspec.Pending` instead" #-} -- since 1.4.0
+type Pending = Pending.Pending

@@ -5,7 +5,8 @@ import           Util (capture__)
 import           Data.List (isPrefixOf)
 
 import qualified Test.Hspec.Core.Type as H
-import qualified Test.Hspec.Core as H
+import qualified Test.Hspec.Core as H hiding (pending)
+import qualified Test.Hspec as H (pending)
 import           Test.Hspec.Runner (defaultConfig)
 
 main :: IO ()
