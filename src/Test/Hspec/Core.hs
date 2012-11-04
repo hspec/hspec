@@ -45,22 +45,22 @@ hspec = Runner.hspec . fromSpecList
 hspecWith :: Config -> [SpecTree] -> IO Summary
 hspecWith c = Runner.hspecWith c . fromSpecList
 
-{-# DEPRECATED hspecX "use `hspec` instead" #-}           -- since 1.2.0
+{-# DEPRECATED hspecX "use `hspec` instead" #-}               -- since 1.2.0
 hspecX :: [SpecTree] -> IO ()
 hspecX = hspec
 
-{-# DEPRECATED hspecB "use `hspecWith` instead" #-}       -- since 1.4.0
+{-# DEPRECATED hspecB "use `hspecWith` instead" #-}           -- since 1.4.0
 hspecB :: [SpecTree] -> IO Bool
 hspecB spec = (== 0) . summaryFailures <$> hspecWith defaultConfig spec
 
-{-# DEPRECATED hHspec "use `hspecWith` instead" #-}       -- since 1.4.0
+{-# DEPRECATED hHspec "use `hspecWith` instead" #-}           -- since 1.4.0
 hHspec :: Handle -> [SpecTree] -> IO Summary
 hHspec h = hspecWith defaultConfig {configHandle = h}
 
-{-# DEPRECATED Spec "use `SpecTree` instead" #-}          -- since 1.4.0
+{-# DEPRECATED Spec "use `SpecTree` instead" #-}              -- since 1.4.0
 type Spec = SpecTree
 
-{-# DEPRECATED Specs "use `[SpecTree]` instead" #-}       -- since 1.4.0
+{-# DEPRECATED Specs "use `[SpecTree]` instead" #-}           -- since 1.4.0
 type Specs = [SpecTree]
 
 {-# DEPRECATED pending "use `Test.Hspec.pending` instead" #-} -- since 1.4.0
