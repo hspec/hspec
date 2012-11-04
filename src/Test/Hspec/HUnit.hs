@@ -1,27 +1,8 @@
 {-# OPTIONS -fno-warn-orphans #-}
-
--- |
--- Importing this module allows you to use an @HUnit@ `HU.Test` as an example
--- for a behavior.  You can use an explicit `HU.TestCase` data constructor or
--- use an `HU.Assertion`.  For an @Assertion@, any exception means the example
--- failed; otherwise, it's successfull.
---
--- NOTE: Any output from the example to @stdout@ is ignored.  If you need to
--- write out for debugging, you can write to @stderr@ or a file handle.
---
--- > import Test.Hspec
--- > import Test.HUnit
--- >
--- > main :: IO ()
--- > main = hspec $ do
--- >   describe "reverse" $ do
--- >     it "reverses a list" $ do
--- >       reverse [1, 2, 3] @?= [3, 2, 1]
--- >
--- >     it "gives the original list, if applied twice" $ TestCase $
--- >       (reverse . reverse) [1, 2, 3] @?= [1, 2, 3]
---
-module Test.Hspec.HUnit (fromHUnitTest) where
+module Test.Hspec.HUnit (
+-- * Interoperability with HUnit
+  fromHUnitTest
+) where
 
 import           Data.List (intersperse)
 import qualified Test.HUnit as HU
@@ -43,6 +24,9 @@ instance Example Test where
       details :: String -> String
       details = concat . intersperse "\n" . tail . init . lines
 
+-- |
+-- Convert a HUnit test suite to a spec.  This can be used to run existing
+-- HUnit tests with Hspec.
 fromHUnitTest :: Test -> Spec
 fromHUnitTest t = fromSpecList $ case t of
   TestList xs -> map go xs
