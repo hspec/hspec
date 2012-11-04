@@ -33,7 +33,7 @@ end
 Liquid::Template.register_filter(Hspec::CustomFilters)
 
 module Hspec
-  class ExtendedExampleTag < Liquid::Tag
+  class ExampleTag < Liquid::Tag
     def initialize(tag_name, file, tokens)
       super
       @file = file.strip
@@ -49,26 +49,36 @@ module Hspec
 
     def add_wrapping(file)
       source = File.read(file)
-
-      # It is crucial to indent nested HTML tags, otherwise a bug in sundowns
-      # parser is triggered, which leads to invalid HTML!  See
-      # https://github.com/vmg/sundown/issues/139.
-      <<-HTML
-<div>
-  <h5 class="foldable">Example code:</h5>
-  <div>
-  {% highlight hspec %}
+<<-HTML
+{% highlight hspec %}
 -- file Spec.hs
 #{source}
 {% endhighlight %}
-  <pre>
-$ <kbd>runhaskell Spec.hs</kbd>
-  <samp>{{ "#{file} --html" | runhaskell }}</samp></pre>
-  </div>
-</div>
-      HTML
+<pre>$ <kbd>runhaskell Spec.hs</kbd>
+<samp>{{ "#{file} --html" | runhaskell }}</samp></pre>
+HTML
     end
   end
 end
 
-Liquid::Template.register_tag('example', Hspec::ExtendedExampleTag)
+module Hspec
+  class FoldableExampleTag < ExampleTag
+    def add_wrapping(*)
+      source = super
+      # It is crucial to indent nested HTML tags, otherwise a bug in sundowns
+      # parser is triggered, which leads to invalid HTML!  See
+      # https://github.com/vmg/sundown/issues/139.
+<<-HTML
+<div>
+  <h5 class="foldable">Example code:</h5>
+  <div>
+#{source}
+  </div>
+</div>
+HTML
+    end
+  end
+end
+
+Liquid::Template.register_tag('inline_example', Hspec::ExampleTag)
+Liquid::Template.register_tag('example', Hspec::FoldableExampleTag)

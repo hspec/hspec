@@ -1,4 +1,3 @@
--- file Spec.hs
 import Test.Hspec
 import Test.QuickCheck
 

@@ -4,14 +4,7 @@ layout: default
 
 # User's Manual
 
-{% highlight hspec %}
-{% include Example.hs %}
-{% endhighlight %}
-
-<pre>
-$ <kbd>runhaskell Spec.hs</kbd>
-<samp>{{ "_includes/Example.hs --html" | runhaskell }}</samp></pre>
-
+{% inline_example Example.hs %}
 
 ## Table of contents
 
@@ -35,4 +28,3 @@ If you want to help,
 * [Automatic spec discovery with hspec-discover](https://github.com/hspec/hspec/tree/master/hspec-discover#readme)
 * [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
 * [A report of Hspec's behavior](report.html)
-
