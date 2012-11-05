@@ -36,10 +36,12 @@ module Test.Hspec (
 , hspec
 ) where
 
-import           Test.Hspec.Monadic
+import           Test.Hspec.Core.Type hiding (describe, it)
+import           Test.Hspec.Runner
 import           Test.Hspec.HUnit ()
-import           Test.Hspec.QuickCheck ()
 import           Test.Hspec.Expectations
+import           Test.Hspec.Pending
+import qualified Test.Hspec.Core as Core
 
 -- $intro
 --
@@ -48,8 +50,6 @@ import           Test.Hspec.Expectations
 -- the specs for them.
 --
 -- > import Test.Hspec
--- > import Test.QuickCheck
--- > import Test.HUnit
 -- >
 -- > main :: IO ()
 -- > main = hspec spec
@@ -101,3 +101,26 @@ import           Test.Hspec.Expectations
 -- > phoneNumber = do
 -- >   n <- elements [7,10,11,12,13,14,15]
 -- >   vectorOf n (elements "0123456789")
+
+
+-- | Combine a list of specs into a larger spec.
+describe :: String -> Spec -> Spec
+describe label action = fromSpecList [Core.describe label (runSpecM action)]
+
+-- | An alias for `describe`.
+context :: String -> Spec -> Spec
+context = describe
+
+-- | Create a spec item.
+--
+-- A spec item consists of:
+--
+-- * a textual description of a desired behavior
+--
+-- * an example for that behavior
+--
+-- > describe "absolute" $ do
+-- >   it "returns a positive number when given a negative number" $
+-- >     absolute (-1) == 1
+it :: Example v => String -> v -> Spec
+it label action = fromSpecList [Core.it label action]

@@ -53,9 +53,8 @@ type Result = Either NoConfig Config
 
 data NoConfig = Help | InvalidArgument String String
 
--- | Add a filter predicate to config.
---
--- If there is already a filter predicate, they are combined with `||`.
+-- | Add a filter predicate to config.  If there is already a filter predicate,
+-- then combine them with `||`.
 configAddFilter :: (Path -> Bool) -> Config -> Config
 configAddFilter p1 c = c {configFilterPredicate = Just p}
   where

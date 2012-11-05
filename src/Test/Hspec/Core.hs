@@ -4,13 +4,19 @@
 -- This module provides Hspec's core primitives.  It is less stable than other
 -- parts of the API.  For most use cases "Test.Hspec" is more suitable.
 module Test.Hspec.Core (
--- * Types
-  SpecTree (..)
-, Example (..)
+
+-- * A type class for examples
+  Example (..)
 , Params (..)
 , Result (..)
 
--- * Defining a spec
+-- * A writer monad for constructing specs
+, SpecM
+, runSpecM
+, fromSpecList
+
+-- * Internal representation of a spec tree
+, SpecTree (..)
 , describe
 , it
 

@@ -1,9 +1,7 @@
--- |
--- Stability: provisional
-module Test.Hspec.Monadic (
+{-# OPTIONS_HADDOCK not-home #-}
+module Test.Hspec.Monadic {-# DEPRECATED "use \"Test.Hspec\", \"Test.Hspec.Runner\" or \"Test.Hspec.Core\" instead" #-} (
 -- * Types
   Spec
-, SpecM
 , Example
 , Pending
 
@@ -15,6 +13,7 @@ module Test.Hspec.Monadic (
 
 -- * Running a spec
 , hspec
+, Summary (..)
 
 -- * Interface to the non-monadic API
 , runSpecM
@@ -31,35 +30,12 @@ module Test.Hspec.Monadic (
 import           System.IO
 import           Control.Applicative
 
-import           Test.Hspec.Core.Type hiding (describe, it)
-import qualified Test.Hspec.Core.Type as Core
+import           Test.Hspec.Core (runSpecM, fromSpecList)
 import           Test.Hspec.Runner
-import           Test.Hspec.Pending
-
--- | Combine a list of specs into a larger spec.
-describe :: String -> Spec -> Spec
-describe label action = fromSpecList [Core.describe label (runSpecM action)]
-
--- | An alias for `describe`.
-context :: String -> Spec -> Spec
-context = describe
-
--- | Create a spec item.
---
--- A spec item consists of:
---
--- * a textual description of a desired behavior
---
--- * an example for that behavior
---
--- > describe "absolute" $ do
--- >   it "returns a positive number when given a negative number" $
--- >     absolute (-1) == 1
-it :: Example v => String -> v -> Spec
-it label action = fromSpecList [Core.it label action]
+import           Test.Hspec
 
 {-# DEPRECATED Specs "use `Spec` instead" #-}             -- since 1.2.0
-type Specs = SpecM ()
+type Specs = Spec
 
 {-# DEPRECATED descriptions "use `sequence_` instead" #-} -- since 1.0.0
 descriptions :: [Spec] -> Spec

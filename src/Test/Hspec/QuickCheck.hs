@@ -8,7 +8,7 @@ module Test.Hspec.QuickCheck (
 ) where
 
 import           Test.QuickCheck
-import           Test.Hspec.Monadic
+import           Test.Hspec
 
 -- |
 -- > prop ".." $
