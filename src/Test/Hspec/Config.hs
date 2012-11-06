@@ -18,7 +18,7 @@ import           Test.Hspec.Formatters
 import           Test.Hspec.Util
 import           Test.Hspec.Core.Type (Params (..), defaultParams)
 
--- Monad (Either e) and  base < 4.3
+-- for Monad (Either e) when base < 4.3
 import           Control.Monad.Trans.Error ()
 
 data Config = Config {
