@@ -5,7 +5,7 @@ license-file:     LICENSE
 copyright:        (c) 2011-2012 Trystan Spangler, (c) 2011-2012 Simon Hengel, (c) 2011 Greg Weber
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
-cabal-version:    >= 1.10
+cabal-version:    >= 1.8
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
@@ -26,7 +26,6 @@ source-repository head
   location: https://github.com/hspec/hspec
 
 Library
-  default-language: Haskell98
   ghc-options:
       -Wall
   hs-source-dirs:
@@ -59,7 +58,6 @@ Library
       Test.Hspec.Formatters.Internal
 
 test-suite spec
-  default-language: Haskell98
   type:
       exitcode-stdio-1.0
   hs-source-dirs:
@@ -84,7 +82,6 @@ test-suite spec
     , ghc-paths
 
 test-suite doctests
-  default-language: Haskell98
   main-is:
       doctests.hs
   type:
@@ -98,7 +95,6 @@ test-suite doctests
     , doctest >= 0.8
 
 test-suite example
-  default-language: Haskell98
   type:
       exitcode-stdio-1.0
   main-is:
@@ -114,7 +110,6 @@ test-suite example
 
 -- hspec-discover
 executable hspec-discover
-  default-language: Haskell98
   ghc-options:
       -Wall
   hs-source-dirs:
@@ -129,7 +124,6 @@ executable hspec-discover
     , directory
 
 test-suite hspec-discover-spec
-  default-language: Haskell98
   type:
       exitcode-stdio-1.0
   ghc-options:
@@ -146,7 +140,6 @@ test-suite hspec-discover-spec
     , hspec-meta
 
 test-suite hspec-discover-example
-  default-language: Haskell98
   type:
       exitcode-stdio-1.0
   ghc-options:
@@ -161,7 +154,6 @@ test-suite hspec-discover-example
     , QuickCheck
 
 test-suite hspec-discover-integration-test-empty
-  default-language: Haskell98
   type:
       exitcode-stdio-1.0
   ghc-options:
