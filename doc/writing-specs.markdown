@@ -8,7 +8,7 @@ layout: default
 
 Hspec provides an EDSL to describe tests.
 
-`describe` and `it` are used to organize test with Hspec.
+`describe` and `it` are used to organize tests with Hspec.
 
 ```hspec
 main :: IO ()
