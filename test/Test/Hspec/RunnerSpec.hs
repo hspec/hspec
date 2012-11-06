@@ -4,7 +4,6 @@ import           Test.Hspec.Meta
 import           System.IO.Silently (hCapture, hSilence)
 import           System.IO (stderr)
 import           Control.Applicative
-import           Control.Monad (void)
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import qualified Control.Exception as E
@@ -182,7 +181,7 @@ spec = do
 
     it "treats uncaught exceptions as failure" $ do
       H.hspecWith H.defaultConfig  $ do
-        H.it "foobar" (void . E.throwIO $ E.ErrorCall "foobar")
+        H.it "foobar" (E.throwIO (E.ErrorCall "foobar") >> pure ())
       `shouldReturn` H.Summary 1 1
 
     it "uses the specdoc formatter by default" $ do

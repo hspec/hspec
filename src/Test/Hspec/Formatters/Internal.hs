@@ -201,10 +201,7 @@ withPendingColor = withColor (SetColor Foreground Dull Yellow) "hspec-pending"
 withColor :: SGR -> String -> FormatM a -> FormatM a
 withColor color cls action = do
   r <- gets produceHTML
-  if r then
-    htmlSpan cls action
-  else
-    withColor_ color action
+  (if r then htmlSpan cls else withColor_ color) action
 
 htmlSpan :: String -> FormatM a -> FormatM a
 htmlSpan cls action = write ("<span class=\"" ++ cls ++ "\">") *> action <* write "</span>"
