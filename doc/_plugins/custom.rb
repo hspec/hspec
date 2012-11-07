@@ -7,7 +7,7 @@ Pygments.start(File.join(File.dirname(__FILE__), "../pygments"))
 module Hspec
   module CustomFilters
     def runhaskell(args)
-      cmd = "runhaskell -i../src #{args}"
+      cmd = "runhaskell -i../src -optP-include -optP../dist/build/autogen/cabal_macros.h #{args}"
       cache  = ".cache/runhaskell"
       system "mkdir -p #{cache}"
 
@@ -38,7 +38,7 @@ module Hspec
     end
 
     def render(context)
-      file = File.join context.registers[:site].source, '_includes', @file
+      file = File.join '_includes', @file
       partial = Liquid::Template.parse(add_wrapping file)
       context.stack do
         partial.render(context)
