@@ -132,18 +132,22 @@ However, `evaluate` only forces its argument to _weak head normal form_.  To
 better understand what that means, let's look at an other example:
 
 ```hspec
-evaluate ('a' : undefined) `shouldThrow` errorCall "Prelude.undefined"
+evaluate ('a' : undefined) `shouldThrow` anyErrorCall
 ```
 
 Here `evaluate` does not force the exception.  It only evaluates `'a' :
 undefined` until it encounters the first constructor &mdash; the `:` &mdash; and is done.
 It does not look at the arguments of that contructor.
 
-[`$!!`][v:deep-apply] can be used to force the exception:
+Here `mapM evaluate` can be used to force the exception:
 
 ```hspec
-(return $!! 'a' : undefined) `shouldThrow` errorCall "Prelude.undefined"
+mapM evaluate ('a' : undefined) `shouldThrow` anyErrorCall
 ```
+
+Note that contrary to popular belief `$!!` (or any other mechanism that relies
+on `seq`) does not work reliably!  (see the discussion at
+<del>[#5129](http://hackage.haskell.org/trac/ghc/ticket/5129)</del>)
 
 {% example ExceptionsFromPureCode.hs %}
 
@@ -196,5 +200,3 @@ But beware that GHC does not fully adhere to those semantics (see
 [t:ErrorCall]:http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#t:ErrorCall
 
 [v:isPermissionError]: http://hackage.haskell.org/packages/archive/base/latest/doc/html/System-IO-Error.html#v:isPermissionError
-
-[v:deep-apply]:  http://hackage.haskell.org/packages/archive/deepseq/latest/doc/html/Control-DeepSeq.html#v:-36--33--33-
