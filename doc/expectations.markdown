@@ -107,7 +107,7 @@ to expect a specific exception value of type `ErrorCall`.  The following won't
 work:
 
 ```haskell
-error "foo" `shouldThrow` (== ErrorCall "foo")  -- This won't work!
+evaluat (error "foo") `shouldThrow` (== ErrorCall "foo")  -- This won't work!
 ```
 
 Pattern matching can be used instead, but Hspec provides a combinator,
@@ -115,7 +115,7 @@ Pattern matching can be used instead, but Hspec provides a combinator,
 used:
 
 ```haskell
-error "foo" `shouldThrow` errorCall "foo"
+evaluat (error "foo") `shouldThrow` errorCall "foo"
 ```
 
 {% example Error.hs %}
@@ -132,17 +132,18 @@ However, `evaluate` only forces its argument to _weak head normal form_.  To
 better understand what that means, let's look at an other example:
 
 ```hspec
-evaluate ('a' : undefined) `shouldThrow` anyErrorCall
+evaluate [undefined] `shouldThrow` anyErrorCall
 ```
 
-Here `evaluate` does not force the exception.  It only evaluates `'a' :
-undefined` until it encounters the first constructor &mdash; the `:` &mdash; and is done.
-It does not look at the arguments of that contructor.
+Here `evaluate` does not force the exception.  It only evaluates its argument
+until it encounters the first constructor.  `[undefined]` desugars to
+`undefined : []`, the constructor is `:`.  As soon as `evaluate` sees `:` it's
+done.  It does not look at the arguments of that constructor.
 
-Here `mapM evaluate` can be used to force the exception:
+`mapM` can be used to force the list elements.
 
 ```hspec
-mapM evaluate ('a' : undefined) `shouldThrow` anyErrorCall
+mapM evaluate [undefined] `shouldThrow` anyErrorCall
 ```
 
 Note that contrary to popular belief `$!!` (or any other mechanism that relies

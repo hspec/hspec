@@ -1,8 +1,8 @@
 import Test.Hspec
+import Control.Exception (evaluate)
 
 main :: IO ()
 main = hspec $ do
-  describe "head" $ do
-    context "when applied to an empty list" $ do
-      it "throws an exception" $ do
-        head [] `shouldThrow` errorCall "Prelude.head: empty list"
+  describe "Prelude.head" $ do
+    it "throws an exception if used with an empty list" $ do
+      evaluate (head []) `shouldThrow` errorCall "Prelude.head: empty list"

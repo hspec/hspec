@@ -8,9 +8,9 @@ main = hspec $ do
       evaluate (1 `div` 0 :: Int) `shouldThrow` anyArithException
 
   describe "evaluate" $ do
-    it "forces exceptions" $ do
-      evaluate ('a' : undefined) `shouldThrow` anyErrorCall
+    it "forces undefined list items" $ do
+      evaluate [undefined] `shouldThrow` anyErrorCall
 
-  describe "$!!" $ do
-    it "forces exceptions" $ do
-      mapM evaluate ('a' : undefined) `shouldThrow` anyErrorCall
+  describe "mapM evaluate" $ do
+    it "forces undefined list items" $ do
+      mapM evaluate [undefined] `shouldThrow` anyErrorCall
