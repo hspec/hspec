@@ -1,7 +1,41 @@
 ## Changes in 1.4.0
-
- - Indicate the stability of each exposed module
-
+ - We now have a manual at http://hspec.github.com/.  The sources are in
+   `doc/`.  It's still work in progress.  Contributions are very welcome!
+ - The Haddock documentation now indicates the stability of each exposed
+   module.  `Test.Hspec` is now considered stable.
+ - `hspec` now supports command-line options
+   - `--color` can be used to enable/disable colored output
+   - `--format` can be used to pick a specific formatter
+   - `--html` can be used to produce an HTML report
+   - `--maximum-generated-tests` can be used to specify QuickCheck's
+     `maxSuccess`
+   - `--match` only runs spec items that match a given string
+   - `--re-run` only runs spec items that previously failed.  This is
+     undocumented,
+     experimental and only works within GHCi (use `:reload` / `:main`)!
+ - Runner functions exported from `Test.Hspec.Runner` new expect a monadic
+   spec.
+ - `fromHUnitTest` has been added.  It can be used to run existing HUnit test
+   suites with Hspec.
+ - The `Example` instance for HUnit `Test`s has been deprecated.
+   `fromHUnitTest` can be used instead.  The primary motivation is, that
+   `fromHUnitTest` gives more detailed reporting for nested HUnit test suites.
+ - `Test.Hspec.Monadic` has been deprecated, all functionality is available
+   through one of `Test.Hspec`, `Test.Hspec.Core` or `Test.Hspec.Runner`.
+ - More of Hspec's internals are now exposed from `Test.Hspec.Core`
+ - All runner functions for the core spec type (aka as non-monadic spec) have
+   been deprecated, use e.g. `Test.Hspec.hspec . fromSpecList` instead.  The
+   motivation is to provide an API that does not expose colliding names.
+ - Some other stuff from `Test.Hspec.Core` that collides with other parts of
+   the API has been deprecated.  Compatible alternatives are given in each
+   deprecation message.
+ - The default formatter now produces less whitespace (#73) + other minor
+   improvements
+ - The formatter API has been revamped.
+ - The exception type is now printed if an example fails due to an exception
+   (#50)
+ - The number of pending examples is now printed after each test run (#85)
+ - `--verbose` has been added (#87)
 
 ## Changes in 1.3.0
 
