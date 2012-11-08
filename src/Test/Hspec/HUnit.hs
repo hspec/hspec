@@ -10,9 +10,7 @@ import           Test.HUnit (Test (..))
 
 import           Test.Hspec.Core.Type
 
--- |
--- This instance is deprecated and will be removed in a future release!  Use
--- `Test.Hspec.HUnit.fromHUnitTest` instead!
+-- | This instance is deprecated, use `Test.Hspec.HUnit.fromHUnitTest` instead!
 instance Example Test where
   evaluateExample _ test = do
     (counts, fails) <- HU.runTestText HU.putTextToShowS test

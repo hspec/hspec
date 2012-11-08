@@ -1,8 +1,8 @@
 -- |
 -- Stability: experimental
 --
--- This module provides Hspec's core primitives.  It is less stable than other
--- parts of the API.  For most use cases "Test.Hspec" is more suitable.
+-- This module provides access to Hspec's internals.  It is less stable than
+-- other parts of the API.  For most users "Test.Hspec" is more suitable!
 module Test.Hspec.Core (
 
 -- * A type class for examples

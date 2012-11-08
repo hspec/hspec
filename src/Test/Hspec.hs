@@ -50,6 +50,8 @@ import qualified Test.Hspec.Core as Core
 -- the specs for them.
 --
 -- > import Test.Hspec
+-- > import Test.QuickCheck
+-- > import Test.HUnit
 -- >
 -- > main :: IO ()
 -- > main = hspec spec

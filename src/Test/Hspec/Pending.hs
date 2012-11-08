@@ -16,7 +16,7 @@ instance Example Pending where
 instance Example (String -> Pending) where
   evaluateExample c _ = evaluateExample c (Pending Nothing)
 
--- | Create a pending spec item.
+-- | A pending example.
 --
 -- If you want to textually specify a behavior but do not have an example yet,
 -- use this:
