@@ -132,22 +132,22 @@ However, `evaluate` only forces its argument to _weak head normal form_.  To
 better understand what that means, let's look at an other example:
 
 ```hspec
-evaluate [undefined] `shouldThrow` anyErrorCall
+evaluate ('a' : undefined) `shouldThrow` anyErrorCall
 ```
 
 Here `evaluate` does not force the exception.  It only evaluates its argument
-until it encounters the first constructor.  `[undefined]` desugars to
-`undefined : []`, the constructor is `:`.  As soon as `evaluate` sees `:` it's
-done.  It does not look at the arguments of that constructor.
+until it encounters the first constructor.  Here the contains is `:`, as soon
+as `evaluate` sees `:` it's done.  It does not look at the arguments of that
+constructor.
 
-`mapM` can be used to force the list elements.
+[`force`][v:force] can be used to force the exception:
 
 ```hspec
-mapM evaluate [undefined] `shouldThrow` anyErrorCall
+(evaluate . force) ('a' : undefined) `shouldThrow` anyErrorCall
 ```
 
-Note that contrary to popular belief `$!!` (or any other mechanism that relies
-on `seq`) does not work reliably!  (see the discussion at
+Note that `return $!!` (or any other mechanism that relies solely on `seq`)
+does not work reliably!  (see the discussion at
 <del>[#5129](http://hackage.haskell.org/trac/ghc/ticket/5129)</del>)
 
 {% example ExceptionsFromPureCode.hs %}
@@ -201,3 +201,5 @@ But beware that GHC does not fully adhere to those semantics (see
 [t:ErrorCall]:http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#t:ErrorCall
 
 [v:isPermissionError]: http://hackage.haskell.org/packages/archive/base/latest/doc/html/System-IO-Error.html#v:isPermissionError
+
+[v:force]: http://hackage.haskell.org/packages/archive/deepseq/latest/doc/html/Control-DeepSeq.html#v:force
