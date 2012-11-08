@@ -18,8 +18,7 @@ description:      Behavior Driven Development for Haskell
                   tests. Compared to other options, it provides a much nicer
                   syntax that makes tests very easy to read.
                   .
-                  Start with the introductory documentation:
-                  <http://hspec.github.com/>
+                  The Hspec Manual is at <http://hspec.github.com/>.
 
 source-repository head
   type: git
