@@ -23,6 +23,7 @@ import           Control.Monad.Trans.Error ()
 
 data Config = Config {
   configVerbose         :: Bool
+, configPrintCpuTime    :: Bool
 , configReRun           :: Bool
 
 -- |
@@ -39,7 +40,7 @@ data Config = Config {
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False False Nothing defaultParams ColorAuto specdoc False stdout
+defaultConfig = Config False False False Nothing defaultParams ColorAuto specdoc False stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -73,12 +74,14 @@ options = [
   , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to `always' or can be `never' or `auto'."
   , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
   , Option "a" ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
+  , Option []  ["print-cpu-time"]          (NoArg setPrintCpuTime)            "include used CPU time in summary"
   ]
   where
     setFilter :: String -> Result -> Result
     setFilter pattern x = configAddFilter (filterPredicate pattern) <$> x
 
-    setVerbose x = x >>= \c -> return c {configVerbose = True}
+    setVerbose      x = x >>= \c -> return c {configVerbose = True}
+    setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
 
     setFormatter name x = x >>= \c -> case lookup name formatters of
       Nothing -> Left (InvalidArgument "format" name)

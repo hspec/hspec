@@ -167,7 +167,9 @@ defaultFailedFormatter = do
 defaultFooter :: FormatM ()
 defaultFooter = do
 
-  writeLine =<< printf "Finished in %1.4f seconds, used %1.4f seconds of CPU time" <$> getRealTime <*> getCPUTime
+  writeLine =<< (++)
+    <$> (printf "Finished in %1.4f seconds"
+    <$> getRealTime) <*> (maybe "" (printf ", used %1.4f seconds of CPU time") <$> getCPUTime)
 
   fails   <- getFailCount
   pending <- getPendingCount

@@ -100,6 +100,11 @@ spec = do
             morallyDubiousIOProperty (mockAction m >> pure True)
         mockCounter m `shouldReturn` 23
 
+    context "with --print-cpu-time" $ do
+      it "includes used CPU time in summary" $ do
+        r <- capture_ $ withArgs ["--print-cpu-time"] (H.hspec $ pure ())
+        (normalizeSummary . lines) r `shouldContain` ["Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"]
+
     context "with --html" $ do
       it "produces HTML output" $ do
         r <- capture_ . withArgs ["--html"] . H.hspec $ do

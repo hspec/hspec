@@ -2,11 +2,9 @@
 module Test.Hspec.FormattersSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Data.List (isPrefixOf)
 
 import           Util
 import           System.IO.Silently (capture)
-import           Data.Char
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Core as H (Result(..))
 import qualified Test.Hspec.Runner as H
@@ -28,15 +26,6 @@ testSpec = do
     H.it "fail 2"     (H.Fail "")
     H.it "exceptions" (undefined :: H.Result)
     H.it "fail 3"     (H.Fail "")
-
--- replace times in summary with zeroes
-normalizeSummary :: [String] -> [String]
-normalizeSummary xs = map f xs
-  where
-    f x | "Finished in " `isPrefixOf` x = map g x
-        | otherwise = x
-    g x | isNumber x = '0'
-        | otherwise  = x
 
 spec :: Spec
 spec = do
@@ -97,7 +86,7 @@ spec = do
         , "    - is a left identity"
         , "    - is a right identity"
         , ""
-        , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
+        , "Finished in 0.0000 seconds"
         , ""
         , "6 examples, 0 failures"
         ]
@@ -120,7 +109,7 @@ spec = do
         , "    - example 3"
         , "    - example 4"
         , ""
-        , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
+        , "Finished in 0.0000 seconds"
         , ""
         , "4 examples, 0 failures"
         ]
@@ -143,7 +132,7 @@ spec = do
         , "  - example 3"
         , "  - example 4"
         , ""
-        , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
+        , "Finished in 0.0000 seconds"
         , ""
         , "4 examples, 0 failures"
         ]
@@ -157,7 +146,7 @@ spec = do
         , "- example 1"
         , "- example 2"
         , ""
-        , "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time"
+        , "Finished in 0.0000 seconds"
         , ""
         , "2 examples, 0 failures"
         ]
@@ -183,7 +172,7 @@ failed_examplesSpec formatter = do
 
   it "summarizes the time it takes to finish" $ do
     r <- runSpec (return ())
-    normalizeSummary r `shouldSatisfy` any (== "Finished in 0.0000 seconds, used 0.0000 seconds of CPU time")
+    normalizeSummary r `shouldSatisfy` any (== "Finished in 0.0000 seconds")
 
   context "displays a detailed list of failures" $ do
     it "prints all requirements that are not met" $ do

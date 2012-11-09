@@ -72,7 +72,7 @@ data FormatterState = FormatterState {
 , pendingCount    :: Int
 , failCount       :: Int
 , failMessages    :: [FailureRecord]
-, cpuStartTime    :: Integer
+, cpuStartTime    :: Maybe Integer
 , startTime       :: POSIXTime
 }
 
@@ -83,10 +83,10 @@ totalCount s = successCount s + pendingCount s + failCount s
 newtype FormatM a = FormatM (StateT FormatterState IO a)
   deriving (Functor, Applicative, Monad)
 
-runFormatM :: Bool -> Bool -> Handle -> FormatM a -> IO a
-runFormatM useColor produceHTML_ handle (FormatM action) = do
+runFormatM :: Bool -> Bool -> Bool -> Handle -> FormatM a -> IO a
+runFormatM useColor produceHTML_ printCpuTime handle (FormatM action) = do
   time <- getPOSIXTime
-  cpuTime <- CPUTime.getCPUTime
+  cpuTime <- if printCpuTime then Just <$> CPUTime.getCPUTime else pure Nothing
   evalStateT action (FormatterState handle useColor produceHTML_ False 0 0 0 [] cpuTime time)
 
 -- | Increase the counter for successful examples
@@ -223,11 +223,13 @@ withColor_ color (FormatM action) = FormatM . StateT $ \st -> do
     (runStateT action st)
 
 -- | Get the used CPU time since the test run has been started.
-getCPUTime :: FormatM Double
+getCPUTime :: FormatM (Maybe Double)
 getCPUTime = do
-  t1 <- liftIO CPUTime.getCPUTime
-  t0 <- gets cpuStartTime
-  return (fromIntegral (t1 - t0) / (10.0^(12::Integer)))
+  t1  <- liftIO CPUTime.getCPUTime
+  mt0 <- gets cpuStartTime
+  return $ toSeconds <$> ((-) <$> pure t1 <*> mt0)
+  where
+    toSeconds x = fromIntegral x / (10.0 ^ (12 :: Integer))
 
 -- | Get the passed real time since the test run has been started.
 getRealTime :: FormatM Double

@@ -1,3 +1,8 @@
+## next
+
+ - Used CPU time is now only included in the test summary if run with
+   `--print-cpu-time`.
+
 ## Changes in 1.4.0
  - We now have a manual at http://hspec.github.com/.  The sources are in
    `doc/`.  It's still work in progress.  Contributions are very welcome!
