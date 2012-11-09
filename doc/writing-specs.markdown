@@ -61,5 +61,3 @@ main = hspec spec
 
 You can customize how a spec is run by either providing command-line flags or
 by using `hspecWith` instead of `hspec`.
-
-*Note: `hspecWith` is only available in the upcoming 1.4 release of Hspec.*

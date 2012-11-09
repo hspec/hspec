@@ -20,8 +20,7 @@ $ cabal update && cabal install hspec
 
 ## About this manual
 
-We are currently brushing up this manual for the upcoming 1.4 release of Hspec.
-If you want to help,
+We continually improve this manual.  If you want to help,
 [grab the sources from GitHub](https://github.com/hspec/hspec) and
 `/join #hspec` on freenode!
 
