@@ -174,7 +174,6 @@ defaultFooter = do
   fails   <- getFailCount
   pending <- getPendingCount
   total   <- getTotalCount
-  writeLine ""
 
   let c | fails /= 0   = withFailColor
         | pending /= 0 = withPendingColor

@@ -87,7 +87,6 @@ spec = do
         , "    - is a right identity"
         , ""
         , "Finished in 0.0000 seconds"
-        , ""
         , "6 examples, 0 failures"
         ]
 
@@ -110,7 +109,6 @@ spec = do
         , "    - example 4"
         , ""
         , "Finished in 0.0000 seconds"
-        , ""
         , "4 examples, 0 failures"
         ]
 
@@ -133,7 +131,6 @@ spec = do
         , "  - example 4"
         , ""
         , "Finished in 0.0000 seconds"
-        , ""
         , "4 examples, 0 failures"
         ]
 
@@ -147,7 +144,6 @@ spec = do
         , "- example 2"
         , ""
         , "Finished in 0.0000 seconds"
-        , ""
         , "2 examples, 0 failures"
         ]
 
