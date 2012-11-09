@@ -1,4 +1,4 @@
-## next
+## Changes in 1.4.1
 
  - Used CPU time is now only included in the test summary if run with
    `--print-cpu-time`.
