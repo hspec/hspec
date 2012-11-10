@@ -10,8 +10,8 @@ category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.com/
-synopsis:         Behavior Driven Development for Haskell
-description:      Behavior Driven Development for Haskell
+synopsis:         Behavior-Driven Development for Haskell
+description:      Behavior-Driven Development for Haskell
                   .
                   Hspec is roughly based on the Ruby library RSpec. However,
                   Hspec is just a framework for running HUnit and QuickCheck
