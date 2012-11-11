@@ -32,8 +32,8 @@ fromHUnitTest t = fromSpecList $ case t of
   where
     go :: Test -> SpecTree
     go t_ = case t_ of
-      TestLabel s (TestCase e)  -> SpecItem  s (`evaluateExample` e)
-      TestLabel s (TestList xs) -> SpecGroup s (map go xs)
-      TestLabel s x             -> SpecGroup s [go x]
-      TestList xs               -> SpecGroup "<unlabeled>" (map go xs)
-      TestCase e                -> SpecItem  "<unlabeled>" (`evaluateExample` e)
+      TestLabel s (TestCase e)  -> it s e
+      TestLabel s (TestList xs) -> describe s (map go xs)
+      TestLabel s x             -> describe s [go x]
+      TestList xs               -> describe "<unlabeled>" (map go xs)
+      TestCase e                -> it  "<unlabeled>" e
