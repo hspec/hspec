@@ -13,4 +13,4 @@ spec = do
       reverse [1 :: Int, 2, 3] `shouldBe` [3, 2, 1]
 
     it "gives the original list, if applied twice" $ property $
-      \xs -> reverse (reverse xs) == (xs :: [Int])
+      \xs -> (reverse . reverse) xs == (xs :: [Int])
