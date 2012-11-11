@@ -96,7 +96,7 @@ options = [
     setColor mValue x = x >>= \c -> parseColor mValue >>= \v -> return c {configColorMode = v}
       where
         parseColor s = case s of
-          Nothing       -> return ColorAuto
+          Nothing       -> return ColorAlway
           Just "auto"   -> return ColorAuto
           Just "never"  -> return ColorNever
           Just "always" -> return ColorAlway

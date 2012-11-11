@@ -1,3 +1,6 @@
+## Changes in 1.4.2
+ - Default to `--color=always` when `--color` is used without argument (#106)
+
 ## Changes in 1.4.1
 
  - Used CPU time is now only included in the test summary if run with
