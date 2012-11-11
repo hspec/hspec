@@ -73,7 +73,7 @@ instance Example Expectation where
   evaluateExample _ action = (action >> return Success) `E.catch` \(HUnitFailure err) -> return (Fail err)
 
 instance Example Result where
-  evaluateExample _ r = r `seq` return r
+  evaluateExample _ r = return r
 
 instance Example QC.Property where
   evaluateExample c p = do

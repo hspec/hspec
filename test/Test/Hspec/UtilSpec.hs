@@ -34,6 +34,10 @@ spec = do
       Left e <- safeEvaluate (E.throwIO E.DivideByZero :: IO Int)
       show e `shouldBe` "divide by zero"
 
+    it "evaluates result to weak head normal form" $ do
+      Left e <- safeEvaluate (return undefined)
+      show e `shouldBe` "Prelude.undefined"
+
     it "re-throws AsyncException" $ do
       safeEvaluate (E.throwIO E.UserInterrupt :: IO Int) `shouldThrow` (== E.UserInterrupt)
 

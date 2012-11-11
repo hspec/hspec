@@ -32,7 +32,7 @@ quantify 1 s = "1 " ++ s
 quantify n s = show n ++ " " ++ s ++ "s"
 
 safeEvaluate :: IO a -> IO (Either E.SomeException a)
-safeEvaluate action = (Right <$> action) `E.catches` [
+safeEvaluate action = (Right <$> (action >>= E.evaluate)) `E.catches` [
   -- Re-throw AsyncException, otherwise execution will not terminate on SIGINT
   -- (ctrl-c).  All AsyncExceptions are re-thrown (not just UserInterrupt)
   -- because all of them indicate severe conditions and should not occur during
