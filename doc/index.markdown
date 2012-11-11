@@ -4,9 +4,7 @@ layout: default
 
 # User's Manual
 
-```console
-$ cabal update && cabal install hspec
-```
+<pre><kbd class="shell-input">cabal update && cabal install hspec</kbd></pre>
 
 {% inline_example Example.hs %}
 

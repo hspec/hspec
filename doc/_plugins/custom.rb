@@ -52,7 +52,7 @@ module Hspec
 -- file Spec.hs
 #{source}
 {% endhighlight %}
-<pre>$ <kbd>runhaskell Spec.hs</kbd>
+<pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
 <samp>{{ "#{file} --html" | runhaskell }}</samp></pre>
 HTML
     end
