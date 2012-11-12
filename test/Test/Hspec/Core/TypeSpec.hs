@@ -4,6 +4,7 @@ import           Test.Hspec.Meta
 import           Test.QuickCheck
 
 import qualified Test.Hspec.Core.Type as H
+import qualified Test.Hspec.Pending as H (pending)
 
 main :: IO ()
 main = hspec spec
@@ -14,7 +15,6 @@ evaluateExample = H.evaluateExample H.defaultParams
 spec :: Spec
 spec = do
   describe "evaluateExample" $ do
-
     context "for Bool" $ do
       it "returns Success on True" $ do
         evaluateExample True `shouldReturn` H.Success
@@ -50,3 +50,10 @@ spec = do
       it "propagates exceptions" $ do
         pending "this probaly needs a patch to QuickCheck"
         -- evaluateExample (property $ (error "foobar" :: Int -> Bool)) `shouldThrow` errorCall "foobar"
+
+    context "for pending" $ do
+      it "returns Pending" $ do
+        evaluateExample (H.pending) `shouldReturn` H.Pending Nothing
+
+      it "includes the optional reason" $ do
+        evaluateExample (H.pending "foo") `shouldReturn` H.Pending (Just "foo")
