@@ -58,6 +58,18 @@ spec = do
             getArgs `shouldReturn` []
         `shouldReturn` ()
 
+    context "with --help" $ do
+      let printHelp = withProgName "spec" . withArgs ["--help"] . H.hspec $ pure ()
+      it "prints help" $ do
+        r <- (capture__ . ignoreExitCode) printHelp
+        r `shouldStartWith` ["Usage: spec [OPTION]..."]
+        printHelp `shouldThrow` (== ExitSuccess)
+
+      it "constrains lines to 80 characters" $ do
+        r <- (capture__ . ignoreExitCode) printHelp
+        r `shouldSatisfy` all ((<= 80) . length)
+        r `shouldSatisfy` any ((78 <=) . length)
+
     context "with --verbose" $ do
       it "does not suppress output to stdout" $ do
         r <- capture__ . withArgs ["--verbose"] . H.hspec $ do

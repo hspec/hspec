@@ -66,14 +66,20 @@ configAddFilter p1 c = c {configFilterPredicate = Just p}
     p  = maybe p1 (\p0 path -> p0 path || p1 path) mp
     mp = configFilterPredicate c
 
+setQC_MaxSuccess :: String -> Result -> Result
+setQC_MaxSuccess n x = (mapParams $ \p -> p {paramsQuickCheckArgs = (paramsQuickCheckArgs p) {QC.maxSuccess = read n}}) <$> x
+  where
+    mapParams :: (Params -> Params) -> Config -> Config
+    mapParams f c = c {configParams = f (configParams c)}
+
 options :: [OptDescr (Result -> Result)]
 options = [
     Option []  ["help"]                    (NoArg (const $ Left Help))        "display this help and exit"
-  , Option "v" ["verbose"]                 (NoArg setVerbose)                 "do not suppress output to stdout when evaluating examples"
+  , Option "v" ["verbose"]                 (NoArg setVerbose)                 "do not suppress output to stdout when\nevaluating examples"
   , Option "m" ["match"]                   (ReqArg setFilter "PATTERN")       "only run examples that match given PATTERN"
-  , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to `always' or can be `never' or `auto'."
+  , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to\n`always' or can be `never' or `auto'."
   , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
-  , Option "a" ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
+  , Option "a" ["qc-max-success"]          (ReqArg setQC_MaxSuccess "N")      "maximum number of successful tests before a\nQuickCheck property succeeds"
   , Option []  ["print-cpu-time"]          (NoArg setPrintCpuTime)            "include used CPU time in summary"
   ]
   where
@@ -87,12 +93,6 @@ options = [
       Nothing -> Left (InvalidArgument "format" name)
       Just f  -> return c {configFormatter = f}
 
-    setQC_MaxSuccess :: String -> Result -> Result
-    setQC_MaxSuccess n x = (mapParams $ \p -> p {paramsQuickCheckArgs = (paramsQuickCheckArgs p) {QC.maxSuccess = read n}}) <$> x
-
-    mapParams :: (Params -> Params) -> Config -> Config
-    mapParams f c = c {configParams = f (configParams c)}
-
     setColor mValue x = x >>= \c -> parseColor mValue >>= \v -> return c {configColorMode = v}
       where
         parseColor s = case s of
@@ -105,6 +105,9 @@ options = [
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [
     Option "r" ["re-run"]                  (NoArg  setReRun)                  "only re-run examples that previously failed"
+
+    -- for compatibility with test-framework
+  , Option ""  ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
 
     -- undocumented for now, as we probably want to change this to produce a
     -- standalone HTML report in the future

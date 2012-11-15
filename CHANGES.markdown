@@ -1,6 +1,7 @@
 ## Changes in 1.4.2
  - Properly handle ctrl-c while running QuickCheck properties (#93)
  - Default to `--color=always` when `--color` is used without argument (#106)
+ - treat `--qc-max-success` as an alias for `--maximum-generated-tests`
 
 ## Changes in 1.4.1
 
