@@ -53,11 +53,23 @@ main = hspec $ do
 
 ### Running specs
 
-The most common way to run a spec is with `hspec`, e.g.:
+The most common way to run a spec is with [`hspec`][v:hspec], e.g.:
 
 ```
 main = hspec spec
 ```
 
-You can customize how a spec is run by either providing command-line flags or
-by using `hspecWith` instead of `hspec`.
+It is possible to customize how a spec is run by providing command-line flags.
+You can get a list of supported flags by passing `--help` to your test driver:
+
+<pre>
+<kbd class="shell-input">runhaskell Spec.hs --help</kbd>
+<samp>{{"_includes/Help.hs --help"|runhaskell}}</samp>
+</pre>
+
+Using [`hspecWith`][v:hspecWith] instead of `hspec` gives even more control
+over how a spec is run.
+
+
+[v:hspec]:     http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspec
+[v:hspecWith]: http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspecWith
