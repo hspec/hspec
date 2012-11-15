@@ -17,6 +17,7 @@ module Test.Hspec.Core.Type (
 
 import qualified Control.Exception as E
 import           Control.Applicative
+import           Control.Monad (when)
 import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 
 import           Test.Hspec.Util
@@ -78,9 +79,17 @@ instance Example Result where
 instance Example QC.Property where
   evaluateExample c p = do
     r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) p
+    when (isUserInterrupt r) $ do
+      E.throwIO E.UserInterrupt
+
     return $
       case r of
         QC.Success {}               -> Success
         f@(QC.Failure {})           -> Fail (QC.output f)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
+    where
+      isUserInterrupt :: QC.Result -> Bool
+      isUserInterrupt r = case r of
+        QC.Failure {QC.reason = "Exception: 'user interrupt'"} -> True
+        _ -> False

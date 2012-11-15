@@ -3,6 +3,8 @@ module Test.Hspec.Core.TypeSpec (main, spec) where
 import           Test.Hspec.Meta
 import           Test.QuickCheck
 
+import           Test.QuickCheck.Property (morallyDubiousIOProperty)
+import           Control.Exception (AsyncException(..), throwIO)
 import qualified Test.Hspec.Core.Type as H
 import qualified Test.Hspec.Pending as H (pending)
 
@@ -46,6 +48,10 @@ spec = do
       it "shows what falsified it" $ do
         H.Fail r <- evaluateExample $ property $ \ n -> n == (n + 1 :: Int)
         lines r `shouldSatisfy` any (== "0")
+
+      it "propagates UserInterrupt" $ do
+        let p = morallyDubiousIOProperty (throwIO UserInterrupt >> return True)
+        evaluateExample p `shouldThrow` (== UserInterrupt)
 
       it "propagates exceptions" $ do
         pending "this probaly needs a patch to QuickCheck"
