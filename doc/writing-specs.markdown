@@ -46,7 +46,7 @@ main = hspec $ do
 main :: IO ()
 main = hspec $ do
   describe "parse" $ do
-    context "when provide with invalid input" $ do
+    context "when provided with invalid input" $ do
       it "returns a parse error" $ do
         parse "some invalid input" `shouldBe` Left "parse error"
 ```
