@@ -136,7 +136,7 @@ evaluate ('a' : undefined) `shouldThrow` anyErrorCall
 ```
 
 Here `evaluate` does not force the exception.  It only evaluates its argument
-until it encounters the first constructor.  Here the contains is `:`, as soon
+until it encounters the first constructor.  Here the constructor is `:`, as soon
 as `evaluate` sees `:` it's done.  It does not look at the arguments of that
 constructor.
 
