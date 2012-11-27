@@ -25,6 +25,37 @@ module Hspec
         r
       end
     end
+
+    def id(name)
+      haskell_identifiers = {
+        'property'          => 'http://hackage.haskell.org/packages/archive/QuickCheck/latest/doc/html/Test-QuickCheck.html#v:property',
+        'Property'          => 'http://hackage.haskell.org/packages/archive/QuickCheck/latest/doc/html/Test-QuickCheck.html#t:Property',
+        'Testable'          => 'http://hackage.haskell.org/packages/archive/QuickCheck/latest/doc/html/Test-QuickCheck-Property.html#t:Testable',
+
+        '@?='               => 'http://hackage.haskell.org/packages/archive/HUnit/latest/doc/html/Test-HUnit-Base.html#v:-64--63--61-',
+
+        'hspec'             => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspec',
+        'hspecWith'         => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspecWith',
+        'fromHUnitTest'     => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-HUnit.html#v:fromHUnitTest',
+
+        'Selector'          => 'http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#t:Selector',
+        'shouldThrow'       => 'http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:shouldThrow',
+        'errorCall'         => 'http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:errorCall',
+
+        'isPermissionError' => 'http://hackage.haskell.org/packages/archive/base/latest/doc/html/System-IO-Error.html#v:isPermissionError',
+        'evaluate'          => 'http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#v:evaluate',
+        'ErrorCall'         => 'http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#t:ErrorCall',
+
+        'force'             => 'http://hackage.haskell.org/packages/archive/deepseq/latest/doc/html/Control-DeepSeq.html#v:force',
+      }
+      url = haskell_identifiers[name]
+      if url
+        "[`#{name}`](#{url})"
+      else
+        puts "WARNING: No link destination for #{name}!"
+        "`#{name}`"
+      end
+    end
   end
 end
 

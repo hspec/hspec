@@ -50,13 +50,13 @@ launchMissiles `shouldThrow` anyException
 
 ### Expecting exceptions of a specific type
 
-The type of [`shouldThrow`][v:shouldThrow] is:
+The type of {{'shouldThrow'|id}} is:
 
 ```haskell
 shouldThrow :: Exception e => IO a -> Selector e -> Expectation
 ```
 
-It takes an `IO` action and a [`Selector`][t:Selector].  The `Selector`
+It takes an `IO` action and a {{'Selector'|id}}.  The `Selector`
 describes the precise nature of the expected exception.
 
 There are several predefined selectors:
@@ -89,7 +89,7 @@ launchMissiles `shouldThrow` (== ExitFailure 1)
 The module `System.IO.Error` exports predicates to classify `IOException`s.
 Those can be used in combination with `shouldThrow` to expect specific
 `IOException`s.  Here is an example that uses
-[`isPermissionError`][v:isPermissionError] to require our hypothetic
+{{'isPermissionError'|id}} to require our hypothetic
 `launchMissiles` action to fail with a permission error:
 
 ```haskell
@@ -101,7 +101,7 @@ launchMissiles `shouldThrow` isPermissionError
 #### Dealing with \`error\` and \`undefined\`
 
 Both `error` and `undefined` throw exceptions of type
-[`ErrorCall`][t:ErrorCall].
+{{'ErrorCall'|id}}.
 There is no `Eq` instance for `ErrorCall`, hence it is not possible to use `==`
 to expect a specific exception value of type `ErrorCall`.  The following won't
 work:
@@ -111,7 +111,7 @@ evaluat (error "foo") `shouldThrow` (== ErrorCall "foo")  -- This won't work!
 ```
 
 Pattern matching can be used instead, but Hspec provides a combinator,
-[`errorCall`][v:errorCall], to make this more convenient.  Here is how it's
+{{'errorCall'|id}}, to make this more convenient.  Here is how it's
 used:
 
 ```haskell
@@ -122,7 +122,7 @@ evaluat (error "foo") `shouldThrow` errorCall "foo"
 
 ### Expecting exceptions from pure code
 
-[`evaluate`][v:evaluate] can be used to expect exceptions from pure code:
+{{'evaluate'|id}} can be used to expect exceptions from pure code:
 
 ```hspec
 evaluate (1 `div` 0) `shouldThrow` anyArithException
@@ -140,7 +140,7 @@ until it encounters the first constructor.  Here the constructor is `:`, as soon
 as `evaluate` sees `:` it's done.  It does not look at the arguments of that
 constructor.
 
-[`force`][v:force] can be used to force the exception:
+{{'force'|id}} can be used to force the exception:
 
 ```hspec
 (evaluate . force) ('a' : undefined) `shouldThrow` anyErrorCall
@@ -190,16 +190,3 @@ But beware that GHC does not fully adhere to those semantics (see
 <del>[#5129](http://hackage.haskell.org/trac/ghc/ticket/5129)</del>).
 
 {% example ImpreciseExceptions.hs %}
-
-
-
-[t:Selector]:    http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#t:Selector
-[v:shouldThrow]: http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:shouldThrow
-[v:errorCall]:   http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:errorCall
-
-[v:evaluate]: http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#v:evaluate
-[t:ErrorCall]:http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#t:ErrorCall
-
-[v:isPermissionError]: http://hackage.haskell.org/packages/archive/base/latest/doc/html/System-IO-Error.html#v:isPermissionError
-
-[v:force]: http://hackage.haskell.org/packages/archive/deepseq/latest/doc/html/Control-DeepSeq.html#v:force

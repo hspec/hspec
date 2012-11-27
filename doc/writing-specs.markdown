@@ -53,7 +53,7 @@ main = hspec $ do
 
 ### Running specs
 
-The most common way to run a spec is with [`hspec`][v:hspec], e.g.:
+The most common way to run a spec is with {{'hspec'|id}}, e.g.:
 
 ```
 main = hspec spec
@@ -67,9 +67,5 @@ You can get a list of supported flags by passing `--help` to your test driver:
 <samp>{{"_includes/Help.hs --help"|runhaskell}}</samp>
 </pre>
 
-Using [`hspecWith`][v:hspecWith] instead of `hspec` gives even more control
-over how a spec is run.
-
-
-[v:hspec]:     http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspec
-[v:hspecWith]: http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspecWith
+Using {{'hspecWith'|id}} instead of `hspec` gives even more control over how a
+spec is run.
