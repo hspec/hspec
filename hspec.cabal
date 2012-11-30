@@ -20,6 +20,24 @@ description:      Behavior-Driven Development for Haskell
                   .
                   The Hspec Manual is at <http://hspec.github.com/>.
 
+-- find hspec-discover/test-data/ -type f
+extra-source-files:
+  hspec-discover/test-data/single-spec/FooSpec.hs
+  hspec-discover/test-data/single-spec/Spec.hs
+  hspec-discover/test-data/single-spec-nested/Foo/BarSpec.hs
+  hspec-discover/test-data/nested-spec/FooSpec.hs
+  hspec-discover/test-data/nested-spec/Foo/Bar/BazSpec.hs
+  hspec-discover/test-data/nested-spec/Foo/BarSpec.hs
+  hspec-discover/test-data/several-specs/BarSpec.hs
+  hspec-discover/test-data/several-specs/FooSpec.hs
+  hspec-discover/test-data/several-specs/BazSpec.hs
+  hspec-discover/test-data/empty-dir/Foo/Bar/Baz/.placeholder
+  hspec-discover/test-data/prefix-name/FooSpec.hs
+  hspec-discover/test-data/prefix-name/Foo/BazSpec.hs
+  hspec-discover/test-data/prefix-name/FooBarSpec.hs
+  hspec-discover/test-data/prefix-name/FooBar/BazSpec.hs
+  hspec-discover/test-data/no-intermediate-specs/Foo/Bar/BazSpec.hs
+
 source-repository head
   type: git
   location: https://github.com/hspec/hspec
@@ -63,6 +81,20 @@ test-suite spec
       src, test
   main-is:
       Spec.hs
+  other-modules:
+      Mock
+      Util
+      Test.Hspec.Meta
+      -- actual spec files
+      Test.HspecSpec
+      Test.Hspec.CompatSpec
+      Test.Hspec.Core.TypeSpec
+      Test.Hspec.FailureReportSpec
+      Test.Hspec.FormattersSpec
+      Test.Hspec.HUnitSpec
+      Test.Hspec.QuickCheckSpec
+      Test.Hspec.RunnerSpec
+      Test.Hspec.UtilSpec
   ghc-options:
       -Wall -Werror
   build-depends:
@@ -76,7 +108,6 @@ test-suite spec
     , QuickCheck >= 2.4.0.1 && < 2.6
     , hspec-expectations
 
-    , hspec-meta
     , process
     , ghc-paths
 
@@ -132,35 +163,12 @@ test-suite hspec-discover-spec
     , hspec-discover/test
   main-is:
       Spec.hs
+  other-modules:
+      Test.Hspec.Meta
+      -- actual spec files
+      RunSpec
   build-depends:
       base >= 4 && <= 5
     , filepath
     , directory
-    , hspec-meta
-
-test-suite hspec-discover-example
-  type:
-      exitcode-stdio-1.0
-  ghc-options:
-      -Wall -Werror
-  hs-source-dirs:
-      hspec-discover/example
-  main-is:
-      Spec.hs
-  build-depends:
-      base >= 4 && <= 5
-    , hspec
-    , QuickCheck
-
-test-suite hspec-discover-integration-test-empty
-  type:
-      exitcode-stdio-1.0
-  ghc-options:
-      -Wall -Werror
-  hs-source-dirs:
-      hspec-discover/integration-test/empty
-  main-is:
-      Spec.hs
-  build-depends:
-      base >= 4 && <= 5
     , hspec
