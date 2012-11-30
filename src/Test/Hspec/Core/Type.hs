@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hspec.Core.Type (
   Spec
 , SpecM (..)
@@ -24,6 +25,7 @@ import           Test.Hspec.Util
 import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
+import qualified Test.QuickCheck.Property as QCP
 
 import           Test.Hspec.Compat (isUserInterrupt)
 
@@ -90,3 +92,14 @@ instance Example QC.Property where
         f@(QC.Failure {})           -> Fail (QC.output f)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
+
+instance QC.Testable Expectation where
+  property = propertyIO
+  exhaustive _ = True
+
+propertyIO :: Expectation -> QC.Property
+propertyIO action = QCP.morallyDubiousIOProperty $ do
+  (action >> return succeeded) `E.catch` \(HUnitFailure err) -> return (failed err)
+  where
+    succeeded  = QC.property QCP.succeeded
+    failed err = QC.property QCP.failed {QCP.reason = err}

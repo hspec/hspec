@@ -1,5 +1,6 @@
 ## Changes in 1.5.0
  - Add the `example` function, it fixes the type of an Expectation (#86)
+ - Allow to use expectations as QuickCheck properties (#80)
  - Rename `--fast-fail` to `--fail-fast` (for consistency with RSpec)
  - Do not suppress output to `stdout`
 

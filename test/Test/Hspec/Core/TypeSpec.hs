@@ -2,11 +2,13 @@ module Test.Hspec.Core.TypeSpec (main, spec) where
 
 import           Test.Hspec.Meta
 import           Test.QuickCheck
+import           Mock
 
 import           Test.QuickCheck.Property (morallyDubiousIOProperty)
 import           Control.Exception (AsyncException(..), throwIO)
-import qualified Test.Hspec.Core.Type as H
-import qualified Test.Hspec.Pending as H (pending)
+import qualified Test.Hspec.Core.Type as H hiding (describe, it)
+import qualified Test.Hspec as H
+import qualified Test.Hspec.Runner as H
 
 main :: IO ()
 main = hspec spec
@@ -63,3 +65,20 @@ spec = do
 
       it "includes the optional reason" $ do
         evaluateExample (H.pending "foo") `shouldReturn` H.Pending (Just "foo")
+
+  describe "Expectation" $ do
+    context "as a QuickCheck property" $ do
+      it "can be quantified" $ do
+        e <- newMock
+        H.hspec $ do
+          H.it "some behavior" $ property $ \xs -> do
+            mockAction e
+            (reverse . reverse) xs `shouldBe` (xs :: [Int])
+        mockCounter e `shouldReturn` 100
+
+      it "can be used with expecatations/HUnit assertions" $ do
+        H.hspecWith H.defaultConfig $ do
+          H.describe "readIO" $ do
+            H.it "is inverse to show" $ property $ \x -> do
+              (readIO . show) x `shouldReturn` (x :: Int)
+        `shouldReturn` H.Summary 1 0
