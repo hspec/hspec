@@ -30,6 +30,7 @@ module Test.Hspec (
 , describe
 , context
 , it
+, example
 , pending
 
 -- * Running a spec
@@ -126,3 +127,8 @@ context = describe
 -- >     absolute (-1) == 1
 it :: Example v => String -> v -> Spec
 it label action = fromSpecList [Core.it label action]
+
+-- | This is a type restricted version of `id`.  It is useful to give hints to
+-- the type checker.
+example :: Expectation -> Expectation
+example = id

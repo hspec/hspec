@@ -4,6 +4,8 @@ import           Test.Hspec.Meta
 import           Util (captureLines)
 import           Data.List (isPrefixOf)
 
+import           Control.Applicative
+
 import qualified Test.Hspec.Core.Type as H (defaultParams)
 import           Test.Hspec.Core (SpecTree(..), Result(..), runSpecM)
 import qualified Test.Hspec as H
@@ -59,6 +61,12 @@ spec = do
 
     it "can use a Bool, HUnit Test, QuickCheck property, or `pending` as an example"
       pending
+  describe "example" $ do
+    it "fixes the type of an expectation" $ do
+      r <- runSpec $ do
+        H.it "foo" $ H.example $ do
+          pure ()
+      r `shouldSatisfy` any (== "1 example, 0 failures")
   where
     runSpec :: H.Spec -> IO [String]
     runSpec = captureLines . H.hspecWith defaultConfig
