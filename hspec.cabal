@@ -30,14 +30,14 @@ Library
   hs-source-dirs:
       src
   build-depends:
-      base >= 4 && <= 5
+      base          == 4.*
     , setenv
-    , silently >= 1.1.1 && < 2
+    , silently      >= 1.1.1
     , ansi-terminal == 0.5.5
-    , time < 1.5
+    , time
     , transformers >= 0.2.2.0 && < 0.4.0
-    , HUnit >= 1.2.5
-    , QuickCheck >= 2.4.0.1 && < 2.6
+    , HUnit         >= 1.2.5
+    , QuickCheck    >= 2.4.0.1
     , hspec-expectations
   exposed-modules:
       Test.Hspec
@@ -66,14 +66,14 @@ test-suite spec
   ghc-options:
       -Wall -Werror
   build-depends:
-      base >= 4 && <= 5
+      base          == 4.*
     , setenv
-    , silently >= 1.1.1 && < 2
-    , ansi-terminal == 0.5.5
-    , time < 1.5
-    , transformers >= 0.2.2.0 && < 0.4.0
-    , HUnit >= 1.2.5
-    , QuickCheck >= 2.4.0.1 && < 2.6
+    , silently      >= 1.2.4
+    , ansi-terminal
+    , time
+    , transformers
+    , HUnit
+    , QuickCheck
     , hspec-expectations
 
     , hspec-meta
@@ -90,7 +90,7 @@ test-suite doctests
   hs-source-dirs:
       test
   build-depends:
-      base
+      base    == 4.*
     , doctest >= 0.8
 
 test-suite example
@@ -103,7 +103,7 @@ test-suite example
   ghc-options:
       -Wall -Werror
   build-depends:
-      base
+      base    == 4.*
     , hspec
     , QuickCheck
 
@@ -118,7 +118,7 @@ executable hspec-discover
   other-modules:
       Run
   build-depends:
-      base >= 4 && <= 5
+      base    == 4.*
     , filepath
     , directory
 
@@ -133,7 +133,7 @@ test-suite hspec-discover-spec
   main-is:
       Spec.hs
   build-depends:
-      base >= 4 && <= 5
+      base    == 4.*
     , filepath
     , directory
     , hspec-meta
@@ -148,7 +148,7 @@ test-suite hspec-discover-example
   main-is:
       Spec.hs
   build-depends:
-      base >= 4 && <= 5
+      base    == 4.*
     , hspec
     , QuickCheck
 
@@ -162,5 +162,5 @@ test-suite hspec-discover-integration-test-empty
   main-is:
       Spec.hs
   build-depends:
-      base >= 4 && <= 5
+      base    == 4.*
     , hspec

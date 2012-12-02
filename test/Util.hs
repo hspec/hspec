@@ -3,13 +3,10 @@ module Util where
 import           Data.List
 import           Data.Char
 import           Test.Hspec.Meta
-import qualified System.IO.Silently as S
+import           System.IO.Silently
 
-capture_ :: IO a -> IO String
-capture_ = fmap fst . S.capture
-
-capture__ :: IO a -> IO [String]
-capture__ = fmap lines . capture_
+captureLines :: IO a -> IO [String]
+captureLines = fmap lines . capture_
 
 shouldContain :: (Eq a, Show a) => [a] -> [a] -> Expectation
 x `shouldContain` y = x `shouldSatisfy` isInfixOf y

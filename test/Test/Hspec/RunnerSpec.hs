@@ -1,7 +1,7 @@
 module Test.Hspec.RunnerSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           System.IO.Silently (hCapture, hSilence)
+import           System.IO.Silently
 import           System.IO (stderr)
 import           Control.Applicative
 import           System.Environment (withArgs, withProgName, getArgs)
@@ -38,7 +38,7 @@ spec = do
       `shouldThrow` (== ExitFailure 1)
 
     it "suppresses output to stdout when evaluating examples" $ do
-      r <- capture__ . H.hspec $ do
+      r <- captureLines . H.hspec $ do
         H.it "foobar" $ do
           putStrLn "baz"
       r `shouldSatisfy` notElem "baz"
@@ -61,18 +61,18 @@ spec = do
     context "with --help" $ do
       let printHelp = withProgName "spec" . withArgs ["--help"] . H.hspec $ pure ()
       it "prints help" $ do
-        r <- (capture__ . ignoreExitCode) printHelp
+        r <- (captureLines . ignoreExitCode) printHelp
         r `shouldStartWith` ["Usage: spec [OPTION]..."]
         printHelp `shouldThrow` (== ExitSuccess)
 
       it "constrains lines to 80 characters" $ do
-        r <- (capture__ . ignoreExitCode) printHelp
+        r <- (captureLines . ignoreExitCode) printHelp
         r `shouldSatisfy` all ((<= 80) . length)
         r `shouldSatisfy` any ((78 <=) . length)
 
     context "with --verbose" $ do
       it "does not suppress output to stdout" $ do
-        r <- capture__ . withArgs ["--verbose"] . H.hspec $ do
+        r <- captureLines . withArgs ["--verbose"] . H.hspec $ do
           H.it "foobar" $ do
             putStrLn "baz"
         r `shouldSatisfy` elem "baz"
@@ -150,7 +150,7 @@ spec = do
       getEnv "HSPEC_FAILURES" `shouldReturn` Just "[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")]"
 
     describe "with --re-run" $ do
-      let runSpec = (capture__ . ignoreExitCode . H.hspec) $ do
+      let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
             H.it "example 1" True
             H.it "example 2" False
             H.it "example 3" False
@@ -202,7 +202,7 @@ spec = do
       `shouldReturn` H.Summary 1 1
 
     it "uses the specdoc formatter by default" $ do
-      _:r:_ <- capture__ . H.hspecWith H.defaultConfig $ do
+      _:r:_ <- captureLines . H.hspecWith H.defaultConfig $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` "Foo.Bar"

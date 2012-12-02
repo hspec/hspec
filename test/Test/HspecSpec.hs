@@ -1,7 +1,7 @@
 module Test.HspecSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Util (capture__)
+import           Util (captureLines)
 import           Data.List (isPrefixOf)
 
 import qualified Test.Hspec.Core.Type as H (defaultParams)
@@ -61,4 +61,4 @@ spec = do
       pending
   where
     runSpec :: H.Spec -> IO [String]
-    runSpec = capture__ . H.hspecWith defaultConfig
+    runSpec = captureLines . H.hspecWith defaultConfig
