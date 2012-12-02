@@ -77,6 +77,27 @@ spec = do
             putStrLn "baz"
         r `shouldSatisfy` elem "baz"
 
+    context "with --dry-run" $ do
+      it "produces a report" $ do
+        r <- captureLines . withArgs ["--dry-run"] . H.hspec $ do
+          H.it "foo" True
+          H.it "bar" True
+        normalizeSummary r `shouldBe` [
+            ""
+          , "- foo"
+          , "- bar"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "2 examples, 0 failures"
+          ]
+
+      it "does not verify anything" $ do
+        e <- newMock
+        _ <- captureLines . withArgs ["--dry-run"] . H.hspec $ do
+          H.it "foo" (mockAction e)
+          H.it "bar" False
+        mockCounter e `shouldReturn` 0
+
     context "with --match" $ do
       it "only runs examples that match a given pattern" $ do
         e1 <- newMock

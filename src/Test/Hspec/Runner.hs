@@ -54,13 +54,17 @@ runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip
       | configVerbose c = id
       | otherwise       = silence
 
+    eval
+      | configDryRun c = \_ -> return (Right Success)
+      | otherwise      = liftIO . safeEvaluate . silence_
+
     go :: [String] -> (Int, SpecTree) -> FormatM ()
     go rGroups (n, SpecGroup group xs) = do
       exampleGroupStarted formatter n (reverse rGroups) group
       mapM_ (go (group : rGroups)) (zip [0..] xs)
       exampleGroupDone formatter
     go rGroups (_, SpecItem requirement example) = do
-      result <- (liftIO . safeEvaluate . silence_) (example $ configParams c)
+      result <- eval (example $ configParams c)
       case result of
         Right Success -> do
           increaseSuccessCount
