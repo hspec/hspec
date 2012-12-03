@@ -23,22 +23,33 @@ ghc-options: -Wall
 
 dependencies:
   - base == 4.*
-  - hspec-core == 2.3.1
-  - hspec-discover == 2.3.1
-  - hspec-expectations == 0.8.0.*
   - transformers >= 0.2.2.0
   - QuickCheck >= 2.5.1
-  - HUnit >= 1.2.5
+
+  - hspec-expectations
+  - HUnit
+  - setenv
+  - deepseq
+  - random
+  - quickcheck-io
+  - ansi-terminal
+  - time
+  - async
   - call-stack
 
 library:
-  source-dirs: src
-  dependencies:
+  source-dirs:
+    - src
+    - hspec-core/src
   exposed-modules:
-    - Test.Hspec
-    - Test.Hspec.Core
-    - Test.Hspec.Discover
-    - Test.Hspec.Formatters
-    - Test.Hspec.HUnit
-    - Test.Hspec.QuickCheck
-    - Test.Hspec.Runner
+    - Test.Hspec.Meta
+
+executables:
+  hspec-meta-discover:
+    source-dirs:
+      - hspec-discover/src
+      - hspec-discover/driver
+    main: hspec-discover.hs
+    dependencies:
+      - filepath
+      - directory
