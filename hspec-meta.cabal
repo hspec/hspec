@@ -62,28 +62,3 @@ library
   other-modules:
       Paths_hspec_meta
   default-language: Haskell2010
-
-test-suite spec
-  type: exitcode-stdio-1.0
-  ghc-options: -Wall
-  hs-source-dirs:
-      test
-  main-is: Spec.hs
-  other-modules:
-      Helper
-      HelperSpec
-      Test.Hspec.DiscoverSpec
-  build-depends:
-      base == 4.*
-    , hspec-core == 2.3.2
-    , hspec-discover == 2.3.2
-    , hspec-expectations == 0.8.2.*
-    , transformers >= 0.2.2.0
-    , QuickCheck >= 2.5.1
-    , HUnit >= 1.2.5
-    , call-stack
-    , hspec
-    , directory
-    , stringbuilder
-    , hspec-meta >= 2.3.2
-  default-language: Haskell2010
