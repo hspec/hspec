@@ -1,17 +1,1 @@
 language: haskell
-
-env:
-  - QC=QuickCheck
-  - QC=QuickCheck-2.6
-  - QC=QuickCheck-2.5.1.1
-  - QC=QuickCheck-2.5.1
-
-before_install:
-  - cabal install $QC
-
-script:
-  - cabal test
-  - cabal install
-  - (cd hspec-discover/example/ && cabal test)
-  - (cd hspec-discover/integration-test/ && cabal test)
-  - test/regression/issue-169/run.sh

@@ -1,4 +1,4 @@
-name:             hspec
+name:             hspec-meta
 version:          1.11.4
 license:          MIT
 license-file:     LICENSE
@@ -60,13 +60,14 @@ Library
     , hspec-expectations == 0.6.1.*
     , async >= 2
   exposed-modules:
+      Test.Hspec.Meta
+  other-modules:
       Test.Hspec
       Test.Hspec.Core
       Test.Hspec.Runner
       Test.Hspec.Formatters
       Test.Hspec.HUnit
       Test.Hspec.QuickCheck
-  other-modules:
       Test.Hspec.Util
       Test.Hspec.Compat
       Test.Hspec.Core.Type
@@ -79,7 +80,7 @@ Library
       Test.Hspec.Formatters.Internal
       Test.Hspec.Timer
 
-executable hspec-discover
+executable hspec-meta-discover
   ghc-options:
       -Wall
   hs-source-dirs:

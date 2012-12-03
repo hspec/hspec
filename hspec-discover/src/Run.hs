@@ -57,7 +57,7 @@ mkSpecModule src c nodes =
   ) "\n"
   where
     driver =
-        showString "import Test.Hspec\n"
+        showString "import Test.Hspec.Meta\n"
       . case configNoMain c of
           False ->
               showString "main :: IO ()\n"
@@ -71,7 +71,6 @@ mkSpecModule src c nodes =
         m:ms = takeWhile (/='.') fileName
      in
         toUpper m:ms
-
 
 driverWithFormatter :: Bool -> String -> ShowS
 driverWithFormatter isEmpty f =
