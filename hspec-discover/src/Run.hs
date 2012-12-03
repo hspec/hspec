@@ -48,7 +48,7 @@ mkSpecModule src c nodes =
       | otherwise = formatSpecs
 
     driver =
-        showString "import Test.Hspec\n"
+        showString "import Test.Hspec.Meta\n"
       . showString "main :: IO ()\n"
       . showString "main = hspec $ "
 
