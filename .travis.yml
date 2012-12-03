@@ -1,13 +1,1 @@
 language: haskell
-
-before_install:
-    # travis-ci currently does not run `cabal update` (see
-    # https://github.com/travis-ci/travis-build/pull/91)
-    #
-    # So we need to do it manually for now...
-    - cabal update
-
-    - ./mk-sdist.sh
-
-    # To install hspec-discover.
-    - cabal install
