@@ -38,7 +38,7 @@ Library
     , transformers >= 0.2.0 && < 0.4.0
     , HUnit >= 1 && <= 2
     , QuickCheck >= 2.4.0.1 && < 2.6
-    , hspec-expectations
+    , hspec-expectations == 0.3.0.*
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
