@@ -36,7 +36,7 @@ mkSpecModule :: FilePath -> Bool -> [SpecNode] -> String
 mkSpecModule src nested nodes =
   ( "{-# LINE 1 " . shows src . " #-}"
   . showString "module Main where\n"
-  . showString "import Test.Hspec\n"
+  . showString "import Test.Hspec.Meta\n"
   . importList nodes
   . showString "main :: IO ()\n"
   . showString "main = hspec $ "
