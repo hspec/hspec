@@ -1,4 +1,4 @@
-name:             hspec
+name:             hspec-meta
 version:          1.8.1
 license:          MIT
 license-file:     LICENSE
@@ -51,6 +51,8 @@ Library
     , quickcheck-io
     , hspec-expectations == 0.5.0
   exposed-modules:
+      Test.Hspec.Meta
+  other-modules:
       Test.Hspec
       Test.Hspec.Core
       Test.Hspec.Monadic
@@ -58,7 +60,6 @@ Library
       Test.Hspec.Formatters
       Test.Hspec.HUnit
       Test.Hspec.QuickCheck
-  other-modules:
       Test.Hspec.Util
       Test.Hspec.Compat
       Test.Hspec.Core.Type
@@ -71,7 +72,7 @@ Library
       Test.Hspec.Timer
 
 -- hspec-discover
-executable hspec-discover
+executable hspec-meta-discover
   ghc-options:
       -Wall
   hs-source-dirs:

@@ -56,7 +56,7 @@ mkSpecModule src c nodes =
   ) "\n"
   where
     driver =
-        showString "import Test.Hspec\n"
+        showString "import Test.Hspec.Meta\n"
       . showString "main :: IO ()\n"
       . showString "main = hspec $ "
 
