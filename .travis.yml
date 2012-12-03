@@ -1,7 +1,1 @@
 language: haskell
-
-before_install:
-    - ./mk-sdist.sh
-
-    # To install hspec-discover.
-    - cabal install
