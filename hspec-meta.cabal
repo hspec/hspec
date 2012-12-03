@@ -1,4 +1,4 @@
-name:             hspec
+name:             hspec-meta
 version:          1.4.3
 license:          BSD3
 license-file:     LICENSE
@@ -40,6 +40,8 @@ Library
     , QuickCheck    >= 2.4.0.1
     , hspec-expectations == 0.3.0.*
   exposed-modules:
+      Test.Hspec.Meta
+  other-modules:
       Test.Hspec
       Test.Hspec.Core
       Test.Hspec.Monadic
@@ -47,7 +49,6 @@ Library
       Test.Hspec.Formatters
       Test.Hspec.HUnit
       Test.Hspec.QuickCheck
-  other-modules:
       Test.Hspec.Util
       Test.Hspec.Compat
       Test.Hspec.Pending
@@ -57,7 +58,7 @@ Library
       Test.Hspec.Formatters.Internal
 
 -- hspec-discover
-executable hspec-discover
+executable hspec-meta-discover
   ghc-options:
       -Wall
   hs-source-dirs:
