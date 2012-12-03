@@ -1,4 +1,4 @@
-name:             hspec
+name:             hspec-meta
 version:          2.0.0
 license:          MIT
 license-file:     LICENSE
@@ -38,18 +38,62 @@ library
   ghc-options:
       -Wall
   hs-source-dirs:
-      src
+      src, hspec-core/src/
   build-depends:
       base == 4.*
-    , hspec-core == 2.0.0
-    , hspec-discover == 2.0.0
-    , hspec-expectations == 0.6.1.*
+    , hspec-expectations
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
+
+    , HUnit
+    , setenv
+    , deepseq
+    , random
+    , quickcheck-io
+    , ansi-terminal
+    , time
+    , async
   exposed-modules:
+      Test.Hspec.Meta
+  other-modules:
       Test.Hspec
       Test.Hspec.Runner
       Test.Hspec.Formatters
       Test.Hspec.QuickCheck
       Test.Hspec.Discover
+
+      Test.Hspec.Core
+      Test.Hspec.Core.Spec
+      Test.Hspec.Core.Hooks
+      Test.Hspec.Core.Runner
+      Test.Hspec.Core.Formatters
+      Test.Hspec.Core.QuickCheck
+      Test.Hspec.Core.Util
+      Test.Hspec.Compat
+      Test.Hspec.Core.Example
+      Test.Hspec.Core.Tree
+      Test.Hspec.Core.Spec.Monad
+      Test.Hspec.Core.QuickCheckUtil
+      Test.Hspec.Config
+      Test.Hspec.Options
+      Test.Hspec.FailureReport
+      Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Formatters.Internal
+      Test.Hspec.Timer
+  default-language: Haskell2010
+
+executable hspec-meta-discover
+  ghc-options:
+      -Wall
+  hs-source-dirs:
+      hspec-discover/src
+  main-is:
+      Main.hs
+  other-modules:
+      Run
+      Config
+  build-depends:
+      base == 4.*
+    , filepath
+    , directory
   default-language: Haskell2010

@@ -1,13 +1,1 @@
 language: haskell
-
-env:
-  - QC=QuickCheck
-  - QC=QuickCheck-2.6
-  - QC=QuickCheck-2.5.1.1
-  - QC=QuickCheck-2.5.1
-
-install:
-  - cabal install $QC
-
-script:
-  - ./travis.sh
