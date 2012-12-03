@@ -56,26 +56,3 @@ library
       Test.Hspec.Core
       Test.Hspec.HUnit
   default-language: Haskell2010
-
-test-suite spec
-  type:
-      exitcode-stdio-1.0
-  ghc-options:
-      -Wall
-  hs-source-dirs:
-      test
-  main-is:
-      Spec.hs
-  other-modules:
-      Helper
-      HelperSpec
-      Test.Hspec.DiscoverSpec
-  build-depends:
-      base == 4.*
-    , hspec-core
-    , hspec
-
-    , directory
-    , stringbuilder
-    , hspec-meta >= 2.2.0
-  default-language: Haskell2010
