@@ -1,5 +1,5 @@
 name:             hspec
-version:          1.4.5
+version:          1.5.0
 license:          BSD3
 license-file:     LICENSE
 copyright:        (c) 2011-2013 Simon Hengel, (c) 2011-2012 Trystan Spangler, (c) 2011 Greg Weber
