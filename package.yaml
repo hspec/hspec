@@ -10,21 +10,10 @@ category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.io/
-synopsis:         A Testing Framework for Haskell
+synopsis:         A version of Hspec which is used to test Hspec itself
 description: |
-  Hspec is a testing framework for Haskell. It is inspired by
-  the Ruby library RSpec. Some of Hspec's distinctive features
-  are:
-
-  * a friendly DSL for defining tests
-
-  * integration with QuickCheck, SmallCheck, and HUnit
-
-  * parallel test execution
-
-  * automatic discovery of test files
-
-  The Hspec Manual is at <http://hspec.github.io/>.
+  A stable version of Hspec which is used to test the
+  in-development version of Hspec.
 
 extra-source-files: CHANGES.markdown
 
