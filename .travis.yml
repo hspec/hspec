@@ -2,9 +2,4 @@ language: haskell
 
 before_install:
     # To install hspec-discover.
-    #
-    # NOTE: This should be done before hspec-meta, so that hspec-meta uses the
-    # same dependency versions as hspec.
     - cabal install
-
-    - git clone https://github.com/hspec/hspec -b hspec-meta --depth=1 && cd hspec && cabal install && cd .. && rm -rf hspec
