@@ -1,4 +1,4 @@
-## next
+## Changes in 1.4.3
  - Add `--dry-run` (#111)
 
 ## Changes in 1.4.2
