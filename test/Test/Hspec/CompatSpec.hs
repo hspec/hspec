@@ -15,5 +15,9 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "showType" $ do
+    it "shows unqualified name of type" $ do
+      showType SomeType `shouldBe` "SomeType"
+
+  describe "showFullType (currently unused)" $ do
     it "shows fully qualified name of type" $ do
-      showType SomeType `shouldBe` "Test.Hspec.CompatSpec.SomeType"
+      showFullType SomeType `shouldBe` "Test.Hspec.CompatSpec.SomeType"

@@ -180,7 +180,7 @@ failed_examplesSpec formatter = do
         H.it "foobar" (undefined :: Bool)
       r `shouldContain` [
           "1) foobar FAILED (uncaught exception)"
-        , "GHC.Exception.ErrorCall (Prelude.undefined)"
+        , "ErrorCall (Prelude.undefined)"
         ]
 
     it "prints all descriptions when a nested requirement fails" $ do
