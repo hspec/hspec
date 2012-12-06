@@ -124,8 +124,9 @@ hspecWith c_ spec = do
 
   useColor <- doesUseColor h c
   runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) h $ do
-    runFormatter c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec)
-    failedFormatter formatter
+    runFormatter c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_`
+      failedFormatter formatter
+
     footerFormatter formatter
 
     -- dump failure report

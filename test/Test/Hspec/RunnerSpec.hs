@@ -4,6 +4,7 @@ import           Test.Hspec.Meta
 import           System.IO.Silently
 import           System.IO (stderr)
 import           Control.Applicative
+import           Control.Monad (unless)
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import qualified Control.Exception as E
@@ -19,6 +20,9 @@ import qualified Test.Hspec.Formatters as H (silent)
 
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
+
+ignoreUserInterrupt :: IO () -> IO ()
+ignoreUserInterrupt action = action `E.catch` \e -> unless (e == E.UserInterrupt) (E.throwIO e)
 
 main :: IO ()
 main = hspec spec
@@ -57,6 +61,27 @@ spec = do
           H.it "foobar" $ do
             getArgs `shouldReturn` []
         `shouldReturn` ()
+
+    context "when interrupted with ctrl-c" $ do
+      it "prints summary immediately" $ do
+        r <- captureLines . ignoreUserInterrupt . H.hspec $ do
+          H.it "foo" False
+          H.it "bar" $ do
+            E.throwIO E.UserInterrupt :: IO ()
+          H.it "baz" True
+        normalizeSummary r `shouldBe` [
+            ""
+          , "- foo FAILED [1]"
+          , ""
+          , "1) foo FAILED"
+          , ""
+          ]
+
+      it "throws UserInterrupt" $ do
+        H.hspec $ do
+          H.it "foo" $ do
+            E.throwIO E.UserInterrupt :: IO ()
+        `shouldThrow` (== E.UserInterrupt)
 
     context "with --help" $ do
       let printHelp = withProgName "spec" . withArgs ["--help"] . H.hspec $ pure ()

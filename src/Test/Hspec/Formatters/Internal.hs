@@ -31,29 +31,32 @@ module Test.Hspec.Formatters.Internal (
 , increasePendingCount
 , increaseFailCount
 , addFailMessage
+, finally_
 ) where
 
 import qualified System.IO as IO
 import           System.IO (Handle)
 import           Control.Monad (when, unless)
 import           Control.Applicative
-import           Control.Exception (SomeException, bracket_)
+import           Control.Exception (SomeException, AsyncException(..), bracket_, try, throwIO)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (gets, modify)
-import qualified Control.Monad.Trans.State as State
 import qualified Control.Monad.IO.Class as IOClass
 import qualified System.CPUTime as CPUTime
+import           Data.IORef
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 import           Test.Hspec.Util (Path)
 
--- | A lifted version of `State.gets`
+-- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a
-gets f = FormatM (State.gets f)
+gets f = FormatM $ do
+  f <$> (get >>= IOClass.liftIO . readIORef)
 
--- | A lifted version of `State.modify`
+-- | A lifted version of `Control.Monad.Trans.State.modify`
 modify :: (FormatterState -> FormatterState) -> FormatM ()
-modify f = FormatM (State.modify f)
+modify f = FormatM $ do
+  get >>= IOClass.liftIO . (`modifyIORef` f)
 
 -- | A lifted version of `IOClass.liftIO`
 --
@@ -80,14 +83,17 @@ data FormatterState = FormatterState {
 totalCount :: FormatterState -> Int
 totalCount s = successCount s + pendingCount s + failCount s
 
-newtype FormatM a = FormatM (StateT FormatterState IO a)
+-- NOTE: We use an IORef here, so that the state persists when UserInterrupt is
+-- thrown.
+newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
   deriving (Functor, Applicative, Monad)
 
 runFormatM :: Bool -> Bool -> Bool -> Handle -> FormatM a -> IO a
 runFormatM useColor produceHTML_ printCpuTime handle (FormatM action) = do
   time <- getPOSIXTime
   cpuTime <- if printCpuTime then Just <$> CPUTime.getCPUTime else pure Nothing
-  evalStateT action (FormatterState handle useColor produceHTML_ False 0 0 0 [] cpuTime time)
+  st <- newIORef (FormatterState handle useColor produceHTML_ False 0 0 0 [] cpuTime time)
+  evalStateT action st
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()
@@ -207,20 +213,35 @@ htmlSpan :: String -> FormatM a -> FormatM a
 htmlSpan cls action = write ("<span class=\"" ++ cls ++ "\">") *> action <* write "</span>"
 
 withColor_ :: SGR -> FormatM a -> FormatM a
-withColor_ color (FormatM action) = FormatM . StateT $ \st -> do
-  let useColor = stateUseColor st
-      h        = stateHandle st
+withColor_ color (FormatM action) = do
+  useColor <- gets stateUseColor
+  h        <- gets stateHandle
 
-  bracket_
+  FormatM . StateT $ \st -> do
+    bracket_
 
-    -- set color
-    (when useColor $ hSetSGR h [color])
+      -- set color
+      (when useColor $ hSetSGR h [color])
 
-    -- reset colors
-    (when useColor $ hSetSGR h [Reset])
+      -- reset colors
+      (when useColor $ hSetSGR h [Reset])
 
-    -- run action
-    (runStateT action st)
+      -- run action
+      (runStateT action st)
+
+-- |
+-- @finally_ actionA actionB@ runs @actionA@ and then @actionB@.  @actionB@ is
+-- run even when a `UserInterrupt` occurs during @actionA@.
+finally_ :: FormatM () -> FormatM () -> FormatM ()
+finally_ (FormatM actionA) (FormatM actionB) = FormatM . StateT $ \st -> do
+  r <- try (execStateT actionA st)
+  case r of
+    Left e -> do
+      when (e == UserInterrupt) $
+        runStateT actionB st >> return ()
+      throwIO e
+    Right st_ -> do
+      runStateT actionB st_
 
 -- | Get the used CPU time since the test run has been started.
 getCPUTime :: FormatM (Maybe Double)
