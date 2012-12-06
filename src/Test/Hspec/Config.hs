@@ -53,7 +53,7 @@ formatters = [
   ]
 
 formatHelp :: String
-formatHelp = unlines ("Use a custom formatter.  This can be one of:" : map (("   " ++) . fst) formatters)
+formatHelp = unlines (addLineBreaks "use a custom formatter; this can be one of:" ++ map (("   " ++) . fst) formatters)
 
 type Result = Either NoConfig Config
 
@@ -74,19 +74,24 @@ setQC_MaxSuccess n x = (mapParams $ \p -> p {paramsQuickCheckArgs = (paramsQuick
     mapParams :: (Params -> Params) -> Config -> Config
     mapParams f c = c {configParams = f (configParams c)}
 
+addLineBreaks :: String -> [String]
+addLineBreaks = lineBreaksAt 44
+
 options :: [OptDescr (Result -> Result)]
 options = [
-    Option []  ["help"]                    (NoArg (const $ Left Help))        "display this help and exit"
-  , Option "v" ["verbose"]                 (NoArg setVerbose)                 "do not suppress output to stdout when\nevaluating examples"
-  , Option "m" ["match"]                   (ReqArg setFilter "PATTERN")       "only run examples that match given PATTERN"
-  , Option []  ["color"]                   (OptArg setColor "WHEN")           "colorize the output.  WHEN defaults to\n`always' or can be `never' or `auto'."
+    Option []  ["help"]                    (NoArg (const $ Left Help))        (h "display this help and exit")
+  , Option "v" ["verbose"]                 (NoArg setVerbose)                 (h "do not suppress output to stdout when evaluating examples")
+  , Option "m" ["match"]                   (ReqArg setFilter "PATTERN")       (h "only run examples that match given PATTERN")
+  , Option []  ["color"]                   (OptArg setColor "WHEN")           (h "colorize the output; WHEN defaults to `always' or can be `never' or `auto'")
   , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
-  , Option "a" ["qc-max-success"]          (ReqArg setQC_MaxSuccess "N")      "maximum number of successful tests before a\nQuickCheck property succeeds"
-  , Option []  ["print-cpu-time"]          (NoArg setPrintCpuTime)            "include used CPU time in summary"
-  , Option []  ["dry-run"]                 (NoArg setDryRun)                  "pretend that everything passed; don't verify\nanything"
-  , Option []  ["fast-fail"]               (NoArg setFastFail)                "stop after first failure"
+  , Option "a" ["qc-max-success"]          (ReqArg setQC_MaxSuccess "N")      (h "maximum number of successful tests before a QuickCheck property succeeds")
+  , Option []  ["print-cpu-time"]          (NoArg setPrintCpuTime)            (h "include used CPU time in summary")
+  , Option []  ["dry-run"]                 (NoArg setDryRun)                  (h "pretend that everything passed; don't verify anything")
+  , Option []  ["fast-fail"]               (NoArg setFastFail)                (h "stop after first failure")
   ]
   where
+    h = unlines . addLineBreaks
+
     setFilter :: String -> Result -> Result
     setFilter pattern x = configAddFilter (filterPredicate pattern) <$> x
 

@@ -1,5 +1,6 @@
 module Test.Hspec.Util (
   quantify
+, lineBreaksAt
 , safeEvaluate
 , Path
 , filterPredicate
@@ -78,3 +79,18 @@ readMaybe = fmap fst . listToMaybe . reads
 
 getEnv :: String -> IO (Maybe String)
 getEnv key = either (const Nothing) Just <$> safeEvaluate (Environment.getEnv key)
+
+-- ensure that lines are not longer then given `n`, insert line beraks at word
+-- boundaries
+lineBreaksAt :: Int -> String -> [String]
+lineBreaksAt n input = case words input of
+  []   -> []
+  x:xs -> go (x, xs)
+  where
+    go :: (String, [String]) -> [String]
+    go c = case c of
+      (s, [])   -> [s]
+      (s, y:ys) -> let r = s ++ " " ++ y in
+        if length r <= n
+          then go (r, ys)
+          else s : go (y, ys)

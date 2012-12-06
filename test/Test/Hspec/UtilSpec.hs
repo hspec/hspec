@@ -25,6 +25,17 @@ spec = do
     it "returns a plural word given the number 0" $ do
       quantify 0 "thing" `shouldBe` "0 things"
 
+  describe "lineBreaksAt" $ do
+    it "inserts line breaks at word boundaries" $ do
+      lineBreaksAt 20 "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod"
+      `shouldBe` [
+          "Lorem ipsum dolor"
+        , "sit amet,"
+        , "consectetur"
+        , "adipisicing elit,"
+        , "sed do eiusmod"
+        ]
+
   describe "safeEvaluate" $ do
     it "returns Right on success" $ do
       Right e <- safeEvaluate (return 23 :: IO Int)
