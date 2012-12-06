@@ -26,6 +26,7 @@ data Config = Config {
 , configDryRun          :: Bool
 , configPrintCpuTime    :: Bool
 , configReRun           :: Bool
+, configFastFail        :: Bool
 
 -- |
 -- A predicate that is used to filter the spec before it is run.  Only examples
@@ -41,7 +42,7 @@ data Config = Config {
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False False False False Nothing defaultParams ColorAuto specdoc False stdout
+defaultConfig = Config False False False False False Nothing defaultParams ColorAuto specdoc False stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -83,6 +84,7 @@ options = [
   , Option "a" ["qc-max-success"]          (ReqArg setQC_MaxSuccess "N")      "maximum number of successful tests before a\nQuickCheck property succeeds"
   , Option []  ["print-cpu-time"]          (NoArg setPrintCpuTime)            "include used CPU time in summary"
   , Option []  ["dry-run"]                 (NoArg setDryRun)                  "pretend that everything passed; don't verify\nanything"
+  , Option []  ["fast-fail"]               (NoArg setFastFail)                "stop after first failure"
   ]
   where
     setFilter :: String -> Result -> Result
@@ -91,6 +93,7 @@ options = [
     setVerbose      x = x >>= \c -> return c {configVerbose      = True}
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun       = True}
+    setFastFail     x = x >>= \c -> return c {configFastFail     = True}
 
     setFormatter name x = x >>= \c -> case lookup name formatters of
       Nothing -> Left (InvalidArgument "format" name)

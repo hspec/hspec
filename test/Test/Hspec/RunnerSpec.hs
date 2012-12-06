@@ -98,6 +98,39 @@ spec = do
           H.it "bar" False
         mockCounter e `shouldReturn` 0
 
+    context "with --fast-fail" $ do
+      it "stops after first failure" $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--fast-fail"] . H.hspec $ do
+          H.it "foo" True
+          H.it "bar" False
+          H.it "baz" False
+        normalizeSummary r `shouldBe` [
+            ""
+          , "- foo"
+          , "- bar FAILED [1]"
+          , ""
+          , "1) bar FAILED"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "2 examples, 1 failure"
+          ]
+
+      it "works for nested specs" $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--fast-fail"] . H.hspec $ do
+          H.describe "foo" $ do
+            H.it "bar" False
+            H.it "baz" True
+        normalizeSummary r `shouldBe` [
+            ""
+          , "foo"
+          , "  - bar FAILED [1]"
+          , ""
+          , "1) foo bar FAILED"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
+          ]
+
     context "with --match" $ do
       it "only runs examples that match a given pattern" $ do
         e1 <- newMock

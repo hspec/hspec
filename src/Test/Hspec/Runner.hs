@@ -48,8 +48,17 @@ filterSpecs p = goSpecs []
 
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: Config -> Formatter -> [SpecTree] -> FormatM ()
-runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip [0..] specs)
+runFormatter c formatter specs = headerFormatter formatter >> zip [0..] specs `each` go []
   where
+    -- like forM_, but respects --fast-fail
+    each :: [a] -> (a -> FormatM ()) -> FormatM ()
+    each []     _ = pure ()
+    each (x:xs) f = do
+      f x
+      fails <- getFailCount
+      unless (configFastFail c && fails /= 0) $ do
+        xs `each` f
+
     silence_
       | configVerbose c = id
       | otherwise       = silence
@@ -61,7 +70,7 @@ runFormatter c formatter specs = headerFormatter formatter >> mapM_ (go []) (zip
     go :: [String] -> (Int, SpecTree) -> FormatM ()
     go rGroups (n, SpecGroup group xs) = do
       exampleGroupStarted formatter n (reverse rGroups) group
-      mapM_ (go (group : rGroups)) (zip [0..] xs)
+      zip [0..] xs `each` go (group : rGroups)
       exampleGroupDone formatter
     go rGroups (_, SpecItem requirement example) = do
       result <- eval (example $ configParams c)
