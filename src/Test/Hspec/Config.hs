@@ -53,7 +53,7 @@ formatters = [
   ]
 
 formatHelp :: String
-formatHelp = unlines ("Use a custom formatter.  This can be one of:" : map (("  " ++) . fst) formatters)
+formatHelp = unlines ("Use a custom formatter.  This can be one of:" : map (("   " ++) . fst) formatters)
 
 type Result = Either NoConfig Config
 
