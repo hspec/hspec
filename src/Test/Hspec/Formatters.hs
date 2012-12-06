@@ -42,6 +42,9 @@ module Test.Hspec.Formatters (
 , withSuccessColor
 , withPendingColor
 , withFailColor
+
+-- ** Helpers
+, formatException
 ) where
 
 import           Data.Maybe
@@ -166,12 +169,18 @@ defaultFailedFormatter = do
         unless (null err) $ do
           writeLine err
       where
+        err = either formatException id reason
 
-        err = case reason of
-          Left (E.SomeException e) -> formatException e
-          Right e                  -> e
-
-        formatException e = showType e ++ " (" ++ show e ++ ")"
+-- | Convert an exception to a string.
+--
+-- The type of the exception is included.  Here is an example:
+--
+-- >>> import Control.Applicative
+-- >>> import Control.Exception
+-- >>> either formatException show <$> (try . evaluate) (1 `div` 0)
+-- "GHC.Exception.ArithException (divide by zero)"
+formatException :: E.SomeException -> String
+formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
 defaultFooter :: FormatM ()
 defaultFooter = do

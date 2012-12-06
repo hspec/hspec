@@ -1,5 +1,6 @@
 ## next
  - Visually distinguish error message from requirements in the summary (#100)
+ - Export `formatException` from `Test.Hspec.Formatters`
 
 ## Changes in 1.4.3
  - Add `--dry-run` (#111)
