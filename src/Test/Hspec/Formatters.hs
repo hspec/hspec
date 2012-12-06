@@ -178,7 +178,7 @@ defaultFailedFormatter = do
 -- >>> import Control.Applicative
 -- >>> import Control.Exception
 -- >>> either formatException show <$> (try . evaluate) (1 `div` 0)
--- "GHC.Exception.ArithException (divide by zero)"
+-- "ArithException (divide by zero)"
 formatException :: E.SomeException -> String
 formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
