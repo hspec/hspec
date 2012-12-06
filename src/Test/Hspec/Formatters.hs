@@ -47,9 +47,8 @@ module Test.Hspec.Formatters (
 import           Data.Maybe
 import           Test.Hspec.Util
 import           Test.Hspec.Compat
-import           Data.List (intersperse)
 import           Text.Printf
-import           Control.Monad (unless)
+import           Control.Monad (unless, forM_)
 import           Control.Applicative
 import qualified Control.Exception as E
 
@@ -149,18 +148,28 @@ failed_examples   = silent {
 defaultFailedFormatter :: FormatM ()
 defaultFailedFormatter = do
   newParagraph
-  withFailColor $ do
-    failures <- map formatFailure . zip [1..] <$> getFailMessages
-    mapM_ writeLine (intersperse "" failures)
-    unless (null failures) (writeLine "")
+
+  failures <- getFailMessages
+
+  forM_ (zip [1..] failures) $ \x -> do
+    formatFailure x
+    writeLine ""
   where
-    formatFailure :: (Int, FailureRecord) -> String
-    formatFailure (i, FailureRecord path reason) =
-      show i ++ ") " ++ formatRequirement path ++ " FAILED" ++ err
+    formatFailure :: (Int, FailureRecord) -> FormatM ()
+    formatFailure (n, FailureRecord path reason) = do
+      write (show n ++ ") ")
+      withFailColor $ do
+        write (formatRequirement path ++ " FAILED")
+        write $ case reason of
+          Right _ -> "\n"
+          Left _  -> " (uncaught exception)\n"
+        unless (null err) $ do
+          writeLine err
       where
+
         err = case reason of
-          Left (E.SomeException e)  -> " (uncaught exception)\n" ++ formatException e
-          Right e -> if null e then "" else "\n" ++ e
+          Left (E.SomeException e) -> formatException e
+          Right e                  -> e
 
         formatException e = showType e ++ " (" ++ show e ++ ")"
 
