@@ -138,10 +138,16 @@ findSpecs src = do
         SpecNode d False <$> (getFilesAndDirectories dir >>= go dir)
       (return . filterSpecs . combineSpecs) (specsFromFiles files ++ nestedSpecs)
       where
-        specsFromFiles = map (\x -> SpecNode (stripSuffix x) True []) . filter (isSuffixOf suffix)
+        specsFromFiles = map (\x -> SpecNode (stripSuffix x) True []) . filter hasSuffix
           where
-            suffix = "Spec.hs"
-            stripSuffix = reverse . drop (length suffix) . reverse
+            hasSuffix :: FilePath -> Bool
+            hasSuffix fn = or $ map (`isSuffixOf` fn) suffixes
+            suffixes = ["Spec.hs","Spec.lhs"]
+            stripSuffix = foldl1 (.)
+              [\x -> if suffix `isSuffixOf` x
+                     then reverse . drop (length suffix) . reverse $ x
+                     else x
+              | suffix <- suffixes]
 
         -- remove empty leafs
         filterSpecs :: [SpecNode] -> [SpecNode]
