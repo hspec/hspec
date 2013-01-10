@@ -140,7 +140,7 @@ findSpecs src = do
       where
         specsFromFiles = map (\x -> SpecNode (stripSuffix x) True []) . filter (isSuffixOf suffix)
           where
-            suffix = "Spec.hs"
+            suffix = ["Spec.hs","Spec.lhs"]
             stripSuffix = reverse . drop (length suffix) . reverse
 
         -- remove empty leafs
