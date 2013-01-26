@@ -23,6 +23,15 @@ To run the test suite do:
 
     cabal configure --enable-tests && cabal build && cabal test
 
+### Preparing a release
+
+ - Bump version
+ - Add `find hspec-discover/test-data/ -type f` under `extra-source-files` in
+   `hspec.cabal`
+ - Make sure that `other-modules` for `test-suite spec` is up-to-date
+ - Use `./mk-sdist.sh` to create and test the tarball
+ - Release an updated version of `hspec-meta`
+
 ## Contributors
 
  * Trystan Spangler
