@@ -28,6 +28,8 @@ extra-source-files:
   hspec-discover/test-data/nested-spec/FooSpec.hs
   hspec-discover/test-data/nested-spec/Foo/Bar/BazSpec.hs
   hspec-discover/test-data/nested-spec/Foo/BarSpec.hs
+  hspec-discover/test-data/lhs-spec/FooSpec.lhs
+  hspec-discover/test-data/lhs-spec/Spec.hs
   hspec-discover/test-data/several-specs/BarSpec.hs
   hspec-discover/test-data/several-specs/FooSpec.hs
   hspec-discover/test-data/several-specs/BazSpec.hs

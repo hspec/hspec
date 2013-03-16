@@ -18,6 +18,9 @@ spec = do
       it "finds several specs" $ do
         findSpecs "hspec-discover/test-data/several-specs/Spec.hs" `shouldReturn` [SpecNode "Bar" True [], SpecNode "Baz" True [], SpecNode "Foo" True []]
 
+      it "discovers .lhs files" $ do
+        findSpecs "hspec-discover/test-data/lhs-spec/Spec.hs" `shouldReturn` [SpecNode "Foo" True []]
+
     context "when specs are nested" $ do
       it "finds a single spec" $ do
         findSpecs "hspec-discover/test-data/single-spec-nested/Spec.hs" `shouldReturn` [SpecNode "Foo" False [SpecNode "Bar" True []]]

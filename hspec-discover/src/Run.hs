@@ -5,6 +5,7 @@ module Run where
 import           Control.Monad
 import           Control.Applicative
 import           Data.List
+import           Data.Maybe
 import           Data.String
 import           Data.Function
 import           System.Environment
@@ -138,16 +139,21 @@ findSpecs src = do
         SpecNode d False <$> (getFilesAndDirectories dir >>= go dir)
       (return . filterSpecs . combineSpecs) (specsFromFiles files ++ nestedSpecs)
       where
-        specsFromFiles = map (\x -> SpecNode (stripSuffix x) True []) . filter hasSuffix
+        specsFromFiles = catMaybes . map specFromFile
           where
-            hasSuffix :: FilePath -> Bool
-            hasSuffix fn = or $ map (`isSuffixOf` fn) suffixes
+            suffixes :: [String]
             suffixes = ["Spec.hs","Spec.lhs"]
-            stripSuffix = foldl1 (.)
-              [\x -> if suffix `isSuffixOf` x
-                     then reverse . drop (length suffix) . reverse $ x
-                     else x
-              | suffix <- suffixes]
+
+            specFromFile :: FilePath -> Maybe SpecNode
+            specFromFile file = msum $ map (specFromFile_ file) suffixes
+
+            specFromFile_ :: FilePath -> String -> Maybe SpecNode
+            specFromFile_ file suffix
+              | suffix `isSuffixOf` file = Just $ SpecNode (dropEnd (length suffix) file) True []
+              | otherwise = Nothing
+
+            dropEnd :: Int -> [a] -> [a]
+            dropEnd n = reverse . drop n . reverse
 
         -- remove empty leafs
         filterSpecs :: [SpecNode] -> [SpecNode]
