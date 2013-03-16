@@ -25,6 +25,8 @@ import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
 
+import           Test.Hspec.Compat (isUserInterrupt)
+
 type Spec = SpecM ()
 
 -- | A writer monad for `SpecTree` forests.
@@ -88,8 +90,3 @@ instance Example QC.Property where
         f@(QC.Failure {})           -> Fail (QC.output f)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
-    where
-      isUserInterrupt :: QC.Result -> Bool
-      isUserInterrupt r = case r of
-        QC.Failure {QC.reason = "Exception: 'user interrupt'"} -> True
-        _ -> False
