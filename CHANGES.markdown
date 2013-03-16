@@ -1,3 +1,6 @@
+## Next
+ - Rename `--fast-fail` to `--fail-fast` (for consistency with RSpec)
+
 ## Changes in 1.4.5
  - hspec-discover now discovers .lhs files, too
 

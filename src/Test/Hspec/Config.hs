@@ -87,7 +87,7 @@ options = [
   , Option "a" ["qc-max-success"]          (ReqArg setQC_MaxSuccess "N")      (h "maximum number of successful tests before a QuickCheck property succeeds")
   , Option []  ["print-cpu-time"]          (NoArg setPrintCpuTime)            (h "include used CPU time in summary")
   , Option []  ["dry-run"]                 (NoArg setDryRun)                  (h "pretend that everything passed; don't verify anything")
-  , Option []  ["fast-fail"]               (NoArg setFastFail)                (h "stop after first failure")
+  , Option []  ["fail-fast"]               (NoArg setFastFail)                (h "abort on first failure")
   ]
   where
     h = unlines . addLineBreaks

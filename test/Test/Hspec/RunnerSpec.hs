@@ -123,9 +123,9 @@ spec = do
           H.it "bar" False
         mockCounter e `shouldReturn` 0
 
-    context "with --fast-fail" $ do
+    context "with --fail-fast" $ do
       it "stops after first failure" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--fast-fail"] . H.hspec $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast"] . H.hspec $ do
           H.it "foo" True
           H.it "bar" False
           H.it "baz" False
@@ -141,7 +141,7 @@ spec = do
           ]
 
       it "works for nested specs" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--fast-fail"] . H.hspec $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast"] . H.hspec $ do
           H.describe "foo" $ do
             H.it "bar" False
             H.it "baz" True
