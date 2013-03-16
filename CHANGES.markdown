@@ -1,4 +1,7 @@
-## next
+## Changes in 1.4.5
+ - hspec-discover now discovers .lhs files, too
+
+## Changes in 1.4.4
  - Visually distinguish error message from requirements in the summary (#100)
  - Export `formatException` from `Test.Hspec.Formatters`
  - Add `--fast-fail` (#82)

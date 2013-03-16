@@ -44,3 +44,4 @@ To run the test suite do:
  * Clark Gaebel
  * Fujimura Daisuke
  * Michael Snoyman
+ * Takayuki Muranushi
