@@ -2,11 +2,11 @@
 
 ## Getting started
 
-Install hspec from Hackage.
+Install Hspec from Hackage.
 
     cabal update && cabal install hspec
 
-Read the [introductory documentation](http://hspec.github.com/).
+Read the [User's Manual](http://hspec.github.com/).
 
 ## Development & Support
 
