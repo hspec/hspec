@@ -27,8 +27,8 @@ showFullType a = let t = typeRepTyCon (typeOf a) in
 
 isUserInterrupt :: QC.Result -> Bool
 isUserInterrupt r = case r of
-#if MIN_VERSION_base(2,6,0)
-  QC.Failure {QC.interrupted = r} -> r
+#if MIN_VERSION_QuickCheck(2,6,0)
+  QC.Failure {QC.interrupted = x} -> x
 #else
   QC.Failure {QC.reason = "Exception: 'user interrupt'"} -> True
 #endif
