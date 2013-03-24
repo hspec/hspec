@@ -59,8 +59,6 @@ spec = do
       let [SpecItem _ e] = runSpecM (H.it "whatever" True)
       e H.defaultParams `shouldReturn` Success
 
-    it "can use a Bool, HUnit Test, QuickCheck property, or `pending` as an example"
-      pending
   describe "example" $ do
     it "fixes the type of an expectation" $ do
       r <- runSpec $ do
