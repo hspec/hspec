@@ -51,6 +51,11 @@ spec = do
                 H.it "baz" True
       (foo, bar, baz) `shouldBe` ("foo", "bar", "baz")
 
+    context "when no description is given" $ do
+      it "uses a default description" $ do
+        let [SpecGroup d _] = runSpecM (H.describe "" (pure ()))
+        d `shouldBe` "(no description given)"
+
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
       let [SpecItem d _] = runSpecM (H.it "whatever" True)
@@ -59,6 +64,11 @@ spec = do
     it "takes an example of that behavior" $ do
       let [SpecItem _ e] = runSpecM (H.it "whatever" True)
       e H.defaultParams `shouldReturn` Success
+
+    context "when no description is given" $ do
+      it "uses a default description" $ do
+        let [SpecItem d _] = runSpecM (H.it "" True)
+        d `shouldBe` "(unspecified behavior)"
 
   describe "example" $ do
     it "fixes the type of an expectation" $ do

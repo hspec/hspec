@@ -67,11 +67,19 @@ data SpecTree =
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree] -> SpecTree
-describe = SpecGroup
+describe s = SpecGroup msg
+  where
+    msg
+      | null s = "(no description given)"
+      | otherwise = s
 
 -- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
-it s e = SpecItem s (`evaluateExample` e)
+it s e = SpecItem msg (`evaluateExample` e)
+  where
+    msg
+      | null s = "(unspecified behavior)"
+      | otherwise = s
 
 -- | A type class for examples.
 class Example a where
