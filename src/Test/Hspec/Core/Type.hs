@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hspec.Core.Type (
   Spec
@@ -14,12 +14,16 @@ module Test.Hspec.Core.Type (
 
 , describe
 , it
+
+, pending
+, pendingWith
 ) where
 
 import qualified Control.Exception as E
 import           Control.Applicative
 import           Control.Monad (when)
 import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
+import           Data.Typeable (Typeable)
 
 import           Test.Hspec.Util
 import           Test.Hspec.Expectations
@@ -45,7 +49,9 @@ fromSpecList = SpecM . tell
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
-  deriving (Eq, Show)
+  deriving (Eq, Show, Typeable)
+
+instance E.Exception Result
 
 data Params = Params {
   paramsQuickCheckArgs :: QC.Args
@@ -75,7 +81,10 @@ instance Example Bool where
   evaluateExample _ b = if b then return Success else return (Fail "")
 
 instance Example Expectation where
-  evaluateExample _ action = (action >> return Success) `E.catch` \(HUnitFailure err) -> return (Fail err)
+  evaluateExample _ action = (action >> return Success) `E.catches` [
+      E.Handler (\(HUnitFailure err) -> (return . Fail) err)
+    , E.Handler (return :: Result -> IO Result)
+    ]
 
 instance Example Result where
   evaluateExample _ r = return r
@@ -103,3 +112,22 @@ propertyIO action = QCP.morallyDubiousIOProperty $ do
   where
     succeeded  = QC.property QCP.succeeded
     failed err = QC.property QCP.failed {QCP.reason = err}
+
+-- | Specifies a pending example.
+--
+-- If you want to textually specify a behavior but do not have an example yet,
+-- use this:
+--
+-- > describe "fancyFormatter" $ do
+-- >   it "can format text in a way that everyone likes" $
+-- >     pending
+pending :: Expectation
+pending = E.throwIO (Pending Nothing)
+
+-- | Specifies a pending example with a reason for why it's pending.
+--
+-- > describe "fancyFormatter" $ do
+-- >   it "can format text in a way that everyone likes" $
+-- >     pendingWith "waiting for clarification from the designers"
+pendingWith :: String -> Expectation
+pendingWith = E.throwIO . Pending . Just

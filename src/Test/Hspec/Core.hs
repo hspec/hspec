@@ -27,15 +27,12 @@ module Test.Hspec.Core (
 , hspecX
 , hHspec
 , hspec
-, Pending
-, pending
 ) where
 
 import           Control.Applicative
 import           System.IO (Handle)
 
 import           Test.Hspec.Core.Type hiding (Spec)
-import qualified Test.Hspec.Pending as Pending
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary(..), Config(..), defaultConfig)
 
@@ -63,10 +60,3 @@ type Spec = SpecTree
 
 {-# DEPRECATED Specs "use `[SpecTree]` instead" #-}                   -- since 1.4.0
 type Specs = [SpecTree]
-
-{-# DEPRECATED pending "use `Test.Hspec.pending` instead" #-}         -- since 1.4.0
-pending :: String -> Pending
-pending = Pending.pending
-
-{-# DEPRECATED Pending "use `Test.Hspec.Pending` instead" #-}         -- since 1.4.0
-type Pending = Pending.Pending

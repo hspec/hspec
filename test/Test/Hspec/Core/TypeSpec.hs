@@ -39,6 +39,14 @@ spec = do
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
 
+      context "when used with `pending`" $ do
+        it "returns Pending" $ do
+          evaluateExample (H.pending) `shouldReturn` H.Pending Nothing
+
+      context "when used with `pendingWith`" $ do
+        it "includes the optional reason" $ do
+          evaluateExample (H.pendingWith "foo") `shouldReturn` H.Pending (Just "foo")
+
     context "for Property" $ do
       it "returns Success if property holds" $ do
         evaluateExample (property $ \n -> n == (n :: Int)) `shouldReturn` H.Success
@@ -59,12 +67,15 @@ spec = do
         pending "this probaly needs a patch to QuickCheck"
         -- evaluateExample (property $ (error "foobar" :: Int -> Bool)) `shouldThrow` errorCall "foobar"
 
-    context "for pending" $ do
-      it "returns Pending" $ do
-        evaluateExample (H.pending) `shouldReturn` H.Pending Nothing
+      context "when used with `pending`" $ do
+        it "returns Pending" $ do
+          pending "this probaly needs a patch to QuickCheck"
+          -- evaluateExample (property H.pending) `shouldReturn` H.Pending Nothing
 
-      it "includes the optional reason" $ do
-        evaluateExample (H.pending "foo") `shouldReturn` H.Pending (Just "foo")
+      context "when used with `pendingWith`" $ do
+        it "includes the optional reason" $ do
+          pending "this probaly needs a patch to QuickCheck"
+          -- evaluateExample (property $ H.pendingWith "foo") `shouldReturn` H.Pending (Just "foo")
 
   describe "Expectation" $ do
     context "as a QuickCheck property" $ do

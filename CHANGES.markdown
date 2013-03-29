@@ -3,6 +3,7 @@
  - Allow to use expectations as QuickCheck properties (#80)
  - Rename `--fast-fail` to `--fail-fast` (for consistency with RSpec)
  - Do not suppress output to `stdout`
+ - Change type of `pending` to `Expectation`, add `pendingWith` (#121)
 
 ## Changes in 1.4.5
  - hspec-discover now discovers .lhs files, too

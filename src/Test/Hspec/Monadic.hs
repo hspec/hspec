@@ -3,7 +3,6 @@ module Test.Hspec.Monadic {-# DEPRECATED "use \"Test.Hspec\", \"Test.Hspec.Runne
 -- * Types
   Spec
 , Example
-, Pending
 
 -- * Defining a spec
 , describe

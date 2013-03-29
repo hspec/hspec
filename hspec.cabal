@@ -69,7 +69,6 @@ Library
   other-modules:
       Test.Hspec.Util
       Test.Hspec.Compat
-      Test.Hspec.Pending
       Test.Hspec.Core.Type
       Test.Hspec.Config
       Test.Hspec.FailureReport

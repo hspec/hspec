@@ -22,7 +22,7 @@ testSpec = do
   H.describe "Example" $ do
     H.it "success"    (H.Success)
     H.it "fail 1"     (H.Fail "fail message")
-    H.it "pending"    (H.pending "pending message")
+    H.it "pending"    (H.pendingWith "pending message")
     H.it "fail 2"     (H.Fail "")
     H.it "exceptions" (undefined :: H.Result)
     H.it "fail 3"     (H.Fail "")

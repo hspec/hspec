@@ -21,7 +21,6 @@ module Test.Hspec (
 -- * Types
   Spec
 , Example
-, Pending
 
 -- * Setting expectations
 , module Test.Hspec.Expectations
@@ -32,6 +31,7 @@ module Test.Hspec (
 , it
 , example
 , pending
+, pendingWith
 
 -- * Running a spec
 , hspec
@@ -41,7 +41,6 @@ import           Test.Hspec.Core.Type hiding (describe, it)
 import           Test.Hspec.Runner
 import           Test.Hspec.HUnit ()
 import           Test.Hspec.Expectations
-import           Test.Hspec.Pending
 import qualified Test.Hspec.Core as Core
 
 -- $intro
