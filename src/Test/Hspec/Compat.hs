@@ -4,11 +4,16 @@ module Test.Hspec.Compat (
 , showFullType
 , isUserInterrupt
 , readMaybe
+, module Data.IORef
+#if !MIN_VERSION_base(4,6,0)
+, modifyIORef'
+#endif
 ) where
 
 import           Data.Typeable (Typeable, typeOf, typeRepTyCon)
 import qualified Test.QuickCheck as QC
 import           Text.Read
+import           Data.IORef
 
 #if MIN_VERSION_base(4,4,0)
 import           Data.Typeable.Internal (tyConModule, tyConName)
@@ -17,6 +22,15 @@ import           Data.Typeable.Internal (tyConModule, tyConName)
 #if !MIN_VERSION_base(4,6,0)
 import qualified Text.ParserCombinators.ReadP as P
 import Prelude
+#endif
+
+#if !MIN_VERSION_base(4,6,0)
+-- |Strict version of 'modifyIORef'
+modifyIORef' :: IORef a -> (a -> a) -> IO ()
+modifyIORef' ref f = do
+    x <- readIORef ref
+    let x' = f x
+    x' `seq` writeIORef ref x'
 
 -- | Parse a string using the 'Read' instance.
 -- Succeeds if there is exactly one valid result.

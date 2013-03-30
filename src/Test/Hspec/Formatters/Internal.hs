@@ -43,10 +43,10 @@ import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (gets, modify)
 import qualified Control.Monad.IO.Class as IOClass
 import qualified System.CPUTime as CPUTime
-import           Data.IORef
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 import           Test.Hspec.Util (Path)
+import           Test.Hspec.Compat
 import           Test.Hspec.Core.Type (Progress)
 
 -- | A lifted version of `Control.Monad.Trans.State.gets`
@@ -57,7 +57,7 @@ gets f = FormatM $ do
 -- | A lifted version of `Control.Monad.Trans.State.modify`
 modify :: (FormatterState -> FormatterState) -> FormatM ()
 modify f = FormatM $ do
-  get >>= IOClass.liftIO . (`modifyIORef` f)
+  get >>= IOClass.liftIO . (`modifyIORef'` f)
 
 -- | A lifted version of `IOClass.liftIO`
 --
