@@ -12,7 +12,7 @@ import           SpecHelper
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
-import           Test.QuickCheck.Property (morallyDubiousIOProperty)
+import           Test.QuickCheck
 
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec as H (describe, it, pending)
@@ -32,12 +32,12 @@ spec = do
 
   describe "hspec" $ do
     it "runs a spec" $ do
-      H.hspec $ do
+      silence . H.hspec $ do
         H.it "foobar" True
       `shouldReturn` ()
 
     it "exits with exitFailure if not all examples pass" $ do
-      H.hspec $ do
+      silence . H.hspec $ do
         H.it "foobar" False
       `shouldThrow` (== ExitFailure 1)
 
@@ -56,7 +56,7 @@ spec = do
           ]
 
     it "does not leak command-line flags to examples" $ do
-      withArgs ["--verbose"] $ do
+      silence . withArgs ["--verbose"] $ do
         H.hspec $ do
           H.it "foobar" $ do
             getArgs `shouldReturn` []
@@ -78,7 +78,7 @@ spec = do
           ]
 
       it "throws UserInterrupt" $ do
-        H.hspec $ do
+        silence . H.hspec $ do
           H.it "foo" $ do
             E.throwIO E.UserInterrupt :: IO ()
         `shouldThrow` (== E.UserInterrupt)
@@ -88,7 +88,7 @@ spec = do
       it "prints help" $ do
         r <- (captureLines . ignoreExitCode) printHelp
         r `shouldStartWith` ["Usage: spec [OPTION]..."]
-        printHelp `shouldThrow` (== ExitSuccess)
+        silence printHelp `shouldThrow` (== ExitSuccess)
 
       it "constrains lines to 80 characters" $ do
         r <- (captureLines . ignoreExitCode) printHelp
@@ -154,7 +154,7 @@ spec = do
         e1 <- newMock
         e2 <- newMock
         e3 <- newMock
-        withArgs ["-m", "/bar/example"] . H.hspec $ do
+        silence . withArgs ["-m", "/bar/example"] . H.hspec $ do
           H.describe "foo" $ do
             H.describe "bar" $ do
               H.it "example 1" $ mockAction e1
@@ -167,7 +167,7 @@ spec = do
         e1 <- newMock
         e2 <- newMock
         e3 <- newMock
-        withArgs ["-m", "foo", "-m", "baz"] . H.hspec $ do
+        silence . withArgs ["-m", "foo", "-m", "baz"] . H.hspec $ do
           H.describe "foo" $ do
             H.it "example 1" $ mockAction e1
           H.describe "bar" $ do
@@ -179,9 +179,9 @@ spec = do
     context "with --maximum-generated-tests=n" $ do
       it "tries QuickCheck properties n times" $ do
         m <- newMock
-        withArgs ["--maximum-generated-tests=23"] . H.hspec $ do
-          H.it "foo" $ do
-            morallyDubiousIOProperty (mockAction m >> pure True)
+        silence . withArgs ["--maximum-generated-tests=23"] . H.hspec $ do
+          H.it "foo" $ property $ do
+            mockAction m
         mockCounter m `shouldReturn` 23
 
     context "with --print-cpu-time" $ do
@@ -212,7 +212,7 @@ spec = do
 
   describe "hspec (experimental features)" $ do
     it "stores a failure report in environment HSPEC_FAILURES" $ do
-      ignoreExitCode . H.hspec $ do
+      silence . ignoreExitCode . H.hspec $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "example 1" True
@@ -260,7 +260,7 @@ spec = do
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do
-      H.hspecWith H.defaultConfig $ do
+      silence . H.hspecWith H.defaultConfig $ do
         H.it "foo" True
         H.it "foo" False
         H.it "foo" False
@@ -269,7 +269,7 @@ spec = do
       `shouldReturn` H.Summary 5 2
 
     it "treats uncaught exceptions as failure" $ do
-      H.hspecWith H.defaultConfig  $ do
+      silence . H.hspecWith H.defaultConfig  $ do
         H.it "foobar" (E.throwIO (E.ErrorCall "foobar") >> pure ())
       `shouldReturn` H.Summary 1 1
 

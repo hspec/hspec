@@ -3,6 +3,7 @@ module Test.Hspec.HUnitSpec (main, spec) where
 import           Test.Hspec.Meta
 import           SpecHelper (captureLines)
 import           Control.Applicative
+import           System.IO.Silently
 
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H
@@ -54,13 +55,13 @@ spec = do
 
   describe "HUnit TestCase as an example (deprecated!)" $ do
     it "is specified with the HUnit `TestCase` data constructor" $ TestCase $ do
-      runSpec $ do
+      silence . runSpec $ do
         H.it "some behavior" (TestCase $ "foo" @?= "bar")
         H.it "some behavior" (TestCase $ "foo" @?= "foo")
       `shouldReturn` H.Summary 2 1
 
     it "is the assumed example for IO() actions" $ do
-      runSpec $ do
+      silence . runSpec $ do
         H.it "some behavior" ("foo" @?= "bar")
         H.it "some behavior" ("foo" @?= "foo")
       `shouldReturn` H.Summary 2 1
