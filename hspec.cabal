@@ -1,5 +1,5 @@
 name:             hspec
-version:          1.5.0
+version:          1.5.1
 license:          BSD3
 license-file:     LICENSE
 copyright:        (c) 2011-2013 Simon Hengel, (c) 2011-2012 Trystan Spangler, (c) 2011 Greg Weber
@@ -58,7 +58,7 @@ Library
     , HUnit         >= 1.2.5
     , QuickCheck    >= 2.5.1
     , quickcheck-io
-    , hspec-expectations == 0.3.0.*
+    , hspec-expectations == 0.3.2.*
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
@@ -110,7 +110,7 @@ test-suite spec
     , quickcheck-io
     , hspec-expectations
 
-    , hspec-meta
+    , hspec-meta >= 1.5.1
     , process
     , ghc-paths
 
