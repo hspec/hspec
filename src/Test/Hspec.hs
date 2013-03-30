@@ -127,7 +127,17 @@ context = describe
 it :: Example v => String -> v -> Spec
 it label action = fromSpecList [Core.it label action]
 
--- | This is a type restricted version of `id`.  It is useful to give hints to
--- the type checker.
+-- | This is a type restricted version of `id`.  It can be used to get better
+-- error messages on type mismatches.
+--
+-- Compare e.g.
+--
+-- > it "exposes some behavior" $ example $ do
+-- >   putStrLn
+--
+-- with
+--
+-- > it "exposes some behavior" $ do
+-- >   putStrLn
 example :: Expectation -> Expectation
 example = id
