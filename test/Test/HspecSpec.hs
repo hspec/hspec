@@ -1,12 +1,11 @@
 module Test.HspecSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Util (captureLines)
+import           SpecHelper
 import           Data.List (isPrefixOf)
 
 import           Control.Applicative
 
-import qualified Test.Hspec.Core.Type as H (defaultParams)
 import           Test.Hspec.Core (SpecTree(..), Result(..), runSpecM)
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H (hspecWith)
@@ -63,7 +62,7 @@ spec = do
 
     it "takes an example of that behavior" $ do
       let [SpecItem _ e] = runSpecM (H.it "whatever" True)
-      e H.defaultParams `shouldReturn` Success
+      e defaultParams `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do

@@ -68,7 +68,7 @@ runFormatter c formatter specs = headerFormatter formatter >> zip [0..] specs `e
       zip [0..] xs `each` go (group : rGroups)
       exampleGroupDone formatter
     go rGroups (_, SpecItem requirement example) = do
-      result <- eval (example $ configParams c)
+      result <- eval (example $ Params (configQuickCheckArgs c))
       case result of
         Right Success -> do
           increaseSuccessCount

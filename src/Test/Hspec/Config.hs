@@ -16,7 +16,6 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Formatters
 
 import           Test.Hspec.Util
-import           Test.Hspec.Core.Type (Params (..), defaultParams)
 
 -- for Monad (Either e) when base < 4.3
 import           Control.Monad.Trans.Error ()
@@ -32,7 +31,7 @@ data Config = Config {
 -- A predicate that is used to filter the spec before it is run.  Only examples
 -- that satisfy the predicate are run.
 , configFilterPredicate :: Maybe (Path -> Bool)
-, configParams          :: Params
+, configQuickCheckArgs  :: QC.Args
 , configColorMode       :: ColorMode
 , configFormatter       :: Formatter
 , configHtmlOutput      :: Bool
@@ -44,7 +43,7 @@ data Config = Config {
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False False False False False Nothing defaultParams ColorAuto specdoc False stdout
+defaultConfig = Config False False False False False Nothing QC.stdArgs ColorAuto specdoc False stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -71,10 +70,7 @@ configAddFilter p1 c = c {configFilterPredicate = Just p}
     mp = configFilterPredicate c
 
 setQC_MaxSuccess :: String -> Result -> Result
-setQC_MaxSuccess n x = (mapParams $ \p -> p {paramsQuickCheckArgs = (paramsQuickCheckArgs p) {QC.maxSuccess = read n}}) <$> x
-  where
-    mapParams :: (Params -> Params) -> Config -> Config
-    mapParams f c = c {configParams = f (configParams c)}
+setQC_MaxSuccess n x = (\c -> c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.maxSuccess = read n}}) <$> x
 
 addLineBreaks :: String -> [String]
 addLineBreaks = lineBreaksAt 44

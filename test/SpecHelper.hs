@@ -1,5 +1,7 @@
-module Util where
+module SpecHelper where
 
+import qualified Test.Hspec.Core.Type as H
+import           Test.QuickCheck
 import           Data.List
 import           Data.Char
 import           Test.Hspec.Meta
@@ -25,3 +27,6 @@ normalizeSummary xs = map f xs
         | otherwise = x
     g x | isNumber x = '0'
         | otherwise  = x
+
+defaultParams :: H.Params
+defaultParams = H.Params stdArgs

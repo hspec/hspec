@@ -1,7 +1,7 @@
 module Test.Hspec.HUnitSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           Util (captureLines)
+import           SpecHelper (captureLines)
 import           Control.Applicative
 
 import qualified Test.Hspec as H

@@ -8,7 +8,7 @@ import           Control.Monad (unless)
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import qualified Control.Exception as E
-import           Util
+import           SpecHelper
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)

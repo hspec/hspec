@@ -1,6 +1,7 @@
 module Test.Hspec.Core.TypeSpec (main, spec) where
 
 import           Test.Hspec.Meta
+import           SpecHelper
 import           Test.QuickCheck
 import           Mock
 
@@ -14,7 +15,7 @@ main :: IO ()
 main = hspec spec
 
 evaluateExample :: H.Example e => e -> IO H.Result
-evaluateExample = H.evaluateExample H.defaultParams
+evaluateExample = H.evaluateExample defaultParams
 
 spec :: Spec
 spec = do

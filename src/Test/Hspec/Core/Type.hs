@@ -8,9 +8,7 @@ module Test.Hspec.Core.Type (
 , SpecTree (..)
 , Example (..)
 , Result (..)
-
 , Params (..)
-, defaultParams
 
 , describe
 , it
@@ -56,9 +54,6 @@ instance E.Exception Result
 data Params = Params {
   paramsQuickCheckArgs :: QC.Args
 }
-
-defaultParams :: Params
-defaultParams = Params QC.stdArgs
 
 -- | Internal representation of a spec.
 data SpecTree =
