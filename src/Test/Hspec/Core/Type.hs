@@ -23,6 +23,7 @@ import           Control.Applicative
 import           Control.Monad (when)
 import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 import           Data.Typeable (Typeable)
+import           Data.List (isPrefixOf)
 
 import           Test.Hspec.Util
 import           Test.Hspec.Expectations
@@ -106,12 +107,28 @@ instance Example QC.Property where
     return $
       case r of
         QC.Success {}               -> Success
-        f@(QC.Failure {})           -> Fail (QC.output f)
+        f@(QC.Failure {})           -> Fail (sanitizeFailureMessage $ QC.output f)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
     where
       progressCallback = QCP.PostTest QCP.NotCounterexample $
         \st _ -> paramsReportProgress c (QC.numSuccessTests st, QC.maxSuccessTests st)
+
+      sanitizeFailureMessage :: String -> String
+      sanitizeFailureMessage = strip . addFalsifiable . stripFailed
+
+      addFalsifiable :: String -> String
+      addFalsifiable m
+        | "(after " `isPrefixOf` m = "Falsifiable " ++ m
+        | otherwise = m
+
+      stripFailed :: String -> String
+      stripFailed m
+        | prefix `isPrefixOf` m = drop n m
+        | otherwise = m
+        where
+          prefix = "*** Failed! "
+          n = length prefix
 
 instance QC.Testable Expectation where
   property = propertyIO

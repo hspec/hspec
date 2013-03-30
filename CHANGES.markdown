@@ -5,6 +5,7 @@
  - Do not suppress output to `stdout`
  - Change type of `pending` to `Expectation`, add `pendingWith` (#121)
  - Do not clutter Cabal test suite logs with QuickCheck output (#112)
+ - Skip redundant output from QuickCheck failure messages (#102)
 
 ## Changes in 1.4.5
  - hspec-discover now discovers .lhs files, too

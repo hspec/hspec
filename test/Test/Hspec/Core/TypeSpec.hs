@@ -4,6 +4,7 @@ import           Test.Hspec.Meta
 import           SpecHelper
 import           Test.QuickCheck
 import           Mock
+import           Data.List
 
 import           Test.QuickCheck.Property (morallyDubiousIOProperty)
 import           Control.Exception (AsyncException(..), throwIO)
@@ -15,7 +16,7 @@ main :: IO ()
 main = hspec spec
 
 evaluateExample :: H.Example e => e -> IO H.Result
-evaluateExample = H.evaluateExample defaultParams
+evaluateExample = H.evaluateExample (defaultParams {H.paramsQuickCheckArgs = (H.paramsQuickCheckArgs defaultParams) {replay = Just (read "", 0)}})
 
 spec :: Spec
 spec = do
@@ -57,8 +58,23 @@ spec = do
         return ()
 
       it "shows what falsified it" $ do
-        H.Fail r <- evaluateExample $ property $ \ n -> n == (n + 1 :: Int)
-        lines r `shouldSatisfy` any (== "0")
+        H.Fail r <- evaluateExample $ property $ \x y -> x + y == (x * y :: Int)
+        r `shouldBe` intercalate "\n" [
+            "Falsifiable (after 1 test and 2 shrinks): "
+          , "0"
+          , "1"
+          ]
+
+      context "when used with shouldBe" $ do
+        it "shows what falsified it" $ do
+          H.Fail r <- evaluateExample $ property $ \x y -> x + y `shouldBe` (x * y :: Int)
+          r `shouldBe` intercalate "\n" [
+              "Falsifiable (after 1 test and 2 shrinks): "
+            , "expected: 0"
+            , " but got: 1"
+            , "0"
+            , "1"
+            ]
 
       it "propagates UserInterrupt" $ do
         let p = morallyDubiousIOProperty (throwIO UserInterrupt >> return True)

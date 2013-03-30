@@ -7,6 +7,7 @@ module Test.Hspec.Util (
 , formatRequirement
 , readMaybe
 , getEnv
+, strip
 ) where
 
 import           Data.List
@@ -94,3 +95,6 @@ lineBreaksAt n input = case words input of
         if length r <= n
           then go (r, ys)
           else s : go (y, ys)
+
+strip :: String -> String
+strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
