@@ -32,8 +32,10 @@ import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.State as QC
 import qualified Test.QuickCheck.Property as QCP
+import qualified Test.QuickCheck.IO ()
 
 import           Test.Hspec.Compat (isUserInterrupt)
+
 
 type Spec = SpecM ()
 
@@ -138,17 +140,6 @@ instance Example QC.Property where
         where
           n = length prefix
           prefix = "*** Failed! Exception: '"
-
-instance QC.Testable Expectation where
-  property = propertyIO
-  exhaustive _ = True
-
-propertyIO :: Expectation -> QC.Property
-propertyIO action = QCP.morallyDubiousIOProperty $ do
-  (action >> return succeeded) `E.catch` \(HUnitFailure err) -> return (failed err)
-  where
-    succeeded  = QC.property QCP.succeeded
-    failed err = QC.property QCP.failed {QCP.reason = err}
 
 -- | Specifies a pending example.
 --

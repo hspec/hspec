@@ -57,6 +57,7 @@ Library
     , transformers  >= 0.2.2.0 && < 0.4.0
     , HUnit         >= 1.2.5
     , QuickCheck    >= 2.5.1
+    , quickcheck-io
     , hspec-expectations == 0.3.0.*
   exposed-modules:
       Test.Hspec
@@ -106,6 +107,7 @@ test-suite spec
     , transformers
     , HUnit
     , QuickCheck
+    , quickcheck-io
     , hspec-expectations
 
     , hspec-meta
