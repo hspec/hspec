@@ -93,6 +93,7 @@ test-suite spec
       Test.Hspec.HUnitSpec
       Test.Hspec.QuickCheckSpec
       Test.Hspec.RunnerSpec
+      Test.Hspec.TimerSpec
       Test.Hspec.UtilSpec
   ghc-options:
       -Wall -Werror
