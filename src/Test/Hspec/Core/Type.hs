@@ -24,6 +24,7 @@ import           Control.Monad (when)
 import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 import           Data.Typeable (Typeable)
 import           Data.List (isPrefixOf)
+import           Data.Maybe (fromMaybe)
 
 import           Test.Hspec.Util
 import           Test.Hspec.Expectations
@@ -50,7 +51,7 @@ fromSpecList = SpecM . tell
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
-  deriving (Eq, Show, Typeable)
+  deriving (Eq, Show, Read, Typeable)
 
 instance E.Exception Result
 
@@ -107,7 +108,7 @@ instance Example QC.Property where
     return $
       case r of
         QC.Success {}               -> Success
-        f@(QC.Failure {})           -> Fail (sanitizeFailureMessage $ QC.output f)
+        QC.Failure {QC.output = m}  -> fromMaybe (Fail $ sanitizeFailureMessage m) (parsePending m)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
     where
@@ -129,6 +130,14 @@ instance Example QC.Property where
         where
           prefix = "*** Failed! "
           n = length prefix
+
+      parsePending :: String -> Maybe Result
+      parsePending m
+        | prefix `isPrefixOf` m = (readMaybe . takeWhile (/= '\'') . drop n) m
+        | otherwise = Nothing
+        where
+          n = length prefix
+          prefix = "*** Failed! Exception: '"
 
 instance QC.Testable Expectation where
   property = propertyIO

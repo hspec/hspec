@@ -86,13 +86,11 @@ spec = do
 
       context "when used with `pending`" $ do
         it "returns Pending" $ do
-          pending "this probaly needs a patch to QuickCheck"
-          -- evaluateExample (property H.pending) `shouldReturn` H.Pending Nothing
+          evaluateExample (property H.pending) `shouldReturn` H.Pending Nothing
 
       context "when used with `pendingWith`" $ do
         it "includes the optional reason" $ do
-          pending "this probaly needs a patch to QuickCheck"
-          -- evaluateExample (property $ H.pendingWith "foo") `shouldReturn` H.Pending (Just "foo")
+          evaluateExample (property $ H.pendingWith "foo") `shouldReturn` H.Pending (Just "foo")
 
   describe "Expectation" $ do
     context "as a QuickCheck property" $ do
