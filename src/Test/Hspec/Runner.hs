@@ -28,6 +28,8 @@ import           Test.Hspec.Config
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.FailureReport
+import           System.Console.ANSI (hHideCursor, hShowCursor)
+import           Test.Hspec.Timer
 
 -- | Filter specs by given predicate.
 --
@@ -46,8 +48,8 @@ filterSpecs p = goSpecs []
         xs -> Just (SpecGroup group xs)
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: Config -> Formatter -> [SpecTree] -> FormatM ()
-runFormatter c formatter specs = headerFormatter formatter >> zip [0..] specs `each` go []
+runFormatter :: Bool -> Config -> Formatter -> [SpecTree] -> FormatM ()
+runFormatter useColor c formatter specs = headerFormatter formatter >> zip [0..] specs `each` go []
   where
     -- like forM_, but respects --fast-fail
     each :: [a] -> (a -> FormatM ()) -> FormatM ()
@@ -68,7 +70,8 @@ runFormatter c formatter specs = headerFormatter formatter >> zip [0..] specs `e
       zip [0..] xs `each` go (group : rGroups)
       exampleGroupDone formatter
     go rGroups (_, SpecItem requirement example) = do
-      result <- eval (example $ Params (configQuickCheckArgs c))
+      progressHandler <- mkProgressHandler
+      result <- eval (example $ Params (configQuickCheckArgs c) progressHandler)
       case result of
         Right Success -> do
           increaseSuccessCount
@@ -87,6 +90,14 @@ runFormatter c formatter specs = headerFormatter formatter >> zip [0..] specs `e
           addFailMessage path err
           exampleFailed  formatter path err
 
+        mkProgressHandler
+          | useColor = do
+              timer <- liftIO $ newTimer 0.05
+              return $ \p -> do
+                f <- timer
+                when f $ do
+                  exampleProgress formatter (configHandle c) path p
+          | otherwise = return . const $ return ()
 
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
@@ -118,9 +129,11 @@ hspecWith c_ spec = do
       h = configHandle c
 
   useColor <- doesUseColor h c
+  when useColor (hHideCursor h)
   runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) h $ do
-    runFormatter c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_`
+    runFormatter useColor c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_` do
       failedFormatter formatter
+      liftIO $ when useColor (hShowCursor h)
 
     footerFormatter formatter
 

@@ -9,6 +9,7 @@ module Test.Hspec.Core.Type (
 , Example (..)
 , Result (..)
 , Params (..)
+, Progress
 
 , describe
 , it
@@ -27,6 +28,7 @@ import           Test.Hspec.Util
 import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
+import qualified Test.QuickCheck.State as QC
 import qualified Test.QuickCheck.Property as QCP
 
 import           Test.Hspec.Compat (isUserInterrupt)
@@ -51,8 +53,11 @@ data Result = Success | Pending (Maybe String) | Fail String
 
 instance E.Exception Result
 
+type Progress = (Int, Int)
+
 data Params = Params {
   paramsQuickCheckArgs :: QC.Args
+, paramsReportProgress :: Progress -> IO ()
 }
 
 -- | Internal representation of a spec.
@@ -94,7 +99,7 @@ instance Example Result where
 
 instance Example QC.Property where
   evaluateExample c p = do
-    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) p
+    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) (QCP.callback progressCallback p)
     when (isUserInterrupt r) $ do
       E.throwIO E.UserInterrupt
 
@@ -104,6 +109,9 @@ instance Example QC.Property where
         f@(QC.Failure {})           -> Fail (QC.output f)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
+    where
+      progressCallback = QCP.PostTest QCP.NotCounterexample $
+        \st _ -> paramsReportProgress c (QC.numSuccessTests st, QC.maxSuccessTests st)
 
 instance QC.Testable Expectation where
   property = propertyIO

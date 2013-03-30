@@ -47,6 +47,7 @@ import           Data.IORef
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 import           Test.Hspec.Util (Path)
+import           Test.Hspec.Core.Type (Progress)
 
 -- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a
@@ -146,6 +147,11 @@ data Formatter = Formatter {
 , exampleGroupStarted :: Int -> [String] -> String -> FormatM ()
 
 , exampleGroupDone    :: FormatM ()
+
+-- | used to notify the progress of the currently evaluated example
+--
+-- NOTE: This is only called when interactive/color mode.
+, exampleProgress     :: Handle -> Path -> Progress -> IO ()
 
 -- | evaluated after each successful example
 , exampleSucceeded    :: Path -> FormatM ()

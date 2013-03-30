@@ -73,6 +73,7 @@ Library
       Test.Hspec.Config
       Test.Hspec.FailureReport
       Test.Hspec.Formatters.Internal
+      Test.Hspec.Timer
 
 test-suite spec
   type:

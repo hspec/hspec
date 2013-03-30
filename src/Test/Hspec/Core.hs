@@ -8,6 +8,7 @@ module Test.Hspec.Core (
 -- * A type class for examples
   Example (..)
 , Params (..)
+, Progress
 , Result (..)
 
 -- * A writer monad for constructing specs

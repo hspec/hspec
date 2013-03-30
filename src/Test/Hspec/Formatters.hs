@@ -54,6 +54,7 @@ import           Text.Printf
 import           Control.Monad (unless, forM_)
 import           Control.Applicative
 import qualified Control.Exception as E
+import           System.IO (hPutStr)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -90,6 +91,7 @@ silent = Formatter {
   headerFormatter     = return ()
 , exampleGroupStarted = \_ _ _ -> return ()
 , exampleGroupDone    = return ()
+, exampleProgress     = \_ _ _ -> return ()
 , exampleSucceeded    = \_ -> return ()
 , exampleFailed       = \_ _ -> return ()
 , examplePending      = \_ _  -> return ()
@@ -114,6 +116,9 @@ specdoc = silent {
 
 , exampleGroupDone = do
     newParagraph
+
+, exampleProgress = \h _ (current, total) -> do
+    hPutStr h $ "(" ++ show current ++ "/" ++ show total ++ ")\r"
 
 , exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ "- " ++ requirement
