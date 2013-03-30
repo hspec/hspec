@@ -12,7 +12,7 @@ spec :: Spec
 spec = do
   describe "timer action returned by newTimer" $ do
 
-    let dt = 0.001
+    let dt = 0.01
 
     it "returns False" $ do
       timer <- newTimer dt
