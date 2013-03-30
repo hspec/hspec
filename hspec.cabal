@@ -51,6 +51,7 @@ Library
       src
   build-depends:
       base          == 4.*
+    , random        == 1.0.*
     , setenv
     , ansi-terminal >= 0.5
     , time
@@ -100,6 +101,7 @@ test-suite spec
       -Wall -Werror
   build-depends:
       base          == 4.*
+    , random        == 1.0.*
     , setenv
     , silently      >= 1.2.4
     , ansi-terminal

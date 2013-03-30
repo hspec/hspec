@@ -1,6 +1,9 @@
 module Test.Hspec.UtilSpec (main, spec) where
 
 import           Test.Hspec.Meta
+import           Test.QuickCheck
+import           Data.Int (Int32)
+import           System.Random (StdGen)
 
 import qualified Control.Exception as E
 import           Test.Hspec.Util
@@ -98,3 +101,19 @@ spec = do
     it "returns Nothing if specified environment variable is not set" $ do
       unsetEnv "FOO"
       getEnv "FOO" `shouldReturn` Nothing
+
+  describe "StdGen to Integer and vice versa" $ do
+    it "returns the same Integer when converted to StdGen and back" $ property $
+      \ i -> i >= 0 ==> (i == stdGenToInteger (stdGenFromInteger i))
+
+    let (===) :: StdGen -> StdGen -> Bool
+        a === b = show a == show b
+
+        arbitraryStdGen :: Gen StdGen
+        arbitraryStdGen = do
+          (a, b) <- arbitrary :: Gen (Positive Int32, Positive Int32)
+          return $ read (show (getPositive a) ++ " " ++ show (getPositive b))
+    it "returns the same StdGen when converted to Integer and back" $ property $
+      forAll arbitraryStdGen $ \ stdGen -> 
+        (stdGen === stdGenFromInteger (stdGenToInteger stdGen))
+
