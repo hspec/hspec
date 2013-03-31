@@ -23,7 +23,7 @@ import           System.Environment
 import           System.Exit
 import qualified Control.Exception as E
 
-import           Test.Hspec.Util (Path, safeEvaluate)
+import           Test.Hspec.Util (Path, safeTry)
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
@@ -64,7 +64,7 @@ runFormatter useColor c formatter specs = headerFormatter formatter >> zip [0..]
     eval :: IO Result -> FormatM (Either E.SomeException Result)
     eval
       | configDryRun c = \_ -> return (Right Success)
-      | otherwise      = liftIO . safeEvaluate . fmap forceResult
+      | otherwise      = liftIO . safeTry . fmap forceResult
 
     go :: [String] -> (Int, SpecTree) -> FormatM ()
     go rGroups (n, SpecGroup group xs) = do

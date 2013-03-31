@@ -3,13 +3,13 @@ module Test.Hspec.FailureReport where
 import           System.IO
 import           System.SetEnv
 import           Test.Hspec.Config
-import           Test.Hspec.Util (safeEvaluate, readMaybe, getEnv)
+import           Test.Hspec.Util (safeTry, readMaybe, getEnv)
 
 writeFailureReport :: String -> IO ()
 writeFailureReport x = do
   -- on Windows this can throw an exception when the input is too large, hence
-  -- we use `safeEvaluate` here
-  r <- safeEvaluate (setEnv "HSPEC_FAILURES" x)
+  -- we use `safeTry` here
+  r <- safeTry (setEnv "HSPEC_FAILURES" x)
   either onError return r
   where
     onError err = do

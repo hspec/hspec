@@ -40,21 +40,21 @@ spec = do
         , "sed do eiusmod"
         ]
 
-  describe "safeEvaluate" $ do
+  describe "safeTry" $ do
     it "returns Right on success" $ do
-      Right e <- safeEvaluate (return 23 :: IO Int)
+      Right e <- safeTry (return 23 :: IO Int)
       e `shouldBe` 23
 
     it "returns Left on exception" $ do
-      Left e <- safeEvaluate (E.throwIO E.DivideByZero :: IO Int)
+      Left e <- safeTry (E.throwIO E.DivideByZero :: IO Int)
       show e `shouldBe` "divide by zero"
 
     it "evaluates result to weak head normal form" $ do
-      Left e <- safeEvaluate (return undefined)
+      Left e <- safeTry (return undefined)
       show e `shouldBe` "Prelude.undefined"
 
     it "re-throws AsyncException" $ do
-      safeEvaluate (E.throwIO E.UserInterrupt :: IO Int) `shouldThrow` (== E.UserInterrupt)
+      safeTry (E.throwIO E.UserInterrupt :: IO Int) `shouldThrow` (== E.UserInterrupt)
 
   describe "filterPredicate" $ do
     it "tries to match a pattern against a path" $ do

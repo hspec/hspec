@@ -1,7 +1,7 @@
 module Test.Hspec.Util (
   quantify
 , lineBreaksAt
-, safeEvaluate
+, safeTry
 , Path
 , filterPredicate
 , formatRequirement
@@ -37,8 +37,8 @@ quantify :: Int -> String -> String
 quantify 1 s = "1 " ++ s
 quantify n s = show n ++ " " ++ s ++ "s"
 
-safeEvaluate :: IO a -> IO (Either E.SomeException a)
-safeEvaluate action = (Right <$> (action >>= E.evaluate)) `E.catches` [
+safeTry :: IO a -> IO (Either E.SomeException a)
+safeTry action = (Right <$> (action >>= E.evaluate)) `E.catches` [
   -- Re-throw AsyncException, otherwise execution will not terminate on SIGINT
   -- (ctrl-c).  All AsyncExceptions are re-thrown (not just UserInterrupt)
   -- because all of them indicate severe conditions and should not occur during
@@ -83,7 +83,7 @@ readMaybe :: Read a => String -> Maybe a
 readMaybe = fmap fst . listToMaybe . reads
 
 getEnv :: String -> IO (Maybe String)
-getEnv key = either (const Nothing) Just <$> safeEvaluate (Environment.getEnv key)
+getEnv key = either (const Nothing) Just <$> safeTry (Environment.getEnv key)
 
 -- ensure that lines are not longer then given `n`, insert line beraks at word
 -- boundaries
