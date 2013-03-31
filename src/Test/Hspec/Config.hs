@@ -70,7 +70,9 @@ configAddFilter p1 c = c {configFilterPredicate = Just p}
     mp = configFilterPredicate c
 
 setQC_MaxSuccess :: String -> Result -> Result
-setQC_MaxSuccess n x = (\c -> c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.maxSuccess = read n}}) <$> x
+setQC_MaxSuccess input x = x >>= \c -> case readMaybe input of
+  Just n -> return c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.maxSuccess = n}}
+  Nothing -> Left (InvalidArgument "qc-max-success" input)
 
 addLineBreaks :: String -> [String]
 addLineBreaks = lineBreaksAt 44

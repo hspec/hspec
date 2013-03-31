@@ -180,10 +180,16 @@ spec = do
     context "with --maximum-generated-tests=n" $ do
       it "tries QuickCheck properties n times" $ do
         m <- newMock
-        silence . withArgs ["--maximum-generated-tests=23"] . H.hspec $ do
+        silence . withArgs ["--qc-max-succes", "23"] . H.hspec $ do
           H.it "foo" $ property $ do
             mockAction m
         mockCounter m `shouldReturn` 23
+
+      context "when given an invalid argument" $ do
+        it "prints an error message to stderr" $ do
+          r <- hCapture_ [stderr] . ignoreExitCode . withArgs ["--qc-max-succes", "foo"] . H.hspec $ do
+            H.it "foo" (property True)
+          r `shouldContain` "invalid argument `foo' for `--qc-max-success'"
 
     context "with --print-cpu-time" $ do
       it "includes used CPU time in summary" $ do
