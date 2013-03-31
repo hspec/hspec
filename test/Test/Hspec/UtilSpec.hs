@@ -104,7 +104,7 @@ spec = do
 
   describe "StdGen to Integer and vice versa" $ do
     it "returns the same Integer when converted to StdGen and back" $ property $
-      \ i -> i >= 0 ==> (i == stdGenToInteger (stdGenFromInteger i))
+      \(NonNegative i) -> stdGenToInteger (stdGenFromInteger i) `shouldBe` i
 
     let (===) :: StdGen -> StdGen -> Bool
         a === b = show a == show b
