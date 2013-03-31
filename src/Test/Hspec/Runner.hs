@@ -21,6 +21,7 @@ import           Data.Maybe
 import           System.IO
 import           System.Environment
 import           System.Exit
+import           Control.Exception (bracket_)
 
 import           Test.Hspec.Util (Path, safeEvaluate)
 import           Test.Hspec.Core.Type
@@ -129,20 +130,25 @@ hspecWith c_ spec = do
       h = configHandle c
 
   useColor <- doesUseColor h c
-  when useColor (hHideCursor h)
-  runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) h $ do
-    runFormatter useColor c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_` do
-      failedFormatter formatter
-      liftIO $ when useColor (hShowCursor h)
 
-    footerFormatter formatter
+  withHiddenCursor useColor h $
+    runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) h $ do
+      runFormatter useColor c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_` do
+        failedFormatter formatter
 
-    -- dump failure report
-    xs <- map failureRecordPath <$> getFailMessages
-    liftIO $ writeFailureReport (show xs)
+      footerFormatter formatter
 
-    Summary <$> getTotalCount <*> getFailCount
+      -- dump failure report
+      xs <- map failureRecordPath <$> getFailMessages
+      liftIO $ writeFailureReport (show xs)
+
+      Summary <$> getTotalCount <*> getFailCount
   where
+    withHiddenCursor :: Bool -> Handle -> IO a -> IO a
+    withHiddenCursor useColor h
+      | useColor  = bracket_ (hHideCursor h) (hShowCursor h)
+      | otherwise = id
+
     doesUseColor :: Handle -> Config -> IO Bool
     doesUseColor h c = case configColorMode c of
       ColorAuto  -> hIsTerminalDevice h
