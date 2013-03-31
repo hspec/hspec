@@ -108,12 +108,11 @@ strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
 --   $show (StdGen a b) = show a ++ " " ++ show b$.
 stdGenToInteger :: StdGen -> Integer
 stdGenToInteger stdGen =
-   let [a, b] = map read . words $ show stdGen
-   in a * fromIntegral (maxBound :: Int32) + b
+  let [a, b] = map read . words $ show stdGen
+  in a * fromIntegral (maxBound :: Int32) + b
 
 -- | Inverse of 'stdGenToInteger'.
 stdGenFromInteger :: Integer -> StdGen
 stdGenFromInteger n =
-    let (a, b) = quotRem n (fromIntegral (maxBound :: Int32))
-    in read (show a ++ " " ++ show b)
-
+  let (a, b) = quotRem n (fromIntegral (maxBound :: Int32))
+  in read (show a ++ " " ++ show b)
