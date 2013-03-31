@@ -12,6 +12,7 @@ module Test.Hspec.Core.Type (
 
 , describe
 , it
+, forceResult
 
 , pending
 , pendingWith
@@ -34,6 +35,7 @@ import qualified Test.QuickCheck.Property as QCP
 import qualified Test.QuickCheck.IO ()
 
 import           Test.Hspec.Compat (isUserInterrupt)
+import           Control.DeepSeq (deepseq)
 
 
 type Spec = SpecM ()
@@ -53,6 +55,12 @@ fromSpecList = SpecM . tell
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
   deriving (Eq, Show, Read, Typeable)
+
+forceResult :: Result -> Result
+forceResult r = case r of
+  Success   -> r `seq` r
+  Pending m -> r `seq` m `deepseq` r
+  Fail    m -> r `seq` m `deepseq` r
 
 instance E.Exception Result
 

@@ -15,6 +15,7 @@ import           Test.Hspec.Util (getEnv)
 import           Test.QuickCheck
 
 import qualified Test.Hspec.Runner as H
+import qualified Test.Hspec.Core as H (Result(..))
 import qualified Test.Hspec as H (describe, it, pending)
 import qualified Test.Hspec.Formatters as H (silent)
 
@@ -284,3 +285,8 @@ spec = do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` ""
+
+    it "does not let escape error thunks from failure messages" $ do
+      r <- silence . H.hspecWith H.defaultConfig $ do
+        H.it "some example" (H.Fail $ "foobar" ++ undefined)
+      r `shouldBe` H.Summary 1 1

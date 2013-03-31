@@ -39,7 +39,7 @@ safeEvaluate action = (Right <$> (action >>= E.evaluate)) `E.catches` [
   -- (ctrl-c).  All AsyncExceptions are re-thrown (not just UserInterrupt)
   -- because all of them indicate severe conditions and should not occur during
   -- normal operation.
-    E.Handler $ \e -> E.throw (e :: E.AsyncException)
+    E.Handler $ \e -> E.throwIO (e :: E.AsyncException)
 
   , E.Handler $ \e -> (return . Left) (e :: E.SomeException)
   ]

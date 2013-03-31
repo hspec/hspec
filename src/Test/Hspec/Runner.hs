@@ -21,7 +21,7 @@ import           Data.Maybe
 import           System.IO
 import           System.Environment
 import           System.Exit
-import           Control.Exception (bracket_)
+import qualified Control.Exception as E
 
 import           Test.Hspec.Util (Path, safeEvaluate)
 import           Test.Hspec.Core.Type
@@ -61,9 +61,10 @@ runFormatter useColor c formatter specs = headerFormatter formatter >> zip [0..]
       unless (configFastFail c && fails /= 0) $ do
         xs `each` f
 
+    eval :: IO Result -> FormatM (Either E.SomeException Result)
     eval
       | configDryRun c = \_ -> return (Right Success)
-      | otherwise      = liftIO . safeEvaluate
+      | otherwise      = liftIO . safeEvaluate . fmap forceResult
 
     go :: [String] -> (Int, SpecTree) -> FormatM ()
     go rGroups (n, SpecGroup group xs) = do
@@ -146,7 +147,7 @@ hspecWith c_ spec = do
   where
     withHiddenCursor :: Bool -> Handle -> IO a -> IO a
     withHiddenCursor useColor h
-      | useColor  = bracket_ (hHideCursor h) (hShowCursor h)
+      | useColor  = E.bracket_ (hHideCursor h) (hShowCursor h)
       | otherwise = id
 
     doesUseColor :: Handle -> Config -> IO Bool
