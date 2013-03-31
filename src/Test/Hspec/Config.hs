@@ -4,6 +4,9 @@ module Test.Hspec.Config (
 , defaultConfig
 , getConfig
 , configAddFilter
+
+-- exported to silence warnings
+, Arg (..)
 ) where
 
 import           Control.Monad (unless)
@@ -69,38 +72,56 @@ configAddFilter p1 c = c {configFilterPredicate = Just p}
     p  = maybe p1 (\p0 path -> p0 path || p1 path) mp
     mp = configFilterPredicate c
 
-setQC_MaxSuccess :: String -> Result -> Result
-setQC_MaxSuccess input x = x >>= \c -> case readMaybe input of
-  Just n -> return c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.maxSuccess = n}}
-  Nothing -> Left (InvalidArgument "qc-max-success" input)
+setMaxSuccess :: Int -> Config -> Config
+setMaxSuccess n c = c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.maxSuccess = n}}
+
+data Arg a = Arg {
+  argumentName   :: String
+, argumentParser :: String -> Maybe a
+, argumentSetter :: a -> Config -> Config
+}
+
+mkOption :: [Char] -> [Char] -> Arg a -> String -> OptDescr (Result -> Result)
+mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name] (ReqArg arg argName) help
+  where
+    arg :: String -> Result -> Result
+    arg input x = x >>= \c -> case parser input of
+      Just n -> Right (setter n c)
+      Nothing -> Left (InvalidArgument name input)
 
 addLineBreaks :: String -> [String]
 addLineBreaks = lineBreaksAt 44
 
 options :: [OptDescr (Result -> Result)]
 options = [
-    Option []  ["help"]                    (NoArg (const $ Left Help))        (h "display this help and exit")
-  , Option "m" ["match"]                   (ReqArg setFilter "PATTERN")       (h "only run examples that match given PATTERN")
-  , Option []  ["color"]                   (OptArg setColor "WHEN")           (h "colorize the output; WHEN defaults to `always' or can be `never' or `auto'")
-  , Option "f" ["format"]                  (ReqArg setFormatter "FORMATTER")  formatHelp
-  , Option "a" ["qc-max-success"]          (ReqArg setQC_MaxSuccess "N")      (h "maximum number of successful tests before a QuickCheck property succeeds")
-  , Option []  ["print-cpu-time"]          (NoArg setPrintCpuTime)            (h "include used CPU time in summary")
-  , Option []  ["dry-run"]                 (NoArg setDryRun)                  (h "pretend that everything passed; don't verify anything")
-  , Option []  ["fail-fast"]               (NoArg setFastFail)                (h "abort on first failure")
+    Option   []  ["help"]             (NoArg (const $ Left Help))         (h "display this help and exit")
+  , mkOption "m"  "match"             (Arg "PATTERN" return setFilter)    (h "only run examples that match given PATTERN")
+  , Option   []  ["color"]            (OptArg setColor "WHEN")            (h "colorize the output; WHEN defaults to `always' or can be `never' or `auto'")
+  , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
+  , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
+  , mkOption []   "seed"              (Arg "N" readMaybe setSeed)         (h "used seed for QuickCheck properties")
+  , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
+  , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
+  , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
   ]
   where
     h = unlines . addLineBreaks
 
-    setFilter :: String -> Result -> Result
-    setFilter pattern x = configAddFilter (filterPredicate pattern) <$> x
+    setFilter :: String -> Config -> Config
+    setFilter = configAddFilter . filterPredicate
+
+    readFormatter :: String -> Maybe Formatter
+    readFormatter = (`lookup` formatters)
+
+    setFormatter :: Formatter -> Config -> Config
+    setFormatter f c = c {configFormatter = f}
+
+    setSeed :: Integer -> Config -> Config
+    setSeed n c = c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.replay = Just (stdGenFromInteger n, 0)}}
 
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun       = True}
     setFastFail     x = x >>= \c -> return c {configFastFail     = True}
-
-    setFormatter name x = x >>= \c -> case lookup name formatters of
-      Nothing -> Left (InvalidArgument "format" name)
-      Just f  -> return c {configFormatter = f}
 
     setColor mValue x = x >>= \c -> parseColor mValue >>= \v -> return c {configColorMode = v}
       where
@@ -116,7 +137,7 @@ undocumentedOptions = [
     Option "r" ["re-run"]                  (NoArg  setReRun)                  "only re-run examples that previously failed"
 
     -- for compatibility with test-framework
-  , Option ""  ["maximum-generated-tests"] (ReqArg setQC_MaxSuccess "NUMBER") "how many automated tests something like QuickCheck should try, by default"
+  , mkOption "a" "maximum-generated-tests" (Arg "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
 
     -- undocumented for now, as we probably want to change this to produce a
     -- standalone HTML report in the future

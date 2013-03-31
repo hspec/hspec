@@ -206,6 +206,26 @@ spec = do
             H.it "foo" True
           r `shouldContain` "invalid argument `foo' for `--qc-max-success'"
 
+    context "with --seed" $ do
+      it "uses specified seed" $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--seed=2413421499272008081"] . H.hspec $ do
+            H.it "foo" $
+              property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Int)
+        r `shouldContain` [
+            "Falsifiable (after 55 tests): "
+          , "1190445426"
+          ]
+
+      context "when given an invalid argument" $ do
+        let run = withArgs ["--seed", "foo"] . H.hspec $ do
+                    H.it "foo" True
+        it "prints an error message to stderr" $ do
+          r <- hCapture_ [stderr] (ignoreExitCode run)
+          r `shouldContain` "invalid argument `foo' for `--seed'"
+
+        it "exits with exitFailure" $ do
+          hSilence [stderr] run `shouldThrow` (== ExitFailure 1)
+
     context "with --print-cpu-time" $ do
       it "includes used CPU time in summary" $ do
         r <- capture_ $ withArgs ["--print-cpu-time"] (H.hspec $ pure ())
