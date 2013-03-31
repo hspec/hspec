@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hspec.UtilSpec (main, spec) where
 
 import           Test.Hspec.Meta
@@ -106,14 +107,13 @@ spec = do
     it "returns the same Integer when converted to StdGen and back" $ property $
       \(NonNegative i) -> stdGenToInteger (stdGenFromInteger i) `shouldBe` i
 
-    let (===) :: StdGen -> StdGen -> Bool
-        a === b = show a == show b
-
-        arbitraryStdGen :: Gen StdGen
-        arbitraryStdGen = do
-          (a, b) <- arbitrary :: Gen (Positive Int32, Positive Int32)
-          return $ read (show (getPositive a) ++ " " ++ show (getPositive b))
     it "returns the same StdGen when converted to Integer and back" $ property $
-      forAll arbitraryStdGen $ \ stdGen -> 
-        (stdGen === stdGenFromInteger (stdGenToInteger stdGen))
+      \stdGen -> stdGenFromInteger (stdGenToInteger stdGen) `shouldBe` stdGen
 
+instance Eq StdGen where
+  a == b = show a == show b
+
+instance Arbitrary StdGen where
+  arbitrary = do
+    (Positive a, Positive b) <- arbitrary
+    return $ read (show (a :: Int32) ++ " " ++ show (b :: Int32))
