@@ -177,6 +177,21 @@ spec = do
             H.it "example 3" $ mockAction e3
         (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 0, 1)
 
+    context "with --format" $ do
+      it "uses specified formatter" $ do
+        r <- capture_ . ignoreExitCode . withArgs ["--format", "progress"] . H.hspec $ do
+          H.it "foo" True
+          H.it "bar" True
+          H.it "baz" False
+          H.it "qux" True
+        r `shouldContain` "..F."
+
+      context "when given an invalid argument" $ do
+        it "prints an error message to stderr" $ do
+          r <- hCapture_ [stderr] . ignoreExitCode . withArgs ["--format", "foo"] . H.hspec $ do
+            H.it "foo" True
+          r `shouldContain` "invalid argument `foo' for `--format'"
+
     context "with --maximum-generated-tests=n" $ do
       it "tries QuickCheck properties n times" $ do
         m <- newMock
@@ -188,7 +203,7 @@ spec = do
       context "when given an invalid argument" $ do
         it "prints an error message to stderr" $ do
           r <- hCapture_ [stderr] . ignoreExitCode . withArgs ["--qc-max-succes", "foo"] . H.hspec $ do
-            H.it "foo" (property True)
+            H.it "foo" True
           r `shouldContain` "invalid argument `foo' for `--qc-max-success'"
 
     context "with --print-cpu-time" $ do
