@@ -1,3 +1,7 @@
+## Changes in 1.5.2
+ - Add --seed, it can be used to specify seed for QuickCheck properties
+ - Reuse previous seed on --re-run
+
 ## Changes in 1.5.1
  - Depend on quickcheck-io
 

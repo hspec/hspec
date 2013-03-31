@@ -4,6 +4,7 @@ module Test.Hspec.Config (
 , defaultConfig
 , getConfig
 , configAddFilter
+, configSetSeed
 
 -- exported to silence warnings
 , Arg (..)
@@ -75,6 +76,10 @@ configAddFilter p1 c = c {configFilterPredicate = Just p}
 setMaxSuccess :: Int -> Config -> Config
 setMaxSuccess n c = c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.maxSuccess = n}}
 
+configSetSeed :: Integer -> Config -> Config
+configSetSeed n c = c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.replay = Just (stdGenFromInteger n, 0)}}
+
+
 data Arg a = Arg {
   argumentName   :: String
 , argumentParser :: String -> Maybe a
@@ -99,7 +104,7 @@ options = [
   , Option   []  ["color"]            (OptArg setColor "WHEN")            (h "colorize the output; WHEN defaults to `always' or can be `never' or `auto'")
   , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
   , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
-  , mkOption []   "seed"              (Arg "N" readMaybe setSeed)         (h "used seed for QuickCheck properties")
+  , mkOption []   "seed"              (Arg "N" readMaybe configSetSeed)   (h "used seed for QuickCheck properties")
   , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
@@ -115,9 +120,6 @@ options = [
 
     setFormatter :: Formatter -> Config -> Config
     setFormatter f c = c {configFormatter = f}
-
-    setSeed :: Integer -> Config -> Config
-    setSeed n c = c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.replay = Just (stdGenFromInteger n, 0)}}
 
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun       = True}

@@ -208,13 +208,28 @@ spec = do
 
     context "with --seed" $ do
       it "uses specified seed" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--seed=2413421499272008081"] . H.hspec $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--seed", "2413421499272008081"] . H.hspec $ do
             H.it "foo" $
               property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Int)
         r `shouldContain` [
             "Falsifiable (after 55 tests): "
           , "1190445426"
           ]
+
+      context "when run with --re-run" $ do
+        it "takes precedence" $ do
+          let runSpec args = capture_ . ignoreExitCode . withArgs args . H.hspec $ do
+                H.it "foo" $
+                  property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Int)
+
+          r0 <- runSpec ["--seed", "23"]
+          r0 `shouldContain` "(after 13 tests)"
+
+          r1 <- runSpec ["--seed", "42"]
+          r1 `shouldContain` "(after 18 tests)"
+
+          r2 <- runSpec ["--re-run", "--seed", "23"]
+          r2 `shouldContain` "(after 13 tests)"
 
       context "when given an invalid argument" $ do
         let run = withArgs ["--seed", "foo"] . H.hspec $ do
@@ -253,15 +268,15 @@ spec = do
         r `shouldContain` "<span class=\"hspec-failure\">- foo"
 
   describe "hspec (experimental features)" $ do
-    it "stores a failure report in environment HSPEC_FAILURES" $ do
-      silence . ignoreExitCode . H.hspec $ do
+    it "stores a failure report in environment" $ do
+      silence . ignoreExitCode . withArgs ["--seed", "23"] . H.hspec $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "example 1" True
             H.it "example 2" False
         H.describe "baz" $ do
           H.it "example 3" False
-      getEnv "HSPEC_FAILURES" `shouldReturn` Just "[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")]"
+      getEnv "HSPEC_FAILURES" `shouldReturn` Just "(23,[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")])"
 
     describe "with --re-run" $ do
       let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
@@ -278,6 +293,22 @@ spec = do
         r1 <- withArgs ["-r"] runSpec
         r1 `shouldSatisfy` elem "3 examples, 3 failures"
 
+      it "reuses the same seed" $ do
+        let runSpec_ = (captureLines . ignoreExitCode . H.hspec) $ do
+              H.it "foo" $ property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Int)
+
+        r0 <- withArgs ["--seed", "2413421499272008081"] runSpec_
+        r0 `shouldContain` [
+            "Falsifiable (after 55 tests): "
+          , "1190445426"
+          ]
+
+        r1 <- withArgs ["-r"] runSpec_
+        r1 `shouldContain` [
+            "Falsifiable (after 55 tests): "
+          , "1190445426"
+          ]
+
       context "when there is no failure report in the environment" $ do
         it "runs everything" $ do
           unsetEnv "HSPEC_FAILURES"
@@ -286,8 +317,8 @@ spec = do
 
         it "prints a warning to stderr" $ do
           unsetEnv "HSPEC_FAILURES"
-          r <- hCapture [stderr] $ withArgs ["-r"] runSpec
-          fst r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--re-run' is ignored!\n"
+          r <- hCapture_ [stderr] $ withArgs ["-r"] runSpec
+          r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--re-run' is ignored!\n"
 
       context "when parsing of failure report fails" $ do
         it "runs everything" $ do

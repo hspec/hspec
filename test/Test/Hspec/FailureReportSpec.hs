@@ -16,7 +16,7 @@ spec :: Spec
 spec = do
   describe "writeFailureReport" $ do
     it "prints a warning on unexpected exceptions" $ do
-      (r, ()) <- hCapture [stderr] $ writeFailureReport (error "some error")
+      r <- hCapture_ [stderr] $ writeFailureReport (error "some error")
       r `shouldBe` "WARNING: Could not write environment variable HSPEC_FAILURES (some error)\n"
 
   -- GHCi needs to keep the environment on :reload, so that we can store

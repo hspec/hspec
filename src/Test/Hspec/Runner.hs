@@ -23,13 +23,16 @@ import           System.Environment
 import           System.Exit
 import qualified Control.Exception as E
 
-import           Test.Hspec.Util (Path, safeTry)
+import           System.Console.ANSI (hHideCursor, hShowCursor)
+import qualified Test.QuickCheck as QC
+import           System.Random (newStdGen)
+
+import           Test.Hspec.Util
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.FailureReport
-import           System.Console.ANSI (hHideCursor, hShowCursor)
 import           Test.Hspec.Timer
 
 -- | Filter specs by given predicate.
@@ -112,6 +115,25 @@ hspec spec = do
     r <- hspecWith c spec
     unless (summaryFailures r == 0) exitFailure
 
+handleReRun :: Config -> IO Config
+handleReRun c = do
+  if configReRun c
+    then do
+      readFailureReport c
+    else do
+      return c
+
+-- Add a StdGen to configQuickCheckArgs if there is none.  That way the same
+-- seed is used for all properties.  This helps with --seed and --re-run.
+ensureStdGen :: Config -> IO Config
+ensureStdGen c = case QC.replay qcArgs of
+  Nothing -> do
+    stdGen <- newStdGen
+    return c {configQuickCheckArgs = qcArgs {QC.replay = Just (stdGen, 0)}}
+  _       -> return c
+  where
+    qcArgs = configQuickCheckArgs c
+
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
 --
@@ -121,14 +143,11 @@ hspec spec = do
 hspecWith :: Config -> Spec -> IO Summary
 hspecWith c_ spec = do
   -- read failure report on --re-run
-  c <- if configReRun c_
-    then do
-      readFailureReport c_
-    else do
-      return c_
+  c <- handleReRun c_ >>= ensureStdGen
 
   let formatter = configFormatter c
       h = configHandle c
+      seed = (stdGenToInteger . fst . fromJust . QC.replay . configQuickCheckArgs) c
 
   useColor <- doesUseColor h c
 
@@ -141,7 +160,7 @@ hspecWith c_ spec = do
 
       -- dump failure report
       xs <- map failureRecordPath <$> getFailMessages
-      liftIO $ writeFailureReport (show xs)
+      liftIO $ writeFailureReport (seed, xs)
 
       Summary <$> getTotalCount <*> getFailCount
   where
