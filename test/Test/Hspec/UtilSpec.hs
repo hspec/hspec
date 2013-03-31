@@ -103,12 +103,13 @@ spec = do
       unsetEnv "FOO"
       getEnv "FOO" `shouldReturn` Nothing
 
-  describe "StdGen to Integer and vice versa" $ do
-    it "returns the same Integer when converted to StdGen and back" $ property $
-      \(NonNegative i) -> stdGenToInteger (stdGenFromInteger i) `shouldBe` i
+  describe "stdGenToInteger" $ do
+    it "is inverse to stdGenFromInteger" $ property $
+      \(NonNegative i) -> (stdGenToInteger . stdGenFromInteger) i `shouldBe` i
 
-    it "returns the same StdGen when converted to Integer and back" $ property $
-      \stdGen -> stdGenFromInteger (stdGenToInteger stdGen) `shouldBe` stdGen
+  describe "stdGenFromInteger" $ do
+    it "is inverse to stdGenToInteger" $ property $
+      \stdGen -> (stdGenFromInteger . stdGenToInteger) stdGen `shouldBe` stdGen
 
 instance Eq StdGen where
   a == b = show a == show b
