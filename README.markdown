@@ -45,3 +45,4 @@ To run the test suite do:
  * Fujimura Daisuke
  * Michael Snoyman
  * Takayuki Muranushi
+ * Sönke Hahn
