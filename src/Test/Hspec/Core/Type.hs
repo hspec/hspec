@@ -1,5 +1,4 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hspec.Core.Type (
   Spec
 , SpecM (..)
