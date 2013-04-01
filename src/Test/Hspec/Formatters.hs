@@ -29,6 +29,7 @@ module Test.Hspec.Formatters (
 
 , FailureRecord (..)
 , getFailMessages
+, usedSeed
 
 , getCPUTime
 , getRealTime
@@ -72,6 +73,7 @@ import Test.Hspec.Formatters.Internal (
 
   , FailureRecord (..)
   , getFailMessages
+  , usedSeed
 
   , getCPUTime
   , getRealTime
@@ -161,6 +163,8 @@ defaultFailedFormatter = do
 
   forM_ (zip [1..] failures) $ \x -> do
     formatFailure x
+    writeLine ""
+    write "Randomized with seed " >> usedSeed >>= writeLine . show
     writeLine ""
   where
     formatFailure :: (Int, FailureRecord) -> FormatM ()

@@ -152,7 +152,7 @@ hspecWith c_ spec = do
   useColor <- doesUseColor h c
 
   withHiddenCursor useColor h $
-    runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) h $ do
+    runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
       runFormatter useColor c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_` do
         failedFormatter formatter
 

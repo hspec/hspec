@@ -12,6 +12,7 @@ module Test.Hspec.Formatters.Internal (
 
 , FailureRecord (..)
 , getFailMessages
+, usedSeed
 
 , getCPUTime
 , getRealTime
@@ -76,9 +77,14 @@ data FormatterState = FormatterState {
 , pendingCount    :: Int
 , failCount       :: Int
 , failMessages    :: [FailureRecord]
+, stateUsedSeed   :: Integer
 , cpuStartTime    :: Maybe Integer
 , startTime       :: POSIXTime
 }
+
+-- | The random seed that is used for QuickCheck.
+usedSeed :: FormatM Integer
+usedSeed = gets stateUsedSeed
 
 -- | The total number of examples encountered so far.
 totalCount :: FormatterState -> Int
@@ -89,11 +95,11 @@ totalCount s = successCount s + pendingCount s + failCount s
 newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
   deriving (Functor, Applicative, Monad)
 
-runFormatM :: Bool -> Bool -> Bool -> Handle -> FormatM a -> IO a
-runFormatM useColor produceHTML_ printCpuTime handle (FormatM action) = do
+runFormatM :: Bool -> Bool -> Bool -> Integer -> Handle -> FormatM a -> IO a
+runFormatM useColor produceHTML_ printCpuTime seed handle (FormatM action) = do
   time <- getPOSIXTime
   cpuTime <- if printCpuTime then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState handle useColor produceHTML_ False 0 0 0 [] cpuTime time)
+  st <- newIORef (FormatterState handle useColor produceHTML_ False 0 0 0 [] seed cpuTime time)
   evalStateT action st
 
 -- | Increase the counter for successful examples

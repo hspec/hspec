@@ -65,7 +65,7 @@ spec = do
 
     context "when interrupted with ctrl-c" $ do
       it "prints summary immediately" $ do
-        r <- captureLines . ignoreUserInterrupt . H.hspec $ do
+        r <- captureLines . ignoreUserInterrupt . withArgs ["--seed", "23"] . H.hspec $ do
           H.it "foo" False
           H.it "bar" $ do
             E.throwIO E.UserInterrupt :: IO ()
@@ -75,6 +75,8 @@ spec = do
           , "- foo FAILED [1]"
           , ""
           , "1) foo FAILED"
+          , ""
+          , "Randomized with seed 23"
           , ""
           ]
 
@@ -119,7 +121,7 @@ spec = do
 
     context "with --fail-fast" $ do
       it "stops after first failure" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast"] . H.hspec $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec $ do
           H.it "foo" True
           H.it "bar" False
           H.it "baz" False
@@ -130,12 +132,14 @@ spec = do
           , ""
           , "1) bar FAILED"
           , ""
+          , "Randomized with seed 23"
+          , ""
           , "Finished in 0.0000 seconds"
           , "2 examples, 1 failure"
           ]
 
       it "works for nested specs" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast"] . H.hspec $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec $ do
           H.describe "foo" $ do
             H.it "bar" False
             H.it "baz" True
@@ -145,6 +149,8 @@ spec = do
           , "  - bar FAILED [1]"
           , ""
           , "1) foo bar FAILED"
+          , ""
+          , "Randomized with seed 23"
           , ""
           , "Finished in 0.0000 seconds"
           , "1 example, 1 failure"

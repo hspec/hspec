@@ -139,7 +139,7 @@ undocumentedOptions = [
     Option "r" ["re-run"]                  (NoArg  setReRun)                  "only re-run examples that previously failed"
 
     -- for compatibility with test-framework
-  , mkOption "a" "maximum-generated-tests" (Arg "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
+  , mkOption [] "maximum-generated-tests" (Arg "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
 
     -- undocumented for now, as we probably want to change this to produce a
     -- standalone HTML report in the future
