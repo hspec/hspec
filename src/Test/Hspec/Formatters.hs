@@ -164,6 +164,7 @@ defaultFailedFormatter = do
   forM_ (zip [1..] failures) $ \x -> do
     formatFailure x
     writeLine ""
+  unless (null failures) $ do
     write "Randomized with seed " >> usedSeed >>= writeLine . show
     writeLine ""
   where
