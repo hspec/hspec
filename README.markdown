@@ -46,3 +46,4 @@ To run the test suite do:
  * Michael Snoyman
  * Takayuki Muranushi
  * Sönke Hahn
+ * Peter Simons
