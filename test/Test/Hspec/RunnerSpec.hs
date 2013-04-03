@@ -216,26 +216,25 @@ spec = do
       it "uses specified seed" $ do
         r <- captureLines . ignoreExitCode . withArgs ["--seed", "2413421499272008081"] . H.hspec $ do
             H.it "foo" $
-              property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Int)
+              property (/= (26 :: Integer))
         r `shouldContain` [
-            "Falsifiable (after 55 tests): "
-          , "1190445426"
+            "Falsifiable (after 66 tests): "
+          , "26"
           ]
 
       context "when run with --re-run" $ do
         it "takes precedence" $ do
           let runSpec args = capture_ . ignoreExitCode . withArgs args . H.hspec $ do
                 H.it "foo" $
-                  property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Int)
-
+                  property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Integer)
           r0 <- runSpec ["--seed", "23"]
-          r0 `shouldContain` "(after 13 tests)"
+          r0 `shouldContain` "(after 88 tests)"
 
           r1 <- runSpec ["--seed", "42"]
-          r1 `shouldContain` "(after 18 tests)"
+          r1 `shouldContain` "(after 48 tests)"
 
           r2 <- runSpec ["--re-run", "--seed", "23"]
-          r2 `shouldContain` "(after 13 tests)"
+          r2 `shouldContain` "(after 88 tests)"
 
       context "when given an invalid argument" $ do
         let run = withArgs ["--seed", "foo"] . H.hspec $ do
@@ -301,18 +300,18 @@ spec = do
 
       it "reuses the same seed" $ do
         let runSpec_ = (captureLines . ignoreExitCode . H.hspec) $ do
-              H.it "foo" $ property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Int)
+              H.it "foo" $ property $ (/= (26 :: Integer))
 
         r0 <- withArgs ["--seed", "2413421499272008081"] runSpec_
         r0 `shouldContain` [
-            "Falsifiable (after 55 tests): "
-          , "1190445426"
+            "Falsifiable (after 66 tests): "
+          , "26"
           ]
 
         r1 <- withArgs ["-r"] runSpec_
         r1 `shouldContain` [
-            "Falsifiable (after 55 tests): "
-          , "1190445426"
+            "Falsifiable (after 66 tests): "
+          , "26"
           ]
 
       context "when there is no failure report in the environment" $ do
