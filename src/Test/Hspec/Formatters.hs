@@ -207,8 +207,8 @@ defaultFooter = do
         | pending /= 0 = withPendingColor
         | otherwise    = withSuccessColor
   c $ do
-    write $ quantify total   "example"
-    write (", " ++ quantify fails "failure")
+    write $ pluralize total   "example"
+    write (", " ++ pluralize fails "failure")
     unless (pending == 0) $
       write (", " ++ show pending ++ " pending")
   writeLine ""

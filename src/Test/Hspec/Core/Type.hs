@@ -118,7 +118,7 @@ instance Example QC.Property where
       case r of
         QC.Success {}               -> Success
         QC.Failure {QC.output = m}  -> fromMaybe (Fail $ sanitizeFailureMessage m) (parsePending m)
-        QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ quantify n "test" )
+        QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ pluralize n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
     where
       progressCallback = QCP.PostTest QCP.NotCounterexample $

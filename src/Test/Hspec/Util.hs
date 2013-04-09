@@ -1,5 +1,5 @@
 module Test.Hspec.Util (
-  quantify
+  pluralize
 , lineBreaksAt
 , safeTry
 , Path
@@ -25,17 +25,17 @@ import           System.Random (StdGen)
 --
 -- Examples:
 --
--- >>> quantify 0 "example"
+-- >>> pluralize 0 "example"
 -- "0 examples"
 --
--- >>> quantify 1 "example"
+-- >>> pluralize 1 "example"
 -- "1 example"
 --
--- >>> quantify 2 "example"
+-- >>> pluralize 2 "example"
 -- "2 examples"
-quantify :: Int -> String -> String
-quantify 1 s = "1 " ++ s
-quantify n s = show n ++ " " ++ s ++ "s"
+pluralize :: Int -> String -> String
+pluralize 1 s = "1 " ++ s
+pluralize n s = show n ++ " " ++ s ++ "s"
 
 safeTry :: IO a -> IO (Either E.SomeException a)
 safeTry action = (Right <$> (action >>= E.evaluate)) `E.catches` [
