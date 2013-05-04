@@ -1,3 +1,6 @@
+## Changes in 1.5.3
+ - Print "Randomized with seed ..." only once
+
 ## Changes in 1.5.2
  - Add `--seed`, it can be used to specify the seed for QuickCheck properties
  - Reuse previous seed on `--re-run`
