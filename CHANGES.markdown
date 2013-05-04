@@ -1,3 +1,6 @@
+## Changes in 1.6.0
+ - Add MonadIO instance for FormatM
+
 ## Changes in 1.5.3
  - Print "Randomized with seed ..." only once
 
