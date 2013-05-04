@@ -110,7 +110,7 @@ instance Example Result where
 
 instance Example QC.Property where
   evaluateExample c p = do
-    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) (QCP.callback progressCallback p)
+    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback progressCallback p)
     when (isUserInterrupt r) $ do
       E.throwIO E.UserInterrupt
 

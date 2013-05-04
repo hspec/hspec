@@ -1,5 +1,6 @@
 ## Changes in 1.6.0
  - Add MonadIO instance for FormatM
+ - Make sure that QuickCheck is never chatty
 
 ## Changes in 1.5.3
  - Print "Randomized with seed ..." only once

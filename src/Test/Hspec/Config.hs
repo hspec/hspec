@@ -47,7 +47,7 @@ data Config = Config {
 data ColorMode = ColorAuto | ColorNever | ColorAlway
 
 defaultConfig :: Config
-defaultConfig = Config False False False False False Nothing QC.stdArgs {QC.chatty = False} ColorAuto specdoc False stdout
+defaultConfig = Config False False False False False Nothing QC.stdArgs ColorAuto specdoc False stdout
 
 formatters :: [(String, Formatter)]
 formatters = [
