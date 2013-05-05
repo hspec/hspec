@@ -27,6 +27,7 @@ module Test.Hspec.Formatters.Internal (
 
 -- * Functions for internal use
 , runFormatM
+, liftIO
 , increaseSuccessCount
 , increasePendingCount
 , increaseFailCount
@@ -41,7 +42,7 @@ import           Control.Applicative
 import           Control.Exception (SomeException, AsyncException(..), bracket_, try, throwIO)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (gets, modify)
-import           Control.Monad.IO.Class
+import qualified Control.Monad.IO.Class as IOClass
 import qualified System.CPUTime as CPUTime
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
@@ -52,12 +53,20 @@ import           Test.Hspec.Core.Type (Progress)
 -- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a
 gets f = FormatM $ do
-  f <$> (get >>= liftIO . readIORef)
+  f <$> (get >>= IOClass.liftIO . readIORef)
 
 -- | A lifted version of `Control.Monad.Trans.State.modify`
 modify :: (FormatterState -> FormatterState) -> FormatM ()
 modify f = FormatM $ do
-  get >>= liftIO . (`modifyIORef'` f)
+  get >>= IOClass.liftIO . (`modifyIORef'` f)
+
+-- | A lifted version of `IOClass.liftIO`
+--
+-- This is meant for internal use only, and not part of the public API.  This
+-- is also the reason why we do not make FormatM an instance MonadIO, so we
+-- have narrow control over the visibilty of this function.
+liftIO :: IO a -> FormatM a
+liftIO action = FormatM (IOClass.liftIO action)
 
 data FormatterState = FormatterState {
   stateHandle     :: Handle
@@ -84,7 +93,7 @@ totalCount s = successCount s + pendingCount s + failCount s
 -- NOTE: We use an IORef here, so that the state persists when UserInterrupt is
 -- thrown.
 newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
-  deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (Functor, Applicative, Monad)
 
 runFormatM :: Bool -> Bool -> Bool -> Integer -> Handle -> FormatM a -> IO a
 runFormatM useColor produceHTML_ printCpuTime seed handle (FormatM action) = do
