@@ -55,7 +55,7 @@ import           Text.Printf
 import           Control.Monad (unless, forM_)
 import           Control.Applicative
 import qualified Control.Exception as E
-import           System.IO (hPutStr)
+import           System.IO (hPutStr, hFlush)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -121,6 +121,7 @@ specdoc = silent {
 
 , exampleProgress = \h _ (current, total) -> do
     hPutStr h $ "(" ++ show current ++ "/" ++ show total ++ ")\r"
+    hFlush h
 
 , exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ "- " ++ requirement
