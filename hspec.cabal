@@ -13,12 +13,12 @@ stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.com/
 synopsis:         Behavior-Driven Development for Haskell
-description:      Hspec is a library for
-                  /behavior-driven development (BDD)/
-                  in Haskell.  It plays well with HUnit and QuickCheck,
-                  provides a DSL for testing that is very easy on the eyes, and
-                  comes with tooling and options that make testing in Haskell
-                  as easy as it can get.
+description:      Behavior-Driven Development for Haskell
+                  .
+                  Hspec is roughly based on the Ruby library RSpec. However,
+                  Hspec is just a framework for running HUnit and QuickCheck
+                  tests. Compared to other options, it provides a much nicer
+                  syntax that makes tests very easy to read.
                   .
                   The Hspec Manual is at <http://hspec.github.com/>.
 
