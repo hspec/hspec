@@ -155,8 +155,8 @@ undocumentedOptions = [
     setHtml :: Result -> Result
     setHtml x = x >>= \c -> return c {configHtmlOutput = True}
 
-getConfig :: IO Config
-getConfig = do
+getConfig :: Config -> IO Config
+getConfig c = do
   (opts, args, errors) <- getOpt Permute (options ++ undocumentedOptions) <$> getArgs
 
   unless (null errors)
@@ -165,7 +165,7 @@ getConfig = do
   unless (null args)
     (tryHelp $ "unexpected argument `" ++ head args ++ "'\n")
 
-  case foldl (flip id) (Right defaultConfig) opts of
+  case foldl (flip id) (Right c) opts of
     Left Help -> do
       name <- getProgName
       putStr $ usageInfo ("Usage: " ++ name ++ " [OPTION]...\n\nOPTIONS") options

@@ -4,6 +4,7 @@ module Test.Hspec.Runner (
 -- * Running a spec
   hspec
 , hspecWith
+, hspecWithResult
 
 -- * Types
 , Summary (..)
@@ -106,14 +107,8 @@ runFormatter useColor c formatter specs = headerFormatter formatter >> zip [0..]
 
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
---
--- (see also `hspecWith`)
 hspec :: Spec -> IO ()
-hspec spec = do
-  c <- getConfig
-  withArgs [] {- do not leak command-line arguments to examples -} $ do
-    r <- hspecWith c spec
-    unless (summaryFailures r == 0) exitFailure
+hspec = hspecWith defaultConfig
 
 handleReRun :: Config -> IO Config
 handleReRun c = do
@@ -136,12 +131,20 @@ ensureStdGen c = case QC.replay qcArgs of
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
---
--- /Note/: `hspecWith` does not exit with `exitFailure` on failing spec items.
--- If you need this, you have to check the `Summary` yourself and act
--- accordingly.
-hspecWith :: Config -> Spec -> IO Summary
+hspecWith :: Config -> Spec -> IO ()
 hspecWith c_ spec = do
+  c <- getConfig c_
+  withArgs [] {- do not leak command-line arguments to examples -} $ do
+    r <- hspecWithResult c spec
+    unless (summaryFailures r == 0) exitFailure
+
+-- | Run given spec with custom options and returns a summary of the test run.
+--
+-- /Note/: `hspecWithResult` does not exit with `exitFailure` on failing spec
+-- items.  If you need this, you have to check the `Summary` yourself and act
+-- accordingly.
+hspecWithResult :: Config -> Spec -> IO Summary
+hspecWithResult c_ spec = do
   -- read failure report on --re-run
   c <- handleReRun c_ >>= ensureStdGen
 

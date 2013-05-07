@@ -46,8 +46,8 @@ hspecX = hspec
 
 {-# DEPRECATED hspecB "use `hspecWith` instead" #-}       -- since 1.4.0
 hspecB :: Spec -> IO Bool
-hspecB spec = (== 0) . summaryFailures <$> hspecWith defaultConfig spec
+hspecB spec = (== 0) . summaryFailures <$> hspecWithResult defaultConfig spec
 
 {-# DEPRECATED hHspec "use hspecWith instead" #-}         -- since 1.4.0
 hHspec :: Handle -> Spec -> IO Summary
-hHspec h = hspecWith defaultConfig {configHandle = h}
+hHspec h = hspecWithResult defaultConfig {configHandle = h}

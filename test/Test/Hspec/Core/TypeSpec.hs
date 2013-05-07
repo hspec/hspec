@@ -103,7 +103,7 @@ spec = do
         mockCounter e `shouldReturn` 100
 
       it "can be used with expecatations/HUnit assertions" $ do
-        silence . H.hspecWith H.defaultConfig $ do
+        silence . H.hspecWithResult H.defaultConfig $ do
           H.describe "readIO" $ do
             H.it "is inverse to show" $ property $ \x -> do
               (readIO . show) x `shouldReturn` (x :: Int)

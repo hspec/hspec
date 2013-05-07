@@ -81,4 +81,4 @@ spec = do
       assertBool "should find 'expected: 1'"  $ any (=="expected: 1") r
       assertBool "should find ' but got: 2'"  $ any (==" but got: 2") r
   where
-    runSpec = H.hspecWith H.defaultConfig
+    runSpec = H.hspecWithResult H.defaultConfig

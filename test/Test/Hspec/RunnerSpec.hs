@@ -338,7 +338,7 @@ spec = do
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do
-      silence . H.hspecWith H.defaultConfig $ do
+      silence . H.hspecWithResult H.defaultConfig $ do
         H.it "foo" True
         H.it "foo" False
         H.it "foo" False
@@ -347,7 +347,7 @@ spec = do
       `shouldReturn` H.Summary 5 2
 
     it "treats uncaught exceptions as failure" $ do
-      silence . H.hspecWith H.defaultConfig  $ do
+      silence . H.hspecWithResult H.defaultConfig  $ do
         H.it "foobar" (E.throwIO (E.ErrorCall "foobar") >> pure ())
       `shouldReturn` H.Summary 1 1
 
@@ -364,6 +364,6 @@ spec = do
       r `shouldBe` ""
 
     it "does not let escape error thunks from failure messages" $ do
-      r <- silence . H.hspecWith H.defaultConfig $ do
+      r <- silence . H.hspecWithResult H.defaultConfig $ do
         H.it "some example" (H.Fail $ "foobar" ++ undefined)
       r `shouldBe` H.Summary 1 1
