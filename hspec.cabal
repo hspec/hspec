@@ -11,7 +11,7 @@ cabal-version:    >= 1.8
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
-homepage:         http://hspec.github.com/
+homepage:         http://hspec.github.io/
 synopsis:         Behavior-Driven Development for Haskell
 description:      Behavior-Driven Development for Haskell
                   .
@@ -20,7 +20,7 @@ description:      Behavior-Driven Development for Haskell
                   tests. Compared to other options, it provides a much nicer
                   syntax that makes tests very easy to read.
                   .
-                  The Hspec Manual is at <http://hspec.github.com/>.
+                  The Hspec Manual is at <http://hspec.github.io/>.
 
 -- find hspec-discover/test-data/ -type f
 extra-source-files:

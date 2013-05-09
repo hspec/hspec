@@ -6,7 +6,7 @@ Install Hspec from Hackage.
 
     cabal update && cabal install hspec
 
-Read the [User's Manual](http://hspec.github.com/).
+Read the [User's Manual](http://hspec.github.io/).
 
 ## Development & Support
 

@@ -43,7 +43,7 @@
    `--print-cpu-time`.
 
 ## Changes in 1.4.0
- - We now have a manual at http://hspec.github.com/.  The sources are in
+ - We now have a manual at http://hspec.github.io/.  The sources are in
    `doc/`.  It's still work in progress.  Contributions are very welcome!
  - The Haddock documentation now indicates the stability of each exposed
    module.  `Test.Hspec` is now considered stable.
