@@ -5,8 +5,10 @@ set -o nounset
 cabal clean
 
 # disable tests that require hspec on the path
-sed -i 's/test-suite hspec-discover-example/\0\n  buildable: False/' hspec.cabal
-sed -i 's/test-suite hspec-discover-integration-test-empty/\0\n  buildable: False/' hspec.cabal 
+sed -i 's/^test-suite hspec-discover-example$/\0\n  buildable: False/' hspec.cabal
+sed -i 's/^test-suite hspec-discover-integration-test-empty$/\0\n  buildable: False/' hspec.cabal
+sed -i 's/^test-suite hspec-discover-integration-test-with-formatter$/\0\n  buildable: False/' hspec.cabal
+sed -i 's/^test-suite hspec-discover-integration-test-with-formatter-empty$/\0\n  buildable: False/' hspec.cabal
 
 cabal sdist
 

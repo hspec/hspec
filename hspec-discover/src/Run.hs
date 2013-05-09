@@ -14,39 +14,55 @@ import           System.IO
 import           System.Directory
 import           System.FilePath hiding (combine)
 
+import           Config
+
 instance IsString ShowS where
   fromString = showString
 
 run :: [String] -> IO ()
-run args_ = case args_ of
-  src : _ : dst : args -> do
-    nested <- case args of
-      []           -> return False
-      ["--nested"] -> return True
-      _            -> exit
-    specs <- findSpecs src
-    writeFile dst (mkSpecModule src nested specs)
-  _ -> exit
-  where
-    exit = do
-      name <- getProgName
-      hPutStrLn stderr ("usage: " ++ name ++ " SRC CUR DST [--nested]")
+run args_ = do
+  name <- getProgName
+  case args_ of
+    src : _ : dst : args -> case parseConfig name args of
+      Left err -> do
+        hPutStrLn stderr err
+        exitFailure
+      Right c -> do
+        specs <- findSpecs src
+        writeFile dst (mkSpecModule src c specs)
+    _ -> do
+      hPutStrLn stderr (usage name)
       exitFailure
 
-mkSpecModule :: FilePath -> Bool -> [SpecNode] -> String
-mkSpecModule src nested nodes =
+mkSpecModule :: FilePath -> Config -> [SpecNode] -> String
+mkSpecModule src c nodes =
   ( "{-# LINE 1 " . shows src . " #-}"
   . showString "module Main where\n"
-  . showString "import Test.Hspec\n"
   . importList nodes
-  . showString "main :: IO ()\n"
-  . showString "main = hspec $ "
+  . maybe driver (driverWithFormatter (null nodes)) (configFormatter c)
   . format nodes
   ) "\n"
   where
     format
-      | nested    = formatSpecsNested
+      | configNested c = formatSpecsNested
       | otherwise = formatSpecs
+
+    driver =
+        showString "import Test.Hspec\n"
+      . showString "main :: IO ()\n"
+      . showString "main = hspec $ "
+
+driverWithFormatter :: Bool -> String -> ShowS
+driverWithFormatter isEmpty f =
+    (if isEmpty then id else "import Test.Hspec\n")
+  . showString "import Test.Hspec.Runner\n"
+  . showString "import qualified " . showString (moduleName f) . showString "\n"
+  . showString "main :: IO ()\n"
+  . showString "main = hspecWith defaultConfig "
+  . showString "{configFormatter = " . showString f . showString "} $ "
+
+moduleName :: String -> String
+moduleName = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse
 
 -- | Generate imports for a list of specs.
 importList :: [SpecNode] -> ShowS

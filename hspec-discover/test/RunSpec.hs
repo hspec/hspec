@@ -1,7 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
 module RunSpec (main, spec) where
 
 import           Test.Hspec.Meta
+
+import           Data.List (intercalate)
 
 import           Run
 
@@ -41,6 +42,20 @@ spec = do
     context "when there are no specs" $ do
       it "returns an empty list" $ do
         findSpecs "hspec-discover/test-data/empty-dir/Spec.hs" `shouldReturn` []
+
+  describe "driverWithFormatter" $ do
+    it "generates a test driver that uses a custom formatter" $ do
+      driverWithFormatter False "Some.Module.formatter" "" `shouldBe` intercalate "\n" [
+          "import Test.Hspec"
+        , "import Test.Hspec.Runner"
+        , "import qualified Some.Module"
+        , "main :: IO ()"
+        , "main = hspecWith defaultConfig {configFormatter = Some.Module.formatter} $ "
+        ]
+
+  describe "moduleName" $ do
+    it "returns the module name of an fully qualified identifier" $ do
+      moduleName "Some.Module.someId" `shouldBe` "Some.Module"
 
   describe "formatSpec" $ do
     it "generates code for a spec" $

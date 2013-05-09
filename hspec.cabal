@@ -1,5 +1,5 @@
 name:             hspec
-version:          1.5.4
+version:          1.6.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2013 Simon Hengel,
@@ -157,6 +157,7 @@ executable hspec-discover
       Main.hs
   other-modules:
       Run
+      Config
   build-depends:
       base    == 4.*
     , filepath
@@ -201,6 +202,32 @@ test-suite hspec-discover-integration-test-empty
       -Wall -Werror
   hs-source-dirs:
       hspec-discover/integration-test/empty
+  main-is:
+      Spec.hs
+  build-depends:
+      base    == 4.*
+    , hspec
+
+test-suite hspec-discover-integration-test-with-formatter
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  hs-source-dirs:
+      hspec-discover/integration-test/with-formatter
+  main-is:
+      Spec.hs
+  build-depends:
+      base    == 4.*
+    , hspec
+
+test-suite hspec-discover-integration-test-with-formatter-empty
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  hs-source-dirs:
+      hspec-discover/integration-test/with-formatter-empty
   main-is:
       Spec.hs
   build-depends:
