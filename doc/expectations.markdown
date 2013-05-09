@@ -84,7 +84,7 @@ specific exception value:
 launchMissiles `shouldThrow` (== ExitFailure 1)
 ```
 
-#### Expecting specific `IOException`s
+#### Expecting specific \`IOException\`s
 
 The module `System.IO.Error` exports predicates to classify `IOException`s.
 Those can be used in combination with `shouldThrow` to expect specific
