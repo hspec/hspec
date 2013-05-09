@@ -1,6 +1,6 @@
 name:             hspec
 version:          1.5.4
-license:          BSD3
+license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2013 Simon Hengel,
                   (c) 2011-2012 Trystan Spangler,
