@@ -1,26 +1,10 @@
-{-# OPTIONS -fno-warn-orphans #-}
 module Test.Hspec.HUnit (
 -- * Interoperability with HUnit
   fromHUnitTest
 ) where
 
-import           Data.List (intercalate)
-import qualified Test.HUnit as HU
-import           Test.HUnit (Test (..))
-
 import           Test.Hspec.Core.Type
-
--- | This instance is deprecated, use `Test.Hspec.HUnit.fromHUnitTest` instead!
-instance Example Test where
-  evaluateExample test _ _ = do
-    (counts, fails) <- HU.runTestText HU.putTextToShowS test
-    let r = if HU.errors counts + HU.failures counts == 0
-             then Success
-             else Fail (details $ fails "")
-    return r
-    where
-      details :: String -> String
-      details = intercalate "\n" . tail . init . lines
+import           Test.HUnit (Test (..))
 
 -- |
 -- Convert a HUnit test suite to a spec.  This can be used to run existing

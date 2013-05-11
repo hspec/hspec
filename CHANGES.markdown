@@ -1,3 +1,7 @@
+## Changes in 2.0.0
+ - Remove `Example` instance for `Test.HUnit.Test` (#101), use
+   `Test.Hspec.HUnit.fromHUnitTest` instead.
+
 ## Changes in 1.9.6
  - Do not use exception type to distinguish between synchronous/asynchronous
    exceptions (thanks to Michael Snoyman)
