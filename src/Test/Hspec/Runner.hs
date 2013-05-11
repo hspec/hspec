@@ -3,6 +3,7 @@
 module Test.Hspec.Runner (
 -- * Running a spec
   hspec
+, hspecWithFormatter
 , hspecWith
 , hspecWithResult
 
@@ -110,6 +111,11 @@ runFormatter useColor c formatter specs = headerFormatter formatter >> zip [0..]
 -- Exit with `exitFailure` if at least one spec item fails.
 hspec :: Spec -> IO ()
 hspec = hspecWith defaultConfig
+
+hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
+hspecWithFormatter formatter spec = do
+  f <- toFormatter formatter
+  hspecWith defaultConfig {configFormatter = f} spec
 
 handleReRun :: Config -> IO Config
 handleReRun c = do

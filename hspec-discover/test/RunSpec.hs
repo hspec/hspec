@@ -50,7 +50,7 @@ spec = do
         , "import Test.Hspec.Runner"
         , "import qualified Some.Module"
         , "main :: IO ()"
-        , "main = hspecWith defaultConfig {configFormatter = Some.Module.formatter} $ "
+        , "main = hspecWithFormatter Some.Module.formatter $ "
         ]
 
   describe "moduleName" $ do

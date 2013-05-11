@@ -8,6 +8,7 @@ cabal clean
 sed -i 's/^test-suite hspec-discover-example$/\0\n  buildable: False/' hspec.cabal
 sed -i 's/^test-suite hspec-discover-integration-test-empty$/\0\n  buildable: False/' hspec.cabal
 sed -i 's/^test-suite hspec-discover-integration-test-with-formatter$/\0\n  buildable: False/' hspec.cabal
+sed -i 's/^test-suite hspec-discover-integration-test-with-io-formatter$/\0\n  buildable: False/' hspec.cabal
 sed -i 's/^test-suite hspec-discover-integration-test-with-formatter-empty$/\0\n  buildable: False/' hspec.cabal
 
 cabal sdist

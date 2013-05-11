@@ -58,8 +58,7 @@ driverWithFormatter isEmpty f =
   . showString "import Test.Hspec.Runner\n"
   . showString "import qualified " . showString (moduleName f) . showString "\n"
   . showString "main :: IO ()\n"
-  . showString "main = hspecWith defaultConfig "
-  . showString "{configFormatter = " . showString f . showString "} $ "
+  . showString "main = hspecWithFormatter " . showString f . showString " $ "
 
 moduleName :: String -> String
 moduleName = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse

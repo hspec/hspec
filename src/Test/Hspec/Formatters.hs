@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 -- |
 -- Stability: experimental
 --
@@ -18,6 +19,7 @@ module Test.Hspec.Formatters (
 --
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
+, IsFormatter (..)
 , Formatter (..)
 , FormatM
 
@@ -87,6 +89,14 @@ import Test.Hspec.Formatters.Internal (
   , withFailColor
   )
 
+class IsFormatter a where
+  toFormatter :: a -> IO Formatter
+
+instance IsFormatter (IO Formatter) where
+  toFormatter = id
+
+instance IsFormatter Formatter where
+  toFormatter = return
 
 silent :: Formatter
 silent = Formatter {
