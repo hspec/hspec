@@ -336,7 +336,7 @@ spec = do
           H.it "foo" False
         r `shouldContain` "<span class=\"hspec-failure\">- foo"
 
-  describe "hspecWith" $ do
+  describe "hspecWithResult" $ do
     it "returns a summary of the test run" $ do
       silence . H.hspecWithResult H.defaultConfig $ do
         H.it "foo" True
@@ -352,13 +352,13 @@ spec = do
       `shouldReturn` H.Summary 1 1
 
     it "uses the specdoc formatter by default" $ do
-      _:r:_ <- captureLines . H.hspecWith H.defaultConfig $ do
+      _:r:_ <- captureLines . H.hspecWithResult H.defaultConfig $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` "Foo.Bar"
 
     it "can use a custom formatter" $ do
-      r <- capture_ . H.hspecWith H.defaultConfig {H.configFormatter = H.silent} $ do
+      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormatter = H.silent} $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` ""

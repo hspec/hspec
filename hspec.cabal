@@ -76,6 +76,7 @@ Library
       Test.Hspec.Compat
       Test.Hspec.Core.Type
       Test.Hspec.Config
+      Test.Hspec.Options
       Test.Hspec.FailureReport
       Test.Hspec.Formatters.Internal
       Test.Hspec.Timer

@@ -38,6 +38,8 @@ import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.FailureReport
 import           Test.Hspec.Timer
 
+import           Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
+
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
@@ -110,12 +112,12 @@ runFormatter useColor c formatter specs = headerFormatter formatter >> zip [0..]
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
 hspec :: Spec -> IO ()
-hspec = hspecWith defaultConfig
+hspec = hspecWith defaultOptions
 
 hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
 hspecWithFormatter formatter spec = do
   f <- toFormatter formatter
-  hspecWith defaultConfig {configFormatter = f} spec
+  hspecWith defaultOptions {optionsFormatter = f} spec
 
 handleRerun :: Config -> IO Config
 handleRerun c = do
@@ -138,7 +140,7 @@ ensureStdGen c = case QC.replay qcArgs of
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
-hspecWith :: Config -> Spec -> IO ()
+hspecWith :: Options -> Spec -> IO ()
 hspecWith c_ spec = do
   c <- getConfig c_
   withArgs [] {- do not leak command-line arguments to examples -} $ do
