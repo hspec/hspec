@@ -117,16 +117,16 @@ hspecWithFormatter formatter spec = do
   f <- toFormatter formatter
   hspecWith defaultConfig {configFormatter = f} spec
 
-handleReRun :: Config -> IO Config
-handleReRun c = do
-  if configReRun c
+handleRerun :: Config -> IO Config
+handleRerun c = do
+  if configRerun c
     then do
       readFailureReport c
     else do
       return c
 
 -- Add a StdGen to configQuickCheckArgs if there is none.  That way the same
--- seed is used for all properties.  This helps with --seed and --re-run.
+-- seed is used for all properties.  This helps with --seed and --rerun.
 ensureStdGen :: Config -> IO Config
 ensureStdGen c = case QC.replay qcArgs of
   Nothing -> do
@@ -152,8 +152,8 @@ hspecWith c_ spec = do
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
 hspecWithResult c_ spec = do
-  -- read failure report on --re-run
-  c <- handleReRun c_ >>= ensureStdGen
+  -- read failure report on --rerun
+  c <- handleRerun c_ >>= ensureStdGen
 
   let formatter = configFormatter c
       h = configHandle c

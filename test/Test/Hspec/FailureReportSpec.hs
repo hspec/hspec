@@ -20,7 +20,7 @@ spec = do
       r `shouldBe` "WARNING: Could not write environment variable HSPEC_FAILURES (some error)\n"
 
   -- GHCi needs to keep the environment on :reload, so that we can store
-  -- failures there.  Otherwise --re-run would not be very useful.  So we add a
+  -- failures there.  Otherwise --rerun would not be very useful.  So we add a
   -- test for that.
   describe "GHCi" $ do
     it "keeps environment variables on :reload" $ do

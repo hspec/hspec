@@ -56,6 +56,70 @@ spec = do
           , "Try `myspec --help' for more information."
           ]
 
+    it "stores a failure report in environment" $ do
+      silence . ignoreExitCode . withArgs ["--seed", "23"] . H.hspec $ do
+        H.describe "foo" $ do
+          H.describe "bar" $ do
+            H.it "example 1" True
+            H.it "example 2" False
+        H.describe "baz" $ do
+          H.it "example 3" False
+      getEnv "HSPEC_FAILURES" `shouldReturn` Just "(23,[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")])"
+
+    describe "with --rerun" $ do
+      let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
+            H.it "example 1" True
+            H.it "example 2" False
+            H.it "example 3" False
+            H.it "example 4" True
+            H.it "example 5" False
+
+      it "reruns examples that previously failed" $ do
+        r0 <- runSpec
+        r0 `shouldSatisfy` elem "5 examples, 3 failures"
+
+        r1 <- withArgs ["--rerun"] runSpec
+        r1 `shouldSatisfy` elem "3 examples, 3 failures"
+
+      it "reuses the same seed" $ do
+        let runSpec_ = (captureLines . ignoreExitCode . H.hspec) $ do
+              H.it "foo" $ property $ (/= (26 :: Integer))
+
+        r0 <- withArgs ["--seed", "2413421499272008081"] runSpec_
+        r0 `shouldContain` [
+            "Falsifiable (after 66 tests): "
+          , "26"
+          ]
+
+        r1 <- withArgs ["-r"] runSpec_
+        r1 `shouldContain` [
+            "Falsifiable (after 66 tests): "
+          , "26"
+          ]
+
+      context "when there is no failure report in the environment" $ do
+        it "runs everything" $ do
+          unsetEnv "HSPEC_FAILURES"
+          r <- hSilence [stderr] $ withArgs ["-r"] runSpec
+          r `shouldSatisfy` elem "5 examples, 3 failures"
+
+        it "prints a warning to stderr" $ do
+          unsetEnv "HSPEC_FAILURES"
+          r <- hCapture_ [stderr] $ withArgs ["-r"] runSpec
+          r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
+
+      context "when parsing of failure report fails" $ do
+        it "runs everything" $ do
+          setEnv "HSPEC_FAILURES" "some invalid report"
+          r <- hSilence [stderr] $ withArgs ["-r"] runSpec
+          r `shouldSatisfy` elem "5 examples, 3 failures"
+
+        it "prints a warning to stderr" $ do
+          setEnv "HSPEC_FAILURES" "some invalid report"
+          r <- hCapture [stderr] $ withArgs ["-r"] runSpec
+          fst r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
+
+
     it "does not leak command-line flags to examples" $ do
       silence . withArgs ["--verbose"] $ do
         H.hspec $ do
@@ -222,7 +286,7 @@ spec = do
           , "26"
           ]
 
-      context "when run with --re-run" $ do
+      context "when run with --rerun" $ do
         it "takes precedence" $ do
           let runSpec args = capture_ . ignoreExitCode . withArgs args . H.hspec $ do
                 H.it "foo" $
@@ -233,7 +297,7 @@ spec = do
           r1 <- runSpec ["--seed", "42"]
           r1 `shouldContain` "(after 48 tests)"
 
-          r2 <- runSpec ["--re-run", "--seed", "23"]
+          r2 <- runSpec ["--rerun", "--seed", "23"]
           r2 `shouldContain` "(after 88 tests)"
 
       context "when given an invalid argument" $ do
@@ -271,70 +335,6 @@ spec = do
         r <- capture_ . ignoreExitCode . withArgs ["--html"] . H.hspec $ do
           H.it "foo" False
         r `shouldContain` "<span class=\"hspec-failure\">- foo"
-
-  describe "hspec (experimental features)" $ do
-    it "stores a failure report in environment" $ do
-      silence . ignoreExitCode . withArgs ["--seed", "23"] . H.hspec $ do
-        H.describe "foo" $ do
-          H.describe "bar" $ do
-            H.it "example 1" True
-            H.it "example 2" False
-        H.describe "baz" $ do
-          H.it "example 3" False
-      getEnv "HSPEC_FAILURES" `shouldReturn` Just "(23,[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")])"
-
-    describe "with --re-run" $ do
-      let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
-            H.it "example 1" True
-            H.it "example 2" False
-            H.it "example 3" False
-            H.it "example 4" True
-            H.it "example 5" False
-
-      it "re-runs examples that previously failed" $ do
-        r0 <- runSpec
-        r0 `shouldSatisfy` elem "5 examples, 3 failures"
-
-        r1 <- withArgs ["-r"] runSpec
-        r1 `shouldSatisfy` elem "3 examples, 3 failures"
-
-      it "reuses the same seed" $ do
-        let runSpec_ = (captureLines . ignoreExitCode . H.hspec) $ do
-              H.it "foo" $ property $ (/= (26 :: Integer))
-
-        r0 <- withArgs ["--seed", "2413421499272008081"] runSpec_
-        r0 `shouldContain` [
-            "Falsifiable (after 66 tests): "
-          , "26"
-          ]
-
-        r1 <- withArgs ["-r"] runSpec_
-        r1 `shouldContain` [
-            "Falsifiable (after 66 tests): "
-          , "26"
-          ]
-
-      context "when there is no failure report in the environment" $ do
-        it "runs everything" $ do
-          unsetEnv "HSPEC_FAILURES"
-          r <- hSilence [stderr] $ withArgs ["-r"] runSpec
-          r `shouldSatisfy` elem "5 examples, 3 failures"
-
-        it "prints a warning to stderr" $ do
-          unsetEnv "HSPEC_FAILURES"
-          r <- hCapture_ [stderr] $ withArgs ["-r"] runSpec
-          r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--re-run' is ignored!\n"
-
-      context "when parsing of failure report fails" $ do
-        it "runs everything" $ do
-          setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hSilence [stderr] $ withArgs ["-r"] runSpec
-          r `shouldSatisfy` elem "5 examples, 3 failures"
-
-        it "prints a warning to stderr" $ do
-          setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hCapture [stderr] $ withArgs ["-r"] runSpec
-          fst r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--re-run' is ignored!\n"
 
   describe "hspecWith" $ do
     it "returns a summary of the test run" $ do

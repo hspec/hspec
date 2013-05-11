@@ -28,7 +28,7 @@ data Config = Config {
   configVerbose         :: Bool
 , configDryRun          :: Bool
 , configPrintCpuTime    :: Bool
-, configReRun           :: Bool
+, configRerun           :: Bool
 , configFastFail        :: Bool
 
 -- |
@@ -108,6 +108,7 @@ options = [
   , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
+  , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "only rerun examples that previously failed")
   ]
   where
     h = unlines . addLineBreaks
@@ -124,6 +125,7 @@ options = [
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun       = True}
     setFastFail     x = x >>= \c -> return c {configFastFail     = True}
+    setRerun        x = x >>= \c -> return c {configRerun = True}
 
     setColor mValue x = x >>= \c -> parseColor mValue >>= \v -> return c {configColorMode = v}
       where
@@ -136,10 +138,8 @@ options = [
 
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [
-    Option "r" ["re-run"]                  (NoArg  setReRun)                  "only re-run examples that previously failed"
-
     -- for compatibility with test-framework
-  , mkOption [] "maximum-generated-tests" (Arg "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
+    mkOption [] "maximum-generated-tests" (Arg "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
 
     -- undocumented for now, as we probably want to change this to produce a
     -- standalone HTML report in the future
@@ -149,9 +149,6 @@ undocumentedOptions = [
   , Option "v" ["verbose"]                 (NoArg id)                         "do not suppress output to stdout when evaluating examples"
   ]
   where
-    setReRun :: Result -> Result
-    setReRun x = x >>= \c -> return c {configReRun = True}
-
     setHtml :: Result -> Result
     setHtml x = x >>= \c -> return c {configHtmlOutput = True}
 

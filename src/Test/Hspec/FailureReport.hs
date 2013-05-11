@@ -25,7 +25,7 @@ readFailureReport c = do
   mx <- getEnv "HSPEC_FAILURES"
   case mx >>= readMaybe of
     Nothing -> do
-      hPutStrLn stderr "WARNING: Could not read environment variable HSPEC_FAILURES; `--re-run' is ignored!"
+      hPutStrLn stderr "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!"
       return c
     Just (seed, xs) -> do
       (return . setSeed seed . configAddFilter (`elem` xs)) c
