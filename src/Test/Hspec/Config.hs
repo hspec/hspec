@@ -10,7 +10,6 @@ module Test.Hspec.Config (
 import           Data.List
 import           System.IO
 import           System.Exit
-import           System.Environment
 import qualified Test.QuickCheck as QC
 import           Test.Hspec.Formatters
 
@@ -20,11 +19,11 @@ import           Test.Hspec.Util
 import           Control.Monad.Trans.Error ()
 
 import           Test.Hspec.Options
+import           Test.Hspec.FailureReport
 
 data Config = Config {
   configDryRun          :: Bool
 , configPrintCpuTime    :: Bool
-, configRerun           :: Bool
 , configFastFail        :: Bool
 
 -- |
@@ -39,7 +38,7 @@ data Config = Config {
 }
 
 defaultConfig :: Config
-defaultConfig = Config False False False False Nothing QC.stdArgs ColorAuto specdoc False stdout
+defaultConfig = Config False False False Nothing QC.stdArgs ColorAuto specdoc False stdout
 
 -- | Add a filter predicate to config.  If there is already a filter predicate,
 -- then combine them with `||`.
@@ -57,7 +56,6 @@ mkConfig :: Options -> Config
 mkConfig Options {..} = Config {
     configDryRun          = optionsDryRun
   , configPrintCpuTime    = optionsPrintCpuTime
-  , configRerun           = optionsRerun
   , configFastFail        = optionsFastFail
   , configFilterPredicate = p
   , configQuickCheckArgs  = qcArgs
@@ -81,13 +79,11 @@ mkConfig Options {..} = Config {
       [] -> Nothing
       xs -> Just $ foldl1' (\p0 p1 path -> p0 path || p1 path) (map filterPredicate xs)
 
-getConfig :: Options -> IO Config
-getConfig c = do
-  prog <- getProgName
-  args <- getArgs
-  case parseOptions c prog args of
+getConfig :: Options -> String -> [String] -> IO Config
+getConfig opts_ prog args = do
+  case parseOptions opts_ prog args of
     Left (err, msg) -> exitWithMessage err msg
-    Right opts -> return (mkConfig opts)
+    Right opts -> handleRerun (optionsRerun opts) (mkConfig opts)
 
 exitWithMessage :: ExitCode -> String -> IO a
 exitWithMessage err msg = do
@@ -97,3 +93,19 @@ exitWithMessage err msg = do
     h = case err of
       ExitSuccess -> stdout
       _           -> stderr
+
+handleRerun :: Bool -> Config -> IO Config
+handleRerun rerun c
+  | rerun = do
+      r <- readFailureReport
+      case r of
+        Nothing -> return c
+        Just (seed, paths) -> (return . setSeedIfMissing seed . configAddFilter (`elem` paths)) c
+  | otherwise = return c
+
+setSeedIfMissing :: Seed -> Config -> Config
+setSeedIfMissing seed c
+  | hasSeed = c
+  | otherwise = configSetSeed seed c
+  where
+    hasSeed = maybe False (const True) (QC.replay $ configQuickCheckArgs c)

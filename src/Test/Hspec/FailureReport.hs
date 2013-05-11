@@ -1,12 +1,11 @@
 module Test.Hspec.FailureReport (
-  writeFailureReport
+  Seed
+, writeFailureReport
 , readFailureReport
 ) where
 
 import           System.IO
 import           System.SetEnv
-import qualified Test.QuickCheck as QC
-import           Test.Hspec.Config
 import           Test.Hspec.Util (Path, safeTry, readMaybe, getEnv)
 
 type Seed = Integer
@@ -20,19 +19,11 @@ writeFailureReport x = do
     onError err = do
       hPutStrLn stderr ("WARNING: Could not write environment variable HSPEC_FAILURES (" ++ show err ++ ")")
 
-readFailureReport :: Config -> IO Config
-readFailureReport c = do
+readFailureReport :: IO (Maybe (Seed, [Path]))
+readFailureReport = do
   mx <- getEnv "HSPEC_FAILURES"
   case mx >>= readMaybe of
     Nothing -> do
       hPutStrLn stderr "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!"
-      return c
-    Just (seed, xs) -> do
-      (return . setSeed seed . configAddFilter (`elem` xs)) c
-
-setSeed :: Seed -> Config -> Config
-setSeed seed c
-  | hasSeed = c
-  | otherwise = configSetSeed seed c
-  where
-    hasSeed = maybe False (const True) (QC.replay $ configQuickCheckArgs c)
+      return Nothing
+    Just (seed, xs) -> (return . Just) (seed, xs)

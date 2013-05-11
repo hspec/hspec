@@ -123,14 +123,6 @@ hspecWithFormatter formatter spec = do
   f <- toFormatter formatter
   hspecWithOptions defaultOptions {optionsFormatter = f} spec
 
-handleRerun :: Config -> IO Config
-handleRerun c = do
-  if configRerun c
-    then do
-      readFailureReport c
-    else do
-      return c
-
 -- Add a StdGen to configQuickCheckArgs if there is none.  That way the same
 -- seed is used for all properties.  This helps with --seed and --rerun.
 ensureStdGen :: Config -> IO Config
@@ -145,8 +137,10 @@ ensureStdGen c = case QC.replay qcArgs of
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
 hspecWithOptions :: Options -> Spec -> IO ()
-hspecWithOptions c_ spec = do
-  c <- getConfig c_
+hspecWithOptions opts spec = do
+  prog <- getProgName
+  args <- getArgs
+  c <- getConfig opts prog args
   withArgs [] {- do not leak command-line arguments to examples -} $ do
     r <- hspecWith c spec
     unless (summaryFailures r == 0) exitFailure
@@ -161,9 +155,7 @@ hspecResult = hspecWith defaultConfig
 -- accordingly.
 hspecWith :: Config -> Spec -> IO Summary
 hspecWith c_ spec = do
-  -- read failure report on --rerun
-  c <- handleRerun c_ >>= ensureStdGen
-
+  c <- ensureStdGen c_
   let formatter = configFormatter c
       h = configHandle c
       seed = (stdGenToInteger . fst . fromJust . QC.replay . configQuickCheckArgs) c
