@@ -21,10 +21,8 @@ import           Control.Monad.Trans.Error ()
 
 import           Test.Hspec.Options
 
-{-# DEPRECATED configVerbose "this has no effect anymore and will be removed with a future release" #-} -- deprecated since 1.5.0
 data Config = Config {
-  configVerbose         :: Bool
-, configDryRun          :: Bool
+  configDryRun          :: Bool
 , configPrintCpuTime    :: Bool
 , configRerun           :: Bool
 , configFastFail        :: Bool
@@ -41,7 +39,7 @@ data Config = Config {
 }
 
 defaultConfig :: Config
-defaultConfig = Config False False False False False Nothing QC.stdArgs ColorAuto specdoc False stdout
+defaultConfig = Config False False False False Nothing QC.stdArgs ColorAuto specdoc False stdout
 
 -- | Add a filter predicate to config.  If there is already a filter predicate,
 -- then combine them with `||`.
@@ -57,8 +55,7 @@ configSetSeed n c = c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.repla
 
 mkConfig :: Options -> Config
 mkConfig Options {..} = Config {
-    configVerbose         = False
-  , configDryRun          = optionsDryRun
+    configDryRun          = optionsDryRun
   , configPrintCpuTime    = optionsPrintCpuTime
   , configRerun           = optionsRerun
   , configFastFail        = optionsFastFail

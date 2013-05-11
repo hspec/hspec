@@ -4,6 +4,7 @@
  - Add support for custom formatters to hspec-discover
  - Add hspecResult
  - Rename `--re-run` to `--rerun` + add documentation (#95)
+ - Remove `configVerbose`
 
 ## Changes in 1.5.4
  - Make sure that QuickCheck is never chatty
