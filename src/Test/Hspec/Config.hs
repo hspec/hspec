@@ -7,6 +7,7 @@ module Test.Hspec.Config (
 , configSetSeed
 ) where
 
+import           Data.List
 import           System.IO
 import           System.Exit
 import           System.Environment
@@ -81,7 +82,7 @@ mkConfig Options {..} = Config {
 
     p = case optionsMatch of
       [] -> Nothing
-      xs -> Just $ foldl1 (\p0 p1 path -> p0 path || p1 path) (map filterPredicate xs)
+      xs -> Just $ foldl1' (\p0 p1 path -> p0 path || p1 path) (map filterPredicate xs)
 
 getConfig :: Options -> IO Config
 getConfig c = do

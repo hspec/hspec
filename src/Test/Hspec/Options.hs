@@ -8,6 +8,7 @@ module Test.Hspec.Options (
 , Arg (..)
 ) where
 
+import           Data.List
 import           System.Exit
 import           System.Console.GetOpt
 import           Test.Hspec.Formatters
@@ -130,7 +131,7 @@ undocumentedOptions = [
 
 parseOptions :: Options -> String -> [String] -> Either (ExitCode, String) Options
 parseOptions c prog args = case getOpt Permute (options ++ undocumentedOptions) args of
-    (opts, [], []) -> case foldl (flip id) (Right c) opts of
+    (opts, [], []) -> case foldl' (flip id) (Right c) opts of
         Left Help                         -> Left (ExitSuccess, usageInfo ("Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS") options)
         Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n")
         Right x -> Right x
