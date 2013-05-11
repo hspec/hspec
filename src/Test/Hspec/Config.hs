@@ -10,8 +10,6 @@ module Test.Hspec.Config (
 , Arg (..)
 ) where
 
-import           Control.Monad (unless)
-import           Control.Applicative
 import           System.IO
 import           System.Exit
 import           System.Environment
@@ -152,27 +150,30 @@ undocumentedOptions = [
     setHtml :: Result -> Result
     setHtml x = x >>= \c -> return c {configHtmlOutput = True}
 
+parseConfig :: Config -> String -> [String] -> Either (ExitCode, String) Config
+parseConfig c prog args = case getOpt Permute (options ++ undocumentedOptions) args of
+    (opts, [], []) -> case foldl (flip id) (Right c) opts of
+        Left Help                         -> Left (ExitSuccess, usageInfo ("Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS") options)
+        Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n")
+        Right x -> Right x
+    (_, _, err:_)  -> tryHelp err
+    (_, arg:_, _)  -> tryHelp ("unexpected argument `" ++ arg ++ "'\n")
+  where
+    tryHelp msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ "Try `" ++ prog ++ " --help' for more information.\n")
+
 getConfig :: Config -> IO Config
 getConfig c = do
-  (opts, args, errors) <- getOpt Permute (options ++ undocumentedOptions) <$> getArgs
+  prog <- getProgName
+  args <- getArgs
+  case parseConfig c prog args of
+    Left (err, msg) -> exitWithMessage err msg
+    Right config -> return config
 
-  unless (null errors)
-    (tryHelp $ head errors)
-
-  unless (null args)
-    (tryHelp $ "unexpected argument `" ++ head args ++ "'\n")
-
-  case foldl (flip id) (Right c) opts of
-    Left Help -> do
-      name <- getProgName
-      putStr $ usageInfo ("Usage: " ++ name ++ " [OPTION]...\n\nOPTIONS") options
-      exitSuccess
-    Left (InvalidArgument flag value) -> do
-      tryHelp $ "invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n"
-    Right config -> do
-      return config
+exitWithMessage :: ExitCode -> String -> IO a
+exitWithMessage err msg = do
+  hPutStr h msg
+  exitWith err
   where
-    tryHelp message = do
-      name <- getProgName
-      hPutStr stderr $ name ++ ": " ++ message ++ "Try `" ++ name ++ " --help' for more information.\n"
-      exitFailure
+    h = case err of
+      ExitSuccess -> stdout
+      _           -> stderr
