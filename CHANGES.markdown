@@ -2,7 +2,6 @@
  - Change license to MIT
  - Add MonadIO instance for FormatM
  - Add support for custom formatters to hspec-discover
- - Add hspecWithFormatter
  - Add hspecResult
  - Rename `--re-run` to `--rerun` + add documentation (#95)
 

@@ -3,7 +3,6 @@
 module Test.Hspec.Runner (
 -- * Running a spec
   hspec
-, hspecWithFormatter
 , hspecResult
 , hspecWith
 
@@ -14,6 +13,9 @@ module Test.Hspec.Runner (
 , Path
 , defaultConfig
 , configAddFilter
+
+-- * Internals
+, hspecWithFormatter
 ) where
 
 import           Control.Monad
@@ -114,6 +116,8 @@ runFormatter useColor c formatter specs = headerFormatter formatter >> zip [0..]
 hspec :: Spec -> IO ()
 hspec = hspecWithOptions defaultOptions
 
+-- | This function is used by @hspec-discover@.  It is not part of the public
+-- API and may change at any time.
 hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
 hspecWithFormatter formatter spec = do
   f <- toFormatter formatter
