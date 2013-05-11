@@ -171,7 +171,11 @@ hspecWith c_ spec = do
 
       -- dump failure report
       xs <- map failureRecordPath <$> getFailMessages
-      liftIO $ writeFailureReport (seed, xs)
+      liftIO $ writeFailureReport FailureReport {
+          failureReportSeed = seed
+        , failureReportMaxSuccess = QC.maxSuccess (configQuickCheckArgs c)
+        , failureReportPaths = xs
+        }
 
       Summary <$> getTotalCount <*> getFailCount
   where

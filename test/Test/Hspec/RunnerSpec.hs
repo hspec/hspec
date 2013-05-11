@@ -56,7 +56,7 @@ spec = do
           , "Try `myspec --help' for more information."
           ]
 
-    it "stores a failure report in environment" $ do
+    it "stores a failure report in the environment" $ do
       silence . ignoreExitCode . withArgs ["--seed", "23"] . H.hspec $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
@@ -64,7 +64,10 @@ spec = do
             H.it "example 2" False
         H.describe "baz" $ do
           H.it "example 3" False
-      getEnv "HSPEC_FAILURES" `shouldReturn` Just "(23,[([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")])"
+      getEnv "HSPEC_FAILURES" `shouldReturn` Just ("FailureReport {"
+        ++ "failureReportSeed = 23, "
+        ++ "failureReportMaxSuccess = 100, "
+        ++ "failureReportPaths = [([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")]}")
 
     describe "with --rerun" $ do
       let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
@@ -96,6 +99,16 @@ spec = do
             "Falsifiable (after 66 tests): "
           , "26"
           ]
+
+      it "reuses same --qc-max-success" $ do
+        silence . ignoreExitCode . withArgs ["--qc-max-success", "23"] . H.hspec $ do
+          H.it "foo" False
+
+        m <- newMock
+        silence . withArgs ["--rerun"] . H.hspec $ do
+          H.it "foo" $ property $ do
+            mockAction m
+        mockCounter m `shouldReturn` 23
 
       context "when there is no failure report in the environment" $ do
         it "runs everything" $ do
@@ -262,13 +275,24 @@ spec = do
             H.it "foo" True
           r `shouldContain` "invalid argument `foo' for `--format'"
 
-    context "with --qc-max-success=n" $ do
-      it "tries QuickCheck properties n times" $ do
+    context "with --qc-max-success" $ do
+      it "tries QuickCheck properties specified number of times" $ do
         m <- newMock
         silence . withArgs ["--qc-max-success", "23"] . H.hspec $ do
           H.it "foo" $ property $ do
             mockAction m
         mockCounter m `shouldReturn` 23
+
+      context "when run with --rerun" $ do
+        it "takes precedence" $ do
+          silence . ignoreExitCode . withArgs ["--qc-max-success", "23"] . H.hspec $ do
+            H.it "foo" False
+
+          m <- newMock
+          silence . withArgs ["--rerun", "--qc-max-success", "42"] . H.hspec $ do
+            H.it "foo" $ property $ do
+              mockAction m
+          mockCounter m `shouldReturn` 42
 
       context "when given an invalid argument" $ do
         it "prints an error message to stderr" $ do
