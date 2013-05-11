@@ -27,6 +27,7 @@ import qualified Control.Exception as E
 import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
 import           System.Random (newStdGen)
+import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Util
 import           Test.Hspec.Core.Type

@@ -2,6 +2,7 @@
  - Rename hspecWith to hspecWithResult
  - Add a new hspecWith, which interprets command-line arguments and exits with
    exitFailure if there is a failing spec
+ - Add MonadIO instance for FormatM
 
 ## Changes in 1.5.4
  - Make sure that QuickCheck is never chatty
