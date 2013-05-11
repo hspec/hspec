@@ -51,10 +51,13 @@ h5 {
   font-weight: 400;
 }
 
+// This matches the color of border-top of the gh buttons.
+@border-color: #D4D4D4;
+
 h2 {
   .margin-top(39);
-  border-bottom: 1px solid #CCC;
-  border-bottom: @scaleRem solid #CCC;
+  border-bottom: 1px solid @border-color;
+  border-bottom: @scaleRem solid @border-color;
 }
 
 pre, code, kbd, samp, tt {
@@ -72,8 +75,10 @@ p code {
   .padding-left(5);
   .padding-right(5);
 
-  border: 1px dotted #CCC;
-  border: (@scaleRem) dotted #CCC;
+  border-radius: 3px;
+
+  border: 1px solid @border-color;
+  border: (@scaleRem) solid @border-color;
 }
 
 pre {
@@ -82,8 +87,10 @@ pre {
 
   .padding(9);
 
-  border: 1px dotted #CCC;
-  border: (@scaleRem) dotted #CCC;
+  border-radius: 3px;
+
+  border: 1px solid @border-color;
+  border: (@scaleRem) solid @border-color;
 }
 
 @failure-color: #CC3700;
@@ -116,11 +123,11 @@ a.header {
   h1 {
     margin-top: 0;
     color: white;
-    .sub { color: #CCC; }
+    .sub { color: @border-color; }
   }
   .padding-top(19);
-  border-bottom: 1px solid #CCC;
-  border-bottom: (@scaleRem) solid #CCC;
+  border-bottom: 1px solid @border-color;
+  border-bottom: (@scaleRem) solid @border-color;
 }
 
 div.footer {
