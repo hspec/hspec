@@ -37,8 +37,8 @@ import           Test.Hspec.Core.Type hiding (Spec)
 import qualified Test.Hspec.Runner as Runner
 import           Test.Hspec.Runner (Summary(..), Config(..), defaultConfig)
 
-hspecWithResult :: Config -> [SpecTree] -> IO Summary
-hspecWithResult c = Runner.hspecWithResult c . fromSpecList
+hspecWith :: Config -> [SpecTree] -> IO Summary
+hspecWith c = Runner.hspecWith c . fromSpecList
 
 {-# DEPRECATED hspecX "use `Test.Hspec.Runner.hspec` instead" #-}     -- since 1.2.0
 hspecX :: [SpecTree] -> IO ()
@@ -50,11 +50,11 @@ hspec = Runner.hspec . fromSpecList
 
 {-# DEPRECATED hspecB "use `Test.Hspec.Runner.hspecWith` instead" #-} -- since 1.4.0
 hspecB :: [SpecTree] -> IO Bool
-hspecB spec = (== 0) . summaryFailures <$> hspecWithResult defaultConfig spec
+hspecB spec = (== 0) . summaryFailures <$> hspecWith defaultConfig spec
 
 {-# DEPRECATED hHspec "use `Test.Hspec.Runner.hspecWith` instead" #-} -- since 1.4.0
 hHspec :: Handle -> [SpecTree] -> IO Summary
-hHspec h = hspecWithResult defaultConfig {configHandle = h}
+hHspec h = hspecWith defaultConfig {configHandle = h}
 
 {-# DEPRECATED Spec "use `SpecTree` instead" #-}                      -- since 1.4.0
 type Spec = SpecTree

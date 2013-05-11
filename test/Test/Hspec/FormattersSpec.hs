@@ -30,7 +30,7 @@ testSpec = do
 spec :: Spec
 spec = do
   describe "silent" $ do
-    let runSpec = fmap fst . capture . H.hspecWithResult H.defaultConfig {H.configFormatter = H.silent}
+    let runSpec = fmap fst . capture . H.hspecWith H.defaultConfig {H.configFormatter = H.silent}
     it "produces no output" $ do
       runSpec testSpec `shouldReturn` ""
 
@@ -38,7 +38,7 @@ spec = do
     failed_examplesSpec H.failed_examples
 
   describe "progress" $ do
-    let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = H.progress}
+    let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = H.progress}
 
     it "produces '..F...FF.F' style output" $ do
       r <- runSpec testSpec
@@ -48,7 +48,7 @@ spec = do
       failed_examplesSpec H.progress
 
   describe "specdoc" $ do
-    let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = H.specdoc}
+    let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = H.specdoc}
 
     it "displays a header for each thing being described" $ do
       _:x:_ <- runSpec testSpec
@@ -164,7 +164,7 @@ spec = do
 
 failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do
-  let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = formatter}
+  let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = formatter}
 
   it "summarizes the time it takes to finish" $ do
     r <- runSpec (return ())
@@ -198,22 +198,22 @@ failed_examplesSpec formatter = do
   -- colorized output, hence the following tests do not work on Windows.
 #ifndef mingw32_HOST_OS
   it "shows summary in green if there are no failures" $ do
-    r <- captureLines $ H.hspecWithResult H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" True
     r `shouldSatisfy` any (== (green ++ "1 example, 0 failures" ++ reset))
 
   it "shows summary in yellow if there are pending examples" $ do
-    r <- captureLines $ H.hspecWithResult H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" H.pending
     r `shouldSatisfy` any (== (yellow ++ "1 example, 0 failures, 1 pending" ++ reset))
 
   it "shows summary in red if there are failures" $ do
-    r <- captureLines $ H.hspecWithResult H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foobar" False
     r `shouldSatisfy` any (== (red ++ "1 example, 1 failure" ++ reset))
 
   it "shows summary in red if there are both failures and pending examples" $ do
-    r <- captureLines $ H.hspecWithResult H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
       H.it "foo" False
       H.it "bar" H.pending
     r `shouldSatisfy` any (== (red ++ "2 examples, 1 failure, 1 pending" ++ reset))

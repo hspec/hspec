@@ -8,9 +8,7 @@ import           Control.Applicative
 
 import           Test.Hspec.Core (SpecTree(..), Result(..), runSpecM)
 import qualified Test.Hspec as H
-import qualified Test.Hspec.Runner as H (hspecWithResult)
-import           Test.Hspec.Runner (defaultConfig)
-
+import qualified Test.Hspec.Runner as H (hspecResult)
 main :: IO ()
 main = hspec spec
 
@@ -77,4 +75,4 @@ spec = do
       r `shouldSatisfy` any (== "1 example, 0 failures")
   where
     runSpec :: H.Spec -> IO [String]
-    runSpec = captureLines . H.hspecWithResult defaultConfig
+    runSpec = captureLines . H.hspecResult

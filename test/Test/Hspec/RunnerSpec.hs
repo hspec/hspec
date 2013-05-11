@@ -336,9 +336,9 @@ spec = do
           H.it "foo" False
         r `shouldContain` "<span class=\"hspec-failure\">- foo"
 
-  describe "hspecWithResult" $ do
+  describe "hspecResult" $ do
     it "returns a summary of the test run" $ do
-      silence . H.hspecWithResult H.defaultConfig $ do
+      silence . H.hspecResult $ do
         H.it "foo" True
         H.it "foo" False
         H.it "foo" False
@@ -347,23 +347,23 @@ spec = do
       `shouldReturn` H.Summary 5 2
 
     it "treats uncaught exceptions as failure" $ do
-      silence . H.hspecWithResult H.defaultConfig  $ do
+      silence . H.hspecResult  $ do
         H.it "foobar" (E.throwIO (E.ErrorCall "foobar") >> pure ())
       `shouldReturn` H.Summary 1 1
 
     it "uses the specdoc formatter by default" $ do
-      _:r:_ <- captureLines . H.hspecWithResult H.defaultConfig $ do
+      _:r:_ <- captureLines . H.hspecResult $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` "Foo.Bar"
 
     it "can use a custom formatter" $ do
-      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormatter = H.silent} $ do
+      r <- capture_ . H.hspecWith H.defaultConfig {H.configFormatter = H.silent} $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` ""
 
     it "does not let escape error thunks from failure messages" $ do
-      r <- silence . H.hspecWithResult H.defaultConfig $ do
+      r <- silence . H.hspecResult $ do
         H.it "some example" (H.Fail $ "foobar" ++ undefined)
       r `shouldBe` H.Summary 1 1

@@ -14,7 +14,7 @@ spec :: Spec
 spec = do
   describe "prop" $ do
     it "is a shortcut to use properties as examples" $ do
-      silence . H.hspecWithResult H.defaultConfig $ do
+      silence . H.hspecResult $ do
         H.describe "read" $ do
           H.prop "is inverse to show" $ \x -> (read . show) x == (x :: Int)
       `shouldReturn` H.Summary 1 0

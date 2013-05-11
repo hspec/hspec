@@ -2,10 +2,8 @@
  - Change license to MIT
  - Add MonadIO instance for FormatM
  - Add support for custom formatters to hspec-discover
- - Rename hspecWith to hspecWithResult
- - Add a new hspecWith, which interprets command-line arguments and exits with
-   exitFailure if there is a failing spec
  - Add hspecWithFormatter
+ - Add hspecResult
  - Rename `--re-run` to `--rerun` + add documentation (#95)
 
 ## Changes in 1.5.4
