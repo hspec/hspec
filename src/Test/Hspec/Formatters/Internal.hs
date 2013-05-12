@@ -122,7 +122,7 @@ getTotalCount :: FormatM Int
 getTotalCount = gets totalCount
 
 -- | Append to the list of accumulated failure messages.
-addFailMessage :: Path -> (Either SomeException String) -> FormatM ()
+addFailMessage :: Path -> Either SomeException String -> FormatM ()
 addFailMessage p m = modify $ \s -> s {failMessages = FailureRecord p m : failMessages s}
 
 -- | Get the list of accumulated failure messages.

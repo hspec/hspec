@@ -58,7 +58,7 @@ data Result = Success | Pending (Maybe String) | Fail String
 
 forceResult :: Result -> Result
 forceResult r = case r of
-  Success   -> r `seq` r
+  Success   -> r
   Pending m -> r `seq` m `deepseq` r
   Fail    m -> r `seq` m `deepseq` r
 
@@ -106,7 +106,7 @@ instance Example Expectation where
     ]
 
 instance Example Result where
-  evaluateExample _ r = return r
+  evaluateExample _ = return
 
 instance Example QC.Property where
   evaluateExample c p = do

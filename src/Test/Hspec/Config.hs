@@ -86,7 +86,7 @@ mkConfig mFailureReport Options {..} = Config {
       [] -> Nothing
       xs -> Just $ foldl1' (\p0 p1 path -> p0 path || p1 path) (map filterPredicate xs)
 
-    rerunFilter = (flip elem . failureReportPaths <$> mFailureReport)
+    rerunFilter = flip elem . failureReportPaths <$> mFailureReport
 
 getConfig :: Options -> String -> [String] -> IO Config
 getConfig opts_ prog args = do

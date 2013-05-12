@@ -49,7 +49,7 @@ filterSpecs :: (Path -> Bool) -> [SpecTree] -> [SpecTree]
 filterSpecs p = goSpecs []
   where
     goSpecs :: [String] -> [SpecTree] -> [SpecTree]
-    goSpecs groups = catMaybes . map (goSpec groups)
+    goSpecs groups = mapMaybe (goSpec groups)
 
     goSpec :: [String] -> SpecTree -> Maybe SpecTree
     goSpec groups spec = case spec of

@@ -4,7 +4,7 @@ module Test.Hspec.HUnit (
   fromHUnitTest
 ) where
 
-import           Data.List (intersperse)
+import           Data.List (intercalate)
 import qualified Test.HUnit as HU
 import           Test.HUnit (Test (..))
 
@@ -20,7 +20,7 @@ instance Example Test where
     return r
     where
       details :: String -> String
-      details = concat . intersperse "\n" . tail . init . lines
+      details = intercalate "\n" . tail . init . lines
 
 -- |
 -- Convert a HUnit test suite to a spec.  This can be used to run existing

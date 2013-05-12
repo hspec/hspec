@@ -66,7 +66,7 @@ data Arg a = Arg {
 , argumentSetter :: a -> Options -> Options
 }
 
-mkOption :: [Char] -> [Char] -> Arg a -> String -> OptDescr (Result -> Result)
+mkOption :: [Char] -> String -> Arg a -> String -> OptDescr (Result -> Result)
 mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name] (ReqArg arg argName) help
   where
     arg :: String -> Result -> Result
