@@ -20,7 +20,7 @@ spec = do
         H.it "foo" H.pending
       r `shouldSatisfy` any (== "     # PENDING: No reason given")
 
-  describe "pending" $ do
+  describe "pendingWith" $ do
     it "specifies a pending example with a reason for why it's pending" $ do
       r <- runSpec $ do
         H.it "foo" $ do
