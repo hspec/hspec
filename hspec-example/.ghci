@@ -1,0 +1,9 @@
+:set -isrc -itest
+
+-- for generated source files
+:set -idist/build/
+
+-- for Paths_<package-name>.hs
+:set -idist/build/autogen
+
+:set -optP-include -optPdist/build/autogen/cabal_macros.h
