@@ -26,7 +26,7 @@ We continually improve this manual.  If you want to help,
 
 ## Other resources
 
-* [Vim syntax highlighting for Hspec](https://github.com/hspec/vim-hspec)
+* [Vim syntax highlighting for Hspec](https://github.com/hspec/hspec.vim#readme)
 * [Automatic spec discovery with hspec-discover](https://github.com/hspec/hspec/tree/master/hspec-discover#readme)
 * [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
 * [A report of Hspec's behavior](report.html)
