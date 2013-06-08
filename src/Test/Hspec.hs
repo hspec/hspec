@@ -32,6 +32,7 @@ module Test.Hspec (
 , example
 , pending
 , pendingWith
+, parallel
 
 -- * Running a spec
 , hspec
@@ -141,3 +142,12 @@ it label action = fromSpecList [Core.it label action]
 -- >   putStrLn
 example :: Expectation -> Expectation
 example = id
+
+-- | Run examples of given spec in parallel.
+parallel :: Spec -> Spec
+parallel = fromSpecList . map go . runSpecM
+  where
+    go :: SpecTree -> SpecTree
+    go spec = case spec of
+      SpecItem _ r e -> SpecItem True r e
+      SpecGroup d es -> SpecGroup d (map go es)

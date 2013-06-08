@@ -4,19 +4,21 @@ import           Test.Hspec.Meta
 import           System.IO.Silently
 import           System.IO (stderr)
 import           Control.Applicative
-import           Control.Monad (unless)
+import           Control.Monad
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
+import           System.Timeout (timeout)
 import qualified Control.Exception as E
+import           Control.Concurrent (threadDelay)
 import           SpecHelper
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
 import           Test.QuickCheck
 
+import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H (Result(..))
-import qualified Test.Hspec as H (describe, it, pending)
 import qualified Test.Hspec.Formatters as H (silent)
 
 ignoreExitCode :: IO () -> IO ()
@@ -391,3 +393,11 @@ spec = do
       r <- silence . H.hspecResult $ do
         H.it "some example" (H.Fail $ "foobar" ++ undefined)
       r `shouldBe` H.Summary 1 1
+
+    it "runs specs in parallel" $ do
+      let n = 10
+          t = 10000
+          dt = t * (n `div` 2)
+      r <- timeout dt . silence . H.hspecResult . H.parallel $ do
+        replicateM_ n (H.it "foo" $ threadDelay t)
+      r `shouldBe` Just (H.Summary n 0)

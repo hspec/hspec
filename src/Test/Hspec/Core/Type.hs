@@ -74,7 +74,7 @@ data Params = Params {
 -- | Internal representation of a spec.
 data SpecTree =
     SpecGroup String [SpecTree]
-  | SpecItem  String (Params -> IO Result)
+  | SpecItem Bool String (Params -> IO Result)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree] -> SpecTree
@@ -86,7 +86,7 @@ describe s = SpecGroup msg
 
 -- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
-it s e = SpecItem msg (`evaluateExample` e)
+it s e = SpecItem False msg (`evaluateExample` e)
   where
     msg
       | null s = "(unspecified behavior)"

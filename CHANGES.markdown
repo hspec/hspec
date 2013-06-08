@@ -1,4 +1,5 @@
 ## Changes in 1.6.0
+ - Add support for parallelization
  - Change license to MIT
  - Add MonadIO instance for FormatM
  - Add support for custom formatters to hspec-discover
