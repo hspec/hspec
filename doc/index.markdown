@@ -16,6 +16,7 @@ layout: default
 * [Using QuickCheck with Hspec](quickcheck.html)
 * [Interoperability with HUnit](hunit.html)
 * [Automatic spec discovery](hspec-discover.html)
+* [Parallel spec execution](parallel-spec-execution.html)
 
 ## About this manual
 
