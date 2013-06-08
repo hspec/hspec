@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 module Test.Hspec.Config (
   Config (..)
 , defaultConfig
@@ -57,15 +56,15 @@ configSetSeed :: Integer -> Config -> Config
 configSetSeed n c = c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.replay = Just (stdGenFromInteger n, 0)}}
 
 mkConfig :: Maybe FailureReport -> Options -> Config
-mkConfig mFailureReport Options {..} = Config {
-    configDryRun          = optionsDryRun
-  , configPrintCpuTime    = optionsPrintCpuTime
-  , configFastFail        = optionsFastFail
+mkConfig mFailureReport opts = Config {
+    configDryRun          = optionsDryRun opts
+  , configPrintCpuTime    = optionsPrintCpuTime opts
+  , configFastFail        = optionsFastFail opts
   , configFilterPredicate = matchFilter `filterOr` rerunFilter
   , configQuickCheckArgs  = qcArgs
-  , configColorMode       = optionsColorMode
-  , configFormatter       = optionsFormatter
-  , configHtmlOutput      = optionsHtmlOutput
+  , configColorMode       = optionsColorMode opts
+  , configFormatter       = optionsFormatter opts
+  , configHtmlOutput      = optionsHtmlOutput opts
   , configHandle          = stdout
   }
   where
@@ -73,8 +72,8 @@ mkConfig mFailureReport Options {..} = Config {
       where
         args = maybe id setMaxSuccess mMaxSuccess QC.stdArgs
 
-    mSeed = optionsSeed <|> (failureReportSeed <$> mFailureReport)
-    mMaxSuccess = optionsMaxSuccess <|> (failureReportMaxSuccess <$> mFailureReport)
+    mSeed = optionsSeed opts <|> (failureReportSeed <$> mFailureReport)
+    mMaxSuccess = optionsMaxSuccess opts <|> (failureReportMaxSuccess <$> mFailureReport)
 
     setMaxSuccess :: Int -> QC.Args -> QC.Args
     setMaxSuccess n args = args {QC.maxSuccess = n}
@@ -82,7 +81,7 @@ mkConfig mFailureReport Options {..} = Config {
     setSeed :: Integer -> QC.Args -> QC.Args
     setSeed n args = args {QC.replay = Just (stdGenFromInteger n, 0)}
 
-    matchFilter = case optionsMatch of
+    matchFilter = case optionsMatch opts of
       [] -> Nothing
       xs -> Just $ foldl1' (\p0 p1 path -> p0 path || p1 path) (map filterPredicate xs)
 
