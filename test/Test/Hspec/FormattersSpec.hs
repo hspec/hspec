@@ -1,9 +1,8 @@
 {-# LANGUAGE CPP #-}
 module Test.Hspec.FormattersSpec (main, spec) where
 
-import           Test.Hspec.Meta
-
 import           Helper
+
 import           System.IO.Silently (capture)
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Core as H (Result(..))

@@ -1,6 +1,6 @@
 module Test.Hspec.FailureReportSpec (main, spec) where
 
-import           Test.Hspec.Meta
+import           Helper
 
 import           System.IO
 import           System.IO.Silently

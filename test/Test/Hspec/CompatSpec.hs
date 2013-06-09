@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Test.Hspec.CompatSpec (main, spec) where
 
-import           Test.Hspec.Meta
+import           Helper
 
 import           Test.Hspec.Compat
 import           Data.Typeable

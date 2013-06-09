@@ -1,6 +1,5 @@
 module Test.Hspec.Core.TypeSpec (main, spec) where
 
-import           Test.Hspec.Meta
 import           Helper
 import           Test.QuickCheck
 import           Mock

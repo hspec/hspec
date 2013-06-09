@@ -1,5 +1,6 @@
 module Helper (
-  sleep
+  module Test.Hspec.Meta
+, sleep
 , timeout
 , defaultParams
 , captureLines
@@ -10,11 +11,11 @@ module Helper (
 , shouldContain
 ) where
 
+import           Test.Hspec.Meta
 import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Runner as H
 import           Data.List
 import           Data.Char
-import           Test.Hspec.Meta
 import           System.IO.Silently
 import           Data.Time.Clock.POSIX
 import           Control.Concurrent

@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hspec.UtilSpec (main, spec) where
 
-import           Test.Hspec.Meta
+import           Helper
 import           Test.QuickCheck
 import           Data.Int (Int32)
 import           System.Random (StdGen)

@@ -1,6 +1,6 @@
 module Test.Hspec.QuickCheckSpec (main, spec) where
 
-import           Test.Hspec.Meta
+import           Helper
 import           System.IO.Silently
 
 import qualified Test.Hspec as H

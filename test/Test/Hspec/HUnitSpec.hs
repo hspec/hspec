@@ -1,7 +1,6 @@
 module Test.Hspec.HUnitSpec (main, spec) where
 
-import           Test.Hspec.Meta
-import           Helper (captureLines)
+import           Helper
 import           Control.Applicative
 import           System.IO.Silently
 
