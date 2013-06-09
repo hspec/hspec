@@ -1,12 +1,11 @@
 module Test.Hspec.Core.TypeSpec (main, spec) where
 
 import           Helper
-import           Test.QuickCheck
 import           Mock
 import           Data.List
 import           System.IO.Silently
-
 import           Control.Exception (AsyncException(..), throwIO)
+
 import qualified Test.Hspec.Core.Type as H hiding (describe, it)
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H

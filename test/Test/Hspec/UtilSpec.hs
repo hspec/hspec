@@ -2,14 +2,12 @@
 module Test.Hspec.UtilSpec (main, spec) where
 
 import           Helper
-import           Test.QuickCheck
 import           Data.Int (Int32)
 import           System.Random (StdGen)
-
 import qualified Control.Exception as E
-import           Test.Hspec.Util
-
 import           System.SetEnv
+
+import           Test.Hspec.Util
 
 main :: IO ()
 main = hspec spec

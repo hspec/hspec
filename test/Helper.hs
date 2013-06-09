@@ -1,5 +1,6 @@
 module Helper (
   module Test.Hspec.Meta
+, module Test.QuickCheck
 , sleep
 , timeout
 , defaultParams
@@ -12,6 +13,8 @@ module Helper (
 ) where
 
 import           Test.Hspec.Meta
+import           Test.QuickCheck hiding (Result(..))
+
 import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Runner as H
 import           Data.List

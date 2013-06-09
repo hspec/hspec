@@ -11,7 +11,6 @@ import qualified Control.Exception as E
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
-import           Test.QuickCheck
 
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H
