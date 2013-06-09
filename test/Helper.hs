@@ -1,6 +1,7 @@
 module Helper (
   module Test.Hspec.Meta
 , module Test.QuickCheck
+, module System.IO.Silently
 , sleep
 , timeout
 , defaultParams

@@ -1,7 +1,6 @@
 module Test.Hspec.QuickCheckSpec (main, spec) where
 
 import           Helper
-import           System.IO.Silently
 
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H

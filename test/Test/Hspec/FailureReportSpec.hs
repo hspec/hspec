@@ -3,7 +3,6 @@ module Test.Hspec.FailureReportSpec (main, spec) where
 import           Helper
 
 import           System.IO
-import           System.IO.Silently
 import           Test.Hspec.FailureReport
 import           GHC.Paths (ghc)
 import           System.Process

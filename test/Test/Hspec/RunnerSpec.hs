@@ -1,7 +1,6 @@
 module Test.Hspec.RunnerSpec (main, spec) where
 
 import           Helper
-import           System.IO.Silently
 import           System.IO (stderr)
 import           Control.Applicative
 import           Control.Monad

@@ -3,7 +3,6 @@ module Test.Hspec.Core.TypeSpec (main, spec) where
 import           Helper
 import           Mock
 import           Data.List
-import           System.IO.Silently
 import           Control.Exception (AsyncException(..), throwIO)
 
 import qualified Test.Hspec.Core.Type as H hiding (describe, it)

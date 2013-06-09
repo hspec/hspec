@@ -3,7 +3,6 @@ module Test.Hspec.FormattersSpec (main, spec) where
 
 import           Helper
 
-import           System.IO.Silently (capture)
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Core as H (Result(..))
 import qualified Test.Hspec.Runner as H
