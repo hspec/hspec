@@ -92,6 +92,11 @@ hspecWithOptions opts spec = do
     r <- hspecWith c spec
     unless (summaryFailures r == 0) exitFailure
 
+-- | Run given spec and returns a summary of the test run.
+--
+-- /Note/: `hspecResult` does not exit with `exitFailure` on failing spec
+-- items.  If you need this, you have to check the `Summary` yourself and act
+-- accordingly.
 hspecResult :: Spec -> IO Summary
 hspecResult = hspecWith defaultConfig
 
