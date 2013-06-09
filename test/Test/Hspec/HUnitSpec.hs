@@ -1,7 +1,6 @@
 module Test.Hspec.HUnitSpec (main, spec) where
 
 import           Helper
-import           Control.Applicative
 
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H

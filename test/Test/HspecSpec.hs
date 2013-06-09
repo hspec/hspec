@@ -3,8 +3,6 @@ module Test.HspecSpec (main, spec) where
 import           Helper
 import           Data.List (isPrefixOf)
 
-import           Control.Applicative
-
 import           Test.Hspec.Core (SpecTree(..), Result(..), runSpecM)
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H (hspecResult)

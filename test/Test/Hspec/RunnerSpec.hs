@@ -2,7 +2,6 @@ module Test.Hspec.RunnerSpec (main, spec) where
 
 import           Helper
 import           System.IO (stderr)
-import           Control.Applicative
 import           Control.Monad
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit

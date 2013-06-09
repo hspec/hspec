@@ -1,6 +1,7 @@
 module Helper (
   module Test.Hspec.Meta
 , module Test.QuickCheck
+, module Control.Applicative
 , module System.IO.Silently
 , sleep
 , timeout
@@ -13,6 +14,7 @@ module Helper (
 , shouldContain
 ) where
 
+import           Control.Applicative
 import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
 
