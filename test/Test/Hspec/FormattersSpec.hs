@@ -196,22 +196,22 @@ failed_examplesSpec formatter = do
   -- colorized output, hence the following tests do not work on Windows.
 #ifndef mingw32_HOST_OS
   it "shows summary in green if there are no failures" $ do
-    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlways} $ do
       H.it "foobar" True
     r `shouldSatisfy` any (== (green ++ "1 example, 0 failures" ++ reset))
 
   it "shows summary in yellow if there are pending examples" $ do
-    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlways} $ do
       H.it "foobar" H.pending
     r `shouldSatisfy` any (== (yellow ++ "1 example, 0 failures, 1 pending" ++ reset))
 
   it "shows summary in red if there are failures" $ do
-    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlways} $ do
       H.it "foobar" False
     r `shouldSatisfy` any (== (red ++ "1 example, 1 failure" ++ reset))
 
   it "shows summary in red if there are both failures and pending examples" $ do
-    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlway} $ do
+    r <- captureLines $ H.hspecWith H.defaultConfig {H.configColorMode = H.ColorAlways} $ do
       H.it "foo" False
       H.it "bar" H.pending
     r `shouldSatisfy` any (== (red ++ "2 examples, 1 failure, 1 pending" ++ reset))

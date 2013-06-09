@@ -140,7 +140,7 @@ hspecWith c_ spec = do
     doesUseColor h c = case configColorMode c of
       ColorAuto  -> hIsTerminalDevice h
       ColorNever -> return False
-      ColorAlway -> return True
+      ColorAlways -> return True
 
 -- | Summary of a test run.
 data Summary = Summary {

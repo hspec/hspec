@@ -40,7 +40,8 @@ setMaxSuccess n c = c {optionsMaxSuccess = Just n}
 setSeed :: Integer -> Options -> Options
 setSeed n c = c {optionsSeed = Just n}
 
-data ColorMode = ColorAuto | ColorNever | ColorAlway
+data ColorMode = ColorAuto | ColorNever | ColorAlways
+  deriving (Eq, Show)
 
 defaultOptions :: Options
 defaultOptions = Options False False False False [] Nothing Nothing ColorAuto specdoc False
@@ -109,10 +110,10 @@ options = [
     setColor mValue x = x >>= \c -> parseColor mValue >>= \v -> return c {optionsColorMode = v}
       where
         parseColor s = case s of
-          Nothing       -> return ColorAlway
+          Nothing       -> return ColorAlways
           Just "auto"   -> return ColorAuto
           Just "never"  -> return ColorNever
-          Just "always" -> return ColorAlway
+          Just "always" -> return ColorAlways
           Just v        -> Left (InvalidArgument "color" v)
 
 undocumentedOptions :: [OptDescr (Result -> Result)]
