@@ -68,7 +68,6 @@ Library
       Test.Hspec.Core
       Test.Hspec.Monadic
       Test.Hspec.Runner
-      Test.Hspec.Runner.Eval
       Test.Hspec.Formatters
       Test.Hspec.HUnit
       Test.Hspec.QuickCheck
@@ -79,6 +78,7 @@ Library
       Test.Hspec.Config
       Test.Hspec.Options
       Test.Hspec.FailureReport
+      Test.Hspec.Runner.Eval
       Test.Hspec.Formatters.Internal
       Test.Hspec.Timer
 
