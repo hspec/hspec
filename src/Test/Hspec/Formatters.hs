@@ -19,7 +19,6 @@ module Test.Hspec.Formatters (
 --
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
-, IsFormatter (..)
 , Formatter (..)
 , FormatM
 
@@ -48,6 +47,16 @@ module Test.Hspec.Formatters (
 
 -- ** Helpers
 , formatException
+
+-- * Using custom formatters with @hspec-discover@
+-- |
+-- Anything that is an instance of `IsFormatter` can be used by
+-- @hspec-discover@ as the default formatter for a spec.  If you have a
+-- formatter @myFormatter@ in the module @Custom.Formatters@ you can use it
+-- by passing an additional argument to @hspec-discover@.
+--
+-- >{-# OPTIONS_GHC -F -pgmF hspec-discover -optF --formatter=Custom.Formatters.myFormatter #-}
+, IsFormatter (..)
 ) where
 
 import           Data.Maybe
