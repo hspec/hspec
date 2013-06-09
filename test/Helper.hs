@@ -1,4 +1,4 @@
-module SpecHelper where
+module Helper where
 
 import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Runner as H

@@ -10,7 +10,7 @@ import           System.Exit
 import           System.Timeout (timeout)
 import qualified Control.Exception as E
 import           Control.Concurrent (threadDelay)
-import           SpecHelper
+import           Helper
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)

@@ -91,7 +91,7 @@ test-suite spec
       Spec.hs
   other-modules:
       Mock
-      SpecHelper
+      Helper
       Test.HspecSpec
       Test.Hspec.CompatSpec
       Test.Hspec.Core.TypeSpec

@@ -1,7 +1,7 @@
 module Test.Hspec.TimerSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           SpecHelper
+import           Helper
 
 import           Test.Hspec.Timer
 

@@ -1,7 +1,7 @@
 module Test.HspecSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           SpecHelper
+import           Helper
 import           Data.List (isPrefixOf)
 
 import           Control.Applicative

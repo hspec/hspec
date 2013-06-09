@@ -1,7 +1,7 @@
 module Test.Hspec.Core.TypeSpec (main, spec) where
 
 import           Test.Hspec.Meta
-import           SpecHelper
+import           Helper
 import           Test.QuickCheck
 import           Mock
 import           Data.List
