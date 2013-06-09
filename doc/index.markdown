@@ -4,6 +4,17 @@ layout: default
 
 # User's Manual
 
+Hspec is a testing framework for [Haskell](http://www.haskell.org/).  It is
+roughly based on the Ruby library [RSpec](http://rspec.info/).  Some of Hspec's
+distinctive features are:
+
+ * a friendly DSL for defining tests
+ * integration with QuickCheck and HUnit
+ * parallel test execution
+ * automatic discovery of test files
+
+An example is worth a thousand words, so here we go:
+
 <pre><kbd class="shell-input">cabal update && cabal install hspec</kbd></pre>
 
 {% inline_example Example.hs %}
@@ -18,16 +29,14 @@ layout: default
 * [Automatic spec discovery](hspec-discover.html)
 * [Parallel spec execution](parallel-spec-execution.html)
 
-## About this manual
-
-We continually improve this manual.  If you want to help,
-[grab the sources from GitHub](https://github.com/hspec/hspec) and
-`/join #hspec` on freenode!
-
-
-
 ## Other resources
 
-* [Vim syntax file for Hspec](https://github.com/hspec/hspec.vim#readme)
+* [Hspec on GitHub](https://github.com/hspec/hspec)
+* [Hspec on Hackage](http://hackage.haskell.org/package/hspec)
 * [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
+* [Vim syntax file for Hspec](https://github.com/hspec/hspec.vim#readme)
 * [A report of Hspec's behavior](report.html)
+
+## Support
+
+Want to chat? `/join #hspec` on freenode!
