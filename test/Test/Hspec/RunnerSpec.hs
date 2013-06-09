@@ -1,5 +1,6 @@
 module Test.Hspec.RunnerSpec (main, spec) where
 
+import           Helper
 import           Test.Hspec.Meta
 import           System.IO.Silently
 import           System.IO (stderr)
@@ -7,10 +8,7 @@ import           Control.Applicative
 import           Control.Monad
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
-import           System.Timeout (timeout)
 import qualified Control.Exception as E
-import           Control.Concurrent (threadDelay)
-import           Helper
 import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
@@ -396,8 +394,8 @@ spec = do
 
     it "runs specs in parallel" $ do
       let n = 10
-          t = 10000
-          dt = t * (n `div` 2)
+          t = 0.01
+          dt = t * (fromIntegral n / 2)
       r <- timeout dt . silence . H.hspecResult . H.parallel $ do
-        replicateM_ n (H.it "foo" $ threadDelay t)
+        replicateM_ n (H.it "foo" $ sleep t)
       r `shouldBe` Just (H.Summary n 0)

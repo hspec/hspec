@@ -1,4 +1,14 @@
-module Helper where
+module Helper (
+  sleep
+, timeout
+, defaultParams
+, captureLines
+, normalizeSummary
+
+, shouldStartWith
+, shouldEndWith
+, shouldContain
+) where
 
 import qualified Test.Hspec.Core as H
 import qualified Test.Hspec.Runner as H
@@ -8,6 +18,7 @@ import           Test.Hspec.Meta
 import           System.IO.Silently
 import           Data.Time.Clock.POSIX
 import           Control.Concurrent
+import qualified System.Timeout as System
 
 captureLines :: IO a -> IO [String]
 captureLines = fmap lines . capture_
@@ -34,4 +45,7 @@ defaultParams :: H.Params
 defaultParams = H.Params (H.configQuickCheckArgs H.defaultConfig) (const $ return ())
 
 sleep :: POSIXTime -> IO ()
-sleep t = threadDelay (floor $ t * 1000000)
+sleep = threadDelay . floor . (* 1000000)
+
+timeout :: POSIXTime -> IO a -> IO (Maybe a)
+timeout = System.timeout . floor . (* 1000000)
