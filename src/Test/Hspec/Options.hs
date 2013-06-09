@@ -80,11 +80,11 @@ addLineBreaks = lineBreaksAt 44
 options :: [OptDescr (Result -> Result)]
 options = [
     Option   []  ["help"]             (NoArg (const $ Left Help))         (h "display this help and exit")
-  , mkOption "m"  "match"             (Arg "PATTERN" return addMatch)    (h "only run examples that match given PATTERN")
+  , mkOption "m"  "match"             (Arg "PATTERN" return addMatch)     (h "only run examples that match given PATTERN")
   , Option   []  ["color"]            (OptArg setColor "WHEN")            (h "colorize the output; WHEN defaults to `always' or can be `never' or `auto'")
   , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
   , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
-  , mkOption []   "seed"              (Arg "N" readMaybe setSeed)   (h "used seed for QuickCheck properties")
+  , mkOption []   "seed"              (Arg "N" readMaybe setSeed)         (h "used seed for QuickCheck properties")
   , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
