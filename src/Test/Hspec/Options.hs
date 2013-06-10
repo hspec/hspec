@@ -82,7 +82,7 @@ options :: [OptDescr (Result -> Result)]
 options = [
     Option   []  ["help"]             (NoArg (const $ Left Help))         (h "display this help and exit")
   , mkOption "m"  "match"             (Arg "PATTERN" return addMatch)     (h "only run examples that match given PATTERN")
-  , Option   []  ["color"]            (OptArg setColor "WHEN")            (h "colorize the output; WHEN defaults to `always' or can be `never' or `auto'")
+  , Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
   , Option   []  ["no-color"]         (NoArg setNoColor)                  (h "do not colorize the output")
   , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
   , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
@@ -106,15 +106,7 @@ options = [
     setFastFail     x = x >>= \c -> return c {optionsFastFail     = True}
     setRerun        x = x >>= \c -> return c {optionsRerun = True}
     setNoColor      x = x >>= \c -> return c {optionsColorMode = ColorNever}
-
-    setColor mValue x = x >>= \c -> parseColor mValue >>= \v -> return c {optionsColorMode = v}
-      where
-        parseColor s = case s of
-          Nothing       -> return ColorAlways
-          Just "auto"   -> return ColorAuto
-          Just "never"  -> return ColorNever
-          Just "always" -> return ColorAlways
-          Just v        -> Left (InvalidArgument "color" v)
+    setColor        x = x >>= \c -> return c {optionsColorMode = ColorAlways}
 
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [

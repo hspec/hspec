@@ -14,6 +14,9 @@ spec = do
 
     let parseOptions = Options.parseOptions defaultOptions "my-spec"
 
+    it "sets optionsColorMode to ColorAuto" $ do
+      optionsColorMode <$> parseOptions [] `shouldBe` Right ColorAuto
+
     context "with --no-color" $ do
       it "sets optionsColorMode to ColorNever" $ do
         optionsColorMode <$> parseOptions ["--no-color"] `shouldBe` Right ColorNever

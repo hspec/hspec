@@ -7,7 +7,8 @@
  - Rename `--re-run` to `--rerun` + add documentation (#95)
  - Remove `configVerbose`
  - Use same `--qc-max-success` on `--rerun` (#125)
- - Add command-line option `--no-color` (#130)
+ - Add command-line option `--no-color`, `--color` does not accept arguments
+   anymore (#130)
 
 ## Changes in 1.5.4
  - Make sure that QuickCheck is never chatty
