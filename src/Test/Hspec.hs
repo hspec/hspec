@@ -125,7 +125,7 @@ context = describe
 -- > describe "absolute" $ do
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
-it :: Example v => String -> v -> Spec
+it :: Example a => String -> a -> Spec
 it label action = fromSpecList [Core.it label action]
 
 -- | This is a type restricted version of `id`.  It can be used to get better
