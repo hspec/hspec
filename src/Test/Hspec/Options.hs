@@ -90,7 +90,7 @@ options = [
   , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
-  , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "only rerun examples that previously failed")
+  , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previously test run (only works in GHCi)")
   ]
   where
     h = unlines . addLineBreaks
