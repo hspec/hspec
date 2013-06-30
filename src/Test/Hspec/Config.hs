@@ -34,11 +34,11 @@ data Config = Config {
 , configColorMode       :: ColorMode
 , configFormatter       :: Formatter
 , configHtmlOutput      :: Bool
-, configHandle          :: Handle
+, configHandle          :: Either Handle FilePath
 }
 
 defaultConfig :: Config
-defaultConfig = Config False False False Nothing QC.stdArgs ColorAuto specdoc False stdout
+defaultConfig = Config False False False Nothing QC.stdArgs ColorAuto specdoc False (Left stdout)
 
 -- | Add a filter predicate to config.  If there is already a filter predicate,
 -- then combine them with `||`.
@@ -65,7 +65,7 @@ mkConfig mFailureReport opts = Config {
   , configColorMode       = optionsColorMode opts
   , configFormatter       = optionsFormatter opts
   , configHtmlOutput      = optionsHtmlOutput opts
-  , configHandle          = stdout
+  , configHandle          = maybe (configHandle defaultConfig) Right (optionsOutputFile opts)
   }
   where
     qcArgs = maybe id setSeed mSeed args

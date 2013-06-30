@@ -29,6 +29,7 @@ data Options = Options {
 , optionsColorMode    :: ColorMode
 , optionsFormatter    :: Formatter
 , optionsHtmlOutput   :: Bool
+, optionsOutputFile   :: Maybe FilePath
 }
 
 addMatch :: String -> Options -> Options
@@ -44,7 +45,7 @@ data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
 
 defaultOptions :: Options
-defaultOptions = Options False False False False [] Nothing Nothing ColorAuto specdoc False
+defaultOptions = Options False False False False [] Nothing Nothing ColorAuto specdoc False Nothing
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -85,6 +86,7 @@ options = [
   , Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
   , Option   []  ["no-color"]         (NoArg setNoColor)                  (h "do not colorize the output")
   , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
+  , mkOption "o"  "out"               (Arg "FILE" return setOutputFile)   (h "write output to a file instead of STDOUT")
   , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
   , mkOption []   "seed"              (Arg "N" readMaybe setSeed)         (h "used seed for QuickCheck properties")
   , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
@@ -100,6 +102,9 @@ options = [
 
     setFormatter :: Formatter -> Options -> Options
     setFormatter f c = c {optionsFormatter = f}
+
+    setOutputFile :: String -> Options -> Options
+    setOutputFile file c = c {optionsOutputFile = Just file}
 
     setPrintCpuTime x = x >>= \c -> return c {optionsPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {optionsDryRun       = True}

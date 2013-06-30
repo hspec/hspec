@@ -24,3 +24,7 @@ spec = do
     context "with --color" $ do
       it "sets optionsColorMode to ColorAlways" $ do
         optionsColorMode <$> parseOptions ["--color"] `shouldBe` Right ColorAlways
+
+    context "with --out" $ do
+      it "sets optionsColorMode to ColorAlways" $ do
+        optionsOutputFile <$> parseOptions ["--out", "foo"] `shouldBe` Right (Just "foo")

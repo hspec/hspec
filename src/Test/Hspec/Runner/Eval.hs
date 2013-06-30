@@ -3,6 +3,7 @@ module Test.Hspec.Runner.Eval (runFormatter) where
 import           Control.Monad
 import qualified Control.Exception as E
 import           Control.Concurrent
+import           System.IO (Handle)
 
 import           Control.Monad.IO.Class (liftIO)
 
@@ -15,18 +16,18 @@ import           Test.Hspec.Timer
 import           Data.Time.Clock.POSIX
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: Bool -> Config -> Formatter -> [SpecTree] -> FormatM ()
-runFormatter useColor c formatter specs = do
+runFormatter :: Bool -> Handle -> Config -> Formatter -> [SpecTree] -> FormatM ()
+runFormatter useColor h c formatter specs = do
   headerFormatter formatter
   chan <- liftIO newChan
-  run chan useColor c formatter specs
+  run chan useColor h c formatter specs
 
 data Message = Done | Run (FormatM ())
 
 data Report = ReportProgress Progress | ReportResult (Either E.SomeException Result)
 
-run :: Chan Message -> Bool -> Config -> Formatter -> [SpecTree] -> FormatM ()
-run chan useColor c formatter specs = do
+run :: Chan Message -> Bool -> Handle -> Config -> Formatter -> [SpecTree] -> FormatM ()
+run chan useColor h c formatter specs = do
   liftIO $ do
     forM_ (zip [0..] specs) (queueSpec [])
     writeChan chan Done
@@ -71,7 +72,7 @@ run chan useColor c formatter specs = do
                 ReportResult result -> formatResult formatter path result
 
         reportProgress :: (Int, Int) -> IO ()
-        reportProgress = exampleProgress formatter (configHandle c) path
+        reportProgress = exampleProgress formatter h path
 
     mkProgressHandler :: (a -> IO ()) -> IO (a -> IO ())
     mkProgressHandler report

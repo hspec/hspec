@@ -106,17 +106,16 @@ hspecResult = hspecWith defaultConfig
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWith :: Config -> Spec -> IO Summary
-hspecWith c_ spec = do
+hspecWith c_ spec = withHandle c_ $ \h -> do
   c <- ensureStdGen c_
   let formatter = configFormatter c
-      h = configHandle c
       seed = (stdGenToInteger . fst . fromJust . QC.replay . configQuickCheckArgs) c
 
   useColor <- doesUseColor h c
 
   withHiddenCursor useColor h $
     runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
-      runFormatter useColor c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_` do
+      runFormatter useColor h c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_` do
         failedFormatter formatter
 
       footerFormatter formatter
@@ -141,6 +140,11 @@ hspecWith c_ spec = do
       ColorAuto  -> hIsTerminalDevice h
       ColorNever -> return False
       ColorAlways -> return True
+
+    withHandle :: Config -> (Handle -> IO a) -> IO a
+    withHandle c action = case configHandle c of
+      Left h -> action h
+      Right path -> withFile path WriteMode action
 
 -- | Summary of a test run.
 data Summary = Summary {

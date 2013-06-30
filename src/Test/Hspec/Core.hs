@@ -54,7 +54,7 @@ hspecB spec = (== 0) . summaryFailures <$> hspecWith defaultConfig spec
 
 {-# DEPRECATED hHspec "use `Test.Hspec.Runner.hspecWith` instead" #-} -- since 1.4.0
 hHspec :: Handle -> [SpecTree] -> IO Summary
-hHspec h = hspecWith defaultConfig {configHandle = h}
+hHspec h = hspecWith defaultConfig {configHandle = Left h}
 
 {-# DEPRECATED Spec "use `SpecTree` instead" #-}                      -- since 1.4.0
 type Spec = SpecTree
