@@ -25,6 +25,7 @@ data Options = Options {
 , optionsFastFail     :: Bool
 , optionsMatch        :: [String]
 , optionsMaxSuccess   :: Maybe Int
+, optionsDepth        :: Maybe Int
 , optionsSeed         :: Maybe Integer
 , optionsMaxSize      :: Maybe Int
 , optionsMaxDiscardRatio :: Maybe Int
@@ -36,6 +37,9 @@ data Options = Options {
 
 addMatch :: String -> Options -> Options
 addMatch s c = c {optionsMatch = s : optionsMatch c}
+
+setDepth :: Int -> Options -> Options
+setDepth n c = c {optionsDepth = Just n}
 
 setMaxSuccess :: Int -> Options -> Options
 setMaxSuccess n c = c {optionsMaxSuccess = Just n}
@@ -53,7 +57,7 @@ data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
 
 defaultOptions :: Options
-defaultOptions = Options False False False False [] Nothing Nothing Nothing Nothing ColorAuto specdoc False Nothing
+defaultOptions = Options False False False False [] Nothing Nothing Nothing Nothing Nothing ColorAuto specdoc False Nothing
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -95,6 +99,7 @@ options = [
   , Option   []  ["no-color"]         (NoArg setNoColor)                  (h "do not colorize the output")
   , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
   , mkOption "o"  "out"               (Arg "FILE" return setOutputFile)   (h "write output to a file instead of STDOUT")
+  , mkOption []   "depth"             (Arg "N" readMaybe setDepth)        (h "maximum depth of generated test values for SmallCheck properties")
   , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
   , mkOption ""   "qc-max-size"       (Arg "N" readMaybe setMaxSize)      (h "size to use for the biggest test cases")
   , mkOption ""   "qc-max-discard"    (Arg "N" readMaybe setMaxDiscardRatio) (h "maximum number of discarded tests per successful test before giving up")

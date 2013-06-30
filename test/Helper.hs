@@ -66,7 +66,7 @@ normalizeSummary xs = map f xs
         | otherwise  = x
 
 defaultParams :: H.Params
-defaultParams = H.Params (H.configQuickCheckArgs H.defaultConfig) (const $ return ())
+defaultParams = H.Params (H.configQuickCheckArgs H.defaultConfig) (H.configSmallCheckDepth H.defaultConfig) (const $ return ())
 
 sleep :: POSIXTime -> IO ()
 sleep = threadDelay . floor . (* 1000000)

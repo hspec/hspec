@@ -82,7 +82,7 @@ run chan useColor h c formatter specs = do
     evalExample :: (Params -> IO Result) -> (Progress -> IO ()) -> IO (Either E.SomeException Result)
     evalExample e progressHandler
       | configDryRun c = return (Right Success)
-      | otherwise      = (safeTry . fmap forceResult) (e $ Params (configQuickCheckArgs c) progressHandler)
+      | otherwise      = (safeTry . fmap forceResult) (e $ Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressHandler)
 
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p

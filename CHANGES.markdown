@@ -1,3 +1,6 @@
+## Changes in 1.7.0
+ - Add `--depth` for use with `hspec-smallcheck`
+
 ## Change in 1.6.2
  - Add `before`
  - Add `--qc-max-discard` and `--qc-max-size`

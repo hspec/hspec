@@ -8,6 +8,7 @@ module Test.Hspec.Config (
 
 import           Control.Applicative
 import           Data.List
+import           Data.Maybe
 import           System.IO
 import           System.Exit
 import qualified Test.QuickCheck as QC
@@ -31,6 +32,7 @@ data Config = Config {
 -- that satisfy the predicate are run.
 , configFilterPredicate :: Maybe (Path -> Bool)
 , configQuickCheckArgs  :: QC.Args
+, configSmallCheckDepth :: Int
 , configColorMode       :: ColorMode
 , configFormatter       :: Formatter
 , configHtmlOutput      :: Bool
@@ -38,7 +40,7 @@ data Config = Config {
 }
 
 defaultConfig :: Config
-defaultConfig = Config False False False Nothing QC.stdArgs ColorAuto specdoc False (Left stdout)
+defaultConfig = Config False False False Nothing QC.stdArgs 5 ColorAuto specdoc False (Left stdout)
 
 -- | Add a filter predicate to config.  If there is already a filter predicate,
 -- then combine them with `||`.
@@ -62,6 +64,7 @@ mkConfig mFailureReport opts = Config {
   , configFastFail        = optionsFastFail opts
   , configFilterPredicate = matchFilter `filterOr` rerunFilter
   , configQuickCheckArgs  = qcArgs
+  , configSmallCheckDepth = fromMaybe (configSmallCheckDepth defaultConfig) (optionsDepth opts)
   , configColorMode       = optionsColorMode opts
   , configFormatter       = optionsFormatter opts
   , configHtmlOutput      = optionsHtmlOutput opts

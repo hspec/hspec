@@ -38,3 +38,7 @@ spec = do
       context "when given an invalid argument" $ do
         it "returns an error message" $ do
           fromLeft (parseOptions ["--qc-max-success", "foo"]) `shouldBe` (ExitFailure 1, "my-spec: invalid argument `foo' for `--qc-max-success'\nTry `my-spec --help' for more information.\n")
+
+    context "with --depth" $ do
+      it "sets depth parameter for SmallCheck" $ do
+        optionsDepth <$> parseOptions ["--depth", "23"] `shouldBe` Right (Just 23)

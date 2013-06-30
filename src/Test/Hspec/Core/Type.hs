@@ -67,8 +67,9 @@ instance E.Exception Result
 type Progress = (Int, Int)
 
 data Params = Params {
-  paramsQuickCheckArgs :: QC.Args
-, paramsReportProgress :: Progress -> IO ()
+  paramsQuickCheckArgs  :: QC.Args
+, paramsSmallCheckDepth :: Int
+, paramsReportProgress  :: Progress -> IO ()
 }
 
 -- | Internal representation of a spec.
