@@ -75,7 +75,7 @@ mkConfig mFailureReport opts = Config {
 
     mSeed = optionsSeed opts <|> (failureReportSeed <$> mFailureReport)
     mMaxSuccess = optionsMaxSuccess opts <|> (failureReportMaxSuccess <$> mFailureReport)
-    mMaxSize = optionsMaxSize opts
+    mMaxSize = optionsMaxSize opts <|> (failureReportMaxSize <$> mFailureReport)
 
     setMaxSuccess :: Int -> QC.Args -> QC.Args
     setMaxSuccess n args = args {QC.maxSuccess = n}
