@@ -11,6 +11,8 @@ import           Test.Hspec.Util (Path, safeTry, readMaybe, getEnv)
 data FailureReport = FailureReport {
   failureReportSeed :: Integer
 , failureReportMaxSuccess :: Int
+, failureReportMaxSize :: Int
+, failureReportMaxDiscardRatio :: Int
 , failureReportPaths :: [Path]
 } deriving (Eq, Show, Read)
 

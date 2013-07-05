@@ -68,15 +68,25 @@ mkConfig mFailureReport opts = Config {
   , configHandle          = maybe (configHandle defaultConfig) Right (optionsOutputFile opts)
   }
   where
-    qcArgs = maybe id setSeed mSeed args
-      where
-        args = maybe id setMaxSuccess mMaxSuccess QC.stdArgs
+    qcArgs =
+      maybe id setSeed mSeed $
+        maybe id setMaxDiscardRatio mMaxDiscardRatio $
+        maybe id setMaxSize mMaxSize $
+        maybe id setMaxSuccess mMaxSuccess QC.stdArgs
 
     mSeed = optionsSeed opts <|> (failureReportSeed <$> mFailureReport)
     mMaxSuccess = optionsMaxSuccess opts <|> (failureReportMaxSuccess <$> mFailureReport)
+    mMaxSize = optionsMaxSize opts <|> (failureReportMaxSize <$> mFailureReport)
+    mMaxDiscardRatio = optionsMaxDiscardRatio opts <|> (failureReportMaxDiscardRatio <$> mFailureReport)
 
     setMaxSuccess :: Int -> QC.Args -> QC.Args
     setMaxSuccess n args = args {QC.maxSuccess = n}
+
+    setMaxSize :: Int -> QC.Args -> QC.Args
+    setMaxSize n args = args {QC.maxSize = n}
+
+    setMaxDiscardRatio :: Int -> QC.Args -> QC.Args
+    setMaxDiscardRatio n args = args {QC.maxDiscardRatio = n}
 
     setSeed :: Integer -> QC.Args -> QC.Args
     setSeed n args = args {QC.replay = Just (stdGenFromInteger n, 0)}
