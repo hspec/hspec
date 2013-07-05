@@ -126,6 +126,7 @@ hspecWith c_ spec = withHandle c_ $ \h -> do
           failureReportSeed = seed
         , failureReportMaxSuccess = QC.maxSuccess (configQuickCheckArgs c)
         , failureReportMaxSize = QC.maxSize (configQuickCheckArgs c)
+        , failureReportMaxDiscardRatio = QC.maxDiscardRatio (configQuickCheckArgs c)
         , failureReportPaths = xs
         }
 
