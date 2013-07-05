@@ -50,3 +50,14 @@ spec = do
       failWithOptions ["--qc-max-size", "2"] `shouldReturn` H.Summary 1 1
       -- maxSize isn't set, so there are lists with more than one element, so the test fails
       testWithOptions [] `shouldReturn` H.Summary 1 1
+
+  describe "command-line option qc-max-discard" $ do
+    let testWithOptions opts = do
+          c <- Config.getConfig defaultOptions "" opts
+          silence . H.hspecWith c $ do
+            H.describe "path1" $ do
+              H.prop "path2" $ \l -> null (l :: [Int]) ==> True -- discards all except the empty list
+    it "fails when we require no discards" $ do
+      testWithOptions ["--qc-max-discard", "0"] `shouldReturn` H.Summary 1 1
+    it "succeeds when we allow lots of discards" $ do
+      testWithOptions ["--qc-max-discard", "100"] `shouldReturn` H.Summary 1 0
