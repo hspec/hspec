@@ -27,6 +27,7 @@ data Options = Options {
 , optionsMaxSuccess   :: Maybe Int
 , optionsSeed         :: Maybe Integer
 , optionsMaxSize      :: Maybe Int
+, optionsMaxDiscardRatio :: Maybe Int
 , optionsColorMode    :: ColorMode
 , optionsFormatter    :: Formatter
 , optionsHtmlOutput   :: Bool
@@ -42,6 +43,9 @@ setMaxSuccess n c = c {optionsMaxSuccess = Just n}
 setMaxSize :: Int -> Options -> Options
 setMaxSize n c = c {optionsMaxSize = Just n}
 
+setMaxDiscardRatio :: Int -> Options -> Options
+setMaxDiscardRatio n c = c {optionsMaxDiscardRatio = Just n}
+
 setSeed :: Integer -> Options -> Options
 setSeed n c = c {optionsSeed = Just n}
 
@@ -49,7 +53,7 @@ data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
 
 defaultOptions :: Options
-defaultOptions = Options False False False False [] Nothing Nothing Nothing ColorAuto specdoc False Nothing
+defaultOptions = Options False False False False [] Nothing Nothing Nothing Nothing ColorAuto specdoc False Nothing
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -93,6 +97,7 @@ options = [
   , mkOption "o"  "out"               (Arg "FILE" return setOutputFile)   (h "write output to a file instead of STDOUT")
   , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
   , mkOption ""   "qc-max-size"       (Arg "N" readMaybe setMaxSize)      (h "size to use for the biggest test cases")
+  , mkOption ""   "qc-max-discard"    (Arg "N" readMaybe setMaxDiscardRatio) (h "maximum number of discarded tests per successful test before giving up")
   , mkOption []   "seed"              (Arg "N" readMaybe setSeed)         (h "used seed for QuickCheck properties")
   , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
