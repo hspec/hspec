@@ -64,6 +64,7 @@ spec = do
         ++ "failureReportSeed = 23, "
         ++ "failureReportMaxSuccess = 100, "
         ++ "failureReportMaxSize = 100, "
+        ++ "failureReportMaxDiscardRatio = 10, "
         ++ "failureReportPaths = [([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")]}")
 
     describe "with --rerun" $ do

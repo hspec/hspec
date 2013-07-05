@@ -20,6 +20,12 @@ spec = do
           H.prop "is inverse to show" $ \x -> (read . show) x == (x :: Int)
       `shouldReturn` H.Summary 1 0
 
+  let failWithOptions opts = do
+        c <- Config.getConfig defaultOptions "" opts
+        silence . H.hspecWith c $ do
+          H.describe "path1" $ do
+            H.prop "path2" $ False
+
   describe "command-line option qc-max-size" $ do
     let testWithOptions opts = do
           c <- Config.getConfig defaultOptions "" opts
@@ -37,11 +43,6 @@ spec = do
     -- unique. We therefore give it two different tests with identical paths.
     -- The first test just always fails, which ensures that path1/path2 is
     -- tested again on a rerun.
-    let failWithOptions opts = do
-          c <- Config.getConfig defaultOptions "" opts
-          silence . H.hspecWith c $ do
-            H.describe "path1" $ do
-              H.prop "path2" $ False
     it "uses qc-max-size from failure report on rerun" $ do
       failWithOptions ["--qc-max-size", "2"] `shouldReturn` H.Summary 1 1
       -- when maxSize is 2, then every list has at most one element, so the test succeeds
@@ -61,3 +62,12 @@ spec = do
       testWithOptions ["--qc-max-discard", "0"] `shouldReturn` H.Summary 1 1
     it "succeeds when we allow lots of discards" $ do
       testWithOptions ["--qc-max-discard", "100"] `shouldReturn` H.Summary 1 0
+
+    -- As with qc-max-size, we use two different tests with identical path
+    -- where the first test always fails.
+    it "uses qc-max-discard from failure report on rerun" $ do
+      failWithOptions ["--qc-max-discard", "100"] `shouldReturn` H.Summary 1 1
+      testWithOptions ["--rerun"] `shouldReturn` H.Summary 1 0
+    it "doesn't use qc-max-discard from failure report when rerun option isn't given" $ do
+      failWithOptions ["--qc-max-discard", "100"] `shouldReturn` H.Summary 1 1
+      testWithOptions [] `shouldReturn` H.Summary 1 1
