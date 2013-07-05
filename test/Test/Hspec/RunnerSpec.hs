@@ -59,6 +59,7 @@ spec = do
       getEnv "HSPEC_FAILURES" `shouldReturn` (Just . show) FailureReport {
           failureReportSeed = 23
         , failureReportMaxSuccess = 100
+        , failureReportMaxSize = 100
         , failureReportPaths = [
             (["foo", "bar"], "example 2")
           , (["baz"], "example 3")

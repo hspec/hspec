@@ -125,6 +125,7 @@ hspecWith c_ spec = withHandle c_ $ \h -> do
       liftIO $ writeFailureReport FailureReport {
           failureReportSeed = seed
         , failureReportMaxSuccess = QC.maxSuccess (configQuickCheckArgs c)
+        , failureReportMaxSize = QC.maxSize (configQuickCheckArgs c)
         , failureReportPaths = xs
         }
 
