@@ -1,5 +1,6 @@
 ## Next
  - Add `before`
+ - Add `--qc-max-discard` and `--qc-max-size`
 
 ## Changes in 1.6.1
  - Allow to specify the output file with `--out`
