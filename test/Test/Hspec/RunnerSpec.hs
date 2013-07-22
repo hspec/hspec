@@ -10,6 +10,7 @@ import           Mock
 import           System.SetEnv
 import           Test.Hspec.Util (getEnv)
 
+import           Test.Hspec.FailureReport (FailureReport(..))
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H (Result(..))
@@ -60,10 +61,14 @@ spec = do
             H.it "example 2" False
         H.describe "baz" $ do
           H.it "example 3" False
-      getEnv "HSPEC_FAILURES" `shouldReturn` Just ("FailureReport {"
-        ++ "failureReportSeed = 23, "
-        ++ "failureReportMaxSuccess = 100, "
-        ++ "failureReportPaths = [([\"foo\",\"bar\"],\"example 2\"),([\"baz\"],\"example 3\")]}")
+      getEnv "HSPEC_FAILURES" `shouldReturn` (Just . show) FailureReport {
+          failureReportSeed = 23
+        , failureReportMaxSuccess = 100
+        , failureReportPaths = [
+            (["foo", "bar"], "example 2")
+          , (["baz"], "example 3")
+          ]
+        }
 
     describe "with --rerun" $ do
       let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
@@ -125,8 +130,8 @@ spec = do
 
         it "prints a warning to stderr" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hCapture [stderr] $ withArgs ["-r"] runSpec
-          fst r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
+          r <- hCapture_ [stderr] $ withArgs ["-r"] runSpec
+          r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
 
 
     it "does not leak command-line flags to examples" $ do
