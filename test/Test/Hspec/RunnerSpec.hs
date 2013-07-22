@@ -16,18 +16,13 @@ import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H (Result(..))
 import qualified Test.Hspec.Formatters as H (silent)
 
-ignoreExitCode :: IO () -> IO ()
-ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
-
-ignoreUserInterrupt :: IO () -> IO ()
-ignoreUserInterrupt action = action `E.catch` \e -> unless (e == E.UserInterrupt) (E.throwIO e)
+import qualified Test.QuickCheck as QC
 
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
-
   describe "hspec" $ do
     it "runs a spec" $ do
       silence . H.hspec $ do
@@ -102,14 +97,9 @@ spec = do
           ]
 
       it "reuses same --qc-max-success" $ do
-        silence . ignoreExitCode . withArgs ["--qc-max-success", "23"] . H.hspec $ do
-          H.it "foo" False
-
-        m <- newMock
-        silence . withArgs ["--rerun"] . H.hspec $ do
-          H.it "foo" $ property $ do
-            mockAction m
-        mockCounter m `shouldReturn` 23
+        let spec_ = H.it "foo" False
+        (spec_, ["--qc-max-success", "23"]) `shouldUseArgs` ((== 23) . QC.maxSuccess)
+        (spec_, ["--rerun"]) `shouldUseArgs` ((== 23) . QC.maxSuccess)
 
       context "when there is no failure report in the environment" $ do
         it "runs everything" $ do
@@ -286,14 +276,9 @@ spec = do
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do
-          silence . ignoreExitCode . withArgs ["--qc-max-success", "23"] . H.hspec $ do
-            H.it "foo" False
-
-          m <- newMock
-          silence . withArgs ["--rerun", "--qc-max-success", "42"] . H.hspec $ do
-            H.it "foo" $ property $ do
-              mockAction m
-          mockCounter m `shouldReturn` 42
+          let spec_ = H.it "foo" False
+          (spec_, ["--qc-max-success", "23"]) `shouldUseArgs` ((== 23) . QC.maxSuccess)
+          (spec_, ["--rerun", "--qc-max-success", "42"]) `shouldUseArgs` ((== 42) . QC.maxSuccess)
 
       context "when given an invalid argument" $ do
         it "prints an error message to stderr" $ do
