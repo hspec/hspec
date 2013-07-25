@@ -5,6 +5,7 @@ module Test.Hspec.Runner (
   hspec
 , hspecResult
 , hspecWith
+, addSetUp
 
 -- * Types
 , Summary (..)
@@ -18,28 +19,29 @@ module Test.Hspec.Runner (
 , hspecWithFormatter
 ) where
 
-import           Control.Monad
 import           Control.Applicative
-import           Data.Monoid
+import qualified Control.Exception              as E
+import           Control.Monad
 import           Data.Maybe
-import           System.IO
+import           Data.Monoid
 import           System.Environment
 import           System.Exit
-import qualified Control.Exception as E
+import           System.IO
 
-import           System.Console.ANSI (hHideCursor, hShowCursor)
-import qualified Test.QuickCheck as QC
-import           System.Random (newStdGen)
-import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.IO.Class         (liftIO)
+import           System.Console.ANSI            (hHideCursor, hShowCursor)
+import           System.Random                  (newStdGen)
+import qualified Test.QuickCheck                as QC
 
-import           Test.Hspec.Util
-import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
+import           Test.Hspec.Core.Type
+import           Test.Hspec.FailureReport
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
-import           Test.Hspec.FailureReport
+import           Test.Hspec.Util
 
-import           Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
+import           Test.Hspec.Options             (ColorMode (..), Options (..),
+                                                 defaultOptions)
 import           Test.Hspec.Runner.Eval
 
 -- | Filter specs by given predicate.
@@ -62,6 +64,13 @@ filterSpecs p = goSpecs []
 -- Exit with `exitFailure` if at least one spec item fails.
 hspec :: Spec -> IO ()
 hspec = hspecWithOptions defaultOptions
+
+-- | Add custom action before every test runs.
+addSetUp :: IO () -> Spec -> Spec
+addSetUp action spec = fromSpecList $ (map addActionToSpecItem (runSpecM spec))
+  where addActionToSpecItem :: SpecTree -> SpecTree
+        addActionToSpecItem (SpecGroup s l) = SpecGroup s (map addActionToSpecItem l)
+        addActionToSpecItem (SpecItem b s f) = SpecItem b s (\params -> (action >> (f params)))
 
 -- | This function is used by @hspec-discover@.  It is not part of the public
 -- API and may change at any time.
