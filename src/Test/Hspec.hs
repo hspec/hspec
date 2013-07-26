@@ -36,14 +36,15 @@ module Test.Hspec (
 
 -- * Running a spec
 , hspec
-, addSetUp
+, before
 ) where
 
-import qualified Test.Hspec.Core         as Core
-import           Test.Hspec.Core.Type    hiding (describe, it)
-import           Test.Hspec.Expectations
-import           Test.Hspec.HUnit        ()
-import           Test.Hspec.Runner
+
+import Test.Hspec.Core.Type hiding (describe, it)
+import Test.Hspec.Runner
+import Test.Hspec.HUnit ()
+import Test.Hspec.Expectations
+import qualified Test.Hspec.Core as Core
 
 -- $intro
 --

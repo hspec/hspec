@@ -5,7 +5,7 @@ module Test.Hspec.Runner (
   hspec
 , hspecResult
 , hspecWith
-, addSetUp
+, before
 
 -- * Types
 , Summary (..)
@@ -19,30 +19,30 @@ module Test.Hspec.Runner (
 , hspecWithFormatter
 ) where
 
-import           Control.Applicative
-import qualified Control.Exception              as E
-import           Control.Monad
-import           Data.Maybe
-import           Data.Monoid
-import           System.Environment
-import           System.Exit
-import           System.IO
 
-import           Control.Monad.IO.Class         (liftIO)
-import           System.Console.ANSI            (hHideCursor, hShowCursor)
-import           System.Random                  (newStdGen)
-import qualified Test.QuickCheck                as QC
+import Control.Monad
+import Control.Applicative
+import Data.Monoid
+import Data.Maybe
+import System.IO
+import System.Environment
+import System.Exit
+import qualified Control.Exception as E
 
-import           Test.Hspec.Config
-import           Test.Hspec.Core.Type
-import           Test.Hspec.FailureReport
-import           Test.Hspec.Formatters
-import           Test.Hspec.Formatters.Internal
-import           Test.Hspec.Util
+import System.Console.ANSI (hHideCursor, hShowCursor)
+import qualified Test.QuickCheck as QC
+import System.Random (newStdGen)
+import Control.Monad.IO.Class (liftIO)
 
-import           Test.Hspec.Options             (ColorMode (..), Options (..),
-                                                 defaultOptions)
-import           Test.Hspec.Runner.Eval
+import Test.Hspec.Util
+import Test.Hspec.Core.Type
+import Test.Hspec.Config
+import Test.Hspec.Formatters
+import Test.Hspec.Formatters.Internal
+import Test.Hspec.FailureReport
+
+import Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
+import Test.Hspec.Runner.Eval
 
 -- | Filter specs by given predicate.
 --
@@ -66,8 +66,8 @@ hspec :: Spec -> IO ()
 hspec = hspecWithOptions defaultOptions
 
 -- | Add custom action before every test runs.
-addSetUp :: IO () -> Spec -> Spec
-addSetUp action spec = fromSpecList $ (map addActionToSpecItem (runSpecM spec))
+before :: IO () -> Spec -> Spec
+before action spec = fromSpecList $ (map addActionToSpecItem (runSpecM spec))
   where addActionToSpecItem :: SpecTree -> SpecTree
         addActionToSpecItem (SpecGroup s l) = SpecGroup s (map addActionToSpecItem l)
         addActionToSpecItem (SpecItem b s f) = SpecItem b s (\params -> (action >> (f params)))
