@@ -19,8 +19,6 @@ module Test.Hspec.Runner (
 , hspecWithFormatter
 ) where
 
-
-
 import           Control.Monad
 import           Control.Applicative
 import           Data.Monoid

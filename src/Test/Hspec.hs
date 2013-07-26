@@ -39,8 +39,6 @@ module Test.Hspec (
 , before
 ) where
 
-
-
 import           Test.Hspec.Core.Type hiding (describe, it)
 import           Test.Hspec.Runner
 import           Test.Hspec.HUnit ()
