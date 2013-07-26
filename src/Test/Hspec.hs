@@ -40,10 +40,11 @@ module Test.Hspec (
 ) where
 
 
-import Test.Hspec.Core.Type hiding (describe, it)
-import Test.Hspec.Runner
-import Test.Hspec.HUnit ()
-import Test.Hspec.Expectations
+
+import           Test.Hspec.Core.Type hiding (describe, it)
+import           Test.Hspec.Runner
+import           Test.Hspec.HUnit ()
+import           Test.Hspec.Expectations
 import qualified Test.Hspec.Core as Core
 
 -- $intro

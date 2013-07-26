@@ -20,29 +20,30 @@ module Test.Hspec.Runner (
 ) where
 
 
-import Control.Monad
-import Control.Applicative
-import Data.Monoid
-import Data.Maybe
-import System.IO
-import System.Environment
-import System.Exit
+
+import           Control.Monad
+import           Control.Applicative
+import           Data.Monoid
+import           Data.Maybe
+import           System.IO
+import           System.Environment
+import           System.Exit
 import qualified Control.Exception as E
 
-import System.Console.ANSI (hHideCursor, hShowCursor)
+import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
-import System.Random (newStdGen)
-import Control.Monad.IO.Class (liftIO)
+import           System.Random (newStdGen)
+import           Control.Monad.IO.Class (liftIO)
 
-import Test.Hspec.Util
-import Test.Hspec.Core.Type
-import Test.Hspec.Config
-import Test.Hspec.Formatters
-import Test.Hspec.Formatters.Internal
-import Test.Hspec.FailureReport
+import           Test.Hspec.Util
+import           Test.Hspec.Core.Type
+import           Test.Hspec.Config
+import           Test.Hspec.Formatters
+import           Test.Hspec.Formatters.Internal
+import           Test.Hspec.FailureReport
 
-import Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
-import Test.Hspec.Runner.Eval
+import           Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
+import           Test.Hspec.Runner.Eval
 
 -- | Filter specs by given predicate.
 --
