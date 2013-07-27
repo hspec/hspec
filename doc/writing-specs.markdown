@@ -51,6 +51,24 @@ main = hspec $ do
         parse "some invalid input" `shouldBe` Left "parse error"
 ```
 
+### Using \`before\`
+
+`before` is a function allowing you to add some custom `IO ()` action
+before every test inside a spec. For example, if you have `flushDb`
+which flushes your database, you could have this kind of
+test-launcher:
+
+```hspec
+main :: IO ()
+main = hspec $ before flushDb $ do
+  describe "/api/users/" $ do
+    it "creates a new user" $ do
+      callApi "POST" "/api/users/" "name=jay"
+      callApi "GET" "/api/users/count" `shouldReturn` 1
+    it "ensures count of users is initially zero" $ do
+      callApi "GET" "/api/users/count" `shouldReturn` 0
+```
+
 ### Running specs
 
 The most common way to run a spec is with {{'hspec'|id}}, e.g.:
