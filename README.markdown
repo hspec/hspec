@@ -47,3 +47,4 @@ To run the test suite do:
  * Takayuki Muranushi
  * Sönke Hahn
  * Peter Simons
+ * Konstantine Rybnikov

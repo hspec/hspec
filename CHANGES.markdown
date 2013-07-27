@@ -1,3 +1,6 @@
+## Next
+ - Add `before`
+
 ## Changes in 1.6.1
  - Allow to specify the output file with `--out`
 
