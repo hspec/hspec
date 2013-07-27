@@ -36,6 +36,7 @@ module Test.Hspec (
 
 -- * Running a spec
 , hspec
+, before
 ) where
 
 import           Test.Hspec.Core.Type hiding (describe, it)

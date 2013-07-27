@@ -5,6 +5,7 @@ module Test.Hspec.Runner (
   hspec
 , hspecResult
 , hspecWith
+, before
 
 -- * Types
 , Summary (..)
@@ -62,6 +63,13 @@ filterSpecs p = goSpecs []
 -- Exit with `exitFailure` if at least one spec item fails.
 hspec :: Spec -> IO ()
 hspec = hspecWithOptions defaultOptions
+
+-- | Add custom action before every test runs.
+before :: IO () -> Spec -> Spec
+before action spec = fromSpecList $ (map addActionToSpecItem (runSpecM spec))
+  where addActionToSpecItem :: SpecTree -> SpecTree
+        addActionToSpecItem (SpecGroup s l) = SpecGroup s (map addActionToSpecItem l)
+        addActionToSpecItem (SpecItem b s f) = SpecItem b s (\params -> (action >> (f params)))
 
 -- | This function is used by @hspec-discover@.  It is not part of the public
 -- API and may change at any time.
