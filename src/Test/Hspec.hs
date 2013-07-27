@@ -32,11 +32,11 @@ module Test.Hspec (
 , example
 , pending
 , pendingWith
+, before
 , parallel
 
 -- * Running a spec
 , hspec
-, before
 ) where
 
 import           Test.Hspec.Core.Type hiding (describe, it)
@@ -151,4 +151,13 @@ parallel = fromSpecList . map go . runSpecM
     go :: SpecTree -> SpecTree
     go spec = case spec of
       SpecItem _ r e -> SpecItem True r e
+      SpecGroup d es -> SpecGroup d (map go es)
+
+-- | Add custom action before every test runs.
+before :: IO () -> Spec -> Spec
+before action = fromSpecList . map go . runSpecM
+  where
+    go :: SpecTree -> SpecTree
+    go spec = case spec of
+      SpecItem b r e -> SpecItem b r (\params -> (action >> (e params)))
       SpecGroup d es -> SpecGroup d (map go es)
