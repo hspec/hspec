@@ -35,9 +35,8 @@ import           System.IO.Silently
 import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
 
-import qualified Test.Hspec.Core as H (Result(..), Params(..), fromSpecList, runSpecM, SpecTree(..))
+import qualified Test.Hspec.Core as H (Result(..), Params(..), fromSpecList, SpecTree(..))
 import qualified Test.Hspec.Runner as H
-import qualified Test.Hspec as H
 
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
@@ -75,19 +74,9 @@ sleep = threadDelay . floor . (* 1000000)
 timeout :: POSIXTime -> IO a -> IO (Maybe a)
 timeout = System.timeout . floor . (* 1000000)
 
-shouldUseArgs :: (H.Spec, [String]) -> (Args -> Bool) -> Expectation
-shouldUseArgs (spec, args) p = do
+shouldUseArgs :: [String] -> (Args -> Bool) -> Expectation
+shouldUseArgs args p = do
   spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
-  (silence . ignoreExitCode . withArgs args . H.hspec . injectSpy spy) spec
+  let spec = H.fromSpecList [H.SpecItem False "foo" $ \params -> writeIORef spy (H.paramsQuickCheckArgs params) >> return (H.Fail "example failed")]
+  (silence . ignoreExitCode . withArgs args . H.hspec) spec
   readIORef spy >>= (`shouldSatisfy` p)
-
-injectSpy :: (IORef Args) -> H.Spec -> H.Spec
-injectSpy spy = H.fromSpecList . map go . H.runSpecM
-  where
-    go :: H.SpecTree -> H.SpecTree
-    go spec = case spec of
-      H.SpecItem p r e -> H.SpecItem p r (inject e)
-      H.SpecGroup d es -> H.SpecGroup d (map go es)
-
-    inject :: (H.Params -> IO H.Result) -> H.Params -> IO H.Result
-    inject e p = writeIORef spy (H.paramsQuickCheckArgs p) >> e p

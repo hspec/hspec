@@ -21,6 +21,9 @@ import qualified Test.QuickCheck as QC
 main :: IO ()
 main = hspec spec
 
+quickCheckOptions :: [([Char], Args -> Int)]
+quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]
+
 spec :: Spec
 spec = do
   describe "hspec" $ do
@@ -98,10 +101,10 @@ spec = do
           , "26"
           ]
 
-      it "reuses same --qc-max-success" $ do
-        let spec_ = H.it "foo" False
-        (spec_, ["--qc-max-success", "23"]) `shouldUseArgs` ((== 23) . QC.maxSuccess)
-        (spec_, ["--rerun"]) `shouldUseArgs` ((== 23) . QC.maxSuccess)
+      forM_ quickCheckOptions $ \(flag, accessor) -> do
+        it ("reuses same " ++ flag) $ do
+          [flag, "23"] `shouldUseArgs` ((== 23) . accessor)
+          ["--rerun"] `shouldUseArgs` ((== 23) . accessor)
 
       context "when there is no failure report in the environment" $ do
         it "runs everything" $ do
@@ -278,15 +281,16 @@ spec = do
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do
-          let spec_ = H.it "foo" False
-          (spec_, ["--qc-max-success", "23"]) `shouldUseArgs` ((== 23) . QC.maxSuccess)
-          (spec_, ["--rerun", "--qc-max-success", "42"]) `shouldUseArgs` ((== 42) . QC.maxSuccess)
+          ["--qc-max-success", "23"] `shouldUseArgs` ((== 23) . QC.maxSuccess)
+          ["--rerun", "--qc-max-success", "42"] `shouldUseArgs` ((== 42) . QC.maxSuccess)
 
-      context "when given an invalid argument" $ do
-        it "prints an error message to stderr" $ do
-          r <- hCapture_ [stderr] . ignoreExitCode . withArgs ["--qc-max-success", "foo"] . H.hspec $ do
-            H.it "foo" True
-          r `shouldContain` "invalid argument `foo' for `--qc-max-success'"
+    context "with --qc-max-size" $ do
+      it "passes specified size to QuickCheck properties" $ do
+        ["--qc-max-size", "23"] `shouldUseArgs` ((== 23) . QC.maxSize)
+
+    context "with --qc-max-discard" $ do
+      it "uses specified discard ratio to QuickCheck properties" $ do
+        ["--qc-max-discard", "23"] `shouldUseArgs` ((== 23) . QC.maxDiscardRatio)
 
     context "with --seed" $ do
       it "uses specified seed" $ do
