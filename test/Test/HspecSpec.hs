@@ -1,11 +1,13 @@
 module Test.HspecSpec (main, spec) where
 
 import           Helper
+import           Mock
 import           Data.List (isPrefixOf)
 
 import           Test.Hspec.Core (SpecTree(..), Result(..), runSpecM)
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H (hspecResult)
+
 main :: IO ()
 main = hspec spec
 
@@ -82,6 +84,15 @@ spec = do
               H.describe "bar" $ do
                 H.it "baz" True
       isParallelizable `shouldBe` True
+
+  describe "before" $ do
+    it "runs an action before each spec item" $ do
+      mock <- newMock
+      silence $ H.hspec $ H.before (mockAction mock) $ do
+        H.it "foo" $ do
+          mockCounter mock `shouldReturn` 1
+        H.it "bar" $ do
+          mockCounter mock `shouldReturn` 2
   where
     runSpec :: H.Spec -> IO [String]
     runSpec = captureLines . H.hspecResult

@@ -146,18 +146,16 @@ example = id
 
 -- | Run examples of given spec in parallel.
 parallel :: Spec -> Spec
-parallel = fromSpecList . map go . runSpecM
-  where
-    go :: SpecTree -> SpecTree
-    go spec = case spec of
-      SpecItem _ r e -> SpecItem True r e
-      SpecGroup d es -> SpecGroup d (map go es)
+parallel = mapSpecItem $ \_ r e -> SpecItem True r e
 
--- | Add custom action before every test runs.
+-- | Run a custom action before every spec item.
 before :: IO () -> Spec -> Spec
-before action = fromSpecList . map go . runSpecM
+before action = mapSpecItem $ \b r e -> SpecItem b r (\params -> (action >> (e params)))
+
+mapSpecItem :: (Bool -> String -> (Params -> IO Result) -> SpecTree) -> Spec -> Spec
+mapSpecItem f = fromSpecList . map go . runSpecM
   where
     go :: SpecTree -> SpecTree
     go spec = case spec of
-      SpecItem b r e -> SpecItem b r (\params -> (action >> (e params)))
+      SpecItem b r e -> f b r e
       SpecGroup d es -> SpecGroup d (map go es)

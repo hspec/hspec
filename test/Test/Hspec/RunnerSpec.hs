@@ -2,7 +2,6 @@ module Test.Hspec.RunnerSpec (main, spec) where
 
 import           Helper
 import           System.IO (stderr)
-import           Data.IORef (newIORef, writeIORef, readIORef, IORef)
 import           Control.Monad
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
@@ -401,30 +400,3 @@ spec = do
       r <- timeout dt . silence . H.hspecResult . H.parallel $ do
         replicateM_ n (H.it "foo" $ sleep t)
       r `shouldBe` Just (H.Summary n 0)
-
-  describe "before" $ do
-
-    context "with empty action" $ do
-      let doNothing :: IO ()
-          doNothing = return ()
-
-      it "keeps specs same as before" $ do
-        silence $ H.hspec $ H.before doNothing $ do
-          H.it "foobar" True
-        `shouldReturn` ()
-
-    context "with simple io-write action" $ do
-      let modifyRef :: IORef Int -> IO ()
-          modifyRef ref = writeIORef ref 2
-
-      it "gets 2 in ref" $ do
-        ref <- newIORef 1
-
-        ((silence $
-          H.hspec $
-          H.before (modifyRef ref) $ do
-            H.it "foobar" True)
-          `shouldReturn` ())
-
-        (readIORef ref) `shouldReturn` 2
-        return ()

@@ -53,20 +53,20 @@ main = hspec $ do
 
 ### Using \`before\`
 
-`before` is a function allowing you to add some custom `IO ()` action
-before every test inside a spec. For example, if you have `flushDb`
-which flushes your database, you could have this kind of
-test-launcher:
+`before` runs a custom `IO` action before every spec item. For example, if you
+have an action `flushDb` which flushes your database, you can run it before
+every spec item with:
 
 ```hspec
 main :: IO ()
 main = hspec $ before flushDb $ do
-  describe "/api/users/" $ do
-    it "creates a new user" $ do
-      callApi "POST" "/api/users/" "name=jay"
-      callApi "GET" "/api/users/count" `shouldReturn` 1
-    it "ensures count of users is initially zero" $ do
-      callApi "GET" "/api/users/count" `shouldReturn` 0
+  describe "/api/users/count" $ do
+    it "returns the number of users" $ do
+      post "/api/users/create" "name=Jay"
+      get "/api/users/count" `shouldReturn` 1
+    context "when there are no users" $ do
+      it "returns 0" $ do
+        callApi "GET" "/api/users/count" `shouldReturn` 0
 ```
 
 ### Running specs

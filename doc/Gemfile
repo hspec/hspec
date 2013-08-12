@@ -1,4 +1,4 @@
-source :rubygems
+source 'https://rubygems.org'
 gem 'redcarpet'
 gem 'RedCloth'
 gem 'jekyll', :github => 'sol/jekyll', :branch => 'hspec-doc'
