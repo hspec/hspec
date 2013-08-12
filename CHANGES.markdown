@@ -1,4 +1,4 @@
-## Next
+## Change in 1.6.2
  - Add `before`
  - Add `--qc-max-discard` and `--qc-max-size`
 
