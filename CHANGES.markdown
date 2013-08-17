@@ -1,3 +1,6 @@
+## next
+ - When printing progress, skip total if it is 0
+
 ## Changes in 1.7.0
  - Add `--depth` for use with `hspec-smallcheck`
 

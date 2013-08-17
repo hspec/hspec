@@ -138,8 +138,8 @@ specdoc = silent {
 , exampleGroupDone = do
     newParagraph
 
-, exampleProgress = \h _ (current, total) -> do
-    hPutStr h $ "(" ++ show current ++ "/" ++ show total ++ ")\r"
+, exampleProgress = \h _ p -> do
+    hPutStr h (formatProgress p)
     hFlush h
 
 , exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
@@ -157,6 +157,9 @@ specdoc = silent {
 , footerFormatter = defaultFooter
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
+    formatProgress (current, total)
+      | total == 0 = show current ++ "\r"
+      | otherwise  = show current ++ "/" ++ show total ++ "\r"
 
 
 progress :: Formatter
