@@ -9,7 +9,7 @@ roughly based on the Ruby library [RSpec](http://rspec.info/).  Some of Hspec's
 distinctive features are:
 
  * a friendly DSL for defining tests
- * integration with QuickCheck and HUnit
+ * integration with QuickCheck, SmallCheck, and HUnit
  * parallel test execution
  * automatic discovery of test files
 
@@ -34,6 +34,7 @@ An example is worth a thousand words, so here we go:
 * [Hspec on GitHub](https://github.com/hspec/hspec)
 * [Hspec on Hackage](http://hackage.haskell.org/package/hspec)
 * [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
+* [SmallCheck integration](http://hackage.haskell.org/package/hspec-smallcheck)
 * [Vim syntax file for Hspec](https://github.com/hspec/hspec.vim#readme)
 * [A report of Hspec's behavior](report.html)
 
