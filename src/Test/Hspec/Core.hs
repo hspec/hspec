@@ -24,7 +24,6 @@ module Test.Hspec.Core (
 , it
 
 -- * Deprecated types and functions
-, Spec
 , Specs
 , hspecB
 , hspecX
