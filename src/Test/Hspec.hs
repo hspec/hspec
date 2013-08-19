@@ -43,6 +43,7 @@ import           Test.Hspec.Core.Type hiding (describe, it)
 import           Test.Hspec.Runner
 import           Test.Hspec.HUnit ()
 import           Test.Hspec.Expectations
+import           Test.Hspec.Core (mapSpecItem)
 import qualified Test.Hspec.Core as Core
 
 -- $intro
@@ -146,16 +147,8 @@ example = id
 
 -- | Run examples of given spec in parallel.
 parallel :: Spec -> Spec
-parallel = mapSpecItem $ \_ r e -> SpecItem True r e
+parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
 
 -- | Run a custom action before every spec item.
 before :: IO () -> Spec -> Spec
-before action = mapSpecItem $ \b r e -> SpecItem b r (\params -> (action >> (e params)))
-
-mapSpecItem :: (Bool -> String -> (Params -> IO Result) -> SpecTree) -> Spec -> Spec
-mapSpecItem f = fromSpecList . map go . runSpecM
-  where
-    go :: SpecTree -> SpecTree
-    go spec = case spec of
-      SpecItem b r e -> f b r e
-      SpecGroup d es -> SpecGroup d (map go es)
+before action = mapSpecItem $ \item -> item {itemExample = \params -> (action >> itemExample item params)}

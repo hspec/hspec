@@ -4,7 +4,7 @@ import           Helper
 import           Mock
 import           Data.List (isPrefixOf)
 
-import           Test.Hspec.Core (SpecTree(..), Result(..), runSpecM)
+import           Test.Hspec.Core (SpecTree(..), Item(..), Result(..), runSpecM)
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H (hspecResult)
 
@@ -41,7 +41,7 @@ spec = do
       length r `shouldBe` 3
 
     it "can be nested" $ do
-      let [SpecGroup foo [SpecGroup bar [SpecItem _ baz _]]] = runSpecM $ do
+      let [SpecGroup foo [SpecGroup bar [SpecItem Item {itemRequirement = baz}]]] = runSpecM $ do
             H.describe "foo" $ do
               H.describe "bar" $ do
                 H.it "baz" True
@@ -54,17 +54,17 @@ spec = do
 
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
-      let [SpecItem _ d _] = runSpecM (H.it "whatever" True)
-      d `shouldBe` "whatever"
+      let [SpecItem item] = runSpecM (H.it "whatever" True)
+      itemRequirement item `shouldBe` "whatever"
 
     it "takes an example of that behavior" $ do
-      let [SpecItem _ _ e] = runSpecM (H.it "whatever" True)
-      e defaultParams `shouldReturn` Success
+      let [SpecItem item] = runSpecM (H.it "whatever" True)
+      itemExample item defaultParams `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do
-        let [SpecItem _ d _] = runSpecM (H.it "" True)
-        d `shouldBe` "(unspecified behavior)"
+        let [SpecItem item] = runSpecM (H.it "" True)
+        itemRequirement item `shouldBe` "(unspecified behavior)"
 
   describe "example" $ do
     it "fixes the type of an expectation" $ do
@@ -75,15 +75,15 @@ spec = do
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do
-      let [SpecItem isParallelizable _ _] = runSpecM . H.parallel $ H.it "whatever" True
-      isParallelizable `shouldBe` True
+      let [SpecItem item] = runSpecM . H.parallel $ H.it "whatever" True
+      itemIsParallelizable item `shouldBe` True
 
     it "is applied recursively" $ do
-      let [SpecGroup _ [SpecGroup _ [SpecItem isParallelizable _ _]]] = runSpecM . H.parallel $ do
+      let [SpecGroup _ [SpecGroup _ [SpecItem item]]] = runSpecM . H.parallel $ do
             H.describe "foo" $ do
               H.describe "bar" $ do
                 H.it "baz" True
-      isParallelizable `shouldBe` True
+      itemIsParallelizable item `shouldBe` True
 
   describe "before" $ do
     it "runs an action before each spec item" $ do

@@ -53,7 +53,7 @@ filterSpecs p = goSpecs []
 
     goSpec :: [String] -> SpecTree -> Maybe SpecTree
     goSpec groups spec = case spec of
-      SpecItem _ requirement _ -> guard (p (groups, requirement)) >> return spec
+      SpecItem item -> guard (p (groups, itemRequirement item)) >> return spec
       SpecGroup group specs     -> case goSpecs (groups ++ [group]) specs of
         [] -> Nothing
         xs -> Just (SpecGroup group xs)

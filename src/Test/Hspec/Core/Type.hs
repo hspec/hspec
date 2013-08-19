@@ -5,6 +5,7 @@ module Test.Hspec.Core.Type (
 , runSpecM
 , fromSpecList
 , SpecTree (..)
+, Item (..)
 , Example (..)
 , Result (..)
 , Params (..)
@@ -75,7 +76,13 @@ data Params = Params {
 -- | Internal representation of a spec.
 data SpecTree =
     SpecGroup String [SpecTree]
-  | SpecItem Bool String (Params -> IO Result)
+  | SpecItem Item
+
+data Item = Item {
+  itemIsParallelizable :: Bool
+, itemRequirement :: String
+, itemExample :: Params -> IO Result
+}
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree] -> SpecTree
@@ -87,7 +94,7 @@ describe s = SpecGroup msg
 
 -- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
-it s e = SpecItem False msg (`evaluateExample` e)
+it s e = SpecItem $ Item False msg (`evaluateExample` e)
   where
     msg
       | null s = "(unspecified behavior)"

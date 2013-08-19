@@ -4,7 +4,7 @@ import           Helper
 
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H
-import           Test.Hspec.Core.Type (SpecTree(..), runSpecM)
+import           Test.Hspec.Core.Type (SpecTree(..), Item(..), runSpecM)
 import           Test.Hspec.HUnit
 import           Test.HUnit
 
@@ -24,7 +24,7 @@ a `shouldYield` b = (convert . runSpecM . fromHUnitTest) a `shouldBe` b
         go :: SpecTree -> Tree
         go x = case x of
           SpecGroup s xs  -> Group s (map go xs)
-          SpecItem _ s _  -> Example s
+          SpecItem item -> Example (itemRequirement item)
 
 spec :: Spec
 spec = do

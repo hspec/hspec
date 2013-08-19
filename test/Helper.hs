@@ -35,7 +35,8 @@ import           System.IO.Silently
 import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
 
-import qualified Test.Hspec.Core as H (Result(..), Params(..), fromSpecList, SpecTree(..))
+import qualified Test.Hspec as H
+import qualified Test.Hspec.Core as H (Params(..), Item(..), mapSpecItem)
 import qualified Test.Hspec.Runner as H
 
 ignoreExitCode :: IO () -> IO ()
@@ -77,6 +78,8 @@ timeout = System.timeout . floor . (* 1000000)
 shouldUseArgs :: [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do
   spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
-  let spec = H.fromSpecList [H.SpecItem False "foo" $ \params -> writeIORef spy (H.paramsQuickCheckArgs params) >> return (H.Fail "example failed")]
+  let interceptArgs item = item {H.itemExample = \params -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params}
+      spec = H.mapSpecItem interceptArgs $
+        H.it "foo" False
   (silence . ignoreExitCode . withArgs args . H.hspec) spec
   readIORef spy >>= (`shouldSatisfy` p)
