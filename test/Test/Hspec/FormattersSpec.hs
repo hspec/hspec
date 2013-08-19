@@ -171,14 +171,14 @@ failed_examplesSpec formatter = do
   context "displays a detailed list of failures" $ do
     it "prints all requirements that are not met" $ do
       r <- runSpec testSpec
-      r `shouldSatisfy` any (== "1) Example fail 1 FAILED")
+      r `shouldSatisfy` any (== "1) Example fail 1")
 
     it "prints the exception type for requirements that fail due to an uncaught exception" $ do
       r <- runSpec $ do
         H.it "foobar" (undefined :: Bool)
       r `shouldContain` [
-          "1) foobar FAILED (uncaught exception)"
-        , "ErrorCall (Prelude.undefined)"
+          "1) foobar"
+        , "uncaught exception: ErrorCall (Prelude.undefined)"
         ]
 
     it "prints all descriptions when a nested requirement fails" $ do
@@ -186,7 +186,7 @@ failed_examplesSpec formatter = do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "baz" False
-      r `shouldSatisfy` any (== "1) foo.bar baz FAILED")
+      r `shouldSatisfy` any (== "1) foo.bar baz")
 
   it "summarizes the number of examples and failures" $ do
     r <- runSpec testSpec

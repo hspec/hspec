@@ -194,15 +194,12 @@ defaultFailedFormatter = do
     formatFailure :: (Int, FailureRecord) -> FormatM ()
     formatFailure (n, FailureRecord path reason) = do
       write (show n ++ ") ")
+      writeLine (formatRequirement path)
       withFailColor $ do
-        write (formatRequirement path ++ " FAILED")
-        write $ case reason of
-          Right _ -> "\n"
-          Left _  -> " (uncaught exception)\n"
         unless (null err) $ do
           writeLine err
       where
-        err = either formatException id reason
+        err = either (("uncaught exception: " ++) . formatException) id reason
 
 -- | Convert an exception to a string.
 --
