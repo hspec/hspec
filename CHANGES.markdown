@@ -1,4 +1,5 @@
 ## next
+ - Add `shouldContain` (thanks to Alfredo Di Napoli)
  - When printing progress, skip total if it is 0
  - Do not colorize the description/requirement in failure list
 

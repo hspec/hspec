@@ -49,3 +49,4 @@ To run the test suite do:
  * Peter Simons
  * Markus Klinik
  * Konstantine Rybnikov
+ * Alfredo Di Napoli
