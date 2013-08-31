@@ -14,7 +14,6 @@ module Helper (
 
 , shouldStartWith
 , shouldEndWith
-, shouldContain
 
 , shouldUseArgs
 ) where
@@ -47,9 +46,6 @@ ignoreUserInterrupt action = action `E.catch` \e -> unless (e == E.UserInterrupt
 
 captureLines :: IO a -> IO [String]
 captureLines = fmap lines . capture_
-
-shouldContain :: (Eq a, Show a) => [a] -> [a] -> Expectation
-x `shouldContain` y = x `shouldSatisfy` isInfixOf y
 
 shouldStartWith :: (Eq a, Show a) => [a] -> [a] -> Expectation
 x `shouldStartWith` y = x `shouldSatisfy` isPrefixOf y

@@ -1,8 +1,10 @@
 ## next
+ - Add `Test.Hspec.Core.mapSpecItem`
+
+## Changes in 1.7.1
  - Add `shouldContain` (thanks to Alfredo Di Napoli)
  - When printing progress, skip total if it is 0
  - Do not colorize the description/requirement in failure list
- - Add `Test.Hspec.Core.mapSpecItem`
 
 ## Changes in 1.7.0
  - Add `--depth` for use with `hspec-smallcheck`
