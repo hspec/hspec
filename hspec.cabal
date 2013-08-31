@@ -1,5 +1,5 @@
 name:             hspec
-version:          1.7.0
+version:          1.7.1
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2013 Simon Hengel,
@@ -119,7 +119,7 @@ test-suite spec
     , quickcheck-io
     , hspec-expectations
 
-    , hspec-meta >= 1.5.1
+    , hspec-meta >= 1.7.1
     , process
     , ghc-paths
 
