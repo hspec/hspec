@@ -1,10 +1,14 @@
 module Test.Hspec.Options (
   Options (..)
 , ColorMode (..)
+, OptResult
 , defaultOptions
 , parseOptions
 
--- exported to silence warnings
+-- * Re-exported modules
+, module System.Console.GetOpt
+
+-- required for user-defined options
 , Arg (..)
 ) where
 
@@ -19,20 +23,21 @@ import           Test.Hspec.Util
 import           Control.Monad.Trans.Error ()
 
 data Options = Options {
-  optionsDryRun       :: Bool
-, optionsPrintCpuTime :: Bool
-, optionsRerun        :: Bool
-, optionsFastFail     :: Bool
-, optionsMatch        :: [String]
-, optionsMaxSuccess   :: Maybe Int
-, optionsDepth        :: Maybe Int
-, optionsSeed         :: Maybe Integer
-, optionsMaxSize      :: Maybe Int
+  optionsDryRun          :: Bool
+, optionsPrintCpuTime    :: Bool
+, optionsRerun           :: Bool
+, optionsFastFail        :: Bool
+, optionsMatch           :: [String]
+, optionsMaxSuccess      :: Maybe Int
+, optionsDepth           :: Maybe Int
+, optionsSeed            :: Maybe Integer
+, optionsMaxSize         :: Maybe Int
 , optionsMaxDiscardRatio :: Maybe Int
-, optionsColorMode    :: ColorMode
-, optionsFormatter    :: Formatter
-, optionsHtmlOutput   :: Bool
-, optionsOutputFile   :: Maybe FilePath
+, optionsColorMode       :: ColorMode
+, optionsFormatter       :: Formatter
+, optionsHtmlOutput      :: Bool
+, optionsOutputFile      :: Maybe FilePath
+, optionsUserCustom      :: [OptDescr (OptResult -> OptResult)]
 }
 
 addMatch :: String -> Options -> Options
@@ -57,7 +62,23 @@ data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
 
 defaultOptions :: Options
-defaultOptions = Options False False False False [] Nothing Nothing Nothing Nothing Nothing ColorAuto specdoc False Nothing
+defaultOptions = Options {
+  optionsDryRun          = False
+, optionsPrintCpuTime    = False
+, optionsRerun           = False
+, optionsFastFail        = False
+, optionsMatch           = []
+, optionsMaxSuccess      = Nothing
+, optionsDepth           = Nothing
+, optionsSeed            = Nothing
+, optionsMaxSize         = Nothing
+, optionsMaxDiscardRatio = Nothing
+, optionsColorMode       = ColorAuto
+, optionsFormatter       = specdoc
+, optionsHtmlOutput      = False
+, optionsOutputFile      = Nothing
+, optionsUserCustom      = []
+}
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -70,7 +91,7 @@ formatters = [
 formatHelp :: String
 formatHelp = unlines (addLineBreaks "use a custom formatter; this can be one of:" ++ map (("   " ++) . fst) formatters)
 
-type Result = Either NoConfig Options
+type OptResult = Either NoConfig Options
 
 data NoConfig = Help | InvalidArgument String String
 
@@ -80,10 +101,10 @@ data Arg a = Arg {
 , argumentSetter :: a -> Options -> Options
 }
 
-mkOption :: [Char] -> String -> Arg a -> String -> OptDescr (Result -> Result)
-mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name] (ReqArg arg argName) help
+mkOption :: String -> String -> Arg a -> String -> OptDescr (OptResult -> OptResult)
+mkOption shortcut name (Arg argName parser setter) = Option shortcut [name] (ReqArg arg argName)
   where
-    arg :: String -> Result -> Result
+    arg :: String -> OptResult -> OptResult
     arg input x = x >>= \c -> case parser input of
       Just n -> Right (setter n c)
       Nothing -> Left (InvalidArgument name input)
@@ -91,7 +112,7 @@ mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name]
 addLineBreaks :: String -> [String]
 addLineBreaks = lineBreaksAt 44
 
-options :: [OptDescr (Result -> Result)]
+options :: [OptDescr (OptResult -> OptResult)]
 options = [
     Option   []  ["help"]             (NoArg (const $ Left Help))         (h "display this help and exit")
   , mkOption "m"  "match"             (Arg "PATTERN" return addMatch)     (h "only run examples that match given PATTERN")
@@ -128,7 +149,7 @@ options = [
     setNoColor      x = x >>= \c -> return c {optionsColorMode = ColorNever}
     setColor        x = x >>= \c -> return c {optionsColorMode = ColorAlways}
 
-undocumentedOptions :: [OptDescr (Result -> Result)]
+undocumentedOptions :: [OptDescr (OptResult -> OptResult)]
 undocumentedOptions = [
     -- for compatibility with test-framework
     mkOption [] "maximum-generated-tests" (Arg "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
@@ -141,16 +162,19 @@ undocumentedOptions = [
   , Option "v" ["verbose"]                 (NoArg id)                         "do not suppress output to stdout when evaluating examples"
   ]
   where
-    setHtml :: Result -> Result
+    setHtml :: OptResult -> OptResult
     setHtml x = x >>= \c -> return c {optionsHtmlOutput = True}
 
 parseOptions :: Options -> String -> [String] -> Either (ExitCode, String) Options
-parseOptions c prog args = case getOpt Permute (options ++ undocumentedOptions) args of
-    (opts, [], []) -> case foldl' (flip id) (Right c) opts of
-        Left Help                         -> Left (ExitSuccess, usageInfo ("Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS") options)
-        Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n")
-        Right x -> Right x
-    (_, _, err:_)  -> tryHelp err
-    (_, arg:_, _)  -> tryHelp ("unexpected argument `" ++ arg ++ "'\n")
+parseOptions c prog args = do
+  let allOptions = options ++ undocumentedOptions ++ optionsUserCustom c
+      usageMsg = "Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS"
+  case getOpt Permute allOptions args of
+      (opts, [], []) -> case foldl' (flip id) (Right c) opts of
+          Left Help                         -> Left (ExitSuccess, usageInfo usageMsg allOptions)
+          Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n")
+          Right x -> Right x
+      (_, _, err:_)  -> tryHelp err
+      (_, arg:_, _)  -> tryHelp ("unexpected argument `" ++ arg ++ "'\n")
   where
     tryHelp msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ "Try `" ++ prog ++ " --help' for more information.\n")
