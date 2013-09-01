@@ -167,14 +167,14 @@ undocumentedOptions = [
 
 parseOptions :: Options -> String -> [String] -> Either (ExitCode, String) Options
 parseOptions c prog args = do
-  let allOptions = options ++ undocumentedOptions ++ optionsUserCustom c
+  let documentedOptions = options ++ optionsUserCustom c
       usageMsg = "Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS"
-  case getOpt Permute allOptions args of
-      (opts, [], []) -> case foldl' (flip id) (Right c) opts of
-          Left Help                         -> Left (ExitSuccess, usageInfo usageMsg allOptions)
-          Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n")
-          Right x -> Right x
-      (_, _, err:_)  -> tryHelp err
-      (_, arg:_, _)  -> tryHelp ("unexpected argument `" ++ arg ++ "'\n")
+  case getOpt Permute (documentedOptions ++ undocumentedOptions) args of
+    (opts, [], []) -> case foldl' (flip id) (Right c) opts of
+      Left Help                         -> Left (ExitSuccess, usageInfo usageMsg documentedOptions)
+      Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n")
+      Right x -> Right x
+    (_, _, err:_)  -> tryHelp err
+    (_, arg:_, _)  -> tryHelp ("unexpected argument `" ++ arg ++ "'\n")
   where
     tryHelp msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ "Try `" ++ prog ++ " --help' for more information.\n")
