@@ -33,6 +33,8 @@ module Test.Hspec (
 , pending
 , pendingWith
 , before
+, after
+, around
 , parallel
 
 -- * Running a spec
@@ -44,6 +46,9 @@ import           Test.Hspec.Runner
 import           Test.Hspec.HUnit ()
 import           Test.Hspec.Expectations
 import qualified Test.Hspec.Core as Core
+
+import           Data.IORef
+import           Control.Applicative
 
 -- $intro
 --
@@ -150,7 +155,20 @@ parallel = mapSpecItem $ \_ r e -> SpecItem True r e
 
 -- | Run a custom action before every spec item.
 before :: IO () -> Spec -> Spec
-before action = mapSpecItem $ \b r e -> SpecItem b r (\params -> (action >> (e params)))
+before action = mapSpecItem $ \b r e -> SpecItem b r (\params -> action *> e params)
+
+-- | Run a custom action after every spec item.
+after :: IO () -> Spec -> Spec
+after action = mapSpecItem $ \b r e -> SpecItem b r (\params -> e params <* action)
+
+-- | Run a custom action before and/or after every spec item.
+around :: (IO () -> IO ()) -> Spec -> Spec
+around action = mapSpecItem $ \b r e -> SpecItem b r (\params -> wrap (e params))
+  where
+    wrap e = do
+      ref <- newIORef (Fail "")
+      action (e >>= writeIORef ref)
+      readIORef ref
 
 mapSpecItem :: (Bool -> String -> (Params -> IO Result) -> SpecTree) -> Spec -> Spec
 mapSpecItem f = fromSpecList . map go . runSpecM
