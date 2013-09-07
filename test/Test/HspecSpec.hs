@@ -2,6 +2,7 @@ module Test.HspecSpec (main, spec) where
 
 import           Helper
 import           Mock
+import           Data.IORef
 import           Data.List (isPrefixOf)
 
 import           Test.Hspec.Core (SpecTree(..), Item(..), Result(..), runSpecM)
@@ -93,6 +94,33 @@ spec = do
           mockCounter mock `shouldReturn` 1
         H.it "bar" $ do
           mockCounter mock `shouldReturn` 2
+      mockCounter mock `shouldReturn` 2
+
+  describe "after" $ do
+    it "runs an action after each spec item" $ do
+      mock <- newMock
+      silence $ H.hspec $ H.after (mockAction mock) $ do
+        H.it "foo" $ do
+          mockCounter mock `shouldReturn` 0
+        H.it "bar" $ do
+          mockCounter mock `shouldReturn` 1
+      mockCounter mock `shouldReturn` 2
+
+  describe "around" $ do
+    it "runs an action before and/or after each spec item" $ do
+      ref <- newIORef (0 :: Int)
+      let wrapper :: IO () -> IO ()
+          wrapper e = do
+            readIORef ref `shouldReturn` 0
+            writeIORef ref 1
+            e
+            readIORef ref `shouldReturn` 2
+            writeIORef ref 3
+      silence $ H.hspec $ H.around wrapper $ do
+        H.it "foo" $ do
+          readIORef ref `shouldReturn` 1
+          writeIORef ref 2
+      readIORef ref `shouldReturn` 3
   where
     runSpec :: H.Spec -> IO [String]
     runSpec = captureLines . H.hspecResult

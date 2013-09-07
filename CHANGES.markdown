@@ -1,6 +1,9 @@
 ## next
  - Add `Test.Hspec.Core.mapSpecItem`
 
+## Changes in 1.7.2
+ - Add `after` and `around`
+
 ## Changes in 1.7.1
  - Add `shouldContain` (thanks to Alfredo Di Napoli)
  - When printing progress, skip total if it is 0
