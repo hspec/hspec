@@ -221,6 +221,8 @@ test-suite hspec-discover-integration-test-with-formatter
       hspec-discover/integration-test/with-formatter
   main-is:
       Spec.hs
+  other-modules:
+      FooSpec
   build-depends:
       base    == 4.*
     , hspec
@@ -234,6 +236,9 @@ test-suite hspec-discover-integration-test-with-io-formatter
       hspec-discover/integration-test/with-io-formatter
   main-is:
       Spec.hs
+  other-modules:
+      FooSpec
+      Formatter
   build-depends:
       base    == 4.*
     , hspec
