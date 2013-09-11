@@ -50,3 +50,4 @@ To run the test suite do:
  * Markus Klinik
  * Konstantine Rybnikov
  * Alfredo Di Napoli
+ * Matvey B. Aksenov
