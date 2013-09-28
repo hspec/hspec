@@ -1,6 +1,8 @@
-## next
+## Changes in 1.8.0
  - Add `Test.Hspec.Core.mapSpecItem`
- - Remove `--nested` option from `hspec-discover`
+ - Add `modifyMaxSuccess`, `modifyMaxDiscardRatio` and `modifyMaxSize` to
+   `Test.Hspec.QuickCheck`
+ - `hspec-discover`: Remove `--nested` option
  - `hspec-discover`: Ignore `Spec.hs`/`Spec.lhs`
 
 ## Changes in 1.7.2

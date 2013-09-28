@@ -20,6 +20,7 @@ module Test.Hspec.Core (
 , SpecTree (..)
 , Item (..)
 , mapSpecItem
+, modifyParams
 , describe
 , it
 
@@ -48,6 +49,9 @@ mapSpecItem f = fromSpecList . map go . runSpecM
     go spec = case spec of
       SpecItem item -> SpecItem (f item)
       SpecGroup d es -> SpecGroup d (map go es)
+
+modifyParams :: (Params -> Params) -> Spec -> Spec
+modifyParams f = mapSpecItem $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
 
 {-# DEPRECATED hspecX "use `Test.Hspec.Runner.hspec` instead" #-}     -- since 1.2.0
 hspecX :: [SpecTree] -> IO ()
