@@ -24,23 +24,10 @@ description:      Behavior-Driven Development for Haskell
 
 -- find hspec-discover/test-data/ -type f
 extra-source-files:
-  hspec-discover/test-data/single-spec/FooSpec.hs
-  hspec-discover/test-data/single-spec/Spec.hs
-  hspec-discover/test-data/single-spec-nested/Foo/BarSpec.hs
   hspec-discover/test-data/nested-spec/FooSpec.hs
   hspec-discover/test-data/nested-spec/Foo/Bar/BazSpec.hs
   hspec-discover/test-data/nested-spec/Foo/BarSpec.hs
-  hspec-discover/test-data/lhs-spec/FooSpec.lhs
-  hspec-discover/test-data/lhs-spec/Spec.hs
-  hspec-discover/test-data/several-specs/BarSpec.hs
-  hspec-discover/test-data/several-specs/FooSpec.hs
-  hspec-discover/test-data/several-specs/BazSpec.hs
   hspec-discover/test-data/empty-dir/Foo/Bar/Baz/.placeholder
-  hspec-discover/test-data/prefix-name/FooSpec.hs
-  hspec-discover/test-data/prefix-name/Foo/BazSpec.hs
-  hspec-discover/test-data/prefix-name/FooBarSpec.hs
-  hspec-discover/test-data/prefix-name/FooBar/BazSpec.hs
-  hspec-discover/test-data/no-intermediate-specs/Foo/Bar/BazSpec.hs
 
 source-repository head
   type: git
