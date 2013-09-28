@@ -1,23 +1,34 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | A preprocessor that finds and combines specs.
-module Run where
+module Run (
+  run
+
+-- exported for testing
+, importList
+, fileToSpec
+, findSpecs
+, getFilesRecursive
+, driverWithFormatter
+, moduleName
+) where
 import           Control.Monad
 import           Control.Applicative
 import           Data.List
 import           Data.Maybe
 import           Data.String
-import           Data.Function
 import           System.Environment
 import           System.Exit
 import           System.IO
-import           System.Directory
+import           System.Directory (doesDirectoryExist, getDirectoryContents, doesFileExist)
 import           System.FilePath hiding (combine)
 
 import           Config
 
 instance IsString ShowS where
   fromString = showString
+
+type Spec = String
 
 run :: [String] -> IO ()
 run args_ = do
@@ -28,25 +39,22 @@ run args_ = do
         hPutStrLn stderr err
         exitFailure
       Right c -> do
+        when (configNested c) (hPutStrLn stderr "hspec-discover: WARNING - The `--nested' flag is deprecated and will be removed in a future release!")
         specs <- findSpecs src
         writeFile dst (mkSpecModule src c specs)
     _ -> do
       hPutStrLn stderr (usage name)
       exitFailure
 
-mkSpecModule :: FilePath -> Config -> [SpecNode] -> String
+mkSpecModule :: FilePath -> Config -> [Spec] -> String
 mkSpecModule src c nodes =
   ( "{-# LINE 1 " . shows src . " #-}"
   . showString "module Main where\n"
   . importList nodes
   . maybe driver (driverWithFormatter (null nodes)) (configFormatter c)
-  . format nodes
+  . formatSpecs nodes
   ) "\n"
   where
-    format
-      | configNested c = formatSpecsNested
-      | otherwise = formatSpecs
-
     driver =
         showString "import Test.Hspec\n"
       . showString "main :: IO ()\n"
@@ -64,125 +72,45 @@ moduleName :: String -> String
 moduleName = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse
 
 -- | Generate imports for a list of specs.
-importList :: [SpecNode] -> ShowS
-importList = go ""
+importList :: [Spec] -> ShowS
+importList = foldr (.) "" . map f
   where
-    go :: ShowS -> [SpecNode] -> ShowS
-    go current = foldr (.) "" . map (f current)
-    f current (SpecNode name inhabited children) = this . go (current . showString name . ".") children
-      where
-        this
-          | inhabited = "import qualified " . current . showString name . "Spec\n"
-          | otherwise = id
+    f :: Spec -> ShowS
+    f name = "import qualified " . showString name . "Spec\n"
 
 -- | Combine a list of strings with (>>).
 sequenceS :: [ShowS] -> ShowS
 sequenceS = foldr (.) "" . intersperse " >> "
 
 -- | Convert a list of specs to code.
-formatSpecs :: [SpecNode] -> ShowS
+formatSpecs :: [Spec] -> ShowS
 formatSpecs xs
   | null xs   = "return ()"
   | otherwise = sequenceS (map formatSpec xs)
 
 -- | Convert a spec to code.
-formatSpec :: SpecNode -> ShowS
-formatSpec = sequenceS . go ""
-  where
-    go :: String -> SpecNode -> [ShowS]
-    go current (SpecNode name inhabited children) = addThis $ concatMap (go (current ++ name ++ ".")) children
-      where
-        addThis :: [ShowS] -> [ShowS]
-        addThis
-          | inhabited = ("describe " . shows (current ++ name) . " " . showString (current ++ name ++ "Spec.spec") :)
-          | otherwise = id
+formatSpec :: Spec -> ShowS
+formatSpec name = "describe " . shows name . " " . showString name . "Spec.spec"
 
--- | Convert a list of specs to code.
---
--- Hierarchical modules are mapped to nested specs.
-formatSpecsNested :: [SpecNode] -> ShowS
-formatSpecsNested xs
-  | null xs   = "return ()"
-  | otherwise = sequenceS (map formatSpecNested xs)
-
--- | Convert a spec to code.
---
--- Hierarchical modules are mapped to nested specs.
-formatSpecNested :: SpecNode -> ShowS
-formatSpecNested = go ""
-  where
-    go current (SpecNode name inhabited children) = "describe " . shows name . " (" . specs . ")"
-      where
-        specs :: ShowS
-        specs = (sequenceS . addThis . map (go (current . showString name . "."))) children
-        addThis
-          | inhabited = ((current . showString name . "Spec.spec") :)
-          | otherwise = id
-
-data SpecNode = SpecNode String Bool [SpecNode]
-  deriving (Eq, Show)
-
-specNodeName :: SpecNode -> String
-specNodeName (SpecNode name _ _) = name
-
-specNodeInhabited :: SpecNode -> Bool
-specNodeInhabited (SpecNode _ inhabited _) = inhabited
-
-specNodeChildren :: SpecNode -> [SpecNode]
-specNodeChildren (SpecNode _ _ children) = children
-
-getFilesAndDirectories :: FilePath -> IO ([FilePath], [FilePath])
-getFilesAndDirectories dir = do
-  c <- filter (`notElem` ["..", "."]) <$> getDirectoryContents dir
-  dirs <- filterM (doesDirectoryExist . (dir </>)) c
-  files <- filterM (doesFileExist . (dir </>)) c
-  return (dirs, files)
-
--- | Find specs relative to given source file.
---
--- The source file itself is not considered.
-findSpecs :: FilePath -> IO [SpecNode]
+findSpecs :: FilePath -> IO [Spec]
 findSpecs src = do
   let (dir, file) = splitFileName src
-  (dirs, files) <- getFilesAndDirectories dir
-  go dir (dirs, filter (/= file) files)
+  mapMaybe fileToSpec . filter (/= file) <$> getFilesRecursive dir
+
+fileToSpec :: FilePath -> Maybe String
+fileToSpec f = intercalate "." . splitDirectories <$>
+      stripSuffix "Spec.hs" f
+  <|> stripSuffix "Spec.lhs" f
   where
-    go :: FilePath -> ([FilePath], [FilePath]) -> IO [SpecNode]
-    go base (dirs, files) = do
-      nestedSpecs <- forM dirs $ \d -> do
-        let dir = base </> d
-        SpecNode d False <$> (getFilesAndDirectories dir >>= go dir)
-      (return . filterSpecs . combineSpecs) (specsFromFiles files ++ nestedSpecs)
-      where
-        specsFromFiles = catMaybes . map specFromFile
-          where
-            suffixes :: [String]
-            suffixes = ["Spec.hs","Spec.lhs"]
+    stripSuffix :: Eq a => [a] -> [a] -> Maybe [a]
+    stripSuffix suffix str = reverse <$> stripPrefix (reverse suffix) (reverse str)
 
-            specFromFile :: FilePath -> Maybe SpecNode
-            specFromFile file = msum $ map (specFromFile_ file) suffixes
-
-            specFromFile_ :: FilePath -> String -> Maybe SpecNode
-            specFromFile_ file suffix
-              | suffix `isSuffixOf` file = Just $ SpecNode (dropEnd (length suffix) file) True []
-              | otherwise = Nothing
-
-            dropEnd :: Int -> [a] -> [a]
-            dropEnd n = reverse . drop n . reverse
-
-        -- remove empty leafs
-        filterSpecs :: [SpecNode] -> [SpecNode]
-        filterSpecs = filter (\x -> specNodeInhabited x || (not . null . specNodeChildren) x)
-
-        -- sort specs, and merge nodes with the same name
-        combineSpecs :: [SpecNode] -> [SpecNode]
-        combineSpecs = foldr f [] . sortBy (compare `on` specNodeName)
-          where
-            f x@(SpecNode n1 _ _) (y@(SpecNode n2 _ _):acc) | n1 == n2 = x `combine` y : acc
-            f x acc = x : acc
-
-            x `combine` y = SpecNode name inhabited children
-              where
-                name      = specNodeName x
-                inhabited = specNodeInhabited x || specNodeInhabited y
-                children  = specNodeChildren x ++ specNodeChildren y
+getFilesRecursive :: FilePath -> IO [FilePath]
+getFilesRecursive baseDir = sort <$> go []
+  where
+    go :: FilePath -> IO [FilePath]
+    go dir = do
+      c <- map (dir </>) . filter (`notElem` [".", ".."]) <$> getDirectoryContents (baseDir </> dir)
+      dirs <- filterM (doesDirectoryExist . (baseDir </>)) c >>= mapM go
+      files <- filterM (doesFileExist . (baseDir </>)) c
+      return (files ++ concat dirs)

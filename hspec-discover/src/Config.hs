@@ -22,7 +22,7 @@ options = [
   ]
 
 usage :: String -> String
-usage prog = "\nUsage: " ++ prog ++ " SRC CUR DST [--nested] [--formatter=FORMATTER]\n"
+usage prog = "\nUsage: " ++ prog ++ " SRC CUR DST [--formatter=FORMATTER]\n"
 
 parseConfig :: String -> [String] -> Either String Config
 parseConfig prog args = case getOpt Permute options args of

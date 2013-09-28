@@ -22,16 +22,16 @@ spec = do
       parse ["--foo"] `shouldBe` (Left . unlines) [
           "hspec-discover: unrecognized option `--foo'"
         , ""
-        , "Usage: hspec-discover SRC CUR DST [--nested] [--formatter=FORMATTER]"
+        , "Usage: hspec-discover SRC CUR DST [--formatter=FORMATTER]"
         ]
 
     it "returns error message on unexpected argument" $ do
       parse ["foo"]   `shouldBe` (Left . unlines) [
           "hspec-discover: unexpected argument `foo'"
         , ""
-        , "Usage: hspec-discover SRC CUR DST [--nested] [--formatter=FORMATTER]"
+        , "Usage: hspec-discover SRC CUR DST [--formatter=FORMATTER]"
         ]
 
     context "when option is given multiple times" $ do
-      it "the last occurrence takes precedence" $ do
+      it "gives the last occurrence precedence" $ do
         parse ["--formatter", "foo", "--formatter", "bar"] `shouldBe` Right (defaultConfig {configFormatter = Just "bar"})
