@@ -98,9 +98,12 @@ findSpecs src = do
   mapMaybe fileToSpec . filter (/= file) <$> getFilesRecursive dir
 
 fileToSpec :: FilePath -> Maybe String
-fileToSpec f = intercalate "." . splitDirectories <$>
-      stripSuffix "Spec.hs" f
-  <|> stripSuffix "Spec.lhs" f
+fileToSpec f = intercalate "." . reverse <$> case reverse $ splitDirectories f of
+  x:xs -> case stripSuffix "Spec.hs" x <|> stripSuffix "Spec.lhs" x of
+    Nothing -> Nothing
+    Just "" -> Nothing
+    Just ys -> Just (ys : xs)
+  _ -> Nothing
   where
     stripSuffix :: Eq a => [a] -> [a] -> Maybe [a]
     stripSuffix suffix str = reverse <$> stripPrefix (reverse suffix) (reverse str)

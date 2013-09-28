@@ -1,6 +1,7 @@
 ## next
  - Add `Test.Hspec.Core.mapSpecItem`
  - Remove `--nested` option from `hspec-discover`
+ - `hspec-discover`: Ignore `Spec.hs`/`Spec.lhs`
 
 ## Changes in 1.7.2
  - Add `after` and `around`

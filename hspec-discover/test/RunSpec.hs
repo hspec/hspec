@@ -55,17 +55,24 @@ spec = do
         ]
 
   describe "fileToSpec" $ do
-    it "converts file to spec" $ do
+    it "converts path to spec name" $ do
       fileToSpec "FooSpec.hs" `shouldBe` Just "Foo"
 
-    it "converts file with directory prefix to spec" $ do
-      fileToSpec ("Foo" </> "Bar" </> "BazSpec.hs") `shouldBe` Just "Foo.Bar.Baz"
+    it "rejects spec with empty name" $ do
+      fileToSpec "Spec.hs" `shouldBe` Nothing
 
     it "works for lhs files" $ do
       fileToSpec "FooSpec.lhs" `shouldBe` Just "Foo"
 
     it "returns Nothing for invalid spec name" $ do
       fileToSpec "foo" `shouldBe` Nothing
+
+    context "when path has directory component" $ do
+      it "converts path to spec name" $ do
+        fileToSpec ("Foo" </> "Bar" </> "BazSpec.hs") `shouldBe` Just "Foo.Bar.Baz"
+
+      it "rejects spec with empty name" $ do
+        fileToSpec ("Foo" </> "Bar" </> "Spec.hs") `shouldBe` Nothing
 
   describe "findSpecs" $ do
     it "finds specs" $ do
