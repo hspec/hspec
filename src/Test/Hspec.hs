@@ -28,10 +28,15 @@ module Test.Hspec (
 
 -- * Running a spec
 , hspec
+
+-- * Types
+, OptResult
+
 ) where
 
 import           Test.Hspec.Core.Type hiding (describe, it)
 import           Test.Hspec.Runner
+import           Test.Hspec.Options
 import           Test.Hspec.HUnit ()
 import           Test.Hspec.Expectations
 import           Test.Hspec.Core (mapSpecItem)

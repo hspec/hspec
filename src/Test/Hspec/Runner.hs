@@ -3,6 +3,7 @@
 module Test.Hspec.Runner (
 -- * Running a spec
   hspec
+, hspecWithUserOptions
 , hspecResult
 , hspecWith
 
@@ -24,6 +25,7 @@ import           Data.Monoid
 import           Data.Maybe
 import           System.IO
 import           System.Environment
+import           System.Console.GetOpt
 import           System.Exit
 import qualified Control.Exception as E
 
@@ -39,7 +41,7 @@ import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.FailureReport
 
-import           Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
+import           Test.Hspec.Options (OptResult, Options(..), ColorMode(..), defaultOptions)
 import           Test.Hspec.Runner.Eval
 
 -- | Filter specs by given predicate.
@@ -62,6 +64,11 @@ filterSpecs p = goSpecs []
 -- Exit with `exitFailure` if at least one spec item fails.
 hspec :: Spec -> IO ()
 hspec = hspecWithOptions defaultOptions
+
+-- | Like @hspec@, but allow the user to have finer control on command line
+-- argument and options.
+hspecWithUserOptions :: [OptDescr (OptResult -> OptResult)] -> Spec -> IO ()
+hspecWithUserOptions userOpts = hspecWithOptions defaultOptions { optionsUserCustom = userOpts }
 
 -- | This function is used by @hspec-discover@.  It is not part of the public
 -- API and may change at any time.
