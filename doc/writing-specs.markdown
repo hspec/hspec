@@ -68,7 +68,3 @@ main = hspec $ before flushDb $ do
       it "returns 0" $ do
         callApi "GET" "/api/users/count" `shouldReturn` 0
 ```
-
-### Running specs
-
-See [Running tests with Hspec](running-specs.html)
