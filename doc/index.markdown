@@ -23,6 +23,7 @@ An example is worth a thousand words, so here we go:
 
 * [Five-step introduction](getting-started.html)
 * [Writing tests with Hspec](writing-specs.html)
+* [Running tests with Hspec](running-specs.html)
 * [Setting expectations](expectations.html)
 * [Using QuickCheck with Hspec](quickcheck.html)
 * [Interoperability with HUnit](hunit.html)
