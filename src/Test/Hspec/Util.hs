@@ -85,7 +85,7 @@ readMaybe = fmap fst . listToMaybe . reads
 getEnv :: String -> IO (Maybe String)
 getEnv key = either (const Nothing) Just <$> safeTry (Environment.getEnv key)
 
--- ensure that lines are not longer then given `n`, insert line beraks at word
+-- ensure that lines are not longer then given `n`, insert line breaks at word
 -- boundaries
 lineBreaksAt :: Int -> String -> [String]
 lineBreaksAt n input = case words input of
