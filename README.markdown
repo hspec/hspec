@@ -51,3 +51,4 @@ To run the test suite do:
  * Konstantine Rybnikov
  * Alfredo Di Napoli
  * Matvey B. Aksenov
+ * Alan Zimmerman
