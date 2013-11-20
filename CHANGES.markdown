@@ -2,6 +2,7 @@
  - Add `Test.Hspec.Core.mapSpecItem`
  - Add `modifyMaxSuccess`, `modifyMaxDiscardRatio` and `modifyMaxSize` to
    `Test.Hspec.QuickCheck`
+ - Don't fail if callback is not called in `around`
  - `hspec-discover`: Remove `--nested` option
  - `hspec-discover`: Ignore `Spec.hs`/`Spec.lhs`
 

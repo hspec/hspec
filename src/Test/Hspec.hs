@@ -83,17 +83,17 @@ parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
 
 -- | Run a custom action before every spec item.
 before :: IO () -> Spec -> Spec
-before action = mapSpecItem $ \item -> item {itemExample = \params -> action *> itemExample item params}
+before action = around (action >>)
 
 -- | Run a custom action after every spec item.
 after :: IO () -> Spec -> Spec
-after action = mapSpecItem $ \item -> item {itemExample = \params -> itemExample item params <* action}
+after action = around (>> action)
 
 -- | Run a custom action before and/or after every spec item.
 around :: (IO () -> IO ()) -> Spec -> Spec
 around action = mapSpecItem $ \item -> item {itemExample = \params -> wrap (itemExample item params)}
   where
     wrap e = do
-      ref <- newIORef (Fail "")
+      ref <- newIORef Success
       action (e >>= writeIORef ref)
       readIORef ref
