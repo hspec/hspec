@@ -2,7 +2,6 @@
 module Test.Hspec.Compat (
   showType
 , showFullType
-, isUserInterrupt
 , readMaybe
 , module Data.IORef
 #if !MIN_VERSION_base(4,6,0)
@@ -11,7 +10,6 @@ module Test.Hspec.Compat (
 ) where
 
 import           Data.Typeable (Typeable, typeOf, typeRepTyCon)
-import qualified Test.QuickCheck as QC
 import           Text.Read
 import           Data.IORef
 
@@ -71,12 +69,3 @@ showFullType a = let t = typeRepTyCon (typeOf a) in
 #else
   show t
 #endif
-
-isUserInterrupt :: QC.Result -> Bool
-isUserInterrupt r = case r of
-#if MIN_VERSION_QuickCheck(2,6,0)
-  QC.Failure {QC.interrupted = x} -> x
-#else
-  QC.Failure {QC.reason = "Exception: 'user interrupt'"} -> True
-#endif
-  _ -> False

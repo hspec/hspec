@@ -35,9 +35,8 @@ import qualified Test.QuickCheck.State as QC
 import qualified Test.QuickCheck.Property as QCP
 import qualified Test.QuickCheck.IO ()
 
-import           Test.Hspec.Compat (isUserInterrupt)
+import           Test.Hspec.Core.QuickCheckUtil
 import           Control.DeepSeq (deepseq)
-
 
 type Spec = SpecM ()
 
@@ -81,7 +80,7 @@ data SpecTree =
 data Item = Item {
   itemIsParallelizable :: Bool
 , itemRequirement :: String
-, itemExample :: Params -> IO Result
+, itemExample :: Params -> (IO () -> IO ()) -> IO Result
 }
 
 -- | The @describe@ function combines a list of specs into a larger spec.
@@ -94,7 +93,7 @@ describe s = SpecGroup msg
 
 -- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
-it s e = SpecItem $ Item False msg (`evaluateExample` e)
+it s e = SpecItem $ Item False msg (evaluateExample e)
   where
     msg
       | null s = "(unspecified behavior)"
@@ -102,23 +101,23 @@ it s e = SpecItem $ Item False msg (`evaluateExample` e)
 
 -- | A type class for examples.
 class Example a where
-  evaluateExample :: Params -> a -> IO Result
+  evaluateExample :: a -> Params -> (IO () -> IO ()) -> IO Result
 
 instance Example Bool where
-  evaluateExample _ b = if b then return Success else return (Fail "")
+  evaluateExample b _ _ = if b then return Success else return (Fail "")
 
 instance Example Expectation where
-  evaluateExample _ action = (action >> return Success) `E.catches` [
-      E.Handler (\(HUnitFailure err) -> (return . Fail) err)
+  evaluateExample e _ action = (action e >> return Success) `E.catches` [
+      E.Handler (\(HUnitFailure err) -> return (Fail err))
     , E.Handler (return :: Result -> IO Result)
     ]
 
 instance Example Result where
-  evaluateExample _ = return
+  evaluateExample r _ _ = return r
 
 instance Example QC.Property where
-  evaluateExample c p = do
-    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback progressCallback p)
+  evaluateExample p c action = do
+    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback progressCallback $ aroundProperty action p)
     when (isUserInterrupt r) $ do
       E.throwIO E.UserInterrupt
 

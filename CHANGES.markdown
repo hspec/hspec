@@ -1,4 +1,5 @@
 ## Changes in 1.8.0
+ - Run `before`/`after`/`around` for each single check of a QuickCheck property
  - Add `Test.Hspec.Core.mapSpecItem`
  - Add `modifyMaxSuccess`, `modifyMaxDiscardRatio` and `modifyMaxSize` to
    `Test.Hspec.QuickCheck`

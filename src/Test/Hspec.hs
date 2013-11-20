@@ -37,8 +37,6 @@ import           Test.Hspec.Expectations
 import           Test.Hspec.Core (mapSpecItem)
 import qualified Test.Hspec.Core as Core
 
-import           Data.IORef
-
 -- | Combine a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
 describe label action = fromSpecList [Core.describe label (runSpecM action)]
@@ -90,9 +88,4 @@ after action = around (>> action)
 
 -- | Run a custom action before and/or after every spec item.
 around :: (IO () -> IO ()) -> Spec -> Spec
-around action = mapSpecItem $ \item -> item {itemExample = \params -> wrap (itemExample item params)}
-  where
-    wrap e = do
-      ref <- newIORef Success
-      action (e >>= writeIORef ref)
-      readIORef ref
+around a2 = mapSpecItem $ \item -> item {itemExample = \params a1 -> itemExample item params (a1 . a2)}

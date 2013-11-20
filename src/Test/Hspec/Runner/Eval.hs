@@ -41,7 +41,7 @@ run chan useColor h c formatter specs = do
       forM_ (zip [0..] xs) (queueSpec (group : rGroups))
       defer (exampleGroupDone formatter)
     queueSpec rGroups (_, SpecItem (Item isParallelizable requirement e)) =
-      queueExample isParallelizable (reverse rGroups, requirement) e
+      queueExample isParallelizable (reverse rGroups, requirement) (`e` id)
 
     queueExample :: Bool -> Path -> (Params -> IO Result) -> IO ()
     queueExample isParallelizable path e

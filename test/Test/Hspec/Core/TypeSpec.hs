@@ -3,6 +3,7 @@ module Test.Hspec.Core.TypeSpec (main, spec) where
 import           Helper
 import           Mock
 import           Data.List
+import           Data.IORef
 import           Control.Exception (AsyncException(..), throwIO)
 
 import qualified Test.Hspec.Core.Type as H hiding (describe, it)
@@ -13,7 +14,10 @@ main :: IO ()
 main = hspec spec
 
 evaluateExample :: H.Example e => e -> IO H.Result
-evaluateExample = H.evaluateExample (defaultParams {H.paramsQuickCheckArgs = (H.paramsQuickCheckArgs defaultParams) {replay = Just (read "", 0)}})
+evaluateExample e = H.evaluateExample e (defaultParams {H.paramsQuickCheckArgs = (H.paramsQuickCheckArgs defaultParams) {replay = Just (read "", 0)}}) id
+
+evaluateExampleWith :: H.Example e => (IO () -> IO ()) -> e -> IO H.Result
+evaluateExampleWith action e = H.evaluateExample e (defaultParams {H.paramsQuickCheckArgs = (H.paramsQuickCheckArgs defaultParams) {replay = Just (read "", 0)}}) action
 
 spec :: Spec
 spec = do
@@ -38,6 +42,17 @@ spec = do
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
 
+      it "runs provided action around expectation" $ do
+        ref <- newIORef (0 :: Int)
+        let action :: IO () -> IO ()
+            action e = do
+              n <- readIORef ref
+              e
+              readIORef ref `shouldReturn` succ n
+              modifyIORef ref succ
+        evaluateExampleWith action (modifyIORef ref succ) `shouldReturn` H.Success
+        readIORef ref `shouldReturn` 2
+
       context "when used with `pending`" $ do
         it "returns Pending" $ do
           evaluateExample (H.pending) `shouldReturn` H.Pending Nothing
@@ -61,6 +76,17 @@ spec = do
           , "0"
           , "1"
           ]
+
+      it "runs provided action around each single check of the property" $ do
+        ref <- newIORef (0 :: Int)
+        let action :: IO () -> IO ()
+            action e = do
+              n <- readIORef ref
+              e
+              readIORef ref `shouldReturn` succ n
+              modifyIORef ref succ
+        H.Success <- evaluateExampleWith action (property $ modifyIORef ref succ)
+        readIORef ref `shouldReturn` 200
 
       context "when used with shouldBe" $ do
         it "shows what falsified it" $ do

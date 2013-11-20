@@ -62,6 +62,7 @@ Library
       Test.Hspec.Util
       Test.Hspec.Compat
       Test.Hspec.Core.Type
+      Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Config
       Test.Hspec.Options
       Test.Hspec.FailureReport

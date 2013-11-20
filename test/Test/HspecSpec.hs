@@ -60,7 +60,7 @@ spec = do
 
     it "takes an example of that behavior" $ do
       let [SpecItem item] = runSpecM (H.it "whatever" True)
-      itemExample item defaultParams `shouldReturn` Success
+      itemExample item defaultParams id `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do
@@ -109,14 +109,14 @@ spec = do
   describe "around" $ do
     it "runs an action before and/or after each spec item" $ do
       ref <- newIORef (0 :: Int)
-      let wrapper :: IO () -> IO ()
-          wrapper e = do
+      let action :: IO () -> IO ()
+          action e = do
             readIORef ref `shouldReturn` 0
             writeIORef ref 1
             e
             readIORef ref `shouldReturn` 2
             writeIORef ref 3
-      silence $ H.hspec $ H.around wrapper $ do
+      silence $ H.hspec $ H.around action $ do
         H.it "foo" $ do
           readIORef ref `shouldReturn` 1
           writeIORef ref 2

@@ -74,7 +74,7 @@ timeout = System.timeout . floor . (* 1000000)
 shouldUseArgs :: [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do
   spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
-  let interceptArgs item = item {H.itemExample = \params -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params}
+  let interceptArgs item = item {H.itemExample = \params action -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params action}
       spec = H.mapSpecItem interceptArgs $
         H.it "foo" False
   (silence . ignoreExitCode . withArgs args . H.hspec) spec

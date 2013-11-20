@@ -12,7 +12,7 @@ import           Test.Hspec.Core.Type
 
 -- | This instance is deprecated, use `Test.Hspec.HUnit.fromHUnitTest` instead!
 instance Example Test where
-  evaluateExample _ test = do
+  evaluateExample test _ _ = do
     (counts, fails) <- HU.runTestText HU.putTextToShowS test
     let r = if HU.errors counts + HU.failures counts == 0
              then Success
