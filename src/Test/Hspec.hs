@@ -38,7 +38,6 @@ import           Test.Hspec.Core (mapSpecItem)
 import qualified Test.Hspec.Core as Core
 
 import           Data.IORef
-import           Control.Applicative
 
 -- | Combine a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
