@@ -96,6 +96,19 @@ spec = do
           mockCounter mock `shouldReturn` 2
       mockCounter mock `shouldReturn` 2
 
+    context "when used multiple times" $ do
+      it "is evaluated outside in" $ do
+        ref <- newIORef (0 :: Int)
+        let action1 = do
+              readIORef ref `shouldReturn` 0
+              modifyIORef ref succ
+            action2 = do
+              readIORef ref `shouldReturn` 1
+              modifyIORef ref succ
+        silence $ H.hspec $ H.before action1 $ H.before action2 $ do
+          H.it "foo" $ do
+            readIORef ref `shouldReturn` 2
+
   describe "after" $ do
     it "runs an action after each spec item" $ do
       mock <- newMock
@@ -107,7 +120,7 @@ spec = do
       mockCounter mock `shouldReturn` 2
 
   describe "around" $ do
-    it "runs an action before and/or after each spec item" $ do
+    it "wraps each spec item with an action" $ do
       ref <- newIORef (0 :: Int)
       let action :: IO () -> IO ()
           action e = do
