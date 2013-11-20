@@ -154,9 +154,6 @@ spec = do
       r <- runSpec testSpec
       r `shouldSatisfy` any (== "     # PENDING: pending message")
 
-    it "outputs failed examples in red, pending in yellow, and successful in green" $ do
-      pending
-
     context "same as failed_examples" $ do
       failed_examplesSpec H.progress
 
