@@ -23,43 +23,9 @@ module Test.Hspec.Core (
 , modifyParams
 , describe
 , it
-
--- * Deprecated types and functions
-, Specs
-, hspecB
-, hspecX
-, hHspec
-, hspec
 ) where
 
-import           Control.Applicative
-import           System.IO (Handle)
-
 import           Test.Hspec.Core.Type
-import qualified Test.Hspec.Runner as Runner
-import           Test.Hspec.Runner (Summary(..), Config(..), defaultConfig)
-
-hspecWith :: Config -> [SpecTree] -> IO Summary
-hspecWith c = Runner.hspecWith c . fromSpecList
 
 modifyParams :: (Params -> Params) -> Spec -> Spec
 modifyParams f = mapSpecItem $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
-
-{-# DEPRECATED hspecX "use `Test.Hspec.Runner.hspec` instead" #-}     -- since 1.2.0
-hspecX :: [SpecTree] -> IO ()
-hspecX = hspec
-
-{-# DEPRECATED hspec "use `Test.Hspec.Runner.hspec` instead" #-}      -- since 1.4.0
-hspec :: [SpecTree] -> IO ()
-hspec = Runner.hspec . fromSpecList
-
-{-# DEPRECATED hspecB "use `Test.Hspec.Runner.hspecWith` instead" #-} -- since 1.4.0
-hspecB :: [SpecTree] -> IO Bool
-hspecB spec = (== 0) . summaryFailures <$> hspecWith defaultConfig spec
-
-{-# DEPRECATED hHspec "use `Test.Hspec.Runner.hspecWith` instead" #-} -- since 1.4.0
-hHspec :: Handle -> [SpecTree] -> IO Summary
-hHspec h = hspecWith defaultConfig {configHandle = Left h}
-
-{-# DEPRECATED Specs "use `[SpecTree]` instead" #-}                   -- since 1.4.0
-type Specs = [SpecTree]
