@@ -104,7 +104,7 @@ spec = do
         evaluateExample p `shouldThrow` (== UserInterrupt)
 
       it "propagates exceptions" $ do
-        pendingWith "this probaly needs a patch to QuickCheck"
+        pendingWith "this probably needs a patch to QuickCheck"
         -- evaluateExample (property $ (error "foobar" :: Int -> Bool)) `shouldThrow` errorCall "foobar"
 
       context "when used with `pending`" $ do
@@ -125,7 +125,7 @@ spec = do
             (reverse . reverse) xs `shouldBe` (xs :: [Int])
         mockCounter e `shouldReturn` 100
 
-      it "can be used with expecatations/HUnit assertions" $ do
+      it "can be used with expectations/HUnit assertions" $ do
         silence . H.hspecResult $ do
           H.describe "readIO" $ do
             H.it "is inverse to show" $ property $ \x -> do
