@@ -1,11 +1,11 @@
 -- |
 -- Stability: stable
 --
--- Hspec is a testing framework for Haskell.
+-- Hspec is a testing library for Haskell.
 --
--- This is the library reference for Hspec.  The User's Manual is at:
---
--- <http://hspec.github.io/>
+-- This is the library reference for Hspec.
+-- The <http://hspec.github.io/ User's Manual> contains more in-depth
+-- documentation.
 module Test.Hspec (
 -- * Types
   Spec
