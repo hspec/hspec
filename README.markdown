@@ -26,12 +26,12 @@ To run the test suite do:
 ### Preparing a release
 
  - Bump version
+ - Rebase `travis-ci-osx` on `HEAD` and make sure that the build passes
+ - Release new version of `hspec-meta`
  - Add `find hspec-discover/test-data/ -type f` under `extra-source-files` in
    `hspec.cabal`
  - Make sure that `other-modules` for `test-suite spec` is up-to-date
- - Rebase `travis-ci-osx` on `HEAD` and make sure that the build passes
  - Use `./mk-sdist.sh` to create and test the tarball
- - Release an updated version of `hspec-meta`
 
 ## Contributors
 
