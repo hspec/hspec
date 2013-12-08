@@ -46,7 +46,7 @@ Library
     , HUnit >= 1.2.5
     , QuickCheck >= 2.5.1
     , quickcheck-io
-    , hspec-expectations == 0.6.1.*
+    , hspec-expectations
     , async >= 2
   exposed-modules:
       Test.Hspec.Meta
