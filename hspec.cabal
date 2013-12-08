@@ -107,7 +107,7 @@ test-suite spec
     , quickcheck-io
     , hspec-expectations
 
-    , hspec-meta >= 1.7.1
+    , hspec-meta >= 1.8.0
     , process
     , ghc-paths
 
