@@ -1,3 +1,6 @@
+## Changes in 1.8.1
+ - Add `shouldMatchList`
+
 ## Changes in 1.8.0
  - Run `before`/`after`/`around` for each single check of a QuickCheck property
  - Add `Test.Hspec.Core.mapSpecItem`
