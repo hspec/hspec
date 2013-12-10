@@ -21,7 +21,7 @@ test/
 └── BazSpec.hs
 ```
 
-The `src` directory contains three module `Foo`, `Foo.Bar` and `Baz`.  The
+The `src` directory contains three modules `Foo`, `Foo.Bar` and `Baz`.  The
 `test` directory contains corresponding specs `FooSpec`, `Foo.BarSpec` and
 `BazSpec`.
 
