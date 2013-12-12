@@ -107,7 +107,7 @@ to expect a specific exception value of type `ErrorCall`.  The following won't
 work:
 
 ```haskell
-evaluat (error "foo") `shouldThrow` (== ErrorCall "foo")  -- This won't work!
+evaluate (error "foo") `shouldThrow` (== ErrorCall "foo")  -- This won't work!
 ```
 
 Pattern matching can be used instead, but Hspec provides a combinator,
@@ -115,7 +115,7 @@ Pattern matching can be used instead, but Hspec provides a combinator,
 used:
 
 ```haskell
-evaluat (error "foo") `shouldThrow` errorCall "foo"
+evaluate (error "foo") `shouldThrow` errorCall "foo"
 ```
 
 {% example Error.hs %}
