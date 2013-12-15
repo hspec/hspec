@@ -1,7 +1,8 @@
 language: haskell
 
-before_install:
-    - ./mk-sdist.sh
-
 script:
-    - PATH=./dist/build/hspec-discover/:$PATH cabal test
+  - cabal test
+  - cabal install
+  - cd hspec-discover/example/ && cabal test && cd ../../
+  - cd hspec-discover/integration-test/ && cabal test && cd ../../
+  - ./mk-sdist.sh
