@@ -42,4 +42,4 @@ Link the program with `-threaded` and pass `+RTS -N -RTS` when running it:
 
 
 All specs that are not explicitly marked with `parallel` are run in the
-applications main thread.
+application's main thread.
