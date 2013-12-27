@@ -156,20 +156,9 @@ instance Example QC.Property where
           prefix = "*** Failed! Exception: '"
 
 -- | Specifies a pending example.
---
--- If you want to textually specify a behavior but do not have an example yet,
--- use this:
---
--- > describe "fancyFormatter" $ do
--- >   it "can format text in a way that everyone likes" $
--- >     pending
 pending :: Expectation
 pending = E.throwIO (Pending Nothing)
 
 -- | Specifies a pending example with a reason for why it's pending.
---
--- > describe "fancyFormatter" $ do
--- >   it "can format text in a way that everyone likes" $
--- >     pendingWith "waiting for clarification from the designers"
 pendingWith :: String -> Expectation
 pendingWith = E.throwIO . Pending . Just
