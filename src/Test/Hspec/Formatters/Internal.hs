@@ -79,7 +79,7 @@ usedSeed = gets stateUsedSeed
 
 -- | The total number of examples encountered so far.
 totalCount :: FormatterState -> Int
-totalCount s = successCount s + pendingCount s + failCount s
+totalCount = sum . sequence [successCount, pendingCount, failCount]
 
 -- NOTE: We use an IORef here, so that the state persists when UserInterrupt is
 -- thrown.
