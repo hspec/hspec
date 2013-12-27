@@ -27,7 +27,7 @@ spec = do
   -- use this:
 
   describe "fancyFormatter" $ do
-    it "can format text in a way that everyone lines" $
+    it "can format text in a way that everyone likes" $
       pending
 
   -- | Specify a pending example with a reason for why it's pending.
