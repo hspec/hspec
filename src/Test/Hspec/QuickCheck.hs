@@ -5,6 +5,7 @@ module Test.Hspec.QuickCheck (
   modifyMaxSuccess
 , modifyMaxDiscardRatio
 , modifyMaxSize
+, modifyArgs
 -- * Re-exports from QuickCheck
 -- |
 -- Previous versions of Hspec provided a distinct `property` combinator, but
@@ -18,7 +19,7 @@ module Test.Hspec.QuickCheck (
 
 import           Test.QuickCheck
 import           Test.Hspec
-import           Test.Hspec.Core (Params(..), modifyParams)
+import           Test.Hspec.Core (QuickCheckArgs(..), modifyParams)
 
 -- |
 -- > prop ".." $
@@ -55,5 +56,5 @@ modifyMaxSize = modifyArgs . modify
 modifyArgs :: (Args -> Args) -> Spec -> Spec
 modifyArgs = modifyParams . modify
   where
-    modify :: (Args -> Args) -> Params -> Params
-    modify f p = p {paramsQuickCheckArgs = f (paramsQuickCheckArgs p)}
+    modify :: (Args -> Args) -> QuickCheckArgs -> QuickCheckArgs
+    modify f p = QuickCheckArgs $ f $ quickCheckArgs p

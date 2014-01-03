@@ -43,7 +43,7 @@ run chan useColor h c formatter specs = do
     queueSpec rGroups (_, SpecItem (Item isParallelizable requirement e)) =
       queueExample isParallelizable (reverse rGroups, requirement) (`e` id)
 
-    queueExample :: Bool -> Path -> (Params -> IO Result) -> IO ()
+    queueExample :: Bool -> Path -> ([SomeParam] -> IO Result) -> IO ()
     queueExample isParallelizable path e
       | isParallelizable = runParallel
       | otherwise = defer runSequentially
@@ -79,10 +79,14 @@ run chan useColor h c formatter specs = do
       | useColor = every 0.05 report
       | otherwise = return . const $ return ()
 
-    evalExample :: (Params -> IO Result) -> (Progress -> IO ()) -> IO (Either E.SomeException Result)
+    evalExample :: ([SomeParam] -> IO Result) -> (Progress -> IO ()) -> IO (Either E.SomeException Result)
     evalExample e progressHandler
       | configDryRun c = return (Right Success)
-      | otherwise      = (safeTry . fmap forceResult) (e $ Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressHandler)
+      | otherwise      = (safeTry . fmap forceResult) (e ps)
+          where ps = [ SomeParam $ QuickCheckArgs $ configQuickCheckArgs c
+                     , SomeParam $ SmallCheckParams $ configSmallCheckDepth c
+                     , SomeParam $ ReportProgressParam progressHandler
+                     ]
 
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
