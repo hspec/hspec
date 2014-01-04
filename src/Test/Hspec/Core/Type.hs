@@ -97,6 +97,7 @@ findParamDef d = fromMaybe d . findParam
 data SpecTree =
     SpecGroup String [SpecTree]
   | SpecItem Item
+  | SpecBracket (IO SomeParam) (SomeParam -> IO ()) SpecTree
 
 data Item = Item {
   itemIsParallelizable :: Bool

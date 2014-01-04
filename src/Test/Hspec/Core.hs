@@ -55,6 +55,7 @@ mapSpecItem f = fromSpecList . map go . runSpecM
     go spec = case spec of
       SpecItem item -> SpecItem (f item)
       SpecGroup d es -> SpecGroup d (map go es)
+      SpecBracket create close s -> SpecBracket create close (go s)
 
 modifyParams :: Typeable p => (p -> p) -> Spec -> Spec
 modifyParams f = mapSpecItem $ \item -> item { itemExample = \p -> (itemExample item) (map go p) }

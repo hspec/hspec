@@ -57,6 +57,7 @@ filterSpecs p = goSpecs []
       SpecGroup group specs     -> case goSpecs (groups ++ [group]) specs of
         [] -> Nothing
         xs -> Just (SpecGroup group xs)
+      SpecBracket create close s -> SpecBracket create close <$> goSpec groups s
 
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
