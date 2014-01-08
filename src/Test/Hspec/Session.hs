@@ -1,16 +1,24 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, RankNTypes, FlexibleContexts, ScopedTypeVariables  #-}
 module Test.Hspec.Session (
+  -- * State Sessions
     session
   , runState
   , with
   , SessionExample(..)
+
+  -- * Monad Sessions
+  , sessionM
+  , runM
+  , SessionM
 ) where
 
 import Control.Applicative
 import Control.Concurrent.MVar
+import Control.Monad (void)
 import Control.Monad.Trans.State (state, evalState, execState, execStateT, StateT)
+import Control.Monad.Trans.Control
 import Data.Traversable (traverse)
-import Data.Typeable (Typeable, cast)
+import Data.Typeable (Typeable(..), cast, Typeable1, mkTyCon3, mkTyConApp)
 import System.IO.Unsafe (unsafePerformIO)
 import Test.Hspec
 import Test.Hspec.Core hiding (describe, it, hspec)
@@ -157,3 +165,30 @@ runState = SessionExample . execStateT
 -- >          ... something with db ...
 with :: (s -> IO ()) -> SessionExample s
 with f = SessionExample $ \a -> f a >> return a
+
+--  Newtype of StM needed so that we can make a non-orphan typeable instance.
+
+-- | This is the state passed to tests from 'sessionM' to 'runM'.
+newtype SessionM m = WrapStM { unwrapStM :: StM m () }
+instance Typeable1 m => Typeable (SessionM m) where
+    typeOf _ = mkTyConApp (mkTyCon3 "hspec" "Test.Hspec.Session" "WrapStM") [typeOf (undefined :: m ())]
+
+sessionM :: (MonadBaseControl IO m, Typeable1 m)
+         => (forall a. m a -> IO a) -- ^ run the m monad
+         -> m () -- ^ this is run once before the first test
+         -> m () -- ^ this is run once after the final test
+         -> Spec -> Spec
+sessionM r begin end = session create close 
+    where
+        r' m = r $ m >>= (\w@(WrapStM stm) -> restoreM stm >> return w)
+        create = r' $ liftBaseWith (\runInBase -> WrapStM <$> runInBase begin)
+        close stm = void $ r' $ liftBaseWith (\runInBase -> WrapStM <$> runInBase (restoreM (unwrapStM stm) >> end))
+
+runM :: MonadBaseControl IO m
+     => (forall a. m a -> IO a) -- ^ run the m monad
+     -> m () -- ^ the test
+     -> SessionExample (SessionM m)
+runM runner act = SessionExample $ \a ->
+       runner' $ liftBaseWith $ \runInBase -> WrapStM <$> runInBase (restoreM (unwrapStM a) >> act)
+    where
+        runner' m = runner $ m >>= (\w@(WrapStM stm) -> restoreM stm >> return w)

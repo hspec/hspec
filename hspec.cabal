@@ -46,6 +46,7 @@ Library
     , time
     , transformers  >= 0.2.2.0 && < 0.4.0
     , deepseq
+    , monad-control >= 0.3
     , HUnit         >= 1.2.5
     , QuickCheck    >= 2.5.1
     , quickcheck-io
