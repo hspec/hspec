@@ -37,6 +37,7 @@ An example is worth a thousand words, so here we go:
 * [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
 * [SmallCheck integration](http://hackage.haskell.org/package/hspec-smallcheck)
 * [Vim syntax file for Hspec](https://github.com/hspec/hspec.vim#readme)
+* [Guard plugin for Hspec](http://rubygems.org/gems/guard-haskell)
 * [A report of Hspec's behavior](report.html)
 
 ## Support
