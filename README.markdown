@@ -54,3 +54,4 @@ To run the test suite do:
  * Matvey B. Aksenov
  * Alan Zimmerman
  * Ron Watkins
+ * Daniel Gröber
