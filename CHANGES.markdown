@@ -1,3 +1,7 @@
+## Next
+ - `hspec-discover` now accepts `--no-main` which results in a top-level spec
+   being generated instead of a test driver (thanks @DanielG)
+
 ## Changes in 1.8.1
  - Add `shouldMatchList`
 
