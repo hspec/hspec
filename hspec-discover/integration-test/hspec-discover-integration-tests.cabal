@@ -62,3 +62,18 @@ test-suite with-formatter-empty
   build-depends:
       base    == 4.*
     , hspec
+
+test-suite with-no-main
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall -Werror
+  hs-source-dirs:
+      with-no-main
+  main-is:
+      Main.hs
+  other-modules:
+      Spec
+  build-depends:
+      base    == 4.*
+    , hspec
