@@ -15,6 +15,7 @@ module Run (
 import           Control.Monad
 import           Control.Applicative
 import           Data.List
+import           Data.Char
 import           Data.Maybe
 import           Data.String
 import           System.Environment
@@ -49,7 +50,7 @@ run args_ = do
 mkSpecModule :: FilePath -> Config -> [Spec] -> String
 mkSpecModule src c nodes =
   ( "{-# LINE 1 " . shows src . " #-}"
-  . showString "module Main where\n"
+  . showString ("module " ++ module_ ++" where\n")
   . importList nodes
   . maybe driver (driverWithFormatter (null nodes)) (configFormatter c)
   . formatSpecs nodes
@@ -57,8 +58,20 @@ mkSpecModule src c nodes =
   where
     driver =
         showString "import Test.Hspec\n"
-      . showString "main :: IO ()\n"
-      . showString "main = hspec $ "
+      . case configNoMain c of
+          False ->
+              showString "main :: IO ()\n"
+            . showString "main = hspec $ "
+          True ->
+              showString "spec :: Spec\n"
+            . showString "spec = "
+    module_ = if configNoMain c then pathToModule src else "Main"
+    pathToModule f = let
+        fileName = last $ splitDirectories f
+        m:ms = takeWhile (/='.') fileName
+     in
+        toUpper m:ms
+
 
 driverWithFormatter :: Bool -> String -> ShowS
 driverWithFormatter isEmpty f =
