@@ -30,6 +30,8 @@ module Test.Hspec (
 , hspec
 ) where
 
+import           Control.Exception (finally)
+
 import           Test.Hspec.Core.Type hiding (describe, it)
 import           Test.Hspec.Runner
 import           Test.Hspec.HUnit ()
@@ -84,7 +86,7 @@ before action = around (action >>)
 
 -- | Run a custom action after every spec item.
 after :: IO () -> Spec -> Spec
-after action = around (>> action)
+after action = around (`finally` action)
 
 -- | Run a custom action before and/or after every spec item.
 around :: (IO () -> IO ()) -> Spec -> Spec

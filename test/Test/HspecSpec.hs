@@ -119,6 +119,13 @@ spec = do
           mockCounter mock `shouldReturn` 1
       mockCounter mock `shouldReturn` 2
 
+    it "guarantees that action is run" $ do
+      mock <- newMock
+      silence . ignoreExitCode $ H.hspec $ H.after (mockAction mock) $ do
+        H.it "foo" $ do
+          ioError $ userError "foo" :: IO ()
+      mockCounter mock `shouldReturn` 1
+
   describe "around" $ do
     it "wraps each spec item with an action" $ do
       ref <- newIORef (0 :: Int)

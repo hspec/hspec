@@ -1,6 +1,7 @@
 ## Next
  - `hspec-discover` now accepts `--no-main` which results in a top-level spec
    being generated instead of a test driver (thanks @DanielG)
+ - Make sure that after is run on failing tests (see #159)
 
 ## Changes in 1.8.1
  - Add `shouldMatchList`
