@@ -7,7 +7,10 @@ module Test.Hspec.Core (
 
 -- * A type class for examples
   Example (..)
-, Params (..)
+, QuickCheckArgs (..)
+, SmallCheckParams(..)
+, ReportProgressParam(..)
+, SomeParam(..)
 , Progress
 , Result (..)
 
@@ -20,6 +23,8 @@ module Test.Hspec.Core (
 , SpecTree (..)
 , Item (..)
 , mapSpecItem
+, findParam
+, findParamDef
 , modifyParams
 , describe
 , it
@@ -33,6 +38,7 @@ module Test.Hspec.Core (
 ) where
 
 import           Control.Applicative
+import           Data.Typeable (Typeable, cast)
 import           System.IO (Handle)
 
 import           Test.Hspec.Core.Type
@@ -49,9 +55,14 @@ mapSpecItem f = fromSpecList . map go . runSpecM
     go spec = case spec of
       SpecItem item -> SpecItem (f item)
       SpecGroup d es -> SpecGroup d (map go es)
+      SpecBracket create close s -> SpecBracket create close (go s)
 
-modifyParams :: (Params -> Params) -> Spec -> Spec
-modifyParams f = mapSpecItem $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
+modifyParams :: Typeable p => (p -> p) -> Spec -> Spec
+modifyParams f = mapSpecItem $ \item -> item { itemExample = \p -> (itemExample item) (map go p) }
+    where
+        go x@(SomeParam p) = case cast p of
+                                Just p' -> SomeParam $ f p'
+                                Nothing -> x
 
 {-# DEPRECATED hspecX "use `Test.Hspec.Runner.hspec` instead" #-}     -- since 1.2.0
 hspecX :: [SpecTree] -> IO ()

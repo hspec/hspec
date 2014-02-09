@@ -35,7 +35,10 @@ import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
 
 import qualified Test.Hspec as H
-import qualified Test.Hspec.Core as H (Params(..), Item(..), mapSpecItem)
+import qualified Test.Hspec.Core as H
+    (QuickCheckArgs(..), SmallCheckParams(..), ReportProgressParam(..), SomeParam(..)
+    , mapSpecItem, Item(..), findParamDef
+    )
 import qualified Test.Hspec.Runner as H
 
 ignoreExitCode :: IO () -> IO ()
@@ -62,8 +65,11 @@ normalizeSummary xs = map f xs
     g x | isNumber x = '0'
         | otherwise  = x
 
-defaultParams :: H.Params
-defaultParams = H.Params (H.configQuickCheckArgs H.defaultConfig) (H.configSmallCheckDepth H.defaultConfig) (const $ return ())
+defaultParams :: [H.SomeParam]
+defaultParams = [ H.SomeParam $ H.QuickCheckArgs $ H.configQuickCheckArgs H.defaultConfig
+                , H.SomeParam $ H.SmallCheckParams $ H.configSmallCheckDepth H.defaultConfig
+                , H.SomeParam $ H.ReportProgressParam $ const $ return ()
+                ]
 
 sleep :: POSIXTime -> IO ()
 sleep = threadDelay . floor . (* 1000000)
@@ -73,8 +79,9 @@ timeout = System.timeout . floor . (* 1000000)
 
 shouldUseArgs :: [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do
-  spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
-  let interceptArgs item = item {H.itemExample = \params action -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params action}
+  spy <- newIORef (H.configQuickCheckArgs H.defaultConfig)
+  let loadArgs = H.quickCheckArgs . H.findParamDef (error "QuickCheck args must exist")
+  let interceptArgs item = item {H.itemExample = \params action -> writeIORef spy (loadArgs params) >> H.itemExample item params action}
       spec = H.mapSpecItem interceptArgs $
         H.it "foo" False
   (silence . ignoreExitCode . withArgs args . H.hspec) spec

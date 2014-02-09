@@ -4,6 +4,7 @@ import           Helper
 import           Mock
 import           Data.List
 import           Data.IORef
+import           Data.Typeable (cast)
 import           Control.Exception (AsyncException(..), throwIO)
 
 import qualified Test.Hspec.Core.Type as H hiding (describe, it)
@@ -13,11 +14,18 @@ import qualified Test.Hspec.Runner as H
 main :: IO ()
 main = hspec spec
 
+addReplay :: [H.SomeParam] -> [H.SomeParam]
+addReplay = map go
+    where
+        go x@(H.SomeParam p) = case cast p of
+            Just (H.QuickCheckArgs args) -> H.SomeParam $ H.QuickCheckArgs args { replay = Just (read "", 0) }
+            Nothing -> x
+
 evaluateExample :: H.Example e => e -> IO H.Result
-evaluateExample e = H.evaluateExample e (defaultParams {H.paramsQuickCheckArgs = (H.paramsQuickCheckArgs defaultParams) {replay = Just (read "", 0)}}) id
+evaluateExample e = H.evaluateExample e (addReplay defaultParams) id
 
 evaluateExampleWith :: H.Example e => (IO () -> IO ()) -> e -> IO H.Result
-evaluateExampleWith action e = H.evaluateExample e (defaultParams {H.paramsQuickCheckArgs = (H.paramsQuickCheckArgs defaultParams) {replay = Just (read "", 0)}}) action
+evaluateExampleWith action e = H.evaluateExample e (addReplay defaultParams) action
 
 spec :: Spec
 spec = do

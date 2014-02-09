@@ -12,7 +12,7 @@ main :: IO ()
 main = hspec spec
 
 -- SpecTree does not have an Eq nor a Show instance, hence we map it to `Tree`.
-data Tree = Group String [Tree] | Example String
+data Tree = Group String [Tree] | Example String | Bracket Tree
   deriving (Eq, Show)
 
 shouldYield :: Test -> [Tree] -> Expectation
@@ -25,6 +25,7 @@ a `shouldYield` b = (convert . runSpecM . fromHUnitTest) a `shouldBe` b
         go x = case x of
           SpecGroup s xs  -> Group s (map go xs)
           SpecItem item -> Example (itemRequirement item)
+          SpecBracket _ _ s -> Bracket $ go s
 
 spec :: Spec
 spec = do
