@@ -23,7 +23,7 @@ import           Control.Applicative
 import           Data.Monoid
 import           Data.Maybe
 import           System.IO
-import           System.Environment
+import           System.Environment (getProgName, getArgs, withArgs)
 import           System.Exit
 import qualified Control.Exception as E
 
@@ -32,7 +32,8 @@ import qualified Test.QuickCheck as QC
 import           System.Random (newStdGen)
 import           Control.Monad.IO.Class (liftIO)
 
-import           Test.Hspec.Util
+import           Test.Hspec.Compat (lookupEnv)
+import           Test.Hspec.Util (Path, stdGenToInteger)
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
