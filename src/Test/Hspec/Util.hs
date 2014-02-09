@@ -5,7 +5,6 @@ module Test.Hspec.Util (
 , Path
 , filterPredicate
 , formatRequirement
-, getEnv
 , strip
 , stdGenToInteger
 , stdGenFromInteger
@@ -16,7 +15,6 @@ import           Data.List
 import           Data.Char (isSpace)
 import           Control.Applicative
 import qualified Control.Exception as E
-import qualified System.Environment as Environment
 import           System.Random (StdGen)
 
 -- | Create a more readable display of a quantity of something.
@@ -74,9 +72,6 @@ formatRequirement (groups, requirement) = groups_ ++ requirement
     join xs = case xs of
       [x] -> x ++ " "
       ys  -> concatMap (++ ", ") ys
-
-getEnv :: String -> IO (Maybe String)
-getEnv key = either (const Nothing) Just <$> safeTry (Environment.getEnv key)
 
 -- ensure that lines are not longer then given `n`, insert line breaks at word
 -- boundaries

@@ -7,7 +7,7 @@ module Test.Hspec.FailureReport (
 import           System.IO
 import           System.SetEnv
 import           Test.Hspec.Compat
-import           Test.Hspec.Util (Path, safeTry, getEnv)
+import           Test.Hspec.Util (Path, safeTry)
 
 data FailureReport = FailureReport {
   failureReportSeed :: Integer
@@ -28,7 +28,7 @@ writeFailureReport x = do
 
 readFailureReport :: IO (Maybe FailureReport)
 readFailureReport = do
-  mx <- getEnv "HSPEC_FAILURES"
+  mx <- lookupEnv "HSPEC_FAILURES"
   case mx >>= readMaybe of
     Nothing -> do
       hPutStrLn stderr "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!"

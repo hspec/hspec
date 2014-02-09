@@ -8,7 +8,7 @@ import           System.Exit
 import qualified Control.Exception as E
 import           Mock
 import           System.SetEnv
-import           Test.Hspec.Util (getEnv)
+import           Test.Hspec.Compat
 
 import           Test.Hspec.FailureReport (FailureReport(..))
 import qualified Test.Hspec as H
@@ -59,7 +59,7 @@ spec = do
             H.it "example 2" False
         H.describe "baz" $ do
           H.it "example 3" False
-      getEnv "HSPEC_FAILURES" `shouldReturn` (Just . show) FailureReport {
+      lookupEnv "HSPEC_FAILURES" `shouldReturn` (Just . show) FailureReport {
           failureReportSeed = 23
         , failureReportMaxSuccess = 100
         , failureReportMaxSize = 100
