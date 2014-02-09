@@ -1,4 +1,4 @@
-## Next
+## Changes in 1.8.3
  - Do not use color if `TERM=dumb` (see #158)
 
 ## Changes in 1.8.2
