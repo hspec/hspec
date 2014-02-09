@@ -27,6 +27,7 @@ import           Data.Typeable (Typeable)
 import           Data.List (isPrefixOf)
 import           Data.Maybe (fromMaybe)
 
+import           Test.Hspec.Compat
 import           Test.Hspec.Util
 import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))

@@ -6,7 +6,8 @@ module Test.Hspec.FailureReport (
 
 import           System.IO
 import           System.SetEnv
-import           Test.Hspec.Util (Path, safeTry, readMaybe, getEnv)
+import           Test.Hspec.Compat
+import           Test.Hspec.Util (Path, safeTry, getEnv)
 
 data FailureReport = FailureReport {
   failureReportSeed :: Integer
