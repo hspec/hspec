@@ -1,3 +1,6 @@
+## Next
+ - Do not use color if `TERM=dumb` (see #158)
+
 ## Changes in 1.8.2
  - `hspec-discover` now accepts `--no-main` which results in a top-level spec
    being generated instead of a test driver (thanks @DanielG)

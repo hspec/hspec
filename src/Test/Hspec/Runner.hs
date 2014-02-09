@@ -139,7 +139,7 @@ hspecWith c_ spec = withHandle c_ $ \h -> do
 
     doesUseColor :: Handle -> Config -> IO Bool
     doesUseColor h c = case configColorMode c of
-      ColorAuto  -> hIsTerminalDevice h
+      ColorAuto  -> (&&) <$> hIsTerminalDevice h <*> (not <$> isDumb)
       ColorNever -> return False
       ColorAlways -> return True
 
@@ -147,6 +147,9 @@ hspecWith c_ spec = withHandle c_ $ \h -> do
     withHandle c action = case configHandle c of
       Left h -> action h
       Right path -> withFile path WriteMode action
+
+isDumb :: IO Bool
+isDumb = maybe False (== "dumb") <$> lookupEnv "TERM"
 
 -- | Summary of a test run.
 data Summary = Summary {
