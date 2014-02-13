@@ -20,7 +20,13 @@ runFormatter :: Bool -> Handle -> Config -> Formatter -> [SpecTree] -> FormatM (
 runFormatter useColor h c formatter specs = do
   headerFormatter formatter
   chan <- liftIO newChan
-  run chan useColor h c formatter specs
+  reportProgress <- liftIO mkReportProgress
+  run chan reportProgress c formatter specs
+  where
+    mkReportProgress :: IO (Path -> Progress -> IO ())
+    mkReportProgress
+      | useColor = every 0.05 $ exampleProgress formatter h
+      | otherwise = return $ \_ _ -> return ()
 
 data Message = Done | Run (FormatM ())
 
@@ -28,8 +34,8 @@ data Report = ReportProgress Progress | ReportResult (Either E.SomeException Res
 
 type ProgressCallback = Progress -> IO ()
 
-run :: Chan Message -> Bool -> Handle -> Config -> Formatter -> [SpecTree] -> FormatM ()
-run chan useColor h c formatter specs = do
+run :: Chan Message -> (Path -> ProgressCallback) -> Config -> Formatter -> [SpecTree] -> FormatM ()
+run chan reportProgress_ c formatter specs = do
   liftIO $ do
     forM_ (zip [0..] specs) (queueSpec [])
     writeChan chan Done
@@ -53,8 +59,7 @@ run chan useColor h c formatter specs = do
         runSequentially :: FormatM ()
         runSequentially = do
           result <- liftIO $ do
-            progressCallback <- mkReportProgress
-            evalExample e progressCallback
+            evalExample e reportProgress
           formatResult result
 
         runParallel = do
@@ -63,22 +68,18 @@ run chan useColor h c formatter specs = do
             let progressCallback = replaceMVar mvar . ReportProgress
             result <- evalExample e progressCallback
             replaceMVar mvar (ReportResult result)
-          reportProgress <- mkReportProgress
-          defer (evalReport reportProgress mvar)
+          defer (evalReport mvar)
           where
-            evalReport :: (Progress -> IO ()) -> MVar Report -> FormatM ()
-            evalReport reportProgress mvar = do
+            evalReport :: MVar Report -> FormatM ()
+            evalReport mvar = do
               r <- liftIO (takeMVar mvar)
               case r of
                 ReportProgress p -> do
                   liftIO $ reportProgress p
-                  evalReport reportProgress mvar
+                  evalReport mvar
                 ReportResult result -> formatResult result
 
-        mkReportProgress :: IO (Progress -> IO ())
-        mkReportProgress
-          | useColor = every 0.05 $ exampleProgress formatter h path
-          | otherwise = return . const $ return ()
+        reportProgress = reportProgress_ path
 
         formatResult :: Either E.SomeException Result -> FormatM ()
         formatResult result = do
@@ -116,9 +117,9 @@ processMessages getMessage fastFail = go
       Done -> return ()
 
 -- | Execute given action at most every specified number of seconds.
-every :: POSIXTime -> (a -> IO ()) -> IO (a -> IO ())
+every :: POSIXTime -> (a -> b -> IO ()) -> IO (a -> b -> IO ())
 every seconds action = do
   timer <- newTimer seconds
-  return $ \a -> do
+  return $ \a b -> do
     r <- timer
-    when r (action a)
+    when r (action a b)
