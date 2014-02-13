@@ -55,7 +55,7 @@ run chan useColor h c formatter specs = do
           result <- liftIO $ do
             progressCallback <- mkReportProgress
             evalExample e progressCallback
-          formatResult formatter path result
+          formatResult result
 
         runParallel = do
           mvar <- newEmptyMVar
@@ -73,12 +73,29 @@ run chan useColor h c formatter specs = do
                 ReportProgress p -> do
                   liftIO $ reportProgress p
                   evalReport reportProgress mvar
-                ReportResult result -> formatResult formatter path result
+                ReportResult result -> formatResult result
 
         mkReportProgress :: IO (Progress -> IO ())
         mkReportProgress
           | useColor = every 0.05 $ exampleProgress formatter h path
           | otherwise = return . const $ return ()
+
+        formatResult :: Either E.SomeException Result -> FormatM ()
+        formatResult result = do
+          case result of
+            Right Success -> do
+              increaseSuccessCount
+              exampleSucceeded formatter path
+            Right (Pending reason) -> do
+              increasePendingCount
+              examplePending formatter path reason
+            Right (Fail err) -> failed (Right err)
+            Left err         -> failed (Left  err)
+          where
+            failed err = do
+              increaseFailCount
+              addFailMessage path err
+              exampleFailed formatter path err
 
     evalExample :: (Params -> IO Result) -> ProgressCallback -> IO (Either E.SomeException Result)
     evalExample e progressCallback = safeTry . fmap forceResult $ e params
@@ -97,23 +114,6 @@ processMessages getMessage fastFail = go
         fails <- getFailCount
         unless (fastFail && fails /= 0) go
       Done -> return ()
-
-formatResult :: Formatter -> ([String], String) -> Either E.SomeException Result -> FormatM ()
-formatResult formatter path result = do
-  case result of
-    Right Success -> do
-      increaseSuccessCount
-      exampleSucceeded formatter path
-    Right (Pending reason) -> do
-      increasePendingCount
-      examplePending formatter path reason
-    Right (Fail err) -> failed (Right err)
-    Left e           -> failed (Left  e)
-  where
-    failed err = do
-      increaseFailCount
-      addFailMessage path err
-      exampleFailed  formatter path err
 
 -- | Execute given action at most every specified number of seconds.
 every :: POSIXTime -> (a -> IO ()) -> IO (a -> IO ())
