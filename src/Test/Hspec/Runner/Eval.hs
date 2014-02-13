@@ -1,5 +1,7 @@
+{-# LANGUAGE DeriveFunctor #-}
 module Test.Hspec.Runner.Eval (runFormatter) where
 
+import           Control.Applicative
 import           Control.Monad
 import qualified Control.Exception as E
 import           Control.Concurrent
@@ -15,9 +17,21 @@ import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.Timer
 import           Data.Time.Clock.POSIX
 
+data Tree a
+  = Node String [Tree a]
+  | Leaf String a
+  deriving (Eq, Show, Functor)
+
+toTree :: SpecTree -> Tree Item
+toTree spec = case spec of
+  SpecGroup label specs -> Node label (map toTree specs)
+  SpecItem item -> Leaf (itemRequirement item) item
+
+type EvalTree = Tree (ProgressCallback -> FormatResult -> IO (FormatM ()))
+
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: Bool -> Handle -> Config -> Formatter -> [SpecTree] -> FormatM ()
-runFormatter useColor h c formatter specs = do
+runFormatter useColor h c formatter specs_ = do
   headerFormatter formatter
   chan <- liftIO newChan
   reportProgress <- liftIO mkReportProgress
@@ -28,57 +42,87 @@ runFormatter useColor h c formatter specs = do
       | useColor = every 0.05 $ exampleProgress formatter h
       | otherwise = return $ \_ _ -> return ()
 
-data Message = Done | Run (FormatM ())
+    specs = map (fmap (parallelize . fmap (applyNoOpAround . applyQuickCheckArgs) . unwrapItem) . toTree) specs_
+
+    unwrapItem :: Item -> (Bool, Params -> (IO () -> IO ()) -> IO Result)
+    unwrapItem (Item isParallelizable _ e) = (isParallelizable, e)
+
+    applyQuickCheckArgs :: (Params -> a) -> ProgressCallback -> a
+    applyQuickCheckArgs e progressCallback = e $ Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressCallback
+
+    applyNoOpAround :: (a -> (IO () -> IO ()) -> b) -> a -> b
+    applyNoOpAround = fmap ($ id)
+
+-- | Execute given action at most every specified number of seconds.
+every :: POSIXTime -> (a -> b -> IO ()) -> IO (a -> b -> IO ())
+every seconds action = do
+  timer <- newTimer seconds
+  return $ \a b -> do
+    r <- timer
+    when r (action a b)
+
+type ProgressCallback = Progress -> IO ()
+type FormatResult = Either E.SomeException Result -> FormatM ()
+
+parallelize :: (Bool, ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+parallelize (isParallelizable, e)
+  | isParallelizable = runParallel e
+  | otherwise = runSequentially e
+
+runSequentially :: (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+runSequentially e reportProgress formatResult = return $ do
+  result <- liftIO $ evalExample (e reportProgress)
+  formatResult result
 
 data Report = ReportProgress Progress | ReportResult (Either E.SomeException Result)
 
-type ProgressCallback = Progress -> IO ()
+runParallel :: (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+runParallel e reportProgress formatResult = do
+  mvar <- newEmptyMVar
+  _ <- forkIO $ do
+    let progressCallback = replaceMVar mvar . ReportProgress
+    result <- evalExample (e progressCallback)
+    replaceMVar mvar (ReportResult result)
+  return $ evalReport mvar
+  where
+    evalReport :: MVar Report -> FormatM ()
+    evalReport mvar = do
+      r <- liftIO (takeMVar mvar)
+      case r of
+        ReportProgress p -> do
+          liftIO $ reportProgress p
+          evalReport mvar
+        ReportResult result -> formatResult result
 
-run :: Chan Message -> (Path -> ProgressCallback) -> Config -> Formatter -> [SpecTree] -> FormatM ()
+replaceMVar :: MVar a -> a -> IO ()
+replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
+
+evalExample :: IO Result -> IO (Either E.SomeException Result)
+evalExample e = safeTry $ forceResult <$> e
+
+data Message = Done | Run (FormatM ())
+
+run :: Chan Message -> (Path -> ProgressCallback) -> Config -> Formatter -> [EvalTree] -> FormatM ()
 run chan reportProgress_ c formatter specs = do
   liftIO $ do
     forM_ (zip [0..] specs) (queueSpec [])
     writeChan chan Done
   processMessages (readChan chan) (configFastFail c)
   where
+    defer :: FormatM () -> IO ()
     defer = writeChan chan . Run
 
-    queueSpec :: [String] -> (Int, SpecTree) -> IO ()
-    queueSpec rGroups (n, SpecGroup group xs) = do
+    queueSpec :: [String] -> (Int, EvalTree) -> IO ()
+    queueSpec rGroups (n, Node group xs) = do
       defer (exampleGroupStarted formatter n (reverse rGroups) group)
       forM_ (zip [0..] xs) (queueSpec (group : rGroups))
       defer (exampleGroupDone formatter)
-    queueSpec rGroups (_, SpecItem (Item isParallelizable requirement e)) =
-      queueExample isParallelizable (reverse rGroups, requirement) (`e` id)
+    queueSpec rGroups (_, Leaf requirement e) =
+      queueExample (reverse rGroups, requirement) e
 
-    queueExample :: Bool -> Path -> (Params -> IO Result) -> IO ()
-    queueExample isParallelizable path e
-      | isParallelizable = runParallel
-      | otherwise = defer runSequentially
+    queueExample :: Path -> (ProgressCallback -> FormatResult -> IO (FormatM ())) -> IO ()
+    queueExample path e = e reportProgress formatResult >>= defer
       where
-        runSequentially :: FormatM ()
-        runSequentially = do
-          result <- liftIO $ do
-            evalExample e reportProgress
-          formatResult result
-
-        runParallel = do
-          mvar <- newEmptyMVar
-          _ <- forkIO $ do
-            let progressCallback = replaceMVar mvar . ReportProgress
-            result <- evalExample e progressCallback
-            replaceMVar mvar (ReportResult result)
-          defer (evalReport mvar)
-          where
-            evalReport :: MVar Report -> FormatM ()
-            evalReport mvar = do
-              r <- liftIO (takeMVar mvar)
-              case r of
-                ReportProgress p -> do
-                  liftIO $ reportProgress p
-                  evalReport mvar
-                ReportResult result -> formatResult result
-
         reportProgress = reportProgress_ path
 
         formatResult :: Either E.SomeException Result -> FormatM ()
@@ -98,14 +142,6 @@ run chan reportProgress_ c formatter specs = do
               addFailMessage path err
               exampleFailed formatter path err
 
-    evalExample :: (Params -> IO Result) -> ProgressCallback -> IO (Either E.SomeException Result)
-    evalExample e progressCallback = safeTry . fmap forceResult $ e params
-      where
-        params = Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressCallback
-
-replaceMVar :: MVar a -> a -> IO ()
-replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
-
 processMessages :: IO Message -> Bool -> FormatM ()
 processMessages getMessage fastFail = go
   where
@@ -115,11 +151,3 @@ processMessages getMessage fastFail = go
         fails <- getFailCount
         unless (fastFail && fails /= 0) go
       Done -> return ()
-
--- | Execute given action at most every specified number of seconds.
-every :: POSIXTime -> (a -> b -> IO ()) -> IO (a -> b -> IO ())
-every seconds action = do
-  timer <- newTimer seconds
-  return $ \a b -> do
-    r <- timer
-    when r (action a b)
