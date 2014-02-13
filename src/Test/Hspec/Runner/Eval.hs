@@ -26,6 +26,8 @@ data Message = Done | Run (FormatM ())
 
 data Report = ReportProgress Progress | ReportResult (Either E.SomeException Result)
 
+type ProgressCallback = Progress -> IO ()
+
 run :: Chan Message -> Bool -> Handle -> Config -> Formatter -> [SpecTree] -> FormatM ()
 run chan useColor h c formatter specs = do
   liftIO $ do
@@ -51,15 +53,15 @@ run chan useColor h c formatter specs = do
         runSequentially :: FormatM ()
         runSequentially = do
           result <- liftIO $ do
-            progressHandler <- mkProgressHandler reportProgress
-            evalExample e progressHandler
+            progressCallback <- mkProgressCallback reportProgress
+            evalExample e progressCallback
           formatResult formatter path result
 
         runParallel = do
           mvar <- newEmptyMVar
           _ <- forkIO $ do
-            progressHandler <- mkProgressHandler (replaceMVar mvar . ReportProgress)
-            result <- evalExample e progressHandler
+            progressCallback <- mkProgressCallback (replaceMVar mvar . ReportProgress)
+            result <- evalExample e progressCallback
             replaceMVar mvar (ReportResult result)
           defer (evalReport mvar)
           where
@@ -75,15 +77,15 @@ run chan useColor h c formatter specs = do
         reportProgress :: (Int, Int) -> IO ()
         reportProgress = exampleProgress formatter h path
 
-    mkProgressHandler :: (a -> IO ()) -> IO (a -> IO ())
-    mkProgressHandler report
+    mkProgressCallback :: (a -> IO ()) -> IO (a -> IO ())
+    mkProgressCallback report
       | useColor = every 0.05 report
       | otherwise = return . const $ return ()
 
-    evalExample :: (Params -> IO Result) -> (Progress -> IO ()) -> IO (Either E.SomeException Result)
-    evalExample e progressHandler = safeTry . fmap forceResult $ e params
+    evalExample :: (Params -> IO Result) -> ProgressCallback -> IO (Either E.SomeException Result)
+    evalExample e progressCallback = safeTry . fmap forceResult $ e params
       where
-        params = Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressHandler
+        params = Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressCallback
 
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
