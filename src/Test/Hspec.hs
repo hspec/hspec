@@ -36,7 +36,6 @@ import           Test.Hspec.Core.Type hiding (describe, it)
 import           Test.Hspec.Runner
 import           Test.Hspec.HUnit ()
 import           Test.Hspec.Expectations
-import           Test.Hspec.Core (mapSpecItem)
 import qualified Test.Hspec.Core as Core
 
 -- | Combine a list of specs into a larger spec.

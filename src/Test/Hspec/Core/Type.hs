@@ -6,6 +6,7 @@ module Test.Hspec.Core.Type (
 , fromSpecList
 , SpecTree (..)
 , Item (..)
+, mapSpecItem
 , Example (..)
 , Result (..)
 , Params (..)
@@ -60,8 +61,8 @@ data Result = Success | Pending (Maybe String) | Fail String
 forceResult :: Result -> Result
 forceResult r = case r of
   Success   -> r
-  Pending m -> r `seq` m `deepseq` r
-  Fail    m -> r `seq` m `deepseq` r
+  Pending m -> m `deepseq` r
+  Fail    m -> m `deepseq` r
 
 instance E.Exception Result
 
@@ -83,6 +84,14 @@ data Item = Item {
 , itemRequirement :: String
 , itemExample :: Params -> (IO () -> IO ()) -> IO Result
 }
+
+mapSpecItem :: (Item -> Item) -> Spec -> Spec
+mapSpecItem f = fromSpecList . map go . runSpecM
+  where
+    go :: SpecTree -> SpecTree
+    go spec = case spec of
+      SpecItem item -> SpecItem (f item)
+      SpecGroup d es -> SpecGroup d (map go es)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree] -> SpecTree

@@ -50,8 +50,9 @@ run chan useColor h c formatter specs = do
       where
         runSequentially :: FormatM ()
         runSequentially = do
-          progressHandler <- liftIO (mkProgressHandler reportProgress)
-          result <- liftIO (evalExample e progressHandler)
+          result <- liftIO $ do
+            progressHandler <- mkProgressHandler reportProgress
+            evalExample e progressHandler
           formatResult formatter path result
 
         runParallel = do
@@ -80,9 +81,9 @@ run chan useColor h c formatter specs = do
       | otherwise = return . const $ return ()
 
     evalExample :: (Params -> IO Result) -> (Progress -> IO ()) -> IO (Either E.SomeException Result)
-    evalExample e progressHandler
-      | configDryRun c = return (Right Success)
-      | otherwise      = (safeTry . fmap forceResult) (e $ Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressHandler)
+    evalExample e progressHandler = safeTry . fmap forceResult $ e params
+      where
+        params = Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressHandler
 
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p

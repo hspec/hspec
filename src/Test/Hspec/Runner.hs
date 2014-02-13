@@ -107,10 +107,13 @@ hspecResult = hspecWith defaultConfig
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWith :: Config -> Spec -> IO Summary
-hspecWith c_ spec = withHandle c_ $ \h -> do
+hspecWith c_ spec_ = withHandle c_ $ \h -> do
   c <- ensureStdGen c_
   let formatter = configFormatter c
       seed = (stdGenToInteger . fst . fromJust . QC.replay . configQuickCheckArgs) c
+      spec
+        | configDryRun c = mapSpecItem markSuccess spec_
+        | otherwise      = spec_
 
   useColor <- doesUseColor h c
 
@@ -151,6 +154,9 @@ hspecWith c_ spec = withHandle c_ $ \h -> do
 
 isDumb :: IO Bool
 isDumb = maybe False (== "dumb") <$> lookupEnv "TERM"
+
+markSuccess :: Item -> Item
+markSuccess item = item {itemExample = evaluateExample Success}
 
 -- | Summary of a test run.
 data Summary = Summary {
