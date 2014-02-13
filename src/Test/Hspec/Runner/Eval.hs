@@ -53,34 +53,32 @@ run chan useColor h c formatter specs = do
         runSequentially :: FormatM ()
         runSequentially = do
           result <- liftIO $ do
-            progressCallback <- mkProgressCallback reportProgress
+            progressCallback <- mkReportProgress
             evalExample e progressCallback
           formatResult formatter path result
 
         runParallel = do
           mvar <- newEmptyMVar
           _ <- forkIO $ do
-            progressCallback <- mkProgressCallback (replaceMVar mvar . ReportProgress)
+            let progressCallback = replaceMVar mvar . ReportProgress
             result <- evalExample e progressCallback
             replaceMVar mvar (ReportResult result)
-          defer (evalReport mvar)
+          reportProgress <- mkReportProgress
+          defer (evalReport reportProgress mvar)
           where
-            evalReport :: MVar Report -> FormatM ()
-            evalReport mvar = do
+            evalReport :: (Progress -> IO ()) -> MVar Report -> FormatM ()
+            evalReport reportProgress mvar = do
               r <- liftIO (takeMVar mvar)
               case r of
                 ReportProgress p -> do
                   liftIO $ reportProgress p
-                  evalReport mvar
+                  evalReport reportProgress mvar
                 ReportResult result -> formatResult formatter path result
 
-        reportProgress :: (Int, Int) -> IO ()
-        reportProgress = exampleProgress formatter h path
-
-    mkProgressCallback :: (a -> IO ()) -> IO (a -> IO ())
-    mkProgressCallback report
-      | useColor = every 0.05 report
-      | otherwise = return . const $ return ()
+        mkReportProgress :: IO (Progress -> IO ())
+        mkReportProgress
+          | useColor = every 0.05 $ exampleProgress formatter h path
+          | otherwise = return . const $ return ()
 
     evalExample :: (Params -> IO Result) -> ProgressCallback -> IO (Either E.SomeException Result)
     evalExample e progressCallback = safeTry . fmap forceResult $ e params
