@@ -31,7 +31,7 @@ run chan useColor h c formatter specs = do
   liftIO $ do
     forM_ (zip [0..] specs) (queueSpec [])
     writeChan chan Done
-  processChan chan (configFastFail c)
+  processMessages (readChan chan) (configFastFail c)
   where
     defer = writeChan chan . Run
 
@@ -88,17 +88,15 @@ run chan useColor h c formatter specs = do
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
-processChan :: Chan Message -> Bool -> FormatM ()
-processChan chan fastFail = go
+processMessages :: IO Message -> Bool -> FormatM ()
+processMessages getMessage fastFail = go
   where
-    go = do
-      m <- liftIO (readChan chan)
-      case m of
-        Run action -> do
-          action
-          fails <- getFailCount
-          unless (fastFail && fails /= 0) go
-        Done -> return ()
+    go = liftIO getMessage >>= \m -> case m of
+      Run action -> do
+        action
+        fails <- getFailCount
+        unless (fastFail && fails /= 0) go
+      Done -> return ()
 
 formatResult :: Formatter -> ([String], String) -> Either E.SomeException Result -> FormatM ()
 formatResult formatter path result = do
