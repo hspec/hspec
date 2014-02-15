@@ -42,16 +42,18 @@ runFormatter useColor h c formatter specs_ = do
       | useColor = every 0.05 $ exampleProgress formatter h
       | otherwise = return $ \_ _ -> return ()
 
-    specs = map (fmap (parallelize . fmap (applyNoOpAround . applyQuickCheckArgs) . unwrapItem) . toTree) specs_
+    specs = map (fmap (parallelize . fmap (applyNoOpAround . applyParams) . unwrapItem) . toTree) specs_
 
-    unwrapItem :: Item -> (Bool, Params -> (IO () -> IO ()) -> IO Result)
+    unwrapItem :: Item -> (Bool, Params -> (IO () -> IO ()) -> ProgressCallback -> IO Result)
     unwrapItem (Item isParallelizable e) = (isParallelizable, e)
 
-    applyQuickCheckArgs :: (Params -> a) -> ProgressCallback -> a
-    applyQuickCheckArgs e progressCallback = e $ Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressCallback
+    applyParams :: (Params -> a) -> a
+    applyParams = ($ params)
+      where
+        params = Params (configQuickCheckArgs c) (configSmallCheckDepth c)
 
-    applyNoOpAround :: (a -> (IO () -> IO ()) -> b) -> a -> b
-    applyNoOpAround = fmap ($ id)
+    applyNoOpAround :: ((IO () -> IO ()) -> b) -> b
+    applyNoOpAround = ($ id)
 
 -- | Execute given action at most every specified number of seconds.
 every :: POSIXTime -> (a -> b -> IO ()) -> IO (a -> b -> IO ())
@@ -61,7 +63,6 @@ every seconds action = do
     r <- timer
     when r (action a b)
 
-type ProgressCallback = Progress -> IO ()
 type FormatResult = Either E.SomeException Result -> FormatM ()
 
 parallelize :: (Bool, ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())

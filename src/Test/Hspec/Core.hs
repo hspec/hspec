@@ -9,6 +9,7 @@ module Test.Hspec.Core (
   Example (..)
 , Params (..)
 , Progress
+, ProgressCallback
 , Result (..)
 
 -- * A writer monad for constructing specs

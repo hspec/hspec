@@ -60,7 +60,7 @@ spec = do
 
     it "takes an example of that behavior" $ do
       let [SpecItem _ item] = runSpecM (H.it "whatever" True)
-      itemExample item defaultParams id `shouldReturn` Success
+      itemExample item defaultParams id noOpProgressCallback `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do
