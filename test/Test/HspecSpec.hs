@@ -42,7 +42,7 @@ spec = do
       length r `shouldBe` 3
 
     it "can be nested" $ do
-      let [SpecGroup foo [SpecGroup bar [SpecItem Item {itemRequirement = baz}]]] = runSpecM $ do
+      let [SpecGroup foo [SpecGroup bar [SpecItem baz _]]] = runSpecM $ do
             H.describe "foo" $ do
               H.describe "bar" $ do
                 H.it "baz" True
@@ -55,17 +55,17 @@ spec = do
 
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
-      let [SpecItem item] = runSpecM (H.it "whatever" True)
-      itemRequirement item `shouldBe` "whatever"
+      let [SpecItem requirement _] = runSpecM (H.it "whatever" True)
+      requirement `shouldBe` "whatever"
 
     it "takes an example of that behavior" $ do
-      let [SpecItem item] = runSpecM (H.it "whatever" True)
+      let [SpecItem _ item] = runSpecM (H.it "whatever" True)
       itemExample item defaultParams id `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do
-        let [SpecItem item] = runSpecM (H.it "" True)
-        itemRequirement item `shouldBe` "(unspecified behavior)"
+        let [SpecItem requirement _] = runSpecM (H.it "" True)
+        requirement `shouldBe` "(unspecified behavior)"
 
   describe "example" $ do
     it "fixes the type of an expectation" $ do
@@ -76,11 +76,11 @@ spec = do
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do
-      let [SpecItem item] = runSpecM . H.parallel $ H.it "whatever" True
+      let [SpecItem _ item] = runSpecM . H.parallel $ H.it "whatever" True
       itemIsParallelizable item `shouldBe` True
 
     it "is applied recursively" $ do
-      let [SpecGroup _ [SpecGroup _ [SpecItem item]]] = runSpecM . H.parallel $ do
+      let [SpecGroup _ [SpecGroup _ [SpecItem _ item]]] = runSpecM . H.parallel $ do
             H.describe "foo" $ do
               H.describe "bar" $ do
                 H.it "baz" True

@@ -25,7 +25,7 @@ data Tree a
 toTree :: SpecTree -> Tree Item
 toTree spec = case spec of
   SpecGroup label specs -> Node label (map toTree specs)
-  SpecItem item -> Leaf (itemRequirement item) item
+  SpecItem r item -> Leaf r item
 
 type EvalTree = Tree (ProgressCallback -> FormatResult -> IO (FormatM ()))
 
@@ -45,7 +45,7 @@ runFormatter useColor h c formatter specs_ = do
     specs = map (fmap (parallelize . fmap (applyNoOpAround . applyQuickCheckArgs) . unwrapItem) . toTree) specs_
 
     unwrapItem :: Item -> (Bool, Params -> (IO () -> IO ()) -> IO Result)
-    unwrapItem (Item isParallelizable _ e) = (isParallelizable, e)
+    unwrapItem (Item isParallelizable e) = (isParallelizable, e)
 
     applyQuickCheckArgs :: (Params -> a) -> ProgressCallback -> a
     applyQuickCheckArgs e progressCallback = e $ Params (configQuickCheckArgs c) (configSmallCheckDepth c) progressCallback

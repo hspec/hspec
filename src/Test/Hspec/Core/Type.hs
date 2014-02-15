@@ -77,11 +77,10 @@ data Params = Params {
 -- | Internal representation of a spec.
 data SpecTree =
     SpecGroup String [SpecTree]
-  | SpecItem Item
+  | SpecItem String Item
 
 data Item = Item {
   itemIsParallelizable :: Bool
-, itemRequirement :: String
 , itemExample :: Params -> (IO () -> IO ()) -> IO Result
 }
 
@@ -90,7 +89,7 @@ mapSpecItem f = fromSpecList . map go . runSpecM
   where
     go :: SpecTree -> SpecTree
     go spec = case spec of
-      SpecItem item -> SpecItem (f item)
+      SpecItem r item -> SpecItem r (f item)
       SpecGroup d es -> SpecGroup d (map go es)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
@@ -103,7 +102,7 @@ describe s = SpecGroup msg
 
 -- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
-it s e = SpecItem $ Item False msg (evaluateExample e)
+it s e = SpecItem msg $ Item False (evaluateExample e)
   where
     msg
       | null s = "(unspecified behavior)"
