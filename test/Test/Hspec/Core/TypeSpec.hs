@@ -14,10 +14,10 @@ main :: IO ()
 main = hspec spec
 
 evaluateExample :: H.Example e => e -> IO H.Result
-evaluateExample e = H.evaluateExample e defaultParams id
+evaluateExample e = H.evaluateExample e defaultParams id noOpProgressCallback
 
 evaluateExampleWith :: H.Example e => (IO () -> IO ()) -> e -> IO H.Result
-evaluateExampleWith action e = H.evaluateExample e defaultParams action
+evaluateExampleWith action e = H.evaluateExample e defaultParams action noOpProgressCallback
 
 spec :: Spec
 spec = do

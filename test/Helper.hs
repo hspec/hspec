@@ -6,6 +6,7 @@ module Helper (
 , sleep
 , timeout
 , defaultParams
+, noOpProgressCallback
 , captureLines
 , normalizeSummary
 
@@ -35,7 +36,7 @@ import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
 
 import qualified Test.Hspec as H
-import qualified Test.Hspec.Core as H (Params(..), Item(..), mapSpecItem)
+import qualified Test.Hspec.Core as H (Params(..), Item(..), ProgressCallback, mapSpecItem)
 import qualified Test.Hspec.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 
@@ -64,7 +65,10 @@ normalizeSummary xs = map f xs
         | otherwise  = x
 
 defaultParams :: H.Params
-defaultParams = H.Params stdArgs {replay = Just (mkGen 23, 0)} (H.configSmallCheckDepth H.defaultConfig) (const $ return ())
+defaultParams = H.Params stdArgs {replay = Just (mkGen 23, 0)} (H.configSmallCheckDepth H.defaultConfig)
+
+noOpProgressCallback :: H.ProgressCallback
+noOpProgressCallback _ = return ()
 
 sleep :: POSIXTime -> IO ()
 sleep = threadDelay . floor . (* 1000000)
@@ -75,7 +79,7 @@ timeout = System.timeout . floor . (* 1000000)
 shouldUseArgs :: [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do
   spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
-  let interceptArgs item = item {H.itemExample = \params action -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params action}
+  let interceptArgs item = item {H.itemExample = \params action progressCallback -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params action progressCallback}
       spec = H.mapSpecItem interceptArgs $
         H.it "foo" False
   (silence . ignoreExitCode . withArgs args . H.hspec) spec
