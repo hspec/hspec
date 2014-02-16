@@ -41,23 +41,22 @@ import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.FailureReport
 
 import           Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
+import           Test.Hspec.Runner.Tree
 import           Test.Hspec.Runner.Eval
 
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
-filterSpecs :: (Path -> Bool) -> [SpecTree a] -> [SpecTree a]
+filterSpecs :: (Path -> Bool) -> [Tree a] -> [Tree a]
 filterSpecs p = goSpecs []
   where
-    goSpecs :: [String] -> [SpecTree a] -> [SpecTree a]
     goSpecs groups = mapMaybe (goSpec groups)
 
-    goSpec :: [String] -> SpecTree a -> Maybe (SpecTree a)
     goSpec groups spec = case spec of
-      SpecItem requirement _ -> guard (p (groups, requirement)) >> return spec
-      SpecGroup group specs -> case goSpecs (groups ++ [group]) specs of
+      Leaf requirement _ -> guard (p (groups, requirement)) >> return spec
+      Node group specs -> case goSpecs (groups ++ [group]) specs of
         [] -> Nothing
-        xs -> Just (SpecGroup group xs)
+        xs -> Just (Node group xs)
 
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
@@ -119,7 +118,7 @@ hspecWith c_ spec_ = withHandle c_ $ \h -> do
 
   withHiddenCursor useColor h $
     runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
-      runFormatter useColor h c formatter (maybe id filterSpecs (configFilterPredicate c) $ runSpecM spec) `finally_` do
+      runFormatter useColor h c formatter (maybe id filterSpecs (configFilterPredicate c) $ (map toTree . runSpecM) spec) `finally_` do
         failedFormatter formatter
 
       footerFormatter formatter

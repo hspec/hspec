@@ -66,6 +66,7 @@ Library
       Test.Hspec.Options
       Test.Hspec.FailureReport
       Test.Hspec.Runner.Eval
+      Test.Hspec.Runner.Tree
       Test.Hspec.Formatters.Internal
       Test.Hspec.Timer
 

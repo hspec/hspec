@@ -10,6 +10,7 @@ import           System.IO (Handle)
 import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Util
+import           Test.Hspec.Runner.Tree
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
@@ -17,20 +18,10 @@ import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.Timer
 import           Data.Time.Clock.POSIX
 
-data Tree a
-  = Node String [Tree a]
-  | Leaf String a
-  deriving (Eq, Show, Functor)
-
-toTree :: SpecTree () -> Tree (Item ())
-toTree spec = case spec of
-  SpecGroup label specs -> Node label (map toTree specs)
-  SpecItem r item -> Leaf r item
-
 type EvalTree = Tree (ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
+runFormatter :: Bool -> Handle -> Config -> Formatter -> [Tree (Item ())] -> FormatM ()
 runFormatter useColor h c formatter specs_ = do
   headerFormatter formatter
   chan <- liftIO newChan
@@ -42,7 +33,7 @@ runFormatter useColor h c formatter specs_ = do
       | useColor = every 0.05 $ exampleProgress formatter h
       | otherwise = return $ \_ _ -> return ()
 
-    specs = map (fmap (parallelize . fmap (applyNoOpAround . applyParams) . unwrapItem) . toTree) specs_
+    specs = map (fmap (parallelize . fmap (applyNoOpAround . applyParams) . unwrapItem)) specs_
 
     unwrapItem :: Item () -> (Bool, Params -> ((() -> IO ()) -> IO ()) -> ProgressCallback -> IO Result)
     unwrapItem (Item isParallelizable e) = (isParallelizable, e)
