@@ -50,7 +50,7 @@ spec = do
 
     it "takes an example of that behavior" $ do
       [Leaf item] <- toTree (H.it "whatever" True)
-      itemExample item defaultParams id noOpProgressCallback `shouldReturn` Success
+      itemExample item defaultParams ($ ()) noOpProgressCallback `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do

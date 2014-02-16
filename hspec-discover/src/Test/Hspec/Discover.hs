@@ -29,21 +29,21 @@ locationHeuristicFromFile file spec = do
   let lookupLoc = maybe (\_ _ _ -> Nothing) (lookupLocation file)  mInput
   runIO (toTree spec) >>= fromTree . addLoctions lookupLoc
 
-addLoctions :: (Int -> Int -> String -> Maybe Location) -> [Tree Item] -> [Tree Item]
+addLoctions :: (Int -> Int -> String -> Maybe Location) -> [Tree (Item a)] -> [Tree (Item a)]
 addLoctions lookupLoc = map (fmap f) . enumerate
   where
-    f :: ((Int, Int), Item) -> Item
+    f :: ((Int, Int), Item a) -> Item a
     f ((n, total), item) = item {itemLocation = itemLocation item <|> lookupLoc n total (itemRequirement item)}
 
 type EnumerateM = State [(String, Int)]
 
-enumerate :: [Tree Item] -> [Tree ((Int, Int), Item)]
+enumerate :: [Tree (Item a)] -> [Tree ((Int, Int), (Item a))]
 enumerate tree = (mapM (traverse addPosition) tree >>= mapM (traverse addTotal)) `evalState` []
   where
-    addPosition :: Item -> EnumerateM (Int, Item)
+    addPosition :: Item a -> EnumerateM (Int, Item a)
     addPosition item = (,) <$> getOccurrence (itemRequirement item) <*> pure item
 
-    addTotal :: (Int, Item) -> EnumerateM ((Int, Int), Item)
+    addTotal :: (Int, Item a) -> EnumerateM ((Int, Int), Item a)
     addTotal (n, item) = do
       total <- getTotal (itemRequirement item)
       return ((n, total), item)

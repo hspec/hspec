@@ -23,6 +23,7 @@ module Test.Hspec.Core (
 , Item (..)
 , Location (..)
 , LocationAccuracy(..)
+, ActionWith
 , mapSpecItem
 , modifyParams
 , describe
@@ -31,13 +32,13 @@ module Test.Hspec.Core (
 
 import           Test.Hspec.Core.Type
 
-modifyParams :: (Params -> Params) -> Spec -> Spec
+modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 modifyParams f = mapSpecItem $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
 
 -- | The @describe@ function combines a list of specs into a larger spec.
-describe :: String -> [SpecTree] -> SpecTree
+describe :: String -> [SpecTree a] -> SpecTree a
 describe = specGroup
 
 -- | Create a spec item.
-it :: Example a => String -> a -> SpecTree
+it :: Example a => String -> a -> SpecTree (Arg a)
 it = specItem

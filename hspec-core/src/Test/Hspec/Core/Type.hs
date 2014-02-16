@@ -1,12 +1,14 @@
-{-# LANGUAGE CPP, TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
+{-# LANGUAGE CPP, TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable, TypeFamilies #-}
 module Test.Hspec.Core.Type (
   Spec
+, SpecWith
 , SpecM (..)
 , runSpecM
 , fromSpecList
 , SpecTree (..)
 , mapSpecTree
 , Item (..)
+, ActionWith
 , mapSpecItem
 , Location (..)
 , LocationAccuracy(..)
@@ -43,18 +45,20 @@ import qualified Test.QuickCheck.IO ()
 import           Test.Hspec.Core.QuickCheckUtil
 import           Control.DeepSeq (deepseq)
 
-type Spec = SpecM ()
+type Spec = SpecWith ()
+
+type SpecWith a = SpecM a ()
 
 -- | A writer monad for `SpecTree` forests.
-newtype SpecM a = SpecM (WriterT [SpecTree] IO a)
+newtype SpecM a r = SpecM (WriterT [SpecTree a] IO r)
   deriving (Functor, Applicative, Monad)
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
-runSpecM :: Spec -> IO [SpecTree]
+runSpecM :: SpecWith a -> IO [SpecTree a]
 runSpecM (SpecM specs) = execWriterT specs
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
-fromSpecList :: [SpecTree] -> Spec
+fromSpecList :: [SpecTree a] -> SpecWith a
 fromSpecList = SpecM . tell
 
 -- | Run an IO action while constructing the spec tree.
@@ -63,7 +67,7 @@ fromSpecList = SpecM . tell
 -- items.  `runIO` allows you to run IO actions during this construction phase.
 -- The IO action is always run when the spec tree is constructed (e.g. even
 -- when @--dry-run@ is specified).
-runIO :: IO a -> SpecM a
+runIO :: IO r -> SpecM a r
 runIO = SpecM . liftIO
 
 -- | The result of running an example.
@@ -87,25 +91,27 @@ data Params = Params {
 } deriving (Show)
 
 -- | Internal representation of a spec.
-data SpecTree =
-    SpecGroup String [SpecTree]
-  | SpecWithCleanup (IO ()) [SpecTree]
-  | SpecItem Item
+data SpecTree a =
+    SpecGroup String [SpecTree a]
+  | SpecWithCleanup (IO ()) [SpecTree a]
+  | SpecItem (Item a)
 
-data Item = Item {
+data Item a = Item {
   itemRequirement :: String
 , itemLocation :: Maybe Location
 , itemIsParallelizable :: Bool
-, itemExample :: Params -> (IO () -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 }
 
-mapSpecTree :: (SpecTree -> SpecTree) -> Spec -> Spec
+-- | An `IO` action that expects an argument of type @a@.
+type ActionWith a = a -> IO ()
+
+mapSpecTree :: (SpecTree a -> SpecTree b) -> SpecWith a -> SpecWith b
 mapSpecTree f spec = runIO (runSpecM spec) >>= fromSpecList . map f
 
-mapSpecItem :: (Item -> Item) -> Spec -> Spec
+mapSpecItem :: (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem f = mapSpecTree go
   where
-    go :: SpecTree -> SpecTree
     go spec = case spec of
       SpecGroup d xs -> SpecGroup d (map go xs)
       SpecWithCleanup cleanup xs -> SpecWithCleanup cleanup (map go xs)
@@ -122,7 +128,7 @@ data Location = Location {
 } deriving (Eq, Show)
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
-specGroup :: String -> [SpecTree] -> SpecTree
+specGroup :: String -> [SpecTree a] -> SpecTree a
 specGroup s = SpecGroup msg
   where
     msg
@@ -130,7 +136,7 @@ specGroup s = SpecGroup msg
       | otherwise = s
 
 -- | Create a spec item.
-specItem :: Example a => String -> a -> SpecTree
+specItem :: Example a => String -> a -> SpecTree (Arg a)
 specItem s e = SpecItem $ Item requirement Nothing False (evaluateExample e)
   where
     requirement
@@ -138,22 +144,35 @@ specItem s e = SpecItem $ Item requirement Nothing False (evaluateExample e)
       | otherwise = s
 
 -- | A type class for examples.
-class Example a where
-  evaluateExample :: a -> Params -> (IO () -> IO ()) -> ProgressCallback -> IO Result
+class Example e where
+  type Arg e
+  evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 
 instance Example Bool where
+  type Arg Bool = ()
   evaluateExample b _ _ _ = if b then return Success else return (Fail "")
 
 instance Example Expectation where
+  type Arg Expectation = ()
+  evaluateExample e = evaluateExample (\() -> e)
+
+instance Example (a -> Expectation) where
+  type Arg (a -> Expectation) = a
   evaluateExample e _ action _ = (action e >> return Success) `E.catches` [
       E.Handler (\(HUnitFailure err) -> return (Fail err))
     , E.Handler (return :: Result -> IO Result)
     ]
 
 instance Example Result where
+  type Arg Result = ()
   evaluateExample r _ _ _ = return r
 
 instance Example QC.Property where
+  type Arg QC.Property = ()
+  evaluateExample e = evaluateExample (\() -> e)
+
+instance Example (a -> QC.Property) where
+  type Arg (a -> QC.Property) = a
   evaluateExample p c action progressCallback = do
     r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
     return $

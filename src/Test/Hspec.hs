@@ -9,7 +9,9 @@
 module Test.Hspec (
 -- * Types
   Spec
-, Example
+, SpecWith
+, Arg
+, Example (..)
 
 -- * Setting expectations
 , module Test.Hspec.Expectations
@@ -26,11 +28,15 @@ module Test.Hspec (
 , runIO
 
 -- * Hooks
+, ActionWith
 , before
 , beforeAll
 , after
+, after_
 , afterAll
 , around
+, around_
+, aroundWith
 
 -- * Running a spec
 , hspec

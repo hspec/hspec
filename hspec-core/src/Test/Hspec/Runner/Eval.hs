@@ -21,7 +21,7 @@ import           Data.Time.Clock.POSIX
 type EvalTree = Tree (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: Bool -> Handle -> Config -> Formatter -> [Tree Item] -> FormatM ()
+runFormatter :: Bool -> Handle -> Config -> Formatter -> [Tree (Item ())] -> FormatM ()
 runFormatter useColor h c formatter specs = do
   headerFormatter formatter
   chan <- liftIO newChan
@@ -33,11 +33,11 @@ runFormatter useColor h c formatter specs = do
       | useColor = every 0.05 $ exampleProgress formatter h
       | otherwise = return $ \_ _ -> return ()
 
-    toEvalTree :: [Tree Item] -> [EvalTree]
+    toEvalTree :: [Tree (Item ())] -> [EvalTree]
     toEvalTree = map (fmap f)
       where
-        f :: Item -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
-        f (Item requirement loc isParallelizable e) = (requirement, loc, parallelize isParallelizable $ e params id)
+        f :: Item () -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
+        f (Item requirement loc isParallelizable e) = (requirement, loc, parallelize isParallelizable $ e params ($ ()))
 
     params :: Params
     params = Params (configQuickCheckArgs c) (configSmallCheckDepth c)

@@ -1,6 +1,9 @@
 module Test.Hspec.Core.Spec (
 -- * Types
   Spec
+, Arg
+, SpecWith
+, ActionWith
 , Example
 , Result (..)
 , Item (..)
@@ -22,11 +25,11 @@ import           Test.Hspec.Expectations
 import           Test.Hspec.Core.Type
 
 -- | Combine a list of specs into a larger spec.
-describe :: String -> Spec -> Spec
+describe :: String -> SpecWith a -> SpecWith a
 describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . specGroup label
 
 -- | An alias for `describe`.
-context :: String -> Spec -> Spec
+context :: String -> SpecWith a -> SpecWith a
 context = describe
 
 -- | Create a spec item.
@@ -40,15 +43,15 @@ context = describe
 -- > describe "absolute" $ do
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
-it :: Example a => String -> a -> Spec
+it :: Example a => String -> a -> SpecWith (Arg a)
 it label action = fromSpecList [specItem label action]
 
 -- | An alias for `it`.
-specify :: Example a => String -> a -> Spec
+specify :: Example a => String -> a -> SpecWith (Arg a)
 specify = it
 
--- | Run spec items of given `Spec` in parallel.
-parallel :: Spec -> Spec
+-- | Run spec items of given spec in parallel.
+parallel :: SpecWith a -> SpecWith a
 parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
 
 -- | This is a type restricted version of `id`.  It can be used to get better

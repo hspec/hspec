@@ -13,7 +13,7 @@ import qualified Test.Hspec.Discover as H
 
 infix 1 `shouldHaveLocation`
 
-shouldHaveLocation :: Item -> (String, Int) -> Expectation
+shouldHaveLocation :: Item a -> (String, Int) -> Expectation
 item `shouldHaveLocation` (src, line) = itemLocation item `shouldBe` Just (Location src line 0 BestEffort)
 
 main :: IO ()
