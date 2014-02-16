@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, ScopedTypeVariables #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, TypeFamilies #-}
 module Test.Hspec.Core.TypeSpec (main, spec) where
 
 import           Helper
@@ -13,11 +13,11 @@ import qualified Test.Hspec.Runner as H
 main :: IO ()
 main = hspec spec
 
-evaluateExample :: H.Example e => e -> IO H.Result
-evaluateExample e = H.evaluateExample e defaultParams id noOpProgressCallback
+evaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO H.Result
+evaluateExample e = H.evaluateExample e defaultParams ($ ()) noOpProgressCallback
 
-evaluateExampleWith :: H.Example e => (IO () -> IO ()) -> e -> IO H.Result
-evaluateExampleWith action e = H.evaluateExample e defaultParams action noOpProgressCallback
+evaluateExampleWith :: (H.Example e, H.Arg e ~ ()) => (IO () -> IO ()) -> e -> IO H.Result
+evaluateExampleWith action e = H.evaluateExample e defaultParams (action . ($ ())) noOpProgressCallback
 
 spec :: Spec
 spec = do
