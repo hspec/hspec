@@ -46,13 +46,13 @@ import           Test.Hspec.Runner.Eval
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
-filterSpecs :: (Path -> Bool) -> [SpecTree] -> [SpecTree]
+filterSpecs :: (Path -> Bool) -> [SpecTree a] -> [SpecTree a]
 filterSpecs p = goSpecs []
   where
-    goSpecs :: [String] -> [SpecTree] -> [SpecTree]
+    goSpecs :: [String] -> [SpecTree a] -> [SpecTree a]
     goSpecs groups = mapMaybe (goSpec groups)
 
-    goSpec :: [String] -> SpecTree -> Maybe SpecTree
+    goSpec :: [String] -> SpecTree a -> Maybe (SpecTree a)
     goSpec groups spec = case spec of
       SpecItem requirement _ -> guard (p (groups, requirement)) >> return spec
       SpecGroup group specs -> case goSpecs (groups ++ [group]) specs of
@@ -155,7 +155,7 @@ hspecWith c_ spec_ = withHandle c_ $ \h -> do
 isDumb :: IO Bool
 isDumb = maybe False (== "dumb") <$> lookupEnv "TERM"
 
-markSuccess :: Item -> Item
+markSuccess :: Item () -> Item ()
 markSuccess item = item {itemExample = evaluateExample Success}
 
 -- | Summary of a test run.

@@ -16,10 +16,10 @@ data Tree = Group String [Tree] | Example String
 shouldYield :: Test -> [Tree] -> Expectation
 a `shouldYield` b = (convert . runSpecM . fromHUnitTest) a `shouldBe` b
   where
-    convert :: [SpecTree] -> [Tree]
+    convert :: [SpecTree ()] -> [Tree]
     convert = map go
       where
-        go :: SpecTree -> Tree
+        go :: SpecTree () -> Tree
         go x = case x of
           SpecGroup s xs  -> Group s (map go xs)
           SpecItem requirement _ -> Example requirement

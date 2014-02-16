@@ -14,7 +14,7 @@ fromHUnitTest t = fromSpecList $ case t of
   TestList xs -> map go xs
   x           -> [go x]
   where
-    go :: Test -> SpecTree
+    go :: Test -> SpecTree ()
     go t_ = case t_ of
       TestLabel s (TestCase e)  -> it s e
       TestLabel s (TestList xs) -> describe s (map go xs)

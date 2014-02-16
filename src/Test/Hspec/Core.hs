@@ -28,5 +28,5 @@ module Test.Hspec.Core (
 
 import           Test.Hspec.Core.Type
 
-modifyParams :: (Params -> Params) -> Spec -> Spec
+modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 modifyParams f = mapSpecItem $ \item -> item {itemExample = \p -> (itemExample item) (f p)}

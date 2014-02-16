@@ -22,7 +22,7 @@ data Tree a
   | Leaf String a
   deriving (Eq, Show, Functor)
 
-toTree :: SpecTree -> Tree Item
+toTree :: SpecTree () -> Tree (Item ())
 toTree spec = case spec of
   SpecGroup label specs -> Node label (map toTree specs)
   SpecItem r item -> Leaf r item
@@ -30,7 +30,7 @@ toTree spec = case spec of
 type EvalTree = Tree (ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: Bool -> Handle -> Config -> Formatter -> [SpecTree] -> FormatM ()
+runFormatter :: Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
 runFormatter useColor h c formatter specs_ = do
   headerFormatter formatter
   chan <- liftIO newChan
@@ -44,7 +44,7 @@ runFormatter useColor h c formatter specs_ = do
 
     specs = map (fmap (parallelize . fmap (applyNoOpAround . applyParams) . unwrapItem) . toTree) specs_
 
-    unwrapItem :: Item -> (Bool, Params -> (IO () -> IO ()) -> ProgressCallback -> IO Result)
+    unwrapItem :: Item () -> (Bool, Params -> ((() -> IO ()) -> IO ()) -> ProgressCallback -> IO Result)
     unwrapItem (Item isParallelizable e) = (isParallelizable, e)
 
     applyParams :: (Params -> a) -> a
@@ -52,8 +52,8 @@ runFormatter useColor h c formatter specs_ = do
       where
         params = Params (configQuickCheckArgs c) (configSmallCheckDepth c)
 
-    applyNoOpAround :: ((IO () -> IO ()) -> b) -> b
-    applyNoOpAround = ($ id)
+    applyNoOpAround :: (((() -> IO ()) -> IO ()) -> b) -> b
+    applyNoOpAround = ($ ($ ()))
 
 -- | Execute given action at most every specified number of seconds.
 every :: POSIXTime -> (a -> b -> IO ()) -> IO (a -> b -> IO ())

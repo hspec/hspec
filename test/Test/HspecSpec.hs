@@ -1,7 +1,6 @@
 module Test.HspecSpec (main, spec) where
 
 import           Helper
-import           Mock
 import           Data.IORef
 import           Data.List (isPrefixOf)
 
@@ -60,7 +59,7 @@ spec = do
 
     it "takes an example of that behavior" $ do
       let [SpecItem _ item] = runSpecM (H.it "whatever" True)
-      itemExample item defaultParams id noOpProgressCallback `shouldReturn` Success
+      itemExample item defaultParams ($ ()) noOpProgressCallback `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do
@@ -87,60 +86,141 @@ spec = do
       itemIsParallelizable item `shouldBe` True
 
   describe "before" $ do
-    it "runs an action before each spec item" $ do
-      mock <- newMock
-      silence $ H.hspec $ H.before (mockAction mock) $ do
+    it "runs an action before every spec item" $ do
+      ref <- newIORef ([] :: [String])
+      let append n = modifyIORef ref (++ return n)
+      silence $ H.hspec $ H.before (append "before") $ do
         H.it "foo" $ do
-          mockCounter mock `shouldReturn` 1
+          append "foo"
         H.it "bar" $ do
-          mockCounter mock `shouldReturn` 2
-      mockCounter mock `shouldReturn` 2
+          append "bar"
+      readIORef ref `shouldReturn` [
+          "before"
+        , "foo"
+        , "before"
+        , "bar"
+        ]
 
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
-        ref <- newIORef (0 :: Int)
-        let action1 = do
-              readIORef ref `shouldReturn` 0
-              modifyIORef ref succ
-            action2 = do
-              readIORef ref `shouldReturn` 1
-              modifyIORef ref succ
-        silence $ H.hspec $ H.before action1 $ H.before action2 $ do
+        ref <- newIORef ([] :: [String])
+        let append n = modifyIORef ref (++ return n)
+        silence $ H.hspec $ H.before (append "before outer") $  H.before (append "before inner") $ do
           H.it "foo" $ do
-            readIORef ref `shouldReturn` 2
+            append "foo"
+        readIORef ref `shouldReturn` [
+            "before outer"
+          , "before inner"
+          , "foo"
+          ]
+
+    context "when used with an action that returns a value" $ do
+      it "passes that value to the spec item" $ do
+        property $ \n -> do
+          silence $ H.hspec $ H.before (return n) $ do
+            H.it "foo" $ \m -> do
+              m `shouldBe` (n :: Int)
+
+    context "when used with a QuickCheck property" $ do
+      it "runs action before every check of the property" $ do
+        ref <- newIORef ([] :: [String])
+        let append n = modifyIORef ref (++ return n)
+        silence $ H.hspec $ H.before (append "before") $ do
+          H.it "foo" $ property $ append "foo"
+        readIORef ref `shouldReturn` (take 200 . cycle) ["before", "foo"]
 
   describe "after" $ do
-    it "runs an action after each spec item" $ do
-      mock <- newMock
-      silence $ H.hspec $ H.after (mockAction mock) $ do
+    it "must be used with a before action" $ do
+      ref <- newIORef ([] :: [String])
+      let append n = modifyIORef ref (++ return n)
+      silence $ H.hspec $ H.before (return "from before") $ H.after append $ do
+        H.it "foo" $ \_ -> do
+          append "foo"
+      readIORef ref `shouldReturn` [
+          "foo"
+        , "from before"
+        ]
+
+  describe "after_" $ do
+    it "runs an action after every spec item" $ do
+      ref <- newIORef ([] :: [String])
+      let append n = modifyIORef ref (++ return n)
+      silence $ H.hspec $ H.after_ (append "after") $ do
         H.it "foo" $ do
-          mockCounter mock `shouldReturn` 0
+          append "foo"
         H.it "bar" $ do
-          mockCounter mock `shouldReturn` 1
-      mockCounter mock `shouldReturn` 2
+          append "bar"
+      readIORef ref `shouldReturn` [
+          "foo"
+        , "after"
+        , "bar"
+        , "after"
+        ]
 
     it "guarantees that action is run" $ do
-      mock <- newMock
-      silence . ignoreExitCode $ H.hspec $ H.after (mockAction mock) $ do
+      ref <- newIORef ([] :: [String])
+      let append n = modifyIORef ref (++ return n)
+      silence . ignoreExitCode $ H.hspec $ H.after_ (append "after") $ do
         H.it "foo" $ do
           ioError $ userError "foo" :: IO ()
-      mockCounter mock `shouldReturn` 1
+          append "foo"
+      readIORef ref `shouldReturn` ["after"]
+
+    context "when used multiple times" $ do
+      it "is evaluated inside out" $ do
+        ref <- newIORef ([] :: [String])
+        let append n = modifyIORef ref (++ return n)
+        silence $ H.hspec $ H.after_ (append "after outer") $  H.after_ (append "after inner") $ do
+          H.it "foo" $ do
+            append "foo"
+        readIORef ref `shouldReturn` [
+            "foo"
+          , "after inner"
+          , "after outer"
+          ]
 
   describe "around" $ do
-    it "wraps each spec item with an action" $ do
-      ref <- newIORef (0 :: Int)
-      let action :: IO () -> IO ()
-          action e = do
-            readIORef ref `shouldReturn` 0
-            writeIORef ref 1
-            e
-            readIORef ref `shouldReturn` 2
-            writeIORef ref 3
-      silence $ H.hspec $ H.around action $ do
+    it "wraps every spec item with an action" $ do
+      property $ \n -> do
+        silence $ H.hspec $ H.around ($ n) $ do
+          H.it "foo" $ \m -> do
+            m `shouldBe` (n :: Int)
+
+  describe "around_" $ do
+    it "wraps every spec item with an action" $ do
+      ref <- newIORef ([] :: [String])
+      let append n = modifyIORef ref (++ return n)
+          action e = append "before" >> e >> append "after"
+      silence $ H.hspec $ H.around_ action $ do
         H.it "foo" $ do
-          readIORef ref `shouldReturn` 1
-          writeIORef ref 2
-      readIORef ref `shouldReturn` 3
+          append "foo"
+        H.it "bar" $ do
+          append "bar"
+      readIORef ref `shouldReturn` [
+          "before"
+        , "foo"
+        , "after"
+        , "before"
+        , "bar"
+        , "after"
+        ]
+
+    context "when used multiple times" $ do
+      it "is evaluated outside in" $ do
+        ref <- newIORef ([] :: [String])
+        let append n = modifyIORef ref (++ return n)
+            actionOuter e = append "before outer" >> e >> append "after outer"
+            actionInner e = append "before inner" >> e >> append "after inner"
+        silence $ H.hspec $ H.around_ actionOuter $ H.around_ actionInner $ do
+          H.it "foo" $ do
+            append "foo"
+        readIORef ref `shouldReturn` [
+            "before outer"
+          , "before inner"
+          , "foo"
+          , "after inner"
+          , "after outer"
+          ]
   where
     runSpec :: H.Spec -> IO [String]
     runSpec = captureLines . H.hspecResult

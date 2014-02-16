@@ -5,17 +5,20 @@ import Data.IORef
 import Test.QuickCheck hiding (Result(..))
 import Test.QuickCheck as QC
 import Test.QuickCheck.Property hiding (Result(..))
+import Test.QuickCheck.Gen
 import qualified Test.QuickCheck.Property as QCP
 import Test.QuickCheck.IO ()
-import Control.Applicative
 
-aroundProperty :: (IO () -> IO ()) -> Property -> Property
-aroundProperty action p = MkProp . aroundRose action . unProp <$> p
+aroundProperty :: ((a -> IO ()) -> IO ()) -> (a -> Property) -> Property
+aroundProperty action p = MkGen $ \r n -> aroundProp action $ \a -> (unGen $ p a) r n
 
-aroundRose :: (IO () -> IO ()) -> Rose QCP.Result -> Rose QCP.Result
+aroundProp :: ((a -> IO ()) -> IO ()) -> (a -> Prop) -> Prop
+aroundProp action p = MkProp $ aroundRose action (\a -> unProp $ p a)
+
+aroundRose :: ((a -> IO ()) -> IO ()) -> (a -> Rose QCP.Result) -> Rose QCP.Result
 aroundRose action r = ioRose $ do
   ref <- newIORef (return QCP.succeeded)
-  action (reduceRose r >>= writeIORef ref)
+  action $ \a -> reduceRose (r a) >>= writeIORef ref
   readIORef ref
 
 isUserInterrupt :: QC.Result -> Bool
