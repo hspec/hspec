@@ -14,10 +14,10 @@ main :: IO ()
 main = hspec spec
 
 evaluateExample :: H.Example e => e -> IO H.Result
-evaluateExample e = H.evaluateExample e (defaultParams {H.paramsQuickCheckArgs = (H.paramsQuickCheckArgs defaultParams) {replay = Just (read "", 0)}}) id
+evaluateExample e = H.evaluateExample e defaultParams id
 
 evaluateExampleWith :: H.Example e => (IO () -> IO ()) -> e -> IO H.Result
-evaluateExampleWith action e = H.evaluateExample e (defaultParams {H.paramsQuickCheckArgs = (H.paramsQuickCheckArgs defaultParams) {replay = Just (read "", 0)}}) action
+evaluateExampleWith action e = H.evaluateExample e defaultParams action
 
 spec :: Spec
 spec = do
@@ -72,7 +72,7 @@ spec = do
       it "shows what falsified it" $ do
         H.Fail r <- evaluateExample $ property $ \x y -> x + y == (x * y :: Int)
         r `shouldBe` intercalate "\n" [
-            "Falsifiable (after 1 test and 2 shrinks): "
+            "Falsifiable (after 2 tests and 2 shrinks): "
           , "0"
           , "1"
           ]
@@ -92,7 +92,7 @@ spec = do
         it "shows what falsified it" $ do
           H.Fail r <- evaluateExample $ property $ \x y -> x + y `shouldBe` (x * y :: Int)
           r `shouldBe` intercalate "\n" [
-              "Falsifiable (after 1 test and 2 shrinks): "
+              "Falsifiable (after 2 tests and 2 shrinks): "
             , "expected: 0"
             , " but got: 1"
             , "0"

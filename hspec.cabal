@@ -1,5 +1,5 @@
 name:             hspec
-version:          1.8.3
+version:          1.9.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2014 Simon Hengel,
@@ -40,14 +40,15 @@ Library
       src
   build-depends:
       base          == 4.*
-    , random        == 1.0.*
+    , random
+    , tf-random
     , setenv
     , ansi-terminal >= 0.5
     , time
     , transformers  >= 0.2.2.0 && < 0.4.0
     , deepseq
     , HUnit         >= 1.2.5
-    , QuickCheck    >= 2.5.1
+    , QuickCheck    >= 2.7
     , quickcheck-io
     , hspec-expectations == 0.5.0.*
   exposed-modules:
@@ -95,7 +96,8 @@ test-suite spec
       -Wall -Werror
   build-depends:
       base          == 4.*
-    , random        == 1.0.*
+    , random
+    , tf-random
     , setenv
     , silently      >= 1.2.4
     , ansi-terminal

@@ -29,16 +29,16 @@ import qualified Control.Exception as E
 
 import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
-import           System.Random (newStdGen)
 import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Compat (lookupEnv)
-import           Test.Hspec.Util (Path, stdGenToInteger)
+import           Test.Hspec.Util (Path)
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
 import           Test.Hspec.Formatters
 import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.FailureReport
+import           Test.Hspec.Core.QuickCheckUtil
 
 import           Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
 import           Test.Hspec.Runner.Eval
@@ -71,16 +71,14 @@ hspecWithFormatter formatter spec = do
   f <- toFormatter formatter
   hspecWithOptions defaultOptions {optionsFormatter = f} spec
 
--- Add a StdGen to configQuickCheckArgs if there is none.  That way the same
--- seed is used for all properties.  This helps with --seed and --rerun.
-ensureStdGen :: Config -> IO Config
-ensureStdGen c = case QC.replay qcArgs of
+-- Add a seed to given config if there is none.  That way the same seed is used
+-- for all properties.  This helps with --seed and --rerun.
+ensureSeed :: Config -> IO Config
+ensureSeed c = case configQuickCheckSeed c of
   Nothing -> do
-    stdGen <- newStdGen
-    return c {configQuickCheckArgs = qcArgs {QC.replay = Just (stdGen, 0)}}
+    seed <- newSeed
+    return c {configQuickCheckSeed = Just (fromIntegral seed)}
   _       -> return c
-  where
-    qcArgs = configQuickCheckArgs c
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
@@ -108,9 +106,10 @@ hspecResult = hspecWith defaultConfig
 -- accordingly.
 hspecWith :: Config -> Spec -> IO Summary
 hspecWith c_ spec_ = withHandle c_ $ \h -> do
-  c <- ensureStdGen c_
+  c <- ensureSeed c_
   let formatter = configFormatter c
-      seed = (stdGenToInteger . fst . fromJust . QC.replay . configQuickCheckArgs) c
+      seed = (fromJust . configQuickCheckSeed) c
+      qcArgs = configQuickCheckArgs c
       spec
         | configDryRun c = mapSpecItem markSuccess spec_
         | otherwise      = spec_
@@ -128,9 +127,9 @@ hspecWith c_ spec_ = withHandle c_ $ \h -> do
       xs <- map failureRecordPath <$> getFailMessages
       liftIO $ writeFailureReport FailureReport {
           failureReportSeed = seed
-        , failureReportMaxSuccess = QC.maxSuccess (configQuickCheckArgs c)
-        , failureReportMaxSize = QC.maxSize (configQuickCheckArgs c)
-        , failureReportMaxDiscardRatio = QC.maxDiscardRatio (configQuickCheckArgs c)
+        , failureReportMaxSuccess = QC.maxSuccess qcArgs
+        , failureReportMaxSize = QC.maxSize qcArgs
+        , failureReportMaxDiscardRatio = QC.maxDiscardRatio qcArgs
         , failureReportPaths = xs
         }
 

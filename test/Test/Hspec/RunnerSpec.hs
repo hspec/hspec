@@ -88,16 +88,14 @@ spec = do
       it "reuses the same seed" $ do
         let runSpec_ = (captureLines . ignoreExitCode . H.hspec) $ do
               H.it "foo" $ property $ (/= (26 :: Integer))
-
-        r0 <- withArgs ["--seed", "2413421499272008081"] runSpec_
+        r0 <- withArgs ["--seed", "42"] runSpec_
         r0 `shouldContain` [
-            "Falsifiable (after 66 tests): "
+            "Falsifiable (after 31 tests): "
           , "26"
           ]
-
         r1 <- withArgs ["-r"] runSpec_
         r1 `shouldContain` [
-            "Falsifiable (after 66 tests): "
+            "Falsifiable (after 31 tests): "
           , "26"
           ]
 
@@ -294,11 +292,11 @@ spec = do
 
     context "with --seed" $ do
       it "uses specified seed" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--seed", "2413421499272008081"] . H.hspec $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--seed", "42"] . H.hspec $ do
             H.it "foo" $
               property (/= (26 :: Integer))
         r `shouldContain` [
-            "Falsifiable (after 66 tests): "
+            "Falsifiable (after 31 tests): "
           , "26"
           ]
 
@@ -308,13 +306,13 @@ spec = do
                 H.it "foo" $
                   property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Integer)
           r0 <- runSpec ["--seed", "23"]
-          r0 `shouldContain` "(after 88 tests)"
+          r0 `shouldContain` "(after 27 tests)"
 
           r1 <- runSpec ["--seed", "42"]
-          r1 `shouldContain` "(after 48 tests)"
+          r1 `shouldContain` "(after 31 tests)"
 
           r2 <- runSpec ["--rerun", "--seed", "23"]
-          r2 `shouldContain` "(after 88 tests)"
+          r2 `shouldContain` "(after 27 tests)"
 
       context "when given an invalid argument" $ do
         let run = withArgs ["--seed", "foo"] . H.hspec $ do

@@ -1,3 +1,6 @@
+## Changes in 1.9.0
+ - Depend on QuickCheck 2.7
+
 ## Changes in 1.8.3
  - Do not use color if `TERM=dumb` (see #158)
 

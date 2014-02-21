@@ -6,16 +6,12 @@ module Test.Hspec.Util (
 , filterPredicate
 , formatRequirement
 , strip
-, stdGenToInteger
-, stdGenFromInteger
 ) where
 
-import           Data.Int (Int32)
 import           Data.List
 import           Data.Char (isSpace)
 import           Control.Applicative
 import qualified Control.Exception as E
-import           System.Random (StdGen)
 
 -- | Create a more readable display of a quantity of something.
 --
@@ -90,17 +86,3 @@ lineBreaksAt n input = case words input of
 
 strip :: String -> String
 strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
-
--- | Converts a 'StdGen' into an 'Integer'. Assumes
---   StdGens to be encoded as two positive 'Int32's and
---   $show (StdGen a b) = show a ++ " " ++ show b$.
-stdGenToInteger :: StdGen -> Integer
-stdGenToInteger stdGen =
-  let [a, b] = map read . words $ show stdGen
-  in b * fromIntegral (maxBound :: Int32) + a
-
--- | Inverse of 'stdGenToInteger'.
-stdGenFromInteger :: Integer -> StdGen
-stdGenFromInteger n =
-  let (a, b) = quotRem n (fromIntegral (maxBound :: Int32))
-  in read (show b ++ " " ++ show a)

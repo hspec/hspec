@@ -3,7 +3,7 @@ module Test.Hspec.Config (
 , defaultConfig
 , getConfig
 , configAddFilter
-, configSetSeed
+, configQuickCheckArgs
 ) where
 
 import           Control.Applicative
@@ -12,12 +12,12 @@ import           Data.Maybe
 import           System.IO
 import           System.Exit
 import qualified Test.QuickCheck as QC
+import           Test.QuickCheck.Random (mkQCGen)
 import           Test.Hspec.Formatters
 
 import           Test.Hspec.Util
 
--- for Monad (Either e) when base < 4.3
-import           Control.Monad.Trans.Error ()
+import           Control.Monad.Trans.Error () -- for Monad (Either e) when base < 4.3
 
 import           Test.Hspec.Options
 import           Test.Hspec.FailureReport
@@ -31,7 +31,10 @@ data Config = Config {
 -- A predicate that is used to filter the spec before it is run.  Only examples
 -- that satisfy the predicate are run.
 , configFilterPredicate :: Maybe (Path -> Bool)
-, configQuickCheckArgs  :: QC.Args
+, configQuickCheckSeed :: Maybe Integer
+, configQuickCheckMaxSuccess :: Maybe Int
+, configQuickCheckMaxDiscardRatio :: Maybe Int
+, configQuickCheckMaxSize :: Maybe Int
 , configSmallCheckDepth :: Int
 , configColorMode       :: ColorMode
 , configFormatter       :: Formatter
@@ -40,7 +43,7 @@ data Config = Config {
 }
 
 defaultConfig :: Config
-defaultConfig = Config False False False Nothing QC.stdArgs 5 ColorAuto specdoc False (Left stdout)
+defaultConfig = Config False False False Nothing Nothing Nothing Nothing Nothing 5 ColorAuto specdoc False (Left stdout)
 
 -- | Add a filter predicate to config.  If there is already a filter predicate,
 -- then combine them with `||`.
@@ -54,16 +57,16 @@ filterOr p1_ p2_ = case (p1_, p2_) of
   (Just p1, Just p2) -> Just $ \path -> p1 path || p2 path
   _ -> p1_ <|> p2_
 
-configSetSeed :: Integer -> Config -> Config
-configSetSeed n c = c {configQuickCheckArgs = (configQuickCheckArgs c) {QC.replay = Just (stdGenFromInteger n, 0)}}
-
 mkConfig :: Maybe FailureReport -> Options -> Config
 mkConfig mFailureReport opts = Config {
     configDryRun          = optionsDryRun opts
   , configPrintCpuTime    = optionsPrintCpuTime opts
   , configFastFail        = optionsFastFail opts
   , configFilterPredicate = matchFilter `filterOr` rerunFilter
-  , configQuickCheckArgs  = qcArgs
+  , configQuickCheckSeed = mSeed
+  , configQuickCheckMaxSuccess = mMaxSuccess
+  , configQuickCheckMaxDiscardRatio = mMaxDiscardRatio
+  , configQuickCheckMaxSize = mMaxSize
   , configSmallCheckDepth = fromMaybe (configSmallCheckDepth defaultConfig) (optionsDepth opts)
   , configColorMode       = optionsColorMode opts
   , configFormatter       = optionsFormatter opts
@@ -71,16 +74,26 @@ mkConfig mFailureReport opts = Config {
   , configHandle          = maybe (configHandle defaultConfig) Right (optionsOutputFile opts)
   }
   where
-    qcArgs = (
-        maybe id setSeed mSeed
-      . maybe id setMaxDiscardRatio mMaxDiscardRatio
-      . maybe id setMaxSize mMaxSize
-      . maybe id setMaxSuccess mMaxSuccess) QC.stdArgs
 
     mSeed = optionsSeed opts <|> (failureReportSeed <$> mFailureReport)
     mMaxSuccess = optionsMaxSuccess opts <|> (failureReportMaxSuccess <$> mFailureReport)
     mMaxSize = optionsMaxSize opts <|> (failureReportMaxSize <$> mFailureReport)
     mMaxDiscardRatio = optionsMaxDiscardRatio opts <|> (failureReportMaxDiscardRatio <$> mFailureReport)
+
+    matchFilter = case optionsMatch opts of
+      [] -> Nothing
+      xs -> Just $ foldl1' (\p0 p1 path -> p0 path || p1 path) (map filterPredicate xs)
+
+    rerunFilter = flip elem . failureReportPaths <$> mFailureReport
+
+configQuickCheckArgs :: Config -> QC.Args
+configQuickCheckArgs c = qcArgs
+  where
+    qcArgs = (
+        maybe id setSeed (configQuickCheckSeed c)
+      . maybe id setMaxDiscardRatio (configQuickCheckMaxDiscardRatio c)
+      . maybe id setMaxSize (configQuickCheckMaxSize c)
+      . maybe id setMaxSuccess (configQuickCheckMaxSuccess c)) QC.stdArgs
 
     setMaxSuccess :: Int -> QC.Args -> QC.Args
     setMaxSuccess n args = args {QC.maxSuccess = n}
@@ -92,13 +105,7 @@ mkConfig mFailureReport opts = Config {
     setMaxDiscardRatio n args = args {QC.maxDiscardRatio = n}
 
     setSeed :: Integer -> QC.Args -> QC.Args
-    setSeed n args = args {QC.replay = Just (stdGenFromInteger n, 0)}
-
-    matchFilter = case optionsMatch opts of
-      [] -> Nothing
-      xs -> Just $ foldl1' (\p0 p1 path -> p0 path || p1 path) (map filterPredicate xs)
-
-    rerunFilter = flip elem . failureReportPaths <$> mFailureReport
+    setSeed n args = args {QC.replay = Just (mkQCGen (fromIntegral n), 0)}
 
 getConfig :: Options -> String -> [String] -> IO Config
 getConfig opts_ prog args = do

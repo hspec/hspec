@@ -1,9 +1,6 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hspec.UtilSpec (main, spec) where
 
 import           Helper
-import           Data.Int (Int32)
-import           System.Random (StdGen)
 import qualified Control.Exception as E
 
 import           Test.Hspec.Util
@@ -90,19 +87,3 @@ spec = do
 
     it "properly handles context after a subject that consists of several components" $ do
       formatRequirement (["Data", "List", "reverse", "when applied twice"], "reverses a list") `shouldBe` "Data.List.reverse, when applied twice, reverses a list"
-
-  describe "stdGenToInteger" $ do
-    it "is inverse to stdGenFromInteger" $ property $
-      \(NonNegative i) -> (stdGenToInteger . stdGenFromInteger) i `shouldBe` i
-
-  describe "stdGenFromInteger" $ do
-    it "is inverse to stdGenToInteger" $ property $
-      \stdGen -> (stdGenFromInteger . stdGenToInteger) stdGen `shouldBe` stdGen
-
-instance Eq StdGen where
-  a == b = show a == show b
-
-instance Arbitrary StdGen where
-  arbitrary = do
-    (Positive a, Positive b) <- arbitrary
-    return $ read (show (a :: Int32) ++ " " ++ show (b :: Int32))
