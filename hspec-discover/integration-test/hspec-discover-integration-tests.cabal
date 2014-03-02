@@ -16,7 +16,7 @@ test-suite empty
       Spec.hs
   build-depends:
       base    == 4.*
-    , hspec
+    , hspec2
 
 test-suite with-formatter
   type:
@@ -31,7 +31,7 @@ test-suite with-formatter
       FooSpec
   build-depends:
       base    == 4.*
-    , hspec
+    , hspec2
 
 test-suite with-io-formatter
   type:
@@ -47,7 +47,7 @@ test-suite with-io-formatter
       Formatter
   build-depends:
       base    == 4.*
-    , hspec
+    , hspec2
     , transformers
 
 test-suite with-formatter-empty
@@ -61,7 +61,7 @@ test-suite with-formatter-empty
       Spec.hs
   build-depends:
       base    == 4.*
-    , hspec
+    , hspec2
 
 test-suite with-no-main
   type:
@@ -76,7 +76,7 @@ test-suite with-no-main
       Spec
   build-depends:
       base    == 4.*
-    , hspec
+    , hspec2
 
 test-suite with-module-name
   type:
@@ -91,4 +91,4 @@ test-suite with-module-name
       Spec
   build-depends:
       base    == 4.*
-    , hspec
+    , hspec2

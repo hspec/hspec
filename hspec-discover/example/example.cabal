@@ -14,5 +14,5 @@ test-suite spec
       Spec.hs
   build-depends:
       base    == 4.*
-    , hspec
+    , hspec2
     , QuickCheck
