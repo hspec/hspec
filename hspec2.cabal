@@ -1,5 +1,5 @@
-name:             hspec
-version:          1.8.3
+name:             hspec2
+version:          0.0.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2014 Simon Hengel,
@@ -12,15 +12,10 @@ category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.io/
-synopsis:         Behavior-Driven Development for Haskell
-description:      Behavior-Driven Development for Haskell
-                  .
-                  Hspec is roughly based on the Ruby library RSpec. However,
-                  Hspec is just a framework for running HUnit and QuickCheck
-                  tests. Compared to other options, it provides a much nicer
-                  syntax that makes tests very easy to read.
-                  .
-                  The Hspec Manual is at <http://hspec.github.io/>.
+synopsis:         Alpha version of Hspec 2.0
+description:      This is an alpha release of Hspec 2.0.
+                  If you are looking for a stable solution for testing Haskell
+                  code, use the 1.x series of Hspec: http://hspec.github.io/
 
 -- find hspec-discover/test-data/ -type f
 extra-source-files:
@@ -34,6 +29,7 @@ source-repository head
   location: https://github.com/hspec/hspec
 
 Library
+  exposed: False
   ghc-options:
       -Wall
   hs-source-dirs:
