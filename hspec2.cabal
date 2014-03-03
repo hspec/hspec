@@ -15,7 +15,7 @@ homepage:         http://hspec.github.io/
 synopsis:         Alpha version of Hspec 2.0
 description:      This is an alpha release of Hspec 2.0.
                   If you are looking for a stable solution for testing Haskell
-                  code, use the 1.x series of Hspec: http://hspec.github.io/
+                  code, use the 1.x series of Hspec: <http://hspec.github.io/>
 
 -- find hspec-discover/test-data/ -type f
 extra-source-files:
