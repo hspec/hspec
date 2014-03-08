@@ -1,6 +1,7 @@
 ## Changes in 2.0.0
  - Remove `Example` instance for `Test.HUnit.Test` (#101), use
    `Test.Hspec.HUnit.fromHUnitTest` instead.
+ - Do not reexport `property` from `Test.Hspec.QuickCheck`
 
 ## Changes in 1.8.3
  - Do not use color if `TERM=dumb` (see #158)
