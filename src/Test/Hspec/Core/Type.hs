@@ -7,6 +7,7 @@ module Test.Hspec.Core.Type (
 , fromSpecList
 , SpecTree (..)
 , Item (..)
+, ActionWith
 , mapSpecItem
 , Example (..)
 , Result (..)
@@ -85,8 +86,11 @@ data SpecTree a =
 
 data Item a = Item {
   itemIsParallelizable :: Bool
-, itemExample :: Params -> ((a -> IO ()) -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 }
+
+-- | An `IO` action that expects an argument of type a.
+type ActionWith a = a -> IO ()
 
 mapSpecItem :: (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem f = fromSpecList . map go . runSpecM
@@ -114,7 +118,7 @@ it s e = SpecItem msg $ Item False (evaluateExample e)
 -- | A type class for examples.
 class Example e where
   type Arg e
-  evaluateExample :: e -> Params -> ((Arg e -> IO ()) -> IO ()) -> ProgressCallback -> IO Result
+  evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 
 instance Example Bool where
   type Arg Bool = ()

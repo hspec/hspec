@@ -221,6 +221,14 @@ spec = do
           , "after inner"
           , "after outer"
           ]
+
+  describe "aroundWith" $ do
+    it "wraps every spec item with an action" $ do
+      let action :: H.ActionWith String -> H.ActionWith Int
+          action e n = e (show n)
+      property $ \n -> do
+        silence $ H.hspec $ H.before (return n) $ H.aroundWith action $ do
+          H.it "foo" $ (`shouldBe` show n)
   where
     runSpec :: H.Spec -> IO [String]
     runSpec = captureLines . H.hspecResult

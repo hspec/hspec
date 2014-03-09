@@ -10,6 +10,7 @@ module Test.Hspec (
 -- * Types
   Spec
 , SpecWith
+, ActionWith
 , Example
 
 -- * Setting expectations
@@ -27,6 +28,7 @@ module Test.Hspec (
 , after_
 , around
 , around_
+, aroundWith
 , parallel
 
 -- * Running a spec
@@ -87,17 +89,24 @@ before :: IO a -> SpecWith a -> Spec
 before action = around (action >>=)
 
 -- | Run a custom action after every spec item.
-after :: (a -> IO ()) -> SpecWith a -> SpecWith a
-after a2 = mapSpecItem $ \item -> item {itemExample = \params a1 -> itemExample item params (\f -> a1 (\a -> f a `finally` a2 a))}
+after :: ActionWith a -> SpecWith a -> SpecWith a
+after action = aroundWith $ \e x -> e x `finally` action x
 
 -- | Run a custom action after every spec item.
 after_ :: IO () -> Spec -> Spec
 after_ action = after $ \() -> action
 
 -- | Run a custom action before and/or after every spec item.
-around :: ((a -> IO ()) -> IO ()) -> SpecWith a -> Spec
-around a2 = mapSpecItem $ \item -> item {itemExample = \params a1 -> itemExample item params (\x -> a1 $ \() -> a2 x)}
+around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
+around action = aroundWith $ \e () -> action e
 
 -- | Run a custom action before and/or after every spec item.
 around_ :: (IO () -> IO ()) -> Spec -> Spec
 around_ action = around $ action . ($ ())
+
+-- | Run a custom action before and/or after every spec item.
+aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+aroundWith action = mapAround (. action)
+
+mapAround :: ((ActionWith b -> IO ()) -> ActionWith a -> IO ()) -> SpecWith a -> SpecWith b
+mapAround f = mapSpecItem $ \i@Item{itemExample = e} -> i{itemExample = (. f) . e}
