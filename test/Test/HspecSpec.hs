@@ -131,6 +131,14 @@ spec = do
           H.it "foo" $ property $ append "foo"
         readIORef ref `shouldReturn` (take 200 . cycle) ["before", "foo"]
 
+  describe "beforeWith" $ do
+    it "runs an action before every spec item" $ do
+      let action :: Int -> IO String
+          action n = return (show n)
+      property $ \n -> do
+        silence $ H.hspec $ H.before (return n) $ H.beforeWith action $ do
+          H.it "foo" $ (`shouldBe` show n)
+
   describe "beforeAll" $ do
     it "runs an action before the first spec item" $ do
       ref <- newIORef []

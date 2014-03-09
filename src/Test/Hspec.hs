@@ -26,6 +26,7 @@ module Test.Hspec (
 , pending
 , pendingWith
 , before
+, beforeWith
 , beforeAll
 , after
 , after_
@@ -97,6 +98,10 @@ parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
 -- | Run a custom action before every spec item.
 before :: IO a -> SpecWith a -> Spec
 before action = around (action >>=)
+
+-- | Run a custom action before every spec item.
+beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
+beforeWith action = aroundWith $ \e x -> action x >>= e
 
 -- | Run a custom action before the first spec item.
 beforeAll :: IO a -> SpecWith a -> Spec
