@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
 module Test.Hspec.Runner.Eval (runFormatter) where
 
 import           Control.Applicative
