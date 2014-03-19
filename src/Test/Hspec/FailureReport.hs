@@ -5,7 +5,6 @@ module Test.Hspec.FailureReport (
 ) where
 
 import           System.IO
-import           Text.Read.Compat
 import           System.SetEnv
 import           Test.Hspec.Compat
 import           Test.Hspec.Util (Path, safeTry)

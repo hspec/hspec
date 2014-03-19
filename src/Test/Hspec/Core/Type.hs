@@ -27,8 +27,8 @@ import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 import           Data.Typeable (Typeable)
 import           Data.List (isPrefixOf)
 import           Data.Maybe (fromMaybe)
-import           Text.Read.Compat
 
+import           Test.Hspec.Compat
 import           Test.Hspec.Util
 import           Test.Hspec.Expectations
 import           Test.HUnit.Lang (HUnitFailure(..))

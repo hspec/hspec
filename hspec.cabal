@@ -40,7 +40,6 @@ Library
       src
   build-depends:
       base          == 4.*
-    , base-compat   >= 0.4
     , random        == 1.0.*
     , setenv
     , ansi-terminal >= 0.5
@@ -93,11 +92,10 @@ test-suite spec
       Test.Hspec.TimerSpec
       Test.Hspec.UtilSpec
   ghc-options:
-      -Wall
+      -Wall -Werror
   build-depends:
       base          == 4.*
-    , base-compat
-    , random
+    , random        == 1.0.*
     , setenv
     , silently      >= 1.2.4
     , ansi-terminal

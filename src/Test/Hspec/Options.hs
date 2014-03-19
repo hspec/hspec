@@ -9,11 +9,11 @@ module Test.Hspec.Options (
 ) where
 
 import           Data.List
-import           Text.Read.Compat
 import           System.Exit
 import           System.Console.GetOpt
 import           Test.Hspec.Formatters
 
+import           Test.Hspec.Compat
 import           Test.Hspec.Util
 
 -- for Monad (Either e) when base < 4.3
