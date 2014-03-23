@@ -27,4 +27,4 @@ isUserInterrupt r = case r of
   _ -> False
 
 newSeed :: IO Int
-newSeed = fromIntegral <$> (fst . randomR (0, maxBound) <$> newQCGen :: IO Int32)
+newSeed = fst . randomR (0, fromIntegral (maxBound :: Int32)) <$> newQCGen
