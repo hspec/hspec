@@ -12,7 +12,6 @@ import           Data.Maybe
 import           System.IO
 import           System.Exit
 import qualified Test.QuickCheck as QC
-import           Test.QuickCheck.Random (mkQCGen)
 import           Test.Hspec.Formatters
 
 import           Test.Hspec.Util
@@ -21,6 +20,7 @@ import           Control.Monad.Trans.Error () -- for Monad (Either e) when base 
 
 import           Test.Hspec.Options
 import           Test.Hspec.FailureReport
+import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 
 data Config = Config {
   configDryRun          :: Bool
@@ -105,7 +105,7 @@ configQuickCheckArgs c = qcArgs
     setMaxDiscardRatio n args = args {QC.maxDiscardRatio = n}
 
     setSeed :: Integer -> QC.Args -> QC.Args
-    setSeed n args = args {QC.replay = Just (mkQCGen (fromIntegral n), 0)}
+    setSeed n args = args {QC.replay = Just (mkGen (fromIntegral n), 0)}
 
 getConfig :: Options -> String -> [String] -> IO Config
 getConfig opts_ prog args = do
