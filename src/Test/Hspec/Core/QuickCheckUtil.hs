@@ -51,6 +51,7 @@ newSeed = fst . randomR (0, fromIntegral (maxBound :: Int32)) <$>
 #endif
 
 #if MIN_VERSION_QuickCheck(2,7,0)
+mkGen :: Int -> QCGen
 mkGen = mkQCGen
 #else
 mkGen :: Int -> StdGen
