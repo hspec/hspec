@@ -1,3 +1,6 @@
+## Changes in 1.9.1
+ - Bring back compatibility with older versions of QuickCheck (#166)
+
 ## Changes in 1.9.0
  - Depend on QuickCheck 2.7
 
