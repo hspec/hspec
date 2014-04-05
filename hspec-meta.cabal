@@ -42,7 +42,7 @@ Library
     , transformers  >= 0.2.2.0 && < 0.4.0
     , deepseq
     , HUnit         >= 1.2.5
-    , QuickCheck    >= 2.5.1
+    , QuickCheck    >= 2.7
     , quickcheck-io
     , hspec-expectations
   exposed-modules:
