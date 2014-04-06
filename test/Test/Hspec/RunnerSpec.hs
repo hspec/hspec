@@ -31,18 +31,8 @@ prop_foo = (/= 26)
 runPropFoo :: [String] -> IO String
 runPropFoo args = fmap (unlines . normalizeSummary . lines) . capture_ . ignoreExitCode . withArgs args . H.hspec $ H.it "foo" $ property prop_foo
 
-prop_foo_result_23 :: String
-prop_foo_result_23 = unlines [
-#if MIN_VERSION_QuickCheck(2,7,0)
-            "Falsifiable (after 27 tests): "
-#else
-            "Falsifiable (after 44 tests): "
-#endif
-          , "26"
-          ]
-
-prop_foo_result_42 :: String
-prop_foo_result_42 = unlines [
+prop_foo_result_with_seed_42 :: String
+prop_foo_result_with_seed_42 = unlines [
 #if MIN_VERSION_QuickCheck(2,7,0)
             "Falsifiable (after 31 tests): "
 #else
@@ -310,7 +300,7 @@ spec = do
     context "with --seed" $ do
       it "uses specified seed" $ do
         r <- runPropFoo ["--seed", "42"]
-        r `shouldContain` prop_foo_result_42
+        r `shouldContain` prop_foo_result_with_seed_42
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do
