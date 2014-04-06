@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
+{-# LANGUAGE CPP, TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
 module Test.Hspec.Core.Type (
   Spec
 , SpecM (..)
@@ -134,15 +134,24 @@ instance Example QC.Property where
     return $
       case r of
         QC.Success {}               -> Success
-        QC.Failure {QC.output = m}  -> fromMaybe (Fail $ sanitizeFailureMessage m) (parsePending m)
+        QC.Failure {QC.output = m}  -> fromMaybe (Fail $ sanitizeFailureMessage r) (parsePending m)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ pluralize n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
     where
       progressCallback = QCP.PostTest QCP.NotCounterexample $
         \st _ -> paramsReportProgress c (QC.numSuccessTests st, QC.maxSuccessTests st)
 
-      sanitizeFailureMessage :: String -> String
-      sanitizeFailureMessage = strip . addFalsifiable . stripFailed
+      sanitizeFailureMessage :: QC.Result -> String
+      sanitizeFailureMessage r = let m = QC.output r in strip $
+#if MIN_VERSION_QuickCheck(2,7,0)
+        case QC.theException r of
+          Just e -> let numbers = formatNumbers r in
+            "uncaught exception: " ++ formatException e ++ " " ++ numbers ++ "\n" ++ case lines m of
+              x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ": ") -> unlines xs
+              _ -> m
+          Nothing ->
+#endif
+            (addFalsifiable . stripFailed) m
 
       addFalsifiable :: String -> String
       addFalsifiable m
@@ -159,11 +168,12 @@ instance Example QC.Property where
 
       parsePending :: String -> Maybe Result
       parsePending m
-        | prefix `isPrefixOf` m = (readMaybe . takeWhile (/= '\'') . drop n) m
+        | exceptionPrefix `isPrefixOf` m = (readMaybe . takeWhile (/= '\'') . drop n) m
         | otherwise = Nothing
         where
-          n = length prefix
-          prefix = "*** Failed! Exception: '"
+          n = length exceptionPrefix
+
+      exceptionPrefix = "*** Failed! Exception: '"
 
 -- | Specifies a pending example.
 --

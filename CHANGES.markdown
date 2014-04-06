@@ -1,3 +1,6 @@
+## next
+ - Print type of exceptions that are raised from QuickCheck properties (#94)
+
 ## Changes in 1.9.1
  - Bring back compatibility with older versions of QuickCheck (#166)
 

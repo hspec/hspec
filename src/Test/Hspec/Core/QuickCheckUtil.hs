@@ -18,6 +18,8 @@ import           Test.QuickCheck.Random
 
 import           System.Random
 
+import           Test.Hspec.Util
+
 aroundProperty :: (IO () -> IO ()) -> Property -> Property
 #if MIN_VERSION_QuickCheck(2,7,0)
 aroundProperty action (MkProperty p) = MkProperty $ MkProp . aroundRose action . unProp <$> p
@@ -41,6 +43,13 @@ isUserInterrupt r = case r of
   QC.Failure {QC.reason = "Exception: 'user interrupt'"} -> True
 #endif
   _ -> False
+
+formatNumbers :: Result -> String
+formatNumbers r = "(after " ++ pluralize (numTests r) "test" ++ shrinks ++ ")"
+  where
+    shrinks
+      | 0 < numShrinks r = " and " ++ pluralize (numShrinks r) "shrink"
+      | otherwise = ""
 
 newSeed :: IO Int
 newSeed = fst . randomR (0, fromIntegral (maxBound :: Int32)) <$>

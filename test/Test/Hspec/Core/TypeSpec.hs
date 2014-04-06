@@ -93,6 +93,21 @@ spec = do
         H.Success <- evaluateExampleWith action (property $ modifyIORef ref succ)
         readIORef ref `shouldReturn` 200
 
+      it "propagates UserInterrupt" $ do
+        let p = property (throwIO UserInterrupt :: Expectation)
+        evaluateExample p `shouldThrow` (== UserInterrupt)
+
+      it "pretty-prints exceptions" $ do
+        -- pendingWith "this probably needs a patch to QuickCheck"
+        evaluateExample (property $ (error "foobar" :: Int -> Bool)) `shouldReturn` (H.Fail . intercalate "\n") [
+#if MIN_VERSION_QuickCheck(2,7,0)
+            "uncaught exception: ErrorCall (foobar) (after 1 test)"
+#else
+            "Exception: 'foobar' (after 1 test): "
+#endif
+          , "0"
+          ]
+
       context "when used with shouldBe" $ do
         it "shows what falsified it" $ do
           H.Fail r <- evaluateExample $ property $ \x y -> x + y `shouldBe` (x * y :: Int)
@@ -107,14 +122,6 @@ spec = do
             , "0"
             , "1"
             ]
-
-      it "propagates UserInterrupt" $ do
-        let p = property (throwIO UserInterrupt :: Expectation)
-        evaluateExample p `shouldThrow` (== UserInterrupt)
-
-      it "propagates exceptions" $ do
-        pendingWith "this probably needs a patch to QuickCheck"
-        -- evaluateExample (property $ (error "foobar" :: Int -> Bool)) `shouldThrow` errorCall "foobar"
 
       context "when used with `pending`" $ do
         it "returns Pending" $ do
