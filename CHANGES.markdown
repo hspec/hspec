@@ -1,4 +1,4 @@
-## next
+## Changes in 1.9.2
  - Print type of exceptions that are raised from QuickCheck properties (#94)
 
 ## Changes in 1.9.1
