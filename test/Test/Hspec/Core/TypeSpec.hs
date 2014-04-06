@@ -103,7 +103,7 @@ spec = do
 #if MIN_VERSION_QuickCheck(2,7,0)
             "uncaught exception: ErrorCall (foobar) (after 1 test)"
 #else
-            "Exception: 'foobar' (after 1 test): "
+            "Exception: 'foobar' (after 1 test and 2 shrinks): "
 #endif
           , "0"
           ]

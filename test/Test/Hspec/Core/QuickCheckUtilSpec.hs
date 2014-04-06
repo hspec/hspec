@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields #-}
 module Test.Hspec.Core.QuickCheckUtilSpec (main, spec) where
 
 import           Helper
@@ -27,14 +28,4 @@ spec = do
     failure tests shrinks = Failure {
       numTests = tests
     , numShrinks = shrinks
-    , numShrinkTries = undefined
-    , numShrinkFinal = undefined
-    , usedSeed = undefined
-    , usedSize = undefined
-    , reason = undefined
-#if MIN_VERSION_QuickCheck(2,7,0)
-    , theException = Nothing
-#endif
-    , labels = undefined
-    , output = undefined
     }
