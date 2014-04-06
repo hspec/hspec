@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Test.Hspec.RunnerSpec (main, spec) where
 
 import           Helper
@@ -23,6 +24,32 @@ main = hspec spec
 
 quickCheckOptions :: [([Char], Args -> Int)]
 quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]
+
+prop_foo :: Integer -> Bool
+prop_foo = (/= 26)
+
+runPropFoo :: [String] -> IO String
+runPropFoo args = fmap (unlines . normalizeSummary . lines) . capture_ . ignoreExitCode . withArgs args . H.hspec $ H.it "foo" $ property prop_foo
+
+prop_foo_result_23 :: String
+prop_foo_result_23 = unlines [
+#if MIN_VERSION_QuickCheck(2,7,0)
+            "Falsifiable (after 27 tests): "
+#else
+            "Falsifiable (after 44 tests): "
+#endif
+          , "26"
+          ]
+
+prop_foo_result_42 :: String
+prop_foo_result_42 = unlines [
+#if MIN_VERSION_QuickCheck(2,7,0)
+            "Falsifiable (after 31 tests): "
+#else
+            "Falsifiable (after 30 tests): "
+#endif
+          , "26"
+          ]
 
 spec :: Spec
 spec = do
@@ -86,18 +113,8 @@ spec = do
         r1 `shouldSatisfy` elem "3 examples, 3 failures"
 
       it "reuses the same seed" $ do
-        let runSpec_ = (captureLines . ignoreExitCode . H.hspec) $ do
-              H.it "foo" $ property $ (/= (26 :: Integer))
-        r0 <- withArgs ["--seed", "42"] runSpec_
-        r0 `shouldContain` [
-            "Falsifiable (after 31 tests): "
-          , "26"
-          ]
-        r1 <- withArgs ["-r"] runSpec_
-        r1 `shouldContain` [
-            "Falsifiable (after 31 tests): "
-          , "26"
-          ]
+        r <- runPropFoo ["--seed", "42"]
+        runPropFoo ["-r"] `shouldReturn` r
 
       forM_ quickCheckOptions $ \(flag, accessor) -> do
         it ("reuses same " ++ flag) $ do
@@ -292,27 +309,19 @@ spec = do
 
     context "with --seed" $ do
       it "uses specified seed" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--seed", "42"] . H.hspec $ do
-            H.it "foo" $
-              property (/= (26 :: Integer))
-        r `shouldContain` [
-            "Falsifiable (after 31 tests): "
-          , "26"
-          ]
+        r <- runPropFoo ["--seed", "42"]
+        r `shouldContain` prop_foo_result_42
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do
-          let runSpec args = capture_ . ignoreExitCode . withArgs args . H.hspec $ do
-                H.it "foo" $
-                  property $ \n -> ((17 + 31 * n) `mod` 50) /= (23 :: Integer)
-          r0 <- runSpec ["--seed", "23"]
-          r0 `shouldContain` "(after 27 tests)"
+          r0 <- runPropFoo ["--seed", "23"]
+          r0 `shouldContain` prop_foo_result_23
 
-          r1 <- runSpec ["--seed", "42"]
-          r1 `shouldContain` "(after 31 tests)"
+          r1 <- runPropFoo ["--seed", "42"]
+          r1 `shouldContain` prop_foo_result_42
 
-          r2 <- runSpec ["--rerun", "--seed", "23"]
-          r2 `shouldContain` "(after 27 tests)"
+          r2 <- runPropFoo ["--rerun", "--seed", "23"]
+          r2 `shouldContain` prop_foo_result_23
 
       context "when given an invalid argument" $ do
         let run = withArgs ["--seed", "foo"] . H.hspec $ do

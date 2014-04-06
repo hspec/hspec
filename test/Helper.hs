@@ -33,11 +33,11 @@ import           System.IO.Silently
 
 import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
-import           Test.QuickCheck.Random
 
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Core as H (Params(..), Item(..), mapSpecItem)
 import qualified Test.Hspec.Runner as H
+import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
@@ -64,7 +64,7 @@ normalizeSummary xs = map f xs
         | otherwise  = x
 
 defaultParams :: H.Params
-defaultParams = H.Params stdArgs {replay = Just (mkQCGen 23, 0)} (H.configSmallCheckDepth H.defaultConfig) (const $ return ())
+defaultParams = H.Params stdArgs {replay = Just (mkGen 23, 0)} (H.configSmallCheckDepth H.defaultConfig) (const $ return ())
 
 sleep :: POSIXTime -> IO ()
 sleep = threadDelay . floor . (* 1000000)
