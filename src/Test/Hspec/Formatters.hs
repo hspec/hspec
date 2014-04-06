@@ -61,11 +61,9 @@ module Test.Hspec.Formatters (
 
 import           Data.Maybe
 import           Test.Hspec.Util
-import           Test.Hspec.Compat
 import           Text.Printf
 import           Control.Monad (unless, forM_)
 import           Control.Applicative
-import qualified Control.Exception as E
 import           System.IO (hPutStr, hFlush)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
@@ -200,17 +198,6 @@ defaultFailedFormatter = do
           writeLine err
       where
         err = either (("uncaught exception: " ++) . formatException) id reason
-
--- | Convert an exception to a string.
---
--- The type of the exception is included.  Here is an example:
---
--- >>> import Control.Applicative
--- >>> import Control.Exception
--- >>> either formatException show <$> (try . evaluate) (1 `div` 0)
--- "ArithException (divide by zero)"
-formatException :: E.SomeException -> String
-formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
 defaultFooter :: FormatM ()
 defaultFooter = do

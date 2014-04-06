@@ -1,5 +1,6 @@
 module Test.Hspec.Util (
   pluralize
+, formatException
 , lineBreaksAt
 , safeTry
 , Path
@@ -12,6 +13,8 @@ import           Data.List
 import           Data.Char (isSpace)
 import           Control.Applicative
 import qualified Control.Exception as E
+
+import           Test.Hspec.Compat (showType)
 
 -- | Create a more readable display of a quantity of something.
 --
@@ -28,6 +31,17 @@ import qualified Control.Exception as E
 pluralize :: Int -> String -> String
 pluralize 1 s = "1 " ++ s
 pluralize n s = show n ++ " " ++ s ++ "s"
+
+-- | Convert an exception to a string.
+--
+-- The type of the exception is included.  Here is an example:
+--
+-- >>> import Control.Applicative
+-- >>> import Control.Exception
+-- >>> either formatException show <$> (try . evaluate) (1 `div` 0)
+-- "ArithException (divide by zero)"
+formatException :: E.SomeException -> String
+formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
 safeTry :: IO a -> IO (Either E.SomeException a)
 safeTry action = (Right <$> (action >>= E.evaluate)) `E.catches` [
