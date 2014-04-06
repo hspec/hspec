@@ -5,4 +5,3 @@ script:
   - cabal install
   - cd hspec-discover/example/ && cabal test && cd ../../
   - cd hspec-discover/integration-test/ && cabal test && cd ../../
-  - ./mk-sdist.sh
