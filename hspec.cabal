@@ -83,6 +83,7 @@ test-suite spec
       Helper
       Test.HspecSpec
       Test.Hspec.CompatSpec
+      Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.TypeSpec
       Test.Hspec.FailureReportSpec
       Test.Hspec.FormattersSpec
