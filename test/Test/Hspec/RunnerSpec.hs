@@ -314,14 +314,9 @@ spec = do
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do
-          r0 <- runPropFoo ["--seed", "23"]
-          r0 `shouldContain` prop_foo_result_23
-
-          r1 <- runPropFoo ["--seed", "42"]
-          r1 `shouldContain` prop_foo_result_42
-
-          r2 <- runPropFoo ["--rerun", "--seed", "23"]
-          r2 `shouldContain` prop_foo_result_23
+          r <- runPropFoo ["--seed", "23"]
+          _ <- runPropFoo ["--seed", "42"]
+          runPropFoo ["--rerun", "--seed", "23"] `shouldReturn` r
 
       context "when given an invalid argument" $ do
         let run = withArgs ["--seed", "foo"] . H.hspec $ do
