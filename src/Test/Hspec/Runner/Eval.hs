@@ -18,8 +18,8 @@ import           Test.Hspec.Timer
 import           Data.Time.Clock.POSIX
 
 data Tree a
-  = Node String [Tree a]
-  | Leaf String a
+  = Node! String [Tree a]
+  | Leaf! String a
   deriving (Eq, Show, Functor)
 
 toTree :: SpecTree -> Tree Item
