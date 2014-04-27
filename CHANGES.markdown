@@ -1,3 +1,6 @@
+## Changes in 1.9.3
+ - Make internal Tree data structure strict (#169)
+
 ## Changes in 1.9.2
  - Print type of exceptions that are raised from QuickCheck properties (#94)
 
