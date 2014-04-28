@@ -22,8 +22,10 @@ description:      Behavior-Driven Development for Haskell
                   .
                   The Hspec Manual is at <http://hspec.github.io/>.
 
--- find hspec-discover/test-data/ -type f
 extra-source-files:
+  changelog
+
+-- find hspec-discover/test-data/ -type f
   hspec-discover/test-data/nested-spec/FooSpec.hs
   hspec-discover/test-data/nested-spec/Foo/Bar/BazSpec.hs
   hspec-discover/test-data/nested-spec/Foo/BarSpec.hs
