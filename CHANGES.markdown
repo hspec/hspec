@@ -1,3 +1,6 @@
+## Changes in 1.9.4
+ - Compatibility with transformers-0.4.0.0
+
 ## Changes in 1.9.3
  - Make internal Tree data structure more strict (#169)
 
