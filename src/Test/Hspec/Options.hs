@@ -11,13 +11,10 @@ module Test.Hspec.Options (
 import           Data.List
 import           System.Exit
 import           System.Console.GetOpt
-import           Test.Hspec.Formatters
 
+import           Test.Hspec.Formatters
 import           Test.Hspec.Compat
 import           Test.Hspec.Util
-
--- for Monad (Either e) when base < 4.3
-import           Control.Monad.Trans.Error ()
 
 data Options = Options {
   optionsDryRun       :: Bool

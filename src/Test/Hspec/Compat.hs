@@ -10,6 +10,10 @@ module Test.Hspec.Compat (
 #endif
 ) where
 
+#if !MIN_VERSION_base(4,3,0)
+import           Control.Monad.Trans.Error () -- for Monad (Either e)
+#endif
+
 import           Data.Typeable (Typeable, typeOf, typeRepTyCon)
 import           Text.Read
 import           Data.IORef

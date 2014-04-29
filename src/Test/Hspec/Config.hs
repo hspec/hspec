@@ -15,9 +15,6 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Formatters
 
 import           Test.Hspec.Util
-
-import           Control.Monad.Trans.Error () -- for Monad (Either e) when base < 4.3
-
 import           Test.Hspec.Options
 import           Test.Hspec.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)

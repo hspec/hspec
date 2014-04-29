@@ -47,7 +47,7 @@ Library
     , setenv
     , ansi-terminal >= 0.5
     , time
-    , transformers  >= 0.2.2.0 && < 0.4.0
+    , transformers  >= 0.2.2.0
     , deepseq
     , HUnit         >= 1.2.5
     , QuickCheck    >= 2.5.1
