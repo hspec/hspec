@@ -1,3 +1,6 @@
+## Changes in 1.9.5
+ - Make sure that ctrl-c works properly with GHC 7.8.* and QuickCheck-2.6
+
 ## Changes in 1.9.4
  - Compatibility with transformers-0.4.0.0
 
