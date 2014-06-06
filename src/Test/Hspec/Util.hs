@@ -11,8 +11,8 @@ module Test.Hspec.Util (
 
 import           Data.List
 import           Data.Char (isSpace)
-import           Control.Applicative
 import qualified Control.Exception as E
+import           Control.Exception.Enclosed (tryAny)
 
 import           Test.Hspec.Compat (showType)
 
@@ -44,15 +44,7 @@ formatException :: E.SomeException -> String
 formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
 safeTry :: IO a -> IO (Either E.SomeException a)
-safeTry action = (Right <$> (action >>= E.evaluate)) `E.catches` [
-  -- Re-throw AsyncException, otherwise execution will not terminate on SIGINT
-  -- (ctrl-c).  All AsyncExceptions are re-thrown (not just UserInterrupt)
-  -- because all of them indicate severe conditions and should not occur during
-  -- normal operation.
-    E.Handler $ \e -> E.throwIO (e :: E.AsyncException)
-
-  , E.Handler $ \e -> (return . Left) (e :: E.SomeException)
-  ]
+safeTry = tryAny
 
 -- |
 -- A tuple that represents the location of an example within a spec.

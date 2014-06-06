@@ -53,6 +53,7 @@ Library
     , QuickCheck    >= 2.5.1
     , quickcheck-io
     , hspec-expectations == 0.5.0.*
+    , enclosed-exceptions
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
@@ -111,6 +112,7 @@ test-suite spec
     , QuickCheck
     , quickcheck-io
     , hspec-expectations
+    , enclosed-exceptions
 
     , hspec-meta >= 1.9.1
     , process
