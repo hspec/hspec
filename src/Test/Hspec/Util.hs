@@ -44,7 +44,7 @@ formatException :: E.SomeException -> String
 formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
 safeTry :: IO a -> IO (Either E.SomeException a)
-safeTry = tryAny
+safeTry action = tryAny $ action >>= E.evaluate
 
 -- |
 -- A tuple that represents the location of an example within a spec.
