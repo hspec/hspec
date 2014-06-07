@@ -12,9 +12,10 @@ module Test.Hspec.Util (
 import           Data.List
 import           Data.Char (isSpace)
 import qualified Control.Exception as E
-import           Control.Exception.Enclosed (tryAny)
+import           Control.Concurrent.Async
 
 import           Test.Hspec.Compat (showType)
+
 
 -- | Create a more readable display of a quantity of something.
 --
@@ -44,7 +45,7 @@ formatException :: E.SomeException -> String
 formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
 safeTry :: IO a -> IO (Either E.SomeException a)
-safeTry action = tryAny $ action >>= E.evaluate
+safeTry action = withAsync (action >>= E.evaluate) waitCatch
 
 -- |
 -- A tuple that represents the location of an example within a spec.
