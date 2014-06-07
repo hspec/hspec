@@ -12,7 +12,6 @@ import           Test.QuickCheck.IO ()
 
 
 #if MIN_VERSION_QuickCheck(2,7,0)
-import           Control.Exception
 import           Test.QuickCheck.Random
 #endif
 
@@ -32,15 +31,6 @@ aroundRose action r = ioRose $ do
   ref <- newIORef (return QCP.succeeded)
   action (reduceRose r >>= writeIORef ref)
   readIORef ref
-
-isUserInterrupt :: QC.Result -> Bool
-isUserInterrupt r = case r of
-#if MIN_VERSION_QuickCheck(2,7,0)
-  QC.Failure {theException = me} -> (me >>= fromException) == Just UserInterrupt
-#else
-  QC.Failure {QC.reason = "Exception: 'user interrupt'"} -> True
-#endif
-  _ -> False
 
 formatNumbers :: Result -> String
 formatNumbers r = "(after " ++ pluralize (numTests r) "test" ++ shrinks ++ ")"

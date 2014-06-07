@@ -5,7 +5,6 @@ import           Helper
 import           Mock
 import           Data.List
 import           Data.IORef
-import           Control.Exception (AsyncException(..), throwIO)
 
 import qualified Test.Hspec.Core.Type as H hiding (describe, it)
 import qualified Test.Hspec as H
@@ -92,10 +91,6 @@ spec = do
               modifyIORef ref succ
         H.Success <- evaluateExampleWith action (property $ modifyIORef ref succ)
         readIORef ref `shouldReturn` 200
-
-      it "propagates UserInterrupt" $ do
-        let p = property (throwIO UserInterrupt :: Expectation)
-        evaluateExample p `shouldThrow` (== UserInterrupt)
 
       it "pretty-prints exceptions" $ do
         -- pendingWith "this probably needs a patch to QuickCheck"

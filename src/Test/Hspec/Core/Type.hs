@@ -22,7 +22,6 @@ module Test.Hspec.Core.Type (
 
 import qualified Control.Exception as E
 import           Control.Applicative
-import           Control.Monad (when)
 import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
 import           Data.Typeable (Typeable)
 import           Data.List (isPrefixOf)
@@ -128,9 +127,6 @@ instance Example Result where
 instance Example QC.Property where
   evaluateExample p c action = do
     r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback progressCallback $ aroundProperty action p)
-    when (isUserInterrupt r) $ do
-      E.throwIO E.UserInterrupt
-
     return $
       case r of
         QC.Success {}               -> Success
