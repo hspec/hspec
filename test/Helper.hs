@@ -43,7 +43,7 @@ ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
 
 ignoreUserInterrupt :: IO () -> IO ()
-ignoreUserInterrupt action = action `E.catch` \e -> unless (e == E.UserInterrupt) (E.throwIO e)
+ignoreUserInterrupt action = E.catchJust (guard . (== E.UserInterrupt)) action return
 
 captureLines :: IO a -> IO [String]
 captureLines = fmap lines . capture_

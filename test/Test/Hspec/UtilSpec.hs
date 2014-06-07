@@ -1,6 +1,7 @@
 module Test.Hspec.UtilSpec (main, spec) where
 
 import           Helper
+import           Control.Concurrent
 import qualified Control.Exception as E
 
 import           Test.Hspec.Util
@@ -47,8 +48,15 @@ spec = do
       Left e <- safeTry (return undefined)
       show e `shouldBe` "Prelude.undefined"
 
-    it "re-throws AsyncException" $ do
-      safeTry (E.throwIO E.UserInterrupt :: IO Int) `shouldThrow` (== E.UserInterrupt)
+    it "does not catch asynchronous exceptions" $ do
+      mvar <- newEmptyMVar
+      sync <- newEmptyMVar
+      threadId <- forkIO $ do
+        safeTry (putMVar sync () >> threadDelay 1000000) >> return ()
+        `E.catch` putMVar mvar
+      takeMVar sync
+      throwTo threadId E.UserInterrupt
+      readMVar mvar `shouldReturn` E.UserInterrupt
 
   describe "filterPredicate" $ do
     it "tries to match a pattern against a path" $ do

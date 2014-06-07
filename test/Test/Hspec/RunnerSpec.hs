@@ -6,6 +6,7 @@ import           System.IO (stderr)
 import           Control.Monad
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
+import           Control.Concurrent
 import qualified Control.Exception as E
 import           Mock
 import           System.SetEnv
@@ -143,11 +144,19 @@ spec = do
 
     context "when interrupted with ctrl-c" $ do
       it "prints summary immediately" $ do
-        r <- captureLines . ignoreUserInterrupt . withArgs ["--seed", "23"] . H.hspec $ do
-          H.it "foo" False
-          H.it "bar" $ do
-            E.throwIO E.UserInterrupt :: IO ()
-          H.it "baz" True
+        mvar <- newEmptyMVar
+        sync <- newEmptyMVar
+        threadId <- forkIO $ do
+          r <- captureLines . ignoreUserInterrupt . withArgs ["--seed", "23"] . H.hspec $ do
+            H.it "foo" False
+            H.it "bar" $ do
+              putMVar sync ()
+              threadDelay 1000000
+            H.it "baz" True
+          putMVar mvar r
+        takeMVar sync
+        throwTo threadId E.UserInterrupt
+        r <- takeMVar mvar
         normalizeSummary r `shouldBe` [
             ""
           , "- foo FAILED [1]"
@@ -159,10 +168,17 @@ spec = do
           ]
 
       it "throws UserInterrupt" $ do
-        silence . H.hspec $ do
-          H.it "foo" $ do
-            E.throwIO E.UserInterrupt :: IO ()
-        `shouldThrow` (== E.UserInterrupt)
+        mvar <- newEmptyMVar
+        sync <- newEmptyMVar
+        threadId <- forkIO $ do
+          silence . H.hspec $ do
+            H.it "foo" $ do
+              putMVar sync ()
+              threadDelay 1000000
+          `E.catch` putMVar mvar
+        takeMVar sync
+        throwTo threadId E.UserInterrupt
+        takeMVar mvar `shouldReturn` E.UserInterrupt
 
     context "with --help" $ do
       let printHelp = withProgName "spec" . withArgs ["--help"] . H.hspec $ pure ()
