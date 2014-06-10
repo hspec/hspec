@@ -1,3 +1,7 @@
+## Changes in 1.9.6
+ - Do not use exception type to distinguish between synchronous/asynchronous
+   exceptions (thanks to Michael Snoyman)
+
 ## Changes in 1.9.5
  - Make sure that ctrl-c works properly with GHC 7.8.* and QuickCheck-2.6
 
@@ -22,7 +26,7 @@
 ## Changes in 1.8.2
  - `hspec-discover` now accepts `--no-main` which results in a top-level spec
    being generated instead of a test driver (thanks @DanielG)
- - Make sure that after is run on failing tests (see #159)
+ - Make sure that `after` is run on failing tests (see #159)
 
 ## Changes in 1.8.1
  - Add `shouldMatchList`
