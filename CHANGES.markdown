@@ -7,6 +7,7 @@
  - Move `ProgressCallback` out of `Params`
  - Add show instance for `Params`
  - Move requirement text from `Item` to `SpecItem` constructor
+ - Remove deprecated modules and functions
 
 ## Changes in 1.9.5
  - Make sure that ctrl-c works properly with GHC 7.8.* and QuickCheck-2.6
