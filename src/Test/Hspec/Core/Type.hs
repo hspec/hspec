@@ -72,7 +72,7 @@ type ProgressCallback = Progress -> IO ()
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
 , paramsSmallCheckDepth :: Int
-}
+} deriving (Show)
 
 -- | Internal representation of a spec.
 data SpecTree =

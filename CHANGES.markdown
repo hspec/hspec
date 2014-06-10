@@ -1,11 +1,12 @@
 ## Changes in 1.10.0
  - Do not use exception type to distinguish between synchronous/asynchronous
    exceptions (thanks to Michael Snoyman)
-
  - Remove `Example` instance for `Test.HUnit.Test` (#101), use
    `Test.Hspec.HUnit.fromHUnitTest` instead.
-
  - Do not reexport `property` from `Test.Hspec.QuickCheck`
+ - Move `ProgressCallback` out of `Params`
+ - Add show instance for `Params`
+ - Move requirement text from `Item` to `SpecItem` constructor
 
 ## Changes in 1.9.5
  - Make sure that ctrl-c works properly with GHC 7.8.* and QuickCheck-2.6
