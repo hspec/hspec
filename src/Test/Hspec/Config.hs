@@ -40,7 +40,21 @@ data Config = Config {
 }
 
 defaultConfig :: Config
-defaultConfig = Config False False False Nothing Nothing Nothing Nothing Nothing 5 ColorAuto specdoc False (Left stdout)
+defaultConfig = Config {
+  configDryRun = False
+, configPrintCpuTime = False
+, configFastFail = False
+, configFilterPredicate = Nothing
+, configQuickCheckSeed = Nothing
+, configQuickCheckMaxSuccess = Nothing
+, configQuickCheckMaxDiscardRatio = Nothing
+, configQuickCheckMaxSize = Nothing
+, configSmallCheckDepth = 5
+, configColorMode = ColorAuto
+, configFormatter = specdoc
+, configHtmlOutput = False
+, configHandle = Left stdout
+}
 
 -- | Add a filter predicate to config.  If there is already a filter predicate,
 -- then combine them with `||`.
