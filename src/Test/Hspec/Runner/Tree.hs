@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 module Test.Hspec.Runner.Tree where
 
+import           Control.Applicative
 import           Test.Hspec.Core.Type
 
 data Tree a
@@ -8,7 +9,10 @@ data Tree a
   | Leaf !String a
   deriving (Eq, Show, Functor)
 
-toTree :: SpecTree -> Tree Item
-toTree spec = case spec of
-  SpecGroup label specs -> Node label (map toTree specs)
-  SpecItem r item -> Leaf r item
+toTree :: Spec -> IO [Tree Item]
+toTree spec = concat <$> mapM go (runSpecM spec)
+  where
+    go x = case x of
+      SpecGroup label xs -> return . Node label . concat <$> mapM go xs
+      BuildSpecs xs -> concat <$> (xs >>= mapM go)
+      SpecItem r item -> return [Leaf r item]

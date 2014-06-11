@@ -1,28 +1,16 @@
 module Test.Hspec.HUnitSpec (main, spec) where
 
-import           Helper
+import           Helper hiding (example)
 
-import           Test.Hspec.Core.Type (SpecTree(..), runSpecM)
+import           Test.Hspec.Runner.Tree
 import           Test.Hspec.HUnit
 import           Test.HUnit
 
 main :: IO ()
 main = hspec spec
 
--- SpecTree does not have an Eq nor a Show instance, hence we map it to `Tree`.
-data Tree = Group String [Tree] | Example String
-  deriving (Eq, Show)
-
-shouldYield :: Test -> [Tree] -> Expectation
-a `shouldYield` b = (convert . runSpecM . fromHUnitTest) a `shouldBe` b
-  where
-    convert :: [SpecTree] -> [Tree]
-    convert = map go
-      where
-        go :: SpecTree -> Tree
-        go x = case x of
-          SpecGroup s xs  -> Group s (map go xs)
-          SpecItem requirement _ -> Example requirement
+shouldYield :: Test -> [Tree ()] -> Expectation
+a `shouldYield` b = map (() <$) <$> toTree (fromHUnitTest a) `shouldReturn` b
 
 spec :: Spec
 spec = do
@@ -30,20 +18,23 @@ spec = do
     let e = TestCase $ pure ()
 
     it "works for a TestCase" $ do
-      e `shouldYield` [Example "<unlabeled>"]
+      e `shouldYield` [example "<unlabeled>"]
 
     it "works for a labeled TestCase" $ do
       TestLabel "foo" e
-        `shouldYield` [Example "foo"]
+        `shouldYield` [example "foo"]
 
     it "works for a TestCase with nested labels" $ do
       (TestLabel "foo" . TestLabel "bar") e
-        `shouldYield` [Group "foo" [Example "bar"]]
+        `shouldYield` [Node "foo" [example "bar"]]
 
     it "works for a flat TestList" $ do
       TestList [e, e, e]
-        `shouldYield` [Example "<unlabeled>", Example "<unlabeled>", Example "<unlabeled>"]
+        `shouldYield` [example "<unlabeled>", example "<unlabeled>", example "<unlabeled>"]
 
     it "works for a nested TestList" $ do
       (TestLabel "foo" . TestLabel "bar" . TestList) [TestLabel "one" e, TestLabel "two" e, TestLabel "three" e]
-        `shouldYield` [Group "foo" [Group "bar" [Example "one", Example "two", Example "three"]]]
+        `shouldYield` [Node "foo" [Node "bar" [example "one", example "two", example "three"]]]
+  where
+    example :: String -> Tree ()
+    example r = Leaf r ()

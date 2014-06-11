@@ -77,6 +77,7 @@ data Params = Params {
 -- | Internal representation of a spec.
 data SpecTree =
     SpecGroup String [SpecTree]
+  | BuildSpecs (IO [SpecTree])
   | SpecItem String Item
 
 data Item = Item {
@@ -90,6 +91,7 @@ mapSpecItem f = fromSpecList . map go . runSpecM
     go :: SpecTree -> SpecTree
     go spec = case spec of
       SpecItem r item -> SpecItem r (f item)
+      BuildSpecs es -> BuildSpecs (map go <$> es)
       SpecGroup d es -> SpecGroup d (map go es)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
