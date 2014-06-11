@@ -114,10 +114,11 @@ hspecWith c_ spec_ = withHandle c_ $ \h -> do
         | otherwise      = spec_
 
   useColor <- doesUseColor h c
+  let filteredSpec = maybe id filterSpecs (configFilterPredicate c) $ (map toTree . runSpecM) spec
 
   withHiddenCursor useColor h $
     runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
-      runFormatter useColor h c formatter (maybe id filterSpecs (configFilterPredicate c) $ (map toTree . runSpecM) spec) `finally_` do
+      runFormatter useColor h c formatter filteredSpec `finally_` do
         failedFormatter formatter
 
       footerFormatter formatter
