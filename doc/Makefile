@@ -15,11 +15,17 @@ less:
 watch-less: less
 	watchr -e 'watch("(^js/.*\.js)|(^css/.*\.less)") {system "make less"};'
 
-setup: pygments
+setup: pygments hspec
 	bundle install
 
 pygments:
 	git clone https://github.com/sol/pygments -b hspec-doc
+
+hspec:
+	cd .. && \
+		cabal sandbox init && \
+		cabal install --only-dependencies && \
+		cabal build
 
 clean:
 	-rm -r _site
