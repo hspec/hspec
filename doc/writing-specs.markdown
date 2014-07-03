@@ -68,3 +68,27 @@ main = hspec $ before flushDb $ do
       it "returns 0" $ do
         callApi "GET" "/api/users/count" `shouldReturn` 0
 ```
+
+### Using \`pending\` and \`pendingWith\`
+
+`pending`/`pendingWith` can be used as a kind of TODO list while you are
+writing your specs.  If you think of some behaviour that your code should
+satisfy, but you are working on something else, you can add a spec item and
+just set it to pending.
+
+```hspec
+main :: IO ()
+main = hspec $ do
+  describe "/login" $ do
+    it "should use correct status codes" $ do
+      pending
+    it "should require basic authentication" $ do
+      pendingWith "need to fix base64 first"
+```
+
+It's advisable to resolve all pending specs before committing your changes.
+
+The report produced at the end of testing counts passed, failed, and pending
+specs separately, and having unresolved pending specs does not cause your test
+suite to fail; that is, it can still exit with a status code of 0 if there are
+unresolved pending specs.
