@@ -88,21 +88,24 @@ main = hspec $ after truncateDatabase $ do
 whatever setup and teardown is necessary.
 
 ```hspec
+serveStubbedApi :: String -> Int -> IO Server
+stopServer :: Server -> IO ()
+
 withStubbedApi :: IO () -> IO ()
-withStubbedApi action = do
-  server <- serveStubbedApi "localhost" 80
-  action
-  stopServer server
+withStubbedApi action =
+  bracket (serveStubbedApi "localhost" 80)
+          stopServer
+          (const action)
 
 main :: IO ()
 main = hspec $ around withStubbedApi $ do
   describe "api client" $ do
     it "should authenticate" $ do
       c <- newClient (Just ("user", "pass"))
-      get "/api/auth" `shouldReturn` http200
+      get c "/api/auth" `shouldReturn` http200
     it "should allow anonymous access" $ do
       c <- newClient Nothing
-      get "/api/dogs" `shouldReturn` http200
+      get c "/api/dogs" `shouldReturn` http200
 ```
 
 Hooks do not support passing values to spec items (for example, if you wanted
