@@ -105,6 +105,29 @@ main = hspec $ around withStubbedApi $ do
       get "/api/dogs" `shouldReturn` http200
 ```
 
+Hooks do not support passing values to spec items (for example, if you wanted
+to open a database connection before each item and pass the connection in).
+However this shouldn't be a problem; you can just do something like this:
+
+```hspec
+openConnection :: IO Connection
+openConnection = ...
+
+closeConnection :: Connection -> IO ()
+closeConnection = ...
+
+withDatabaseConnection :: (Connection -> IO ()) -> IO ()
+withDatabaseConnection = bracket openConnection closeConnection
+
+spec :: Spec
+spec = do
+  describe "createRecipe" $ do
+      it "creates a new recipe" $ withDatabaseConnection $ \c -> do
+        let ingredients = [Eggs, Butter, Flour, Sugar]
+        createRecipe c (Recipe "Cake" ingredients)
+        getRecipe c "Cake" `shouldReturn` ingredients
+```
+
 ### Using \`pending\` and \`pendingWith\`
 
 `pending`/`pendingWith` can be used as a kind of TODO list while you are
