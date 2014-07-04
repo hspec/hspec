@@ -84,8 +84,8 @@ main = hspec $ after truncateDatabase $ do
       countUsers `shouldReturn` 0
 ```
 
-`around` is passed the `IO` action for each spec item so that it can
-perform whatever setup or teardown is necessary.
+`around` is passed an `IO` action for each spec item so that it can perform
+whatever setup and teardown is necessary.
 
 ```hspec
 withStubbedApi :: IO () -> IO ()
