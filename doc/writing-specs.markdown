@@ -51,7 +51,7 @@ main = hspec $ do
         parse "some invalid input" `shouldBe` Left "parse error"
 ```
 
-### Using \`before\`
+### Using hooks: \`before\`, \`after\`, \`around\`
 
 `before` runs a custom `IO` action before every spec item. For example, if you
 have an action `flushDb` which flushes your database, you can run it before
@@ -67,6 +67,42 @@ main = hspec $ before flushDb $ do
     context "when there are no users" $ do
       it "returns 0" $ do
         callApi "GET" "/api/users/count" `shouldReturn` 0
+```
+
+Similarly, `after` runs a custom `IO` action after every spec item:
+
+```hspec
+main :: IO ()
+main = hspec $ after truncateDatabase $ do
+  describe "createUser" $ do
+      it "creates a new user" $ do
+        let eva = User (UserId 3) (Name "Eva") (Age 28)
+        createUser eva
+        getUser (UserId 3) `shouldReturn` eva
+  describe "countUsers" $ do
+    it "counts all registered users" $ do
+      countUsers `shouldReturn` 0
+```
+
+`around` is passed the `IO` action for each spec item so that it can
+perform whatever setup or teardown is necessary.
+
+```hspec
+withStubbedApi :: IO () -> IO ()
+withStubbedApi action = do
+  server <- serveStubbedApi "localhost" 80
+  action
+  stopServer server
+
+main :: IO ()
+main = hspec $ around withStubbedApi $ do
+  describe "api client" $ do
+    it "should authenticate" $ do
+      c <- newClient (Just ("user", "pass"))
+      get "/api/auth" `shouldReturn` http200
+    it "should allow anonymous access" $ do
+      c <- newClient Nothing
+      get "/api/dogs" `shouldReturn` http200
 ```
 
 ### Using \`pending\` and \`pendingWith\`
