@@ -55,3 +55,4 @@ To run the test suite do:
  * Alan Zimmerman
  * Ron Watkins
  * Daniel Gröber
+ * Harry Garrood
