@@ -75,10 +75,10 @@ Similarly, `after` runs a custom `IO` action after every spec item:
 main :: IO ()
 main = hspec $ after truncateDatabase $ do
   describe "createUser" $ do
-      it "creates a new user" $ do
-        let eva = User (UserId 3) (Name "Eva") (Age 28)
-        createUser eva
-        getUser (UserId 3) `shouldReturn` eva
+    it "creates a new user" $ do
+      let eva = User (UserId 3) (Name "Eva") (Age 28)
+      createUser eva
+      getUser (UserId 3) `shouldReturn` eva
   describe "countUsers" $ do
     it "counts all registered users" $ do
       countUsers `shouldReturn` 0
@@ -125,10 +125,10 @@ withDatabaseConnection = bracket openConnection closeConnection
 spec :: Spec
 spec = do
   describe "createRecipe" $ do
-      it "creates a new recipe" $ withDatabaseConnection $ \c -> do
-        let ingredients = [Eggs, Butter, Flour, Sugar]
-        createRecipe c (Recipe "Cake" ingredients)
-        getRecipe c "Cake" `shouldReturn` ingredients
+    it "creates a new recipe" $ withDatabaseConnection $ \c -> do
+      let ingredients = [Eggs, Butter, Flour, Sugar]
+      createRecipe c (Recipe "Cake" ingredients)
+      getRecipe c "Cake" `shouldReturn` ingredients
 ```
 
 ### Using \`pending\` and \`pendingWith\`
