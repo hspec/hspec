@@ -51,7 +51,7 @@ main = hspec $ do
         parse "some invalid input" `shouldBe` Left "parse error"
 ```
 
-### Using \`before\`
+### Using hooks: \`before\`, \`after\`, \`around\`
 
 `before` runs a custom `IO` action before every spec item. For example, if you
 have an action `flushDb` which flushes your database, you can run it before
@@ -67,6 +67,68 @@ main = hspec $ before flushDb $ do
     context "when there are no users" $ do
       it "returns 0" $ do
         callApi "GET" "/api/users/count" `shouldReturn` 0
+```
+
+Similarly, `after` runs a custom `IO` action after every spec item:
+
+```hspec
+main :: IO ()
+main = hspec $ after truncateDatabase $ do
+  describe "createUser" $ do
+      it "creates a new user" $ do
+        let eva = User (UserId 3) (Name "Eva") (Age 28)
+        createUser eva
+        getUser (UserId 3) `shouldReturn` eva
+  describe "countUsers" $ do
+    it "counts all registered users" $ do
+      countUsers `shouldReturn` 0
+```
+
+`around` is passed an `IO` action for each spec item so that it can perform
+whatever setup and teardown is necessary.
+
+```hspec
+serveStubbedApi :: String -> Int -> IO Server
+stopServer :: Server -> IO ()
+
+withStubbedApi :: IO () -> IO ()
+withStubbedApi action =
+  bracket (serveStubbedApi "localhost" 80)
+          stopServer
+          (const action)
+
+main :: IO ()
+main = hspec $ around withStubbedApi $ do
+  describe "api client" $ do
+    it "should authenticate" $ do
+      c <- newClient (Just ("user", "pass"))
+      get c "/api/auth" `shouldReturn` http200
+    it "should allow anonymous access" $ do
+      c <- newClient Nothing
+      get c "/api/dogs" `shouldReturn` http200
+```
+
+Hooks do not support passing values to spec items (for example, if you wanted
+to open a database connection before each item and pass the connection in).
+However this shouldn't be a problem; you can just do something like this:
+
+```hspec
+openConnection :: IO Connection
+openConnection = ...
+
+closeConnection :: Connection -> IO ()
+closeConnection = ...
+
+withDatabaseConnection :: (Connection -> IO ()) -> IO ()
+withDatabaseConnection = bracket openConnection closeConnection
+
+spec :: Spec
+spec = do
+  describe "createRecipe" $ do
+      it "creates a new recipe" $ withDatabaseConnection $ \c -> do
+        let ingredients = [Eggs, Butter, Flour, Sugar]
+        createRecipe c (Recipe "Cake" ingredients)
+        getRecipe c "Cake" `shouldReturn` ingredients
 ```
 
 ### Using \`pending\` and \`pendingWith\`
