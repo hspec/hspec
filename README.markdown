@@ -56,3 +56,4 @@ To run the test suite do:
  * Ron Watkins
  * Daniel Gröber
  * Harry Garrood
+ * Jeffrey Pigarelli
