@@ -55,5 +55,6 @@ To run the test suite do:
  * Alan Zimmerman
  * Ron Watkins
  * Daniel Gröber
+ * Zhang Yichao
  * Harry Garrood
  * Jeffrey Pigarelli
