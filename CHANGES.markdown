@@ -1,3 +1,7 @@
+## Next
+ - Add `BuildSpecs` constructor to interanal `SpecTree` data structure.  This
+   allows you to do `IO` while constructing the spec tree.
+
 ## Changes in 1.10.0
  - Do not use exception type to distinguish between synchronous/asynchronous
    exceptions (thanks to Michael Snoyman)
