@@ -5,9 +5,11 @@ import           Mock
 import           Data.IORef
 import           Data.List (isPrefixOf)
 
-import           Test.Hspec.Core (SpecTree(..), Item(..), Result(..), runSpecM)
+import           Test.Hspec.Core (Item(..), Result(..))
 import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H (hspecResult)
+
+import           Test.Hspec.Runner.Tree
 
 main :: IO ()
 main = hspec spec
@@ -42,29 +44,29 @@ spec = do
       length r `shouldBe` 3
 
     it "can be nested" $ do
-      let [SpecGroup foo [SpecGroup bar [SpecItem baz _]]] = runSpecM $ do
-            H.describe "foo" $ do
-              H.describe "bar" $ do
-                H.it "baz" True
+      [Node foo [Node bar [Leaf baz _]]] <- toTree $ do
+        H.describe "foo" $ do
+          H.describe "bar" $ do
+            H.it "baz" True
       (foo, bar, baz) `shouldBe` ("foo", "bar", "baz")
 
     context "when no description is given" $ do
       it "uses a default description" $ do
-        let [SpecGroup d _] = runSpecM (H.describe "" (pure ()))
+        [Node d _] <- toTree (H.describe "" (pure ()))
         d `shouldBe` "(no description given)"
 
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
-      let [SpecItem requirement _] = runSpecM (H.it "whatever" True)
+      [Leaf requirement _] <- toTree (H.it "whatever" True)
       requirement `shouldBe` "whatever"
 
     it "takes an example of that behavior" $ do
-      let [SpecItem _ item] = runSpecM (H.it "whatever" True)
+      [Leaf _ item] <- toTree (H.it "whatever" True)
       itemExample item defaultParams id noOpProgressCallback `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do
-        let [SpecItem requirement _] = runSpecM (H.it "" True)
+        [Leaf requirement _] <- toTree (H.it "" True)
         requirement `shouldBe` "(unspecified behavior)"
 
   describe "example" $ do
@@ -76,14 +78,14 @@ spec = do
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do
-      let [SpecItem _ item] = runSpecM . H.parallel $ H.it "whatever" True
+      [Leaf _ item] <- toTree . H.parallel $ H.it "whatever" True
       itemIsParallelizable item `shouldBe` True
 
     it "is applied recursively" $ do
-      let [SpecGroup _ [SpecGroup _ [SpecItem _ item]]] = runSpecM . H.parallel $ do
-            H.describe "foo" $ do
-              H.describe "bar" $ do
-                H.it "baz" True
+      [Node _ [Node _ [Leaf _ item]]] <- toTree . H.parallel $ do
+        H.describe "foo" $ do
+          H.describe "bar" $ do
+            H.it "baz" True
       itemIsParallelizable item `shouldBe` True
 
   describe "before" $ do

@@ -147,7 +147,7 @@ data Formatter = Formatter {
 
 -- | used to notify the progress of the currently evaluated example
 --
--- NOTE: This is only called when interactive/color mode.
+-- /Note/: This is only called when interactive/color mode.
 , exampleProgress     :: Handle -> Path -> Progress -> IO ()
 
 -- | evaluated after each successful example
