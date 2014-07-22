@@ -10,7 +10,7 @@ data Tree a
   deriving (Eq, Show, Functor)
 
 toTree :: Spec -> IO [Tree Item]
-toTree spec = concat <$> mapM go (runSpecM spec)
+toTree spec = concat <$> (runSpecM spec >>= mapM go)
   where
     go x = case x of
       SpecGroup label xs -> return . Node label . concat <$> mapM go xs

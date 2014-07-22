@@ -17,13 +17,16 @@ module Test.Hspec.Core.Type (
 , it
 , forceResult
 
+, runIO
+
 , pending
 , pendingWith
 ) where
 
 import qualified Control.Exception as E
 import           Control.Applicative
-import           Control.Monad.Trans.Writer (Writer, execWriter, tell)
+import           Control.Monad.Trans.Writer
+import           Control.Monad.IO.Class (liftIO)
 import           Data.Typeable (Typeable)
 import           Data.List (isPrefixOf)
 import           Data.Maybe (fromMaybe)
@@ -43,16 +46,25 @@ import           Control.DeepSeq (deepseq)
 type Spec = SpecM ()
 
 -- | A writer monad for `SpecTree` forests.
-newtype SpecM a = SpecM (Writer [SpecTree] a)
+newtype SpecM a = SpecM (WriterT [SpecTree] IO a)
   deriving (Functor, Applicative, Monad)
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
-runSpecM :: Spec -> [SpecTree]
-runSpecM (SpecM specs) = execWriter specs
+runSpecM :: Spec -> IO [SpecTree]
+runSpecM (SpecM specs) = execWriterT specs
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
 fromSpecList :: [SpecTree] -> Spec
 fromSpecList = SpecM . tell
+
+-- | Run an IO action while constructing the spec tree.
+--
+-- `SpecM` is a monad to construct a spec tree, without executing any spec
+-- items.  `runIO` allows you to run IO actions during this construction phase.
+-- The IO action is always run when the spec tree is constructed (e.g. even
+-- when @--dry-run@ is specified).
+runIO :: IO a -> SpecM a
+runIO = SpecM . liftIO
 
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
@@ -86,7 +98,7 @@ data Item = Item {
 }
 
 mapSpecItem :: (Item -> Item) -> Spec -> Spec
-mapSpecItem f = fromSpecList . map go . runSpecM
+mapSpecItem f = fromSpecList . return . BuildSpecs . fmap (map go) . runSpecM
   where
     go :: SpecTree -> SpecTree
     go spec = case spec of
