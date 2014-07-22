@@ -31,7 +31,7 @@ To run the test suite do:
  - Add `find hspec-discover/test-data/ -type f` under `extra-source-files` in
    `hspec.cabal`
  - Make sure that `other-modules` for `test-suite spec` is up-to-date
- - Use `./mk-sdist.sh` to create and test the tarball
+ - Release new version of `hspec`
 
 ## Contributors
 
