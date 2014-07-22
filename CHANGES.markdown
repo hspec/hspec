@@ -1,4 +1,4 @@
-## Next
+## Changes in 1.11.0
  - Add `BuildSpecs` constructor to internal `SpecTree` data structure.  This
    allows you to do `IO` while constructing the spec tree.
  - Add `runIO`
