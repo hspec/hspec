@@ -1,5 +1,5 @@
 ## Next
- - Add `BuildSpecs` constructor to interanal `SpecTree` data structure.  This
+ - Add `BuildSpecs` constructor to internal `SpecTree` data structure.  This
    allows you to do `IO` while constructing the spec tree.
 
 ## Changes in 1.10.0
