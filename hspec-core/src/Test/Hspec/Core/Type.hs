@@ -67,6 +67,8 @@ fromSpecList = SpecM . tell
 -- items.  `runIO` allows you to run IO actions during this construction phase.
 -- The IO action is always run when the spec tree is constructed (e.g. even
 -- when @--dry-run@ is specified).
+-- If you do not need the result of the IO action to construct the spec tree,
+-- `Test.Hspec.beforeAll` may be more suitable for your use case.
 runIO :: IO r -> SpecM a r
 runIO = SpecM . liftIO
 
