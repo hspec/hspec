@@ -18,6 +18,7 @@ module Test.Hspec (
 , describe
 , context
 , it
+, specify
 , example
 , pending
 , pendingWith
@@ -60,6 +61,10 @@ context = describe
 -- >     absolute (-1) == 1
 it :: Example a => String -> a -> Spec
 it label action = fromSpecList [Core.it label action]
+
+-- | An alias for `it`.
+specify :: Example a => String -> a -> Spec
+specify = it
 
 -- | This is a type restricted version of `id`.  It can be used to get better
 -- error messages on type mismatches.
