@@ -58,3 +58,4 @@ To run the test suite do:
  * Zhang Yichao
  * Harry Garrood
  * Jeffrey Pigarelli
+ * Ryan Mulligan
