@@ -45,7 +45,11 @@ formatException :: E.SomeException -> String
 formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
 safeTry :: IO a -> IO (Either E.SomeException a)
-safeTry action = withAsync (action >>= E.evaluate) waitCatch
+safeTry action =
+    withAsync (action >>= E.evaluate) waitCatch'
+  where
+    waitCatch' a = waitCatch a
+        `E.catch` \E.BlockedIndefinitelyOnSTM -> waitCatch a
 
 -- |
 -- A tuple that represents the location of an example within a spec.
