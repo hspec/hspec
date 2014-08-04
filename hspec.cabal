@@ -113,6 +113,7 @@ test-suite spec
     , quickcheck-io
     , hspec-expectations
     , async
+    , stm
 
     , hspec-meta >= 1.9.1
     , process

@@ -1,7 +1,9 @@
+{-# LANGUAGE PatternGuards #-}
 module Test.Hspec.UtilSpec (main, spec) where
 
 import           Helper
 import           Control.Concurrent
+import           Control.Concurrent.STM (atomically, retry)
 import qualified Control.Exception as E
 
 import           Test.Hspec.Util
@@ -57,6 +59,22 @@ spec = do
       takeMVar sync
       throwTo threadId E.UserInterrupt
       readMVar mvar `shouldReturn` E.UserInterrupt
+
+    it "survives MVar blocked exceptions" $ do
+      res <- safeTry $ newEmptyMVar >>= takeMVar
+      case res :: Either E.SomeException () of
+        Left e
+            | Just E.BlockedIndefinitelyOnMVar <- E.fromException e
+                -> return ()
+        _ -> error $ show res
+
+    it "survives STM blocked exceptions" $ do
+      res <- safeTry $ atomically retry
+      case res :: Either E.SomeException () of
+        Left e
+            | Just E.BlockedIndefinitelyOnSTM <- E.fromException e
+                -> return ()
+        _ -> error $ show res
 
   describe "filterPredicate" $ do
     it "tries to match a pattern against a path" $ do
