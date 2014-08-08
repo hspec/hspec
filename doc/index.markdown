@@ -5,7 +5,7 @@ layout: default
 # User's Manual
 
 Hspec is a testing framework for [Haskell](http://www.haskell.org/).  It is
-roughly based on the Ruby library [RSpec](http://rspec.info/).  Some of Hspec's
+inspired by the Ruby library [RSpec](http://rspec.info/).  Some of Hspec's
 distinctive features are:
 
  * a friendly DSL for defining tests
