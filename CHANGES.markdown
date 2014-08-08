@@ -1,4 +1,4 @@
-## Next
+## Changes in 1.11.1
  - Add `specify` as an alias for `it`
 
 ## Changes in 1.11.0
