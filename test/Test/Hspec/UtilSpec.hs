@@ -24,6 +24,10 @@ spec = do
     it "returns a plural word given the number 0" $ do
       pluralize 0 "thing" `shouldBe` "0 things"
 
+  describe "formatException" $ do
+    it "converts exception to string" $ do
+      formatException (E.toException E.DivideByZero) `shouldBe` "ArithException (divide by zero)"
+
   describe "lineBreaksAt" $ do
     it "inserts line breaks at word boundaries" $ do
       lineBreaksAt 20 "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod"

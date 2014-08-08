@@ -16,31 +16,18 @@ import           Control.Concurrent.Async
 
 import           Test.Hspec.Compat (showType)
 
-
--- | Create a more readable display of a quantity of something.
---
--- Examples:
---
--- >>> pluralize 0 "example"
--- "0 examples"
---
--- >>> pluralize 1 "example"
--- "1 example"
---
--- >>> pluralize 2 "example"
--- "2 examples"
 pluralize :: Int -> String -> String
 pluralize 1 s = "1 " ++ s
 pluralize n s = show n ++ " " ++ s ++ "s"
 
 -- | Convert an exception to a string.
 --
--- The type of the exception is included.  Here is an example:
+-- This is different from `show`.  The type of the exception is included, e.g.
+-- `E.ArithException` is turned into:
 --
--- >>> import Control.Applicative
--- >>> import Control.Exception
--- >>> either formatException show <$> (try . evaluate) (1 `div` 0)
+-- @
 -- "ArithException (divide by zero)"
+-- @
 formatException :: E.SomeException -> String
 formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
 
