@@ -23,6 +23,7 @@ module Test.Hspec (
 , pending
 , pendingWith
 , before
+, beforeAll
 , after
 , around
 , parallel
@@ -33,6 +34,7 @@ module Test.Hspec (
 ) where
 
 import           Control.Exception (finally)
+import           Control.Concurrent.MVar
 
 import           Test.Hspec.Core.Type hiding (describe, it)
 import           Test.Hspec.Runner
@@ -88,6 +90,22 @@ parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
 -- | Run a custom action before every spec item.
 before :: IO () -> Spec -> Spec
 before action = around (action >>)
+
+-- | Run a custom action before all spec items.
+beforeAll :: IO () -> Spec -> Spec
+beforeAll action = fromSpecList . return . BuildSpecs . go
+  where
+    go spec = do
+      mvar <- newMVar Nothing
+      let action_ = memoize mvar action
+      runSpecM $ before action_ spec
+
+memoize :: MVar (Maybe a) -> IO a -> IO a
+memoize mvar action = modifyMVar mvar $ \ma -> case ma of
+  Just a -> return (ma, a)
+  Nothing -> do
+    a <- action
+    return (Just a, a)
 
 -- | Run a custom action after every spec item.
 after :: IO () -> Spec -> Spec

@@ -1,3 +1,6 @@
+## Changes in 1.11.2
+  - Add `beforeAll`
+
 ## Changes in 1.11.1
  - Add `specify` as an alias for `it`
 

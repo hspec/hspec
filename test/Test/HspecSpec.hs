@@ -111,6 +111,21 @@ spec = do
           H.it "foo" $ do
             readIORef ref `shouldReturn` 2
 
+  describe "beforeAll" $ do
+    it "runs an action before the first spec item" $ do
+      ref <- newIORef ([] :: [String])
+      let append n = modifyIORef ref (++ return n)
+      silence $ H.hspec $ H.beforeAll (append "beforeAll") $ do
+        H.it "foo" $ do
+          append "foo"
+        H.it "bar" $ do
+          append "bar"
+      readIORef ref `shouldReturn` [
+          "beforeAll"
+        , "foo"
+        , "bar"
+        ]
+
   describe "after" $ do
     it "runs an action after each spec item" $ do
       mock <- newMock
