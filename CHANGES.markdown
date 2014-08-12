@@ -1,3 +1,6 @@
+## Changes in 1.11.3
+  - Depend on `hspec-expectations-0.6.1`
+
 ## Changes in 1.11.2
   - Add `beforeAll`
 
