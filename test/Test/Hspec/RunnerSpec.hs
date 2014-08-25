@@ -27,7 +27,14 @@ quickCheckOptions :: [([Char], Args -> Int)]
 quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]
 
 prop_foo :: Integer -> Bool
-prop_foo = (/= 26)
+prop_foo = (/= n_for_prop_foo)
+
+n_for_prop_foo :: Integer
+#if MIN_VERSION_QuickCheck(2,7,0)
+n_for_prop_foo = 13
+#else
+n_for_prop_foo = 15
+#endif
 
 runPropFoo :: [String] -> IO String
 runPropFoo args = fmap (unlines . normalizeSummary . lines) . capture_ . ignoreExitCode . withArgs args . H.hspec $ H.it "foo" $ property prop_foo
@@ -35,11 +42,11 @@ runPropFoo args = fmap (unlines . normalizeSummary . lines) . capture_ . ignoreE
 prop_foo_result_with_seed_42 :: String
 prop_foo_result_with_seed_42 = unlines [
 #if MIN_VERSION_QuickCheck(2,7,0)
-            "Falsifiable (after 31 tests): "
+            "Falsifiable (after 18 tests): "
 #else
-            "Falsifiable (after 30 tests): "
+            "Falsifiable (after 90 tests): "
 #endif
-          , "26"
+          , show n_for_prop_foo
           ]
 
 spec :: Spec

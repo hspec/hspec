@@ -73,7 +73,7 @@ spec = do
         H.Fail r <- evaluateExample $ property $ \x y -> x + y == (x * y :: Int)
         r `shouldBe` intercalate "\n" [
 #if MIN_VERSION_QuickCheck(2,7,0)
-            "Falsifiable (after 2 tests and 2 shrinks): "
+            "Falsifiable (after 2 tests and 1 shrink): "
 #else
             "Falsifiable (after 1 test and 3 shrinks): "
 #endif
@@ -108,7 +108,7 @@ spec = do
           H.Fail r <- evaluateExample $ property $ \x y -> x + y `shouldBe` (x * y :: Int)
           r `shouldBe` intercalate "\n" [
 #if MIN_VERSION_QuickCheck(2,7,0)
-              "Falsifiable (after 2 tests and 2 shrinks): "
+              "Falsifiable (after 2 tests and 1 shrink): "
 #else
               "Falsifiable (after 1 test and 3 shrinks): "
 #endif
