@@ -46,16 +46,16 @@ Library
   hs-source-dirs:
       src
   build-depends:
-      base          == 4.*
+      base == 4.*
     , random
     , tf-random
     , setenv
     , ansi-terminal >= 0.5
     , time
-    , transformers  >= 0.2.2.0
+    , transformers >= 0.2.2.0
     , deepseq
-    , HUnit         >= 1.2.5
-    , QuickCheck    >= 2.5.1
+    , HUnit >= 1.2.5
+    , QuickCheck >= 2.5.1
     , quickcheck-io
     , hspec-expectations == 0.6.1.*
     , async >= 2
@@ -104,11 +104,11 @@ test-suite spec
   ghc-options:
       -Wall -Werror
   build-depends:
-      base          == 4.*
+      base == 4.*
     , random
     , tf-random
     , setenv
-    , silently      >= 1.2.4
+    , silently >= 1.2.4
     , ansi-terminal
     , time
     , transformers
@@ -133,7 +133,7 @@ test-suite example
   ghc-options:
       -Wall -Werror
   build-depends:
-      base    == 4.*
+      base == 4.*
     , hspec
     , QuickCheck
 
@@ -149,7 +149,7 @@ executable hspec-discover
       Run
       Config
   build-depends:
-      base    == 4.*
+      base == 4.*
     , filepath
     , directory
 
@@ -167,7 +167,7 @@ test-suite hspec-discover-spec
       RunSpec
       ConfigSpec
   build-depends:
-      base    == 4.*
+      base == 4.*
     , filepath
     , directory
     , hspec-meta
