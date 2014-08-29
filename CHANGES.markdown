@@ -1,3 +1,6 @@
+## Changes in 1.11.4
+  - Make own test suite more robust towards changes in `random` / `QuickCheck`
+
 ## Changes in 1.11.3
   - Depend on `hspec-expectations-0.6.1`
 
