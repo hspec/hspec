@@ -134,7 +134,7 @@ test-suite spec
     , hspec-expectations
     , async
 
-    , hspec-meta == 1.11.3
+    , hspec-meta == 1.11.4
     , process
     , ghc-paths
 
