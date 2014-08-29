@@ -79,6 +79,21 @@ Library
       Test.Hspec.Formatters.Internal
       Test.Hspec.Timer
 
+executable hspec-discover
+  ghc-options:
+      -Wall
+  hs-source-dirs:
+      hspec-discover/src
+  main-is:
+      Main.hs
+  other-modules:
+      Run
+      Config
+  build-depends:
+      base == 4.*
+    , filepath
+    , directory
+
 test-suite spec
   type:
       exitcode-stdio-1.0
@@ -136,22 +151,6 @@ test-suite example
       base == 4.*
     , hspec
     , QuickCheck
-
--- hspec-discover
-executable hspec-discover
-  ghc-options:
-      -Wall
-  hs-source-dirs:
-      hspec-discover/src
-  main-is:
-      Main.hs
-  other-modules:
-      Run
-      Config
-  build-depends:
-      base == 4.*
-    , filepath
-    , directory
 
 test-suite hspec-discover-spec
   type:
