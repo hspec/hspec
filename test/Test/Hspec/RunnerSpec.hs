@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 module Test.Hspec.RunnerSpec (main, spec) where
 
 import           Helper
@@ -17,6 +16,7 @@ import qualified Test.Hspec as H
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H (Result(..))
 import qualified Test.Hspec.Formatters as H (silent)
+import qualified Test.Hspec.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
 
@@ -26,21 +26,11 @@ main = hspec spec
 quickCheckOptions :: [([Char], Args -> Int)]
 quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]
 
-prop_foo :: Integer -> Bool
-prop_foo = (/= 26)
-
 runPropFoo :: [String] -> IO String
-runPropFoo args = fmap (unlines . normalizeSummary . lines) . capture_ . ignoreExitCode . withArgs args . H.hspec $ H.it "foo" $ property prop_foo
-
-prop_foo_result_with_seed_42 :: String
-prop_foo_result_with_seed_42 = unlines [
-#if MIN_VERSION_QuickCheck(2,7,0)
-            "Falsifiable (after 31 tests): "
-#else
-            "Falsifiable (after 30 tests): "
-#endif
-          , "26"
-          ]
+runPropFoo args = unlines . normalizeSummary . lines <$> do
+  capture_ . ignoreExitCode . withArgs args . H.hspec .  H.modifyMaxSuccess (const 1000000) $ do
+    H.it "foo" $ do
+      property (/= (23 :: Int))
 
 spec :: Spec
 spec = do
@@ -316,7 +306,7 @@ spec = do
     context "with --seed" $ do
       it "uses specified seed" $ do
         r <- runPropFoo ["--seed", "42"]
-        r `shouldContain` prop_foo_result_with_seed_42
+        runPropFoo ["--seed", "42"] `shouldReturn` r
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do

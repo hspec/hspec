@@ -57,7 +57,7 @@ x `shouldEndWith` y = x `shouldSatisfy` isSuffixOf y
 
 -- replace times in summary with zeroes
 normalizeSummary :: [String] -> [String]
-normalizeSummary xs = map f xs
+normalizeSummary = map f
   where
     f x | "Finished in " `isPrefixOf` x = map g x
         | otherwise = x
@@ -65,7 +65,7 @@ normalizeSummary xs = map f xs
         | otherwise  = x
 
 defaultParams :: H.Params
-defaultParams = H.Params stdArgs {replay = Just (mkGen 23, 0)} (H.configSmallCheckDepth H.defaultConfig)
+defaultParams = H.Params stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000} (H.configSmallCheckDepth H.defaultConfig)
 
 noOpProgressCallback :: H.ProgressCallback
 noOpProgressCallback _ = return ()

@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, ScopedTypeVariables #-}
 module Test.Hspec.Core.TypeSpec (main, spec) where
 
 import           Helper
@@ -70,13 +70,9 @@ spec = do
         return ()
 
       it "shows what falsified it" $ do
-        H.Fail r <- evaluateExample $ property $ \x y -> x + y == (x * y :: Int)
-        r `shouldBe` intercalate "\n" [
-#if MIN_VERSION_QuickCheck(2,7,0)
-            "Falsifiable (after 2 tests and 2 shrinks): "
-#else
-            "Falsifiable (after 1 test and 3 shrinks): "
-#endif
+        H.Fail r <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> False
+        r `shouldBe` intercalate "\n"  [
+            "Falsifiable (after 1 test): "
           , "0"
           , "1"
           ]
@@ -90,30 +86,26 @@ spec = do
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
         H.Success <- evaluateExampleWith action (property $ modifyIORef ref succ)
-        readIORef ref `shouldReturn` 200
+        readIORef ref `shouldReturn` 2000
 
       it "pretty-prints exceptions" $ do
-        -- pendingWith "this probably needs a patch to QuickCheck"
-        evaluateExample (property $ (error "foobar" :: Int -> Bool)) `shouldReturn` (H.Fail . intercalate "\n") [
+        H.Fail r <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (error "foobar" :: Bool))
+        r `shouldBe` intercalate "\n" [
 #if MIN_VERSION_QuickCheck(2,7,0)
             "uncaught exception: ErrorCall (foobar) (after 1 test)"
 #else
-            "Exception: 'foobar' (after 1 test and 2 shrinks): "
+            "Exception: 'foobar' (after 1 test): "
 #endif
           , "0"
           ]
 
       context "when used with shouldBe" $ do
         it "shows what falsified it" $ do
-          H.Fail r <- evaluateExample $ property $ \x y -> x + y `shouldBe` (x * y :: Int)
+          H.Fail r <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> 23 `shouldBe` (42 :: Int)
           r `shouldBe` intercalate "\n" [
-#if MIN_VERSION_QuickCheck(2,7,0)
-              "Falsifiable (after 2 tests and 2 shrinks): "
-#else
-              "Falsifiable (after 1 test and 3 shrinks): "
-#endif
-            , "expected: 0"
-            , " but got: 1"
+              "Falsifiable (after 1 test): "
+            , "expected: 42"
+            , " but got: 23"
             , "0"
             , "1"
             ]

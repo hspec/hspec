@@ -119,7 +119,7 @@ test-suite spec
     , hspec-expectations
     , async
 
-    , hspec-meta >= 1.9.1
+    , hspec-meta == 1.11.3
     , process
     , ghc-paths
 
