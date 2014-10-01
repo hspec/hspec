@@ -1,3 +1,6 @@
+## next
+  - Omit empty `describe` groups from report
+
 ## Changes in 1.11.4
   - Make test suite independent from QuickCheck seed (see #187)
 

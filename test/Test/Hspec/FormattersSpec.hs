@@ -154,6 +154,28 @@ spec = do
       r <- runSpec testSpec
       r `shouldSatisfy` any (== "     # PENDING: pending message")
 
+    context "with an empty group" $ do
+      it "omits that group from the report" $ do
+        r <- runSpec $ do
+          H.describe "foo" $ do
+            H.it "example 1" True
+          H.describe "bar" $ do
+            return ()
+          H.describe "baz" $ do
+            H.it "example 2" True
+
+        normalizeSummary r `shouldBe` [
+            ""
+          , "foo"
+          , "  - example 1"
+          , ""
+          , "baz"
+          , "  - example 2"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "2 examples, 0 failures"
+          ]
+
     context "same as failed_examples" $ do
       failed_examplesSpec H.progress
 

@@ -114,7 +114,7 @@ hspecWith c_ spec_ = withHandle c_ $ \h -> do
         | otherwise      = spec_
 
   useColor <- doesUseColor h c
-  filteredSpec <- maybe id filterSpecs (configFilterPredicate c) <$> toTree spec
+  filteredSpec <- filterSpecs (fromMaybe (const True) (configFilterPredicate c)) <$> toTree spec
 
   withHiddenCursor useColor h $
     runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
