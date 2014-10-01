@@ -113,7 +113,7 @@ spec = do
 
   describe "beforeAll" $ do
     it "runs an action before the first spec item" $ do
-      ref <- newIORef ([] :: [String])
+      ref <- newIORef []
       let append n = modifyIORef ref (++ return n)
       silence $ H.hspec $ H.beforeAll (append "beforeAll") $ do
         H.it "foo" $ do
