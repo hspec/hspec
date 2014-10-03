@@ -25,6 +25,7 @@ module Test.Hspec (
 , before
 , beforeAll
 , after
+, afterAll
 , around
 , parallel
 , runIO
@@ -83,7 +84,7 @@ specify = it
 example :: Expectation -> Expectation
 example = id
 
--- | Run examples of given spec in parallel.
+-- | Run spec items of given `Spec` in parallel.
 parallel :: Spec -> Spec
 parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
 
@@ -91,7 +92,7 @@ parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
 before :: IO () -> Spec -> Spec
 before action = around (action >>)
 
--- | Run a custom action before all spec items.
+-- | Run a custom action before the first spec item.
 beforeAll :: IO () -> Spec -> Spec
 beforeAll action = fromSpecList . return . BuildSpecs . go
   where
@@ -110,6 +111,10 @@ memoize mvar action = modifyMVar mvar $ \ma -> case ma of
 -- | Run a custom action after every spec item.
 after :: IO () -> Spec -> Spec
 after action = around (`finally` action)
+
+-- | Run a custom action after the last spec item.
+afterAll :: IO () -> Spec -> Spec
+afterAll action = fromSpecList . return . SpecWithCleanup action . BuildSpecs . runSpecM
 
 -- | Run a custom action before and/or after every spec item.
 around :: (IO () -> IO ()) -> Spec -> Spec

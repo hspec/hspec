@@ -48,15 +48,21 @@ import           Test.Hspec.Runner.Eval
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
 filterSpecs :: (Path -> Bool) -> [Tree a] -> [Tree a]
-filterSpecs p = goSpecs []
+filterSpecs p = go []
   where
-    goSpecs groups = mapMaybe (goSpec groups)
+    go :: [String] -> [Tree a] -> [Tree a]
+    go groups = mapMaybe (goSpec groups)
 
+    goSpecs :: [String] -> [Tree a] -> ([Tree a] -> b) -> Maybe b
+    goSpecs groups specs ctor = case go groups specs of
+      [] -> Nothing
+      xs -> Just (ctor xs)
+
+    goSpec :: [String] -> Tree a -> Maybe (Tree a)
     goSpec groups spec = case spec of
       Leaf requirement _ -> guard (p (groups, requirement)) >> return spec
-      Node group specs -> case goSpecs (groups ++ [group]) specs of
-        [] -> Nothing
-        xs -> Just (Node group xs)
+      Node group specs -> goSpecs (groups ++ [group]) specs (Node group)
+      NodeWithCleanup action specs -> goSpecs groups specs (NodeWithCleanup action)
 
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.

@@ -126,6 +126,14 @@ spec = do
         , "bar"
         ]
 
+    context "when used with an empty list of examples" $ do
+      it "does not run specified action" $ do
+        ref <- newIORef []
+        let append n = modifyIORef ref (++ return n)
+        silence $ H.hspec $ H.beforeAll (append "beforeAll") $ do
+          return ()
+        readIORef ref `shouldReturn` []
+
   describe "after" $ do
     it "runs an action after each spec item" $ do
       mock <- newMock
@@ -142,6 +150,29 @@ spec = do
         H.it "foo" $ do
           ioError $ userError "foo" :: IO ()
       mockCounter mock `shouldReturn` 1
+
+  describe "afterAll" $ do
+    it "runs an action after the last spec item" $ do
+      ref <- newIORef []
+      let append n = modifyIORef ref (++ return n)
+      silence $ H.hspec $ H.afterAll (append "afterAll") $ do
+        H.it "foo" $ do
+          append "foo"
+        H.it "bar" $ do
+          append "bar"
+      readIORef ref `shouldReturn` [
+          "foo"
+        , "bar"
+        , "afterAll"
+        ]
+
+    context "when used with an empty list of examples" $ do
+      it "does not run specified action" $ do
+        ref <- newIORef []
+        let append n = modifyIORef ref (++ return n)
+        silence $ H.hspec $ H.afterAll (append "afterAll") $ do
+          return ()
+        readIORef ref `shouldReturn` []
 
   describe "around" $ do
     it "wraps each spec item with an action" $ do

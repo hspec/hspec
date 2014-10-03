@@ -90,6 +90,7 @@ data Params = Params {
 data SpecTree =
     SpecGroup String [SpecTree]
   | BuildSpecs (IO [SpecTree])
+  | SpecWithCleanup (IO ()) SpecTree
   | SpecItem String Item
 
 data Item = Item {
@@ -102,9 +103,10 @@ mapSpecItem f = fromSpecList . return . BuildSpecs . fmap (map go) . runSpecM
   where
     go :: SpecTree -> SpecTree
     go spec = case spec of
-      SpecItem r item -> SpecItem r (f item)
-      BuildSpecs es -> BuildSpecs (map go <$> es)
       SpecGroup d es -> SpecGroup d (map go es)
+      BuildSpecs es -> BuildSpecs (map go <$> es)
+      SpecWithCleanup cleanup e -> SpecWithCleanup cleanup (go e)
+      SpecItem r item -> SpecItem r (f item)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree] -> SpecTree

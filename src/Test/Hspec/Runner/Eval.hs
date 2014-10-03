@@ -109,6 +109,9 @@ run chan reportProgress_ c formatter specs = do
       defer (exampleGroupStarted formatter (reverse rGroups) group)
       forM_ xs (queueSpec (group : rGroups))
       defer (exampleGroupDone formatter)
+    queueSpec rGroups (NodeWithCleanup action xs) = do
+      forM_ xs (queueSpec rGroups)
+      defer (liftIO action)
     queueSpec rGroups (Leaf requirement e) =
       queueExample (reverse rGroups, requirement) e
 

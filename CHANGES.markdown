@@ -1,4 +1,5 @@
 ## Changes in 1.12.0
+  - Add `afterAll` (see #188)
   - Omit empty `describe` groups from report
   - Do not print empty lines before/after spec groups
   - Do not pass position to `Formatte.exampleGroupStarted` (we can not support

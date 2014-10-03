@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hspec.HUnitSpec (main, spec) where
 
 import           Helper hiding (example)
@@ -10,7 +11,13 @@ main :: IO ()
 main = hspec spec
 
 shouldYield :: Test -> [Tree ()] -> Expectation
-a `shouldYield` b = map (() <$) <$> toTree (fromHUnitTest a) `shouldReturn` b
+a `shouldYield` b = map (Blind . (() <$)) <$> toTree (fromHUnitTest a) `shouldReturn` map Blind b
+
+instance Eq a => Eq (Tree a) where
+  x == y = case (x, y) of
+    (Node s1 xs, Node s2 ys) -> s1 == s2 && xs == ys
+    (Leaf s1 a1, Leaf s2 a2) -> s1 == s2 && a1 == a2
+    _ -> False
 
 spec :: Spec
 spec = do
