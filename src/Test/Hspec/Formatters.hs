@@ -108,7 +108,7 @@ instance IsFormatter Formatter where
 silent :: Formatter
 silent = Formatter {
   headerFormatter     = return ()
-, exampleGroupStarted = \_ _ _ -> return ()
+, exampleGroupStarted = \_ _ -> return ()
 , exampleGroupDone    = return ()
 , exampleProgress     = \_ _ _ -> return ()
 , exampleSucceeded    = \_ -> return ()
@@ -125,7 +125,7 @@ specdoc = silent {
   headerFormatter = do
     writeLine ""
 
-, exampleGroupStarted = \_ nesting name -> do
+, exampleGroupStarted = \nesting name -> do
     writeLine (indentationFor nesting ++ name)
 
 , exampleProgress = \h _ p -> do

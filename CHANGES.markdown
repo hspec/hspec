@@ -1,6 +1,8 @@
-## next
+## Changes in 1.12.0
   - Omit empty `describe` groups from report
   - Do not print empty lines before/after spec groups
+  - Do not pass position to `Formatte.exampleGroupStarted` (we can not support
+    this with the upcomming cleanup actions #188)
 
 ## Changes in 1.11.4
   - Make test suite independent from QuickCheck seed (see #187)

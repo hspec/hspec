@@ -141,7 +141,7 @@ data Formatter = Formatter {
 -- | evaluated before each test group
 --
 -- The given number indicates the position within the parent group.
-, exampleGroupStarted :: Int -> [String] -> String -> FormatM ()
+, exampleGroupStarted :: [String] -> String -> FormatM ()
 
 , exampleGroupDone    :: FormatM ()
 

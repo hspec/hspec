@@ -97,19 +97,19 @@ data Message = Done | Run (FormatM ())
 run :: Chan Message -> (Path -> ProgressCallback) -> Config -> Formatter -> [EvalTree] -> FormatM ()
 run chan reportProgress_ c formatter specs = do
   liftIO $ do
-    forM_ (zip [0..] specs) (queueSpec [])
+    forM_ specs (queueSpec [])
     writeChan chan Done
   processMessages (readChan chan) (configFastFail c)
   where
     defer :: FormatM () -> IO ()
     defer = writeChan chan . Run
 
-    queueSpec :: [String] -> (Int, EvalTree) -> IO ()
-    queueSpec rGroups (n, Node group xs) = do
-      defer (exampleGroupStarted formatter n (reverse rGroups) group)
-      forM_ (zip [0..] xs) (queueSpec (group : rGroups))
+    queueSpec :: [String] -> EvalTree -> IO ()
+    queueSpec rGroups (Node group xs) = do
+      defer (exampleGroupStarted formatter (reverse rGroups) group)
+      forM_ xs (queueSpec (group : rGroups))
       defer (exampleGroupDone formatter)
-    queueSpec rGroups (_, Leaf requirement e) =
+    queueSpec rGroups (Leaf requirement e) =
       queueExample (reverse rGroups, requirement) e
 
     queueExample :: Path -> (ProgressCallback -> FormatResult -> IO (FormatM ())) -> IO ()
