@@ -86,8 +86,8 @@ runParallel e reportProgress formatResult = do
           evalReport mvar
         ReportResult result -> formatResult result
 
-replaceMVar :: MVar a -> a -> IO ()
-replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
+    replaceMVar :: MVar a -> a -> IO ()
+    replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
 evalExample :: IO Result -> IO (Either E.SomeException Result)
 evalExample e = safeTry $ forceResult <$> e
