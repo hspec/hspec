@@ -71,65 +71,18 @@ spec = do
         , "List as a Monoid"
         , "  mappend"
         , "    - is associative"
-        , ""
         , "  mempty"
         , "    - is a left identity"
         , "    - is a right identity"
-        , ""
         , "Maybe as a Monoid"
         , "  mappend"
         , "    - is associative"
-        , ""
         , "  mempty"
         , "    - is a left identity"
         , "    - is a right identity"
         , ""
         , "Finished in 0.0000 seconds"
         , "6 examples, 0 failures"
-        ]
-
-    it "prints an empty line before each group" $ do
-      r <- runSpec $ do
-        H.describe "foo" $ do
-          H.it "example 1" True
-          H.it "example 2" True
-          H.describe "bar" $ do
-            H.it "example 3" True
-            H.it "example 4" True
-      normalizeSummary r `shouldBe` [
-          ""
-        , "foo"
-        , "  - example 1"
-        , "  - example 2"
-        , ""
-        , "  bar"
-        , "    - example 3"
-        , "    - example 4"
-        , ""
-        , "Finished in 0.0000 seconds"
-        , "4 examples, 0 failures"
-        ]
-
-    it "prints an empty line after each group" $ do
-      r <- runSpec $ do
-        H.describe "foo" $ do
-          H.describe "bar" $ do
-            H.it "example 1" True
-            H.it "example 2" True
-          H.it "example 3" True
-          H.it "example 4" True
-      normalizeSummary r `shouldBe` [
-          ""
-        , "foo"
-        , "  bar"
-        , "    - example 1"
-        , "    - example 2"
-        , ""
-        , "  - example 3"
-        , "  - example 4"
-        , ""
-        , "Finished in 0.0000 seconds"
-        , "4 examples, 0 failures"
         ]
 
     it "outputs an empty line at the beginning (even for non-nested specs)" $ do
@@ -168,7 +121,6 @@ spec = do
             ""
           , "foo"
           , "  - example 1"
-          , ""
           , "baz"
           , "  - example 2"
           , ""

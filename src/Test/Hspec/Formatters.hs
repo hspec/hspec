@@ -125,16 +125,8 @@ specdoc = silent {
   headerFormatter = do
     writeLine ""
 
-, exampleGroupStarted = \n nesting name -> do
-
-    -- separate groups with an empty line
-    unless (n == 0) $ do
-      newParagraph
-
+, exampleGroupStarted = \_ nesting name -> do
     writeLine (indentationFor nesting ++ name)
-
-, exampleGroupDone = do
-    newParagraph
 
 , exampleProgress = \h _ p -> do
     hPutStr h (formatProgress p)
