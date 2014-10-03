@@ -36,7 +36,7 @@ module Test.Hspec.Formatters.Internal (
 
 import qualified System.IO as IO
 import           System.IO (Handle)
-import           Control.Monad (when, unless)
+import           Control.Monad
 import           Control.Applicative
 import           Control.Exception (SomeException, AsyncException(..), bracket_, try, throwIO)
 import           System.Console.ANSI
@@ -63,7 +63,6 @@ data FormatterState = FormatterState {
   stateHandle     :: Handle
 , stateUseColor   :: Bool
 , produceHTML     :: Bool
-, lastIsEmptyLine :: Bool    -- True, if last line was empty
 , successCount    :: Int
 , pendingCount    :: Int
 , failCount       :: Int
@@ -90,7 +89,7 @@ runFormatM :: Bool -> Bool -> Bool -> Integer -> Handle -> FormatM a -> IO a
 runFormatM useColor produceHTML_ printCpuTime seed handle (FormatM action) = do
   time <- getPOSIXTime
   cpuTime <- if printCpuTime then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState handle useColor produceHTML_ False 0 0 0 [] seed cpuTime time)
+  st <- newIORef (FormatterState handle useColor produceHTML_ 0 0 0 [] seed cpuTime time)
   evalStateT action st
 
 -- | Increase the counter for successful examples
@@ -171,21 +170,14 @@ data Formatter = Formatter {
 --
 -- Calling this multiple times has the same effect as calling it once.
 newParagraph :: FormatM ()
-newParagraph = do
-  f <- gets lastIsEmptyLine
-  unless f $ do
-    writeLine ""
-    setLastIsEmptyLine True
-
-setLastIsEmptyLine :: Bool -> FormatM ()
-setLastIsEmptyLine f = modify $ \s -> s {lastIsEmptyLine = f}
+newParagraph = writeLine ""
+{-# DEPRECATED newParagraph "use `writeLine \"\"` instead" #-}
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
 write s = do
   h <- gets stateHandle
   liftIO $ IO.hPutStr h s
-  setLastIsEmptyLine False
 
 -- | The same as `write`, but adds a newline character.
 writeLine :: String -> FormatM ()

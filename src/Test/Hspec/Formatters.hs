@@ -170,7 +170,7 @@ failed_examples   = silent {
 
 defaultFailedFormatter :: FormatM ()
 defaultFailedFormatter = do
-  newParagraph
+  writeLine ""
 
   failures <- getFailMessages
 
