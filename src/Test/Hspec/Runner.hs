@@ -47,9 +47,12 @@ import           Test.Hspec.Runner.Eval
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
-filterSpecs :: (Path -> Bool) -> [Tree a] -> [Tree a]
-filterSpecs p = go []
+filterSpecs :: Config -> [Tree a] -> [Tree a]
+filterSpecs c = go []
   where
+    p :: Path -> Bool
+    p = fromMaybe (const True) (configFilterPredicate c)
+
     go :: [String] -> [Tree a] -> [Tree a]
     go groups = mapMaybe (goSpec groups)
 
@@ -63,6 +66,14 @@ filterSpecs p = go []
       Leaf requirement _ -> guard (p (groups, requirement)) >> return spec
       Node group specs -> goSpecs (groups ++ [group]) specs (Node group)
       NodeWithCleanup action specs -> goSpecs groups specs (NodeWithCleanup action)
+
+applyDryRun :: Config -> [Tree Item] -> [Tree Item]
+applyDryRun c
+  | configDryRun c = map (fmap markSuccess)
+  | otherwise = id
+  where
+    markSuccess :: Item -> Item
+    markSuccess item = item {itemExample = evaluateExample Success}
 
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
@@ -110,17 +121,15 @@ hspecResult = hspecWith defaultConfig
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWith :: Config -> Spec -> IO Summary
-hspecWith c_ spec_ = withHandle c_ $ \h -> do
+hspecWith c_ spec = withHandle c_ $ \h -> do
   c <- ensureSeed c_
   let formatter = configFormatter c
       seed = (fromJust . configQuickCheckSeed) c
       qcArgs = configQuickCheckArgs c
-      spec
-        | configDryRun c = mapSpecItem markSuccess spec_
-        | otherwise      = spec_
 
   useColor <- doesUseColor h c
-  filteredSpec <- filterSpecs (fromMaybe (const True) (configFilterPredicate c)) <$> toTree spec
+
+  filteredSpec <- filterSpecs c . applyDryRun c <$> toTree spec
 
   withHiddenCursor useColor h $
     runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
@@ -159,9 +168,6 @@ hspecWith c_ spec_ = withHandle c_ $ \h -> do
 
 isDumb :: IO Bool
 isDumb = maybe False (== "dumb") <$> lookupEnv "TERM"
-
-markSuccess :: Item -> Item
-markSuccess item = item {itemExample = evaluateExample Success}
 
 -- | Summary of a test run.
 data Summary = Summary {
