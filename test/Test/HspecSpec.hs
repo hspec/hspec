@@ -174,6 +174,13 @@ spec = do
           return ()
         readIORef ref `shouldReturn` []
 
+    context "when action throws an exception" $ do
+      it "reports a failure" $ do
+        r <- runSpec $ do
+          H.afterAll throwException $ do
+            H.it "foo" True
+        r `shouldSatisfy` any (== "- afterAll-hook FAILED [1]")
+
   describe "around" $ do
     it "wraps each spec item with an action" $ do
       ref <- newIORef (0 :: Int)

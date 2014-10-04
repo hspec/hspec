@@ -362,7 +362,7 @@ spec = do
 
     it "treats uncaught exceptions as failure" $ do
       silence . H.hspecResult  $ do
-        H.it "foobar" (E.throwIO (E.ErrorCall "foobar") >> pure ())
+        H.it "foobar" throwException
       `shouldReturn` H.Summary 1 1
 
     it "uses the specdoc formatter by default" $ do

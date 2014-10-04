@@ -45,8 +45,8 @@ spec = do
       e `shouldBe` 23
 
     it "returns Left on exception" $ do
-      Left e <- safeTry (E.throwIO E.DivideByZero :: IO Int)
-      show e `shouldBe` "divide by zero"
+      Left e <- safeTry throwException
+      show e `shouldBe` "foobar"
 
     it "evaluates result to weak head normal form" $ do
       Left e <- safeTry (return undefined)

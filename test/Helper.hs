@@ -12,6 +12,7 @@ module Helper (
 
 , ignoreExitCode
 , ignoreUserInterrupt
+, throwException
 
 , shouldStartWith
 , shouldEndWith
@@ -39,6 +40,9 @@ import qualified Test.Hspec as H
 import qualified Test.Hspec.Core as H (Params(..), Item(..), ProgressCallback, mapSpecItem)
 import qualified Test.Hspec.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
+
+throwException :: IO ()
+throwException = E.throwIO (E.ErrorCall "foobar")
 
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()

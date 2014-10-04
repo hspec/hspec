@@ -104,6 +104,11 @@ run chan reportProgress_ c formatter specs = do
     defer :: FormatM () -> IO ()
     defer = writeChan chan . Run
 
+    runCleanup :: IO () -> Path -> FormatM ()
+    runCleanup action path = do
+      r <- liftIO $ safeTry action
+      either (failed path . Left) return r
+
     queueSpec :: [String] -> EvalTree -> IO ()
     queueSpec rGroups (Node group xs) = do
       defer (exampleGroupStarted formatter (reverse rGroups) group)
@@ -111,7 +116,7 @@ run chan reportProgress_ c formatter specs = do
       defer (exampleGroupDone formatter)
     queueSpec rGroups (NodeWithCleanup action xs) = do
       forM_ xs (queueSpec rGroups)
-      defer (liftIO action)
+      defer (runCleanup action (reverse rGroups, "afterAll-hook"))
     queueSpec rGroups (Leaf requirement e) =
       queueExample (reverse rGroups, requirement) e
 
@@ -129,13 +134,13 @@ run chan reportProgress_ c formatter specs = do
             Right (Pending reason) -> do
               increasePendingCount
               examplePending formatter path reason
-            Right (Fail err) -> failed (Right err)
-            Left err         -> failed (Left  err)
-          where
-            failed err = do
-              increaseFailCount
-              addFailMessage path err
-              exampleFailed formatter path err
+            Right (Fail err) -> failed path (Right err)
+            Left err         -> failed path (Left  err)
+
+    failed path err = do
+      increaseFailCount
+      addFailMessage path err
+      exampleFailed formatter path err
 
 processMessages :: IO Message -> Bool -> FormatM ()
 processMessages getMessage fastFail = go
