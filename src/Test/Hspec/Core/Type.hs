@@ -12,6 +12,7 @@ module Test.Hspec.Core.Type (
 , mapSpecItem
 , Location (..)
 , LocationAccuracy(..)
+, mapSpecItem_
 , Example (..)
 , Result (..)
 , Params (..)
@@ -98,7 +99,7 @@ data Params = Params {
 -- | Internal representation of a spec.
 data SpecTree a =
     SpecGroup String [SpecTree a]
-  | SpecWithCleanup (IO ()) [SpecTree a]
+  | SpecWithCleanup (ActionWith a) [SpecTree a]
   | SpecItem (Item a)
 
 data Item a = Item {
@@ -114,12 +115,12 @@ type ActionWith a = a -> IO ()
 mapSpecTree :: (SpecTree a -> SpecTree b) -> SpecWith a -> SpecWith b
 mapSpecTree f spec = runIO (runSpecM spec) >>= fromSpecList . map f
 
-mapSpecItem :: (Item a -> Item b) -> SpecWith a -> SpecWith b
-mapSpecItem f = mapSpecTree go
+mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
+mapSpecItem g f = mapSpecTree go
   where
     go spec = case spec of
       SpecGroup d xs -> SpecGroup d (map go xs)
-      SpecWithCleanup cleanup xs -> SpecWithCleanup cleanup (map go xs)
+      SpecWithCleanup cleanup xs -> SpecWithCleanup (g cleanup) (map go xs)
       SpecItem item -> SpecItem (f item)
 
 data LocationAccuracy = ExactLocation | BestEffort
@@ -131,6 +132,9 @@ data Location = Location {
 , locationColumn :: Int
 , locationAccuracy :: LocationAccuracy
 } deriving (Eq, Show)
+
+mapSpecItem_ :: (Item a -> Item a) -> SpecWith a -> SpecWith a
+mapSpecItem_ = mapSpecItem id
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree a] -> SpecTree a

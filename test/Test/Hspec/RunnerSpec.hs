@@ -207,7 +207,7 @@ spec = do
       it "ignores afterAll-hooks" $ do
         ref <- newIORef False
         _ <- withDryRun $ do
-          H.afterAll (writeIORef ref True) $ do
+          H.afterAll_ (writeIORef ref True) $ do
             H.it "bar" True
         readIORef ref `shouldReturn` False
 

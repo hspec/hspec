@@ -41,7 +41,7 @@ import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
 
 import qualified Test.Hspec as H
-import qualified Test.Hspec.Core as H (Params(..), Item(..), ProgressCallback, mapSpecItem)
+import qualified Test.Hspec.Core as H (Params(..), Item(..), ProgressCallback, mapSpecItem_)
 import qualified Test.Hspec.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 
@@ -88,7 +88,7 @@ shouldUseArgs :: [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do
   spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
   let interceptArgs item = item {H.itemExample = \params action progressCallback -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params action progressCallback}
-      spec = H.mapSpecItem interceptArgs $
+      spec = H.mapSpecItem_ interceptArgs $
         H.it "foo" False
   (silence . ignoreExitCode . withArgs args . H.hspec) spec
   readIORef spy >>= (`shouldSatisfy` p)

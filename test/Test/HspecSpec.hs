@@ -234,11 +234,11 @@ spec = do
           , "after outer"
           ]
 
-  describe "afterAll" $ do
+  describe "afterAll_" $ do
     it "runs an action after the last spec item" $ do
       ref <- newIORef []
       let append n = modifyIORef ref (++ return n)
-      silence $ H.hspec $ H.afterAll (append "afterAll") $ do
+      silence $ H.hspec $ H.afterAll_ (append "afterAll") $ do
         H.it "foo" $ do
           append "foo"
         H.it "bar" $ do
@@ -253,14 +253,14 @@ spec = do
       it "does not run specified action" $ do
         ref <- newIORef []
         let append n = modifyIORef ref (++ return n)
-        silence $ H.hspec $ H.afterAll (append "afterAll") $ do
+        silence $ H.hspec $ H.afterAll_ (append "afterAll") $ do
           return ()
         readIORef ref `shouldReturn` []
 
     context "when action throws an exception" $ do
       it "reports a failure" $ do
         r <- runSpec $ do
-          H.afterAll throwException $ do
+          H.afterAll_ throwException $ do
             H.it "foo" True
         r `shouldSatisfy` any (== "- afterAll-hook FAILED [1]")
 
