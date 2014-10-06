@@ -33,18 +33,13 @@ runFormatter useColor h c formatter specs_ = do
       | useColor = every 0.05 $ exampleProgress formatter h
       | otherwise = return $ \_ _ -> return ()
 
-    specs = map (fmap (parallelize . fmap (applyNoOpAround . applyParams) . unwrapItem)) specs_
+    specs :: [Tree (ProgressCallback -> FormatResult -> IO (FormatM ()))]
+    specs = map (fmap (parallelize . unwrapItem)) specs_
 
-    unwrapItem :: Item -> (Bool, Params -> (IO () -> IO ()) -> ProgressCallback -> IO Result)
-    unwrapItem (Item isParallelizable e) = (isParallelizable, e)
-
-    applyParams :: (Params -> a) -> a
-    applyParams = ($ params)
+    unwrapItem :: Item -> (Bool, ProgressCallback -> IO Result)
+    unwrapItem (Item isParallelizable e) = (isParallelizable, e params id)
       where
         params = Params (configQuickCheckArgs c) (configSmallCheckDepth c)
-
-    applyNoOpAround :: ((IO () -> IO ()) -> b) -> b
-    applyNoOpAround = ($ id)
 
 -- | Execute given action at most every specified number of seconds.
 every :: POSIXTime -> (a -> b -> IO ()) -> IO (a -> b -> IO ())
