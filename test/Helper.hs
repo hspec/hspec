@@ -18,6 +18,8 @@ module Helper (
 , shouldEndWith
 
 , shouldUseArgs
+
+, withFileContent
 ) where
 
 import           Data.List
@@ -30,6 +32,8 @@ import           System.Exit
 import           Control.Concurrent
 import qualified Control.Exception as E
 import qualified System.Timeout as System
+import           System.IO
+import           System.Directory
 import           Data.Time.Clock.POSIX
 import           System.IO.Silently
 
@@ -88,3 +92,11 @@ shouldUseArgs args p = do
         H.it "foo" False
   (silence . ignoreExitCode . withArgs args . H.hspec) spec
   readIORef spy >>= (`shouldSatisfy` p)
+
+withFileContent :: String -> (FilePath -> IO a) -> IO a
+withFileContent input action = do
+  dir <- getTemporaryDirectory
+  (file, h) <- openTempFile dir "temp"
+  hPutStr h input
+  hClose h
+  action file `E.finally` removeFile file
