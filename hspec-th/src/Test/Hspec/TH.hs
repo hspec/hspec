@@ -9,7 +9,7 @@ import qualified Language.Haskell.TH as TH
 
 import           Test.Hspec hiding (it)
 import qualified Test.Hspec as Hspec
-import           Test.Hspec.Core (Location(..), LocationAccuracy(..), Item(..), mapSpecItem)
+import           Test.Hspec.Core (Location(..), LocationAccuracy(..), Item(..), mapSpecItem_)
 
 it :: Q Exp
 it = do
@@ -21,4 +21,4 @@ it = do
 itLoc :: Example a => Location -> String -> a -> SpecWith (Arg a)
 itLoc loc r = addLocation . Hspec.it r
   where
-    addLocation = mapSpecItem (\item -> item {itemLocation = Just loc})
+    addLocation = mapSpecItem_ (\item -> item {itemLocation = Just loc})

@@ -52,7 +52,7 @@ specify = it
 
 -- | Run spec items of given spec in parallel.
 parallel :: SpecWith a -> SpecWith a
-parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
+parallel = mapSpecItem_ $ \item -> item {itemIsParallelizable = True}
 
 -- | This is a type restricted version of `id`.  It can be used to get better
 -- error messages on type mismatches.

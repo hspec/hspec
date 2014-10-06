@@ -4,7 +4,7 @@ module Test.Hspec.FormattersSpec (main, spec) where
 import           Helper
 
 import qualified Test.Hspec.Core.Spec as H
-import qualified Test.Hspec.Core as H (Location(..), LocationAccuracy(..), mapSpecItem)
+import qualified Test.Hspec.Core as H (Location(..), LocationAccuracy(..), mapSpecItem_)
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Formatters as H
 
@@ -167,14 +167,14 @@ failed_examplesSpec formatter = do
         it "includes that source locations" $ do
           let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
               addLoc e = e {H.itemLocation = Just loc}
-          r <- runSpec $ H.mapSpecItem addLoc $ do
+          r <- runSpec $ H.mapSpecItem_ addLoc $ do
             H.it "foo" False
           r `shouldSatisfy` any (== "# test/FooSpec.hs:23")
 
         it "does not include 'best-effort' explanation" $ do
           let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
               addLoc e = e {H.itemLocation = Just loc}
-          r <- runSpec $ H.mapSpecItem addLoc $ do
+          r <- runSpec $ H.mapSpecItem_ addLoc $ do
             H.it "foo" False
           r `shouldSatisfy` all (/= bestEffortExplanation)
 
@@ -182,14 +182,14 @@ failed_examplesSpec formatter = do
         it "marks that source location as 'best-effort'" $ do
           let loc = H.Location "test/FooSpec.hs" 23 0 H.BestEffort
               addLoc e = e {H.itemLocation = Just loc}
-          r <- runSpec $ H.mapSpecItem addLoc $ do
+          r <- runSpec $ H.mapSpecItem_ addLoc $ do
             H.it "foo" False
           r `shouldSatisfy` any (== "# test/FooSpec.hs:23 (best-effort)")
 
         it "includes 'best-effort' explanation" $ do
           let loc = H.Location "test/FooSpec.hs" 23 0 H.BestEffort
               addLoc e = e {H.itemLocation = Just loc}
-          r <- runSpec $ H.mapSpecItem addLoc $ do
+          r <- runSpec $ H.mapSpecItem_ addLoc $ do
             H.it "foo" False
           r `shouldSatisfy` any (== bestEffortExplanation)
 

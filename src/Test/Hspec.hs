@@ -36,6 +36,7 @@ module Test.Hspec (
 , after
 , after_
 , afterAll
+, afterAll_
 , around
 , around_
 , aroundWith

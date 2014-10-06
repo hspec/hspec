@@ -6,6 +6,7 @@ module Test.Hspec.Core.Hooks (
 , after
 , after_
 , afterAll
+, afterAll_
 , around
 , around_
 , aroundWith
@@ -58,8 +59,12 @@ around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
 around action = aroundWith $ \e () -> action e
 
 -- | Run a custom action after the last spec item.
-afterAll :: IO () -> Spec -> Spec
+afterAll :: ActionWith a -> SpecWith a -> SpecWith a
 afterAll action spec = runIO (runSpecM spec) >>= fromSpecList . return . SpecWithCleanup action
+
+-- | Run a custom action after the last spec item.
+afterAll_ :: IO () -> Spec -> Spec
+afterAll_ action = afterAll (\() -> action)
 
 -- | Run a custom action before and/or after every spec item.
 around_ :: (IO () -> IO ()) -> Spec -> Spec
@@ -70,4 +75,7 @@ aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundWith action = mapAround (. action)
 
 mapAround :: ((ActionWith b -> IO ()) -> ActionWith a -> IO ()) -> SpecWith a -> SpecWith b
-mapAround f = mapSpecItem $ \i@Item{itemExample = e} -> i{itemExample = (. f) . e}
+mapAround f = mapSpecItem (untangle f) $ \i@Item{itemExample = e} -> i{itemExample = (. f) . e}
+
+untangle  :: ((ActionWith b -> IO ()) -> ActionWith a -> IO ()) -> ActionWith a -> ActionWith b
+untangle f g = \b -> f ($ b) g

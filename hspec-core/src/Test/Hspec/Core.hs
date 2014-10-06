@@ -25,6 +25,7 @@ module Test.Hspec.Core (
 , LocationAccuracy(..)
 , ActionWith
 , mapSpecItem
+, mapSpecItem_
 , modifyParams
 , describe
 , it
@@ -33,7 +34,7 @@ module Test.Hspec.Core (
 import           Test.Hspec.Core.Type
 
 modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
-modifyParams f = mapSpecItem $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
+modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree a] -> SpecTree a
