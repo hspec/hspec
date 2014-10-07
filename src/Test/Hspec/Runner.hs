@@ -14,9 +14,6 @@ module Test.Hspec.Runner (
 , Path
 , defaultConfig
 , configAddFilter
-
--- * Internals
-, hspecWithFormatter
 ) where
 
 import           Control.Monad
@@ -85,13 +82,6 @@ applyDryRun c
 -- Exit with `exitFailure` if at least one spec item fails.
 hspec :: Spec -> IO ()
 hspec = hspecWith defaultConfig
-
--- | This function is used by @hspec-discover@.  It is not part of the public
--- API and may change at any time.
-hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
-hspecWithFormatter formatter spec = do
-  f <- toFormatter formatter
-  hspecWith defaultConfig {configFormatter = Just f} spec
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.

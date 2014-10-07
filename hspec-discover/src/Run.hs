@@ -5,6 +5,7 @@ module Run (
   run
 
 -- exported for testing
+, Spec(..)
 , importList
 , fileToSpec
 , findSpecs
@@ -29,7 +30,10 @@ import           Config
 instance IsString ShowS where
   fromString = showString
 
-type Spec = String
+data Spec = Spec {
+  specFile :: FilePath
+, specModule :: String
+} deriving (Eq, Show)
 
 run :: [String] -> IO ()
 run args_ = do
@@ -49,16 +53,16 @@ run args_ = do
 
 mkSpecModule :: FilePath -> Config -> [Spec] -> String
 mkSpecModule src c nodes =
-  ( "{-# LINE 1 " . shows src . " #-}"
+  ( "{-# LINE 1 " . shows src . " #-}\n"
   . showString ("module " ++ module_ ++" where\n")
   . importList nodes
-  . maybe driver (driverWithFormatter (null nodes)) (configFormatter c)
+  . showString "import Test.Hspec.Discover\n"
+  . maybe driver driverWithFormatter (configFormatter c)
   . formatSpecs nodes
   ) "\n"
   where
     driver =
-        showString "import Test.Hspec\n"
-      . case configNoMain c of
+        case configNoMain c of
           False ->
               showString "main :: IO ()\n"
             . showString "main = hspec $ "
@@ -73,11 +77,9 @@ mkSpecModule src c nodes =
         toUpper m:ms
 
 
-driverWithFormatter :: Bool -> String -> ShowS
-driverWithFormatter isEmpty f =
-    (if isEmpty then id else "import Test.Hspec\n")
-  . showString "import Test.Hspec.Runner\n"
-  . showString "import qualified " . showString (moduleName f) . showString "\n"
+driverWithFormatter :: String -> ShowS
+driverWithFormatter f =
+    showString "import qualified " . showString (moduleName f) . showString "\n"
   . showString "main :: IO ()\n"
   . showString "main = hspecWithFormatter " . showString f . showString " $ "
 
@@ -89,7 +91,7 @@ importList :: [Spec] -> ShowS
 importList = foldr (.) "" . map f
   where
     f :: Spec -> ShowS
-    f name = "import qualified " . showString name . "Spec\n"
+    f spec = "import qualified " . showString (specModule spec) . "Spec\n"
 
 -- | Combine a list of strings with (>>).
 sequenceS :: [ShowS] -> ShowS
@@ -103,17 +105,17 @@ formatSpecs xs
 
 -- | Convert a spec to code.
 formatSpec :: Spec -> ShowS
-formatSpec name = "describe " . shows name . " " . showString name . "Spec.spec"
+formatSpec (Spec file name) = "postProcessSpec " . shows file . " (describe " . shows name . " " . showString name . "Spec.spec)"
 
 findSpecs :: FilePath -> IO [Spec]
 findSpecs src = do
   let (dir, file) = splitFileName src
-  mapMaybe fileToSpec . filter (/= file) <$> getFilesRecursive dir
+  mapMaybe (fileToSpec dir) . filter (/= file) <$> getFilesRecursive dir
 
-fileToSpec :: FilePath -> Maybe String
-fileToSpec f = case reverse $ splitDirectories f of
+fileToSpec :: FilePath -> FilePath -> Maybe Spec
+fileToSpec dir file = case reverse $ splitDirectories file of
   x:xs -> case stripSuffix "Spec.hs" x <|> stripSuffix "Spec.lhs" x of
-    Just name | (not . null) name -> (Just . intercalate "." . reverse) (name : xs)
+    Just name | (not . null) name -> Just . Spec (dir </> file) $ (intercalate "." . reverse) (name : xs)
     _ -> Nothing
   _ -> Nothing
   where

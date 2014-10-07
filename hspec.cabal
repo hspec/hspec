@@ -66,6 +66,7 @@ Library
       Test.Hspec.Formatters
       Test.Hspec.HUnit
       Test.Hspec.QuickCheck
+      Test.Hspec.Discover
   other-modules:
       Test.Hspec.Util
       Test.Hspec.Compat
