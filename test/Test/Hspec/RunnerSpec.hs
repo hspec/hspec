@@ -183,8 +183,9 @@ spec = do
         r `shouldSatisfy` any ((78 <=) . length)
 
     context "with --dry-run" $ do
+      let withDryRun = captureLines . withArgs ["--dry-run"] . H.hspec
       it "produces a report" $ do
-        r <- captureLines . withArgs ["--dry-run"] . H.hspec $ do
+        r <- withDryRun $ do
           H.it "foo" True
           H.it "bar" True
         normalizeSummary r `shouldBe` [
@@ -198,10 +199,17 @@ spec = do
 
       it "does not verify anything" $ do
         e <- newMock
-        _ <- captureLines . withArgs ["--dry-run"] . H.hspec $ do
+        _ <- withDryRun $ do
           H.it "foo" (mockAction e)
           H.it "bar" False
         mockCounter e `shouldReturn` 0
+
+      it "ignores afterAll-hooks" $ do
+        ref <- newIORef False
+        _ <- withDryRun $ do
+          H.afterAll (writeIORef ref True) $ do
+            H.it "bar" True
+        readIORef ref `shouldReturn` False
 
     context "with --fail-fast" $ do
       it "stops after first failure" $ do

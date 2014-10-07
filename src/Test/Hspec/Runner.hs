@@ -69,11 +69,17 @@ filterSpecs c = go []
 
 applyDryRun :: Config -> [Tree Item] -> [Tree Item]
 applyDryRun c
-  | configDryRun c = map (fmap markSuccess)
+  | configDryRun c = map (removeCleanup . fmap markSuccess)
   | otherwise = id
   where
     markSuccess :: Item -> Item
     markSuccess item = item {itemExample = evaluateExample Success}
+
+    removeCleanup :: Tree Item -> Tree Item
+    removeCleanup spec = case spec of
+      Node x xs -> Node x (map removeCleanup xs)
+      NodeWithCleanup _ xs -> NodeWithCleanup (return ()) (map removeCleanup xs)
+      leaf@(Leaf _ _) -> leaf
 
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
