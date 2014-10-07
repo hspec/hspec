@@ -1,4 +1,5 @@
 ## Changes in 1.12.0
+  - Add `mapSpecTree` to `Test.Hspec.Core`
   - Add `afterAll` (see #188)
   - Omit empty `describe` groups from report
   - Do not print empty lines before/after spec groups

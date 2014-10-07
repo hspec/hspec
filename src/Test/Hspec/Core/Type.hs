@@ -5,6 +5,7 @@ module Test.Hspec.Core.Type (
 , runSpecM
 , fromSpecList
 , SpecTree (..)
+, mapSpecTree
 , Item (..)
 , mapSpecItem
 , Example (..)
@@ -98,8 +99,11 @@ data Item = Item {
 , itemExample :: Params -> (IO () -> IO ()) -> ProgressCallback -> IO Result
 }
 
+mapSpecTree :: (SpecTree -> SpecTree) -> Spec -> Spec
+mapSpecTree f = fromSpecList . return . BuildSpecs . fmap (map f) . runSpecM
+
 mapSpecItem :: (Item -> Item) -> Spec -> Spec
-mapSpecItem f = fromSpecList . return . BuildSpecs . fmap (map go) . runSpecM
+mapSpecItem f = mapSpecTree go
   where
     go :: SpecTree -> SpecTree
     go spec = case spec of

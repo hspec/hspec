@@ -19,6 +19,7 @@ module Test.Hspec.Core (
 
 -- * Internal representation of a spec tree
 , SpecTree (..)
+, mapSpecTree
 , Item (..)
 , mapSpecItem
 , modifyParams
