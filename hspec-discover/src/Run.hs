@@ -111,11 +111,10 @@ findSpecs src = do
   mapMaybe fileToSpec . filter (/= file) <$> getFilesRecursive dir
 
 fileToSpec :: FilePath -> Maybe String
-fileToSpec f = intercalate "." . reverse <$> case reverse $ splitDirectories f of
+fileToSpec f = case reverse $ splitDirectories f of
   x:xs -> case stripSuffix "Spec.hs" x <|> stripSuffix "Spec.lhs" x of
-    Nothing -> Nothing
-    Just "" -> Nothing
-    Just ys -> Just (ys : xs)
+    Just name | (not . null) name -> (Just . intercalate "." . reverse) (name : xs)
+    _ -> Nothing
   _ -> Nothing
   where
     stripSuffix :: Eq a => [a] -> [a] -> Maybe [a]
