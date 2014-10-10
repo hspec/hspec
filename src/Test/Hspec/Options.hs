@@ -3,9 +3,6 @@ module Test.Hspec.Options (
 , ColorMode (..)
 , defaultOptions
 , parseOptions
-
--- exported to silence warnings
-, Arg (..)
 ) where
 
 import           Data.List
@@ -73,9 +70,9 @@ type Result = Either NoConfig Options
 data NoConfig = Help | InvalidArgument String String
 
 data Arg a = Arg {
-  argumentName   :: String
-, argumentParser :: String -> Maybe a
-, argumentSetter :: a -> Options -> Options
+  _argumentName   :: String
+, _argumentParser :: String -> Maybe a
+, _argumentSetter :: a -> Options -> Options
 }
 
 mkOption :: [Char] -> String -> Arg a -> String -> OptDescr (Result -> Result)
