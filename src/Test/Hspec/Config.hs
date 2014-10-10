@@ -20,9 +20,9 @@ import           Test.Hspec.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 
 data Config = Config {
-  configDryRun          :: Bool
-, configPrintCpuTime    :: Bool
-, configFastFail        :: Bool
+  configDryRun :: Bool
+, configPrintCpuTime :: Bool
+, configFastFail :: Bool
 
 -- |
 -- A predicate that is used to filter the spec before it is run.  Only examples
@@ -33,10 +33,10 @@ data Config = Config {
 , configQuickCheckMaxDiscardRatio :: Maybe Int
 , configQuickCheckMaxSize :: Maybe Int
 , configSmallCheckDepth :: Int
-, configColorMode       :: ColorMode
-, configFormatter       :: Maybe Formatter
-, configHtmlOutput      :: Bool
-, configHandle          :: Either Handle FilePath
+, configColorMode :: ColorMode
+, configFormatter :: Maybe Formatter
+, configHtmlOutput :: Bool
+, configHandle :: Either Handle FilePath
 }
 
 defaultConfig :: Config

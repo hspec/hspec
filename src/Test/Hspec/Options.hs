@@ -14,20 +14,20 @@ import           Test.Hspec.Compat
 import           Test.Hspec.Util
 
 data Options = Options {
-  optionsDryRun       :: Bool
+  optionsDryRun :: Bool
 , optionsPrintCpuTime :: Bool
-, optionsRerun        :: Bool
-, optionsFastFail     :: Bool
-, optionsMatch        :: [String]
-, optionsMaxSuccess   :: Maybe Int
-, optionsDepth        :: Maybe Int
-, optionsSeed         :: Maybe Integer
-, optionsMaxSize      :: Maybe Int
+, optionsRerun :: Bool
+, optionsFastFail :: Bool
+, optionsMatch :: [String]
+, optionsMaxSuccess :: Maybe Int
+, optionsDepth :: Maybe Int
+, optionsSeed :: Maybe Integer
+, optionsMaxSize :: Maybe Int
 , optionsMaxDiscardRatio :: Maybe Int
-, optionsColorMode    :: ColorMode
-, optionsFormatter    :: Maybe Formatter
-, optionsHtmlOutput   :: Bool
-, optionsOutputFile   :: Maybe FilePath
+, optionsColorMode :: ColorMode
+, optionsFormatter :: Maybe Formatter
+, optionsHtmlOutput :: Bool
+, optionsOutputFile :: Maybe FilePath
 }
 
 addMatch :: String -> Options -> Options
