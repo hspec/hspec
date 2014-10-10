@@ -28,7 +28,7 @@ data Options = Options {
 , optionsMaxSize      :: Maybe Int
 , optionsMaxDiscardRatio :: Maybe Int
 , optionsColorMode    :: ColorMode
-, optionsFormatter    :: Formatter
+, optionsFormatter    :: Maybe Formatter
 , optionsHtmlOutput   :: Bool
 , optionsOutputFile   :: Maybe FilePath
 }
@@ -55,7 +55,7 @@ data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
 
 defaultOptions :: Options
-defaultOptions = Options False False False False [] Nothing Nothing Nothing Nothing Nothing ColorAuto specdoc False Nothing
+defaultOptions = Options False False False False [] Nothing Nothing Nothing Nothing Nothing ColorAuto Nothing False Nothing
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -114,7 +114,7 @@ options = [
     readFormatter = (`lookup` formatters)
 
     setFormatter :: Formatter -> Options -> Options
-    setFormatter f c = c {optionsFormatter = f}
+    setFormatter f c = c {optionsFormatter = Just f}
 
     setOutputFile :: String -> Options -> Options
     setOutputFile file c = c {optionsOutputFile = Just file}

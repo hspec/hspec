@@ -34,7 +34,7 @@ data Config = Config {
 , configQuickCheckMaxSize :: Maybe Int
 , configSmallCheckDepth :: Int
 , configColorMode       :: ColorMode
-, configFormatter       :: Formatter
+, configFormatter       :: Maybe Formatter
 , configHtmlOutput      :: Bool
 , configHandle          :: Either Handle FilePath
 }
@@ -51,7 +51,7 @@ defaultConfig = Config {
 , configQuickCheckMaxSize = Nothing
 , configSmallCheckDepth = 5
 , configColorMode = ColorAuto
-, configFormatter = specdoc
+, configFormatter = Nothing
 , configHtmlOutput = False
 , configHandle = Left stdout
 }

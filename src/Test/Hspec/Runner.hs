@@ -91,7 +91,7 @@ hspec = hspecWithOptions defaultOptions
 hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
 hspecWithFormatter formatter spec = do
   f <- toFormatter formatter
-  hspecWithOptions defaultOptions {optionsFormatter = f} spec
+  hspecWithOptions defaultOptions {optionsFormatter = Just f} spec
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
@@ -129,7 +129,7 @@ hspecResult = hspecWith defaultConfig
 hspecWith :: Config -> Spec -> IO Summary
 hspecWith c_ spec = withHandle c_ $ \h -> do
   c <- ensureSeed c_
-  let formatter = configFormatter c
+  let formatter = fromMaybe specdoc (configFormatter c)
       seed = (fromJust . configQuickCheckSeed) c
       qcArgs = configQuickCheckArgs c
 

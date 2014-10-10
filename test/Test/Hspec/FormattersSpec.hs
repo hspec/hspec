@@ -28,7 +28,7 @@ testSpec = do
 spec :: Spec
 spec = do
   describe "silent" $ do
-    let runSpec = fmap fst . capture . H.hspecWith H.defaultConfig {H.configFormatter = H.silent}
+    let runSpec = fmap fst . capture . H.hspecWith H.defaultConfig {H.configFormatter = Just H.silent}
     it "produces no output" $ do
       runSpec testSpec `shouldReturn` ""
 
@@ -36,7 +36,7 @@ spec = do
     failed_examplesSpec H.failed_examples
 
   describe "progress" $ do
-    let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = H.progress}
+    let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = Just H.progress}
 
     it "produces '..F...FF.F' style output" $ do
       r <- runSpec testSpec
@@ -46,7 +46,7 @@ spec = do
       failed_examplesSpec H.progress
 
   describe "specdoc" $ do
-    let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = H.specdoc}
+    let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = Just H.specdoc}
 
     it "displays a header for each thing being described" $ do
       _:x:_ <- runSpec testSpec
@@ -133,7 +133,7 @@ spec = do
 
 failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do
-  let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = formatter}
+  let runSpec = captureLines . H.hspecWith H.defaultConfig {H.configFormatter = Just formatter}
 
   it "summarizes the time it takes to finish" $ do
     r <- runSpec (return ())
