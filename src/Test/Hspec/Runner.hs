@@ -5,6 +5,7 @@ module Test.Hspec.Runner (
   hspec
 , hspecResult
 , hspecWith
+, hspecWithResult
 
 -- * Types
 , Summary (..)
@@ -83,14 +84,14 @@ applyDryRun c
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
 hspec :: Spec -> IO ()
-hspec = hspecWithOptions defaultConfig
+hspec = hspecWith defaultConfig
 
 -- | This function is used by @hspec-discover@.  It is not part of the public
 -- API and may change at any time.
 hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
 hspecWithFormatter formatter spec = do
   f <- toFormatter formatter
-  hspecWithOptions defaultConfig {configFormatter = Just f} spec
+  hspecWith defaultConfig {configFormatter = Just f} spec
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
@@ -103,13 +104,13 @@ ensureSeed c = case configQuickCheckSeed c of
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
-hspecWithOptions :: Config -> Spec -> IO ()
-hspecWithOptions opts spec = do
+hspecWith :: Config -> Spec -> IO ()
+hspecWith opts spec = do
   prog <- getProgName
   args <- getArgs
   c <- getConfig opts prog args
   withArgs [] {- do not leak command-line arguments to examples -} $ do
-    r <- hspecWith c spec
+    r <- hspecWithResult c spec
     unless (summaryFailures r == 0) exitFailure
 
 -- | Run given spec and returns a summary of the test run.
@@ -118,15 +119,15 @@ hspecWithOptions opts spec = do
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecResult :: Spec -> IO Summary
-hspecResult = hspecWith defaultConfig
+hspecResult = hspecWithResult defaultConfig
 
 -- | Run given spec with custom options and returns a summary of the test run.
 --
--- /Note/: `hspecWith` does not exit with `exitFailure` on failing spec
+-- /Note/: `hspecWithResult` does not exit with `exitFailure` on failing spec
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
-hspecWith :: Config -> Spec -> IO Summary
-hspecWith c_ spec = withHandle c_ $ \h -> do
+hspecWithResult :: Config -> Spec -> IO Summary
+hspecWithResult c_ spec = withHandle c_ $ \h -> do
   c <- ensureSeed c_
   let formatter = fromMaybe specdoc (configFormatter c)
       seed = (fromJust . configQuickCheckSeed) c

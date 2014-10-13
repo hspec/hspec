@@ -6,6 +6,8 @@
     this with the upcomming cleanup actions #188)
   - Deprecate `Test.Hspec.Formatters.newParagraph`
   - Rename `configHandle` to `configOutputFile`
+  - Do not return `Result` from `hspecWith` and accept command-line arguments
+    (the old behavior is still available as `hspecWithResult`)
 
 ## Changes in 1.11.4
   - Make test suite independent from QuickCheck seed (see #187)
