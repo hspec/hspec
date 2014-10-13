@@ -40,7 +40,6 @@ import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 
-import           Test.Hspec.Options (Options(..), ColorMode(..), defaultOptions)
 import           Test.Hspec.Runner.Tree
 import           Test.Hspec.Runner.Eval
 
@@ -84,14 +83,14 @@ applyDryRun c
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
 hspec :: Spec -> IO ()
-hspec = hspecWithOptions defaultOptions
+hspec = hspecWithOptions defaultConfig
 
 -- | This function is used by @hspec-discover@.  It is not part of the public
 -- API and may change at any time.
 hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
 hspecWithFormatter formatter spec = do
   f <- toFormatter formatter
-  hspecWithOptions defaultOptions {optionsFormatter = Just f} spec
+  hspecWithOptions defaultConfig {configFormatter = Just f} spec
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
@@ -104,7 +103,7 @@ ensureSeed c = case configQuickCheckSeed c of
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
-hspecWithOptions :: Options -> Spec -> IO ()
+hspecWithOptions :: Config -> Spec -> IO ()
 hspecWithOptions opts spec = do
   prog <- getProgName
   args <- getArgs
@@ -168,7 +167,7 @@ hspecWith c_ spec = withHandle c_ $ \h -> do
       ColorAlways -> return True
 
     withHandle :: Config -> (Handle -> IO a) -> IO a
-    withHandle c action = case configHandle c of
+    withHandle c action = case configOutputFile c of
       Left h -> action h
       Right path -> withFile path WriteMode action
 

@@ -17,22 +17,22 @@ spec :: Spec
 spec = do
   describe "parseOptions" $ do
 
-    let parseOptions = Options.parseOptions defaultOptions "my-spec"
+    let parseOptions = Options.parseOptions defaultConfig "my-spec"
 
-    it "sets optionsColorMode to ColorAuto" $ do
-      optionsColorMode <$> parseOptions [] `shouldBe` Right ColorAuto
+    it "sets configColorMode to ColorAuto" $ do
+      configColorMode <$> parseOptions [] `shouldBe` Right ColorAuto
 
     context "with --no-color" $ do
-      it "sets optionsColorMode to ColorNever" $ do
-        optionsColorMode <$> parseOptions ["--no-color"] `shouldBe` Right ColorNever
+      it "sets configColorMode to ColorNever" $ do
+        configColorMode <$> parseOptions ["--no-color"] `shouldBe` Right ColorNever
 
     context "with --color" $ do
-      it "sets optionsColorMode to ColorAlways" $ do
-        optionsColorMode <$> parseOptions ["--color"] `shouldBe` Right ColorAlways
+      it "sets configColorMode to ColorAlways" $ do
+        configColorMode <$> parseOptions ["--color"] `shouldBe` Right ColorAlways
 
     context "with --out" $ do
-      it "sets optionsOutputFile" $ do
-        optionsOutputFile <$> parseOptions ["--out", "foo"] `shouldBe` Right (Just "foo")
+      it "sets configOutputFile" $ do
+        either (const Nothing) Just . configOutputFile <$> parseOptions ["--out", "foo"] `shouldBe` Right (Just "foo")
 
     context "with --qc-max-success" $ do
       context "when given an invalid argument" $ do
@@ -41,4 +41,4 @@ spec = do
 
     context "with --depth" $ do
       it "sets depth parameter for SmallCheck" $ do
-        optionsDepth <$> parseOptions ["--depth", "23"] `shouldBe` Right (Just 23)
+        configSmallCheckDepth <$> parseOptions ["--depth", "23"] `shouldBe` Right 23

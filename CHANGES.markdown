@@ -5,6 +5,7 @@
   - Do not pass position to `Formatte.exampleGroupStarted` (we can not support
     this with the upcomming cleanup actions #188)
   - Deprecate `Test.Hspec.Formatters.newParagraph`
+  - Rename `configHandle` to `configOutputFile`
 
 ## Changes in 1.11.4
   - Make test suite independent from QuickCheck seed (see #187)

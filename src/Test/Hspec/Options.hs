@@ -1,11 +1,14 @@
 module Test.Hspec.Options (
-  Options (..)
+  Config(..)
 , ColorMode (..)
-, defaultOptions
+, defaultConfig
+, filterOr
 , parseOptions
 ) where
 
+import           Control.Applicative
 import           Data.List
+import           System.IO
 import           System.Exit
 import           System.Console.GetOpt
 
@@ -13,46 +16,70 @@ import           Test.Hspec.Formatters
 import           Test.Hspec.Compat
 import           Test.Hspec.Util
 
-data Options = Options {
-  optionsDryRun :: Bool
-, optionsPrintCpuTime :: Bool
-, optionsRerun :: Bool
-, optionsFastFail :: Bool
-, optionsMatch :: [String]
-, optionsMaxSuccess :: Maybe Int
-, optionsDepth :: Maybe Int
-, optionsSeed :: Maybe Integer
-, optionsMaxSize :: Maybe Int
-, optionsMaxDiscardRatio :: Maybe Int
-, optionsColorMode :: ColorMode
-, optionsFormatter :: Maybe Formatter
-, optionsHtmlOutput :: Bool
-, optionsOutputFile :: Maybe FilePath
+data Config = Config {
+  configDryRun :: Bool
+, configPrintCpuTime :: Bool
+, configFastFail :: Bool
+
+-- |
+-- A predicate that is used to filter the spec before it is run.  Only examples
+-- that satisfy the predicate are run.
+, configRerun :: Bool
+, configFilterPredicate :: Maybe (Path -> Bool)
+, configQuickCheckSeed :: Maybe Integer
+, configQuickCheckMaxSuccess :: Maybe Int
+, configQuickCheckMaxDiscardRatio :: Maybe Int
+, configQuickCheckMaxSize :: Maybe Int
+, configSmallCheckDepth :: Int
+, configColorMode :: ColorMode
+, configFormatter :: Maybe Formatter
+, configHtmlOutput :: Bool
+, configOutputFile :: Either Handle FilePath
 }
 
-addMatch :: String -> Options -> Options
-addMatch s c = c {optionsMatch = s : optionsMatch c}
+defaultConfig :: Config
+defaultConfig = Config {
+  configDryRun = False
+, configPrintCpuTime = False
+, configFastFail = False
+, configRerun = False
+, configFilterPredicate = Nothing
+, configQuickCheckSeed = Nothing
+, configQuickCheckMaxSuccess = Nothing
+, configQuickCheckMaxDiscardRatio = Nothing
+, configQuickCheckMaxSize = Nothing
+, configSmallCheckDepth = 5
+, configColorMode = ColorAuto
+, configFormatter = Nothing
+, configHtmlOutput = False
+, configOutputFile = Left stdout
+}
 
-setDepth :: Int -> Options -> Options
-setDepth n c = c {optionsDepth = Just n}
+filterOr :: Maybe (Path -> Bool) -> Maybe (Path -> Bool) -> Maybe (Path -> Bool)
+filterOr p1_ p2_ = case (p1_, p2_) of
+  (Just p1, Just p2) -> Just $ \path -> p1 path || p2 path
+  _ -> p1_ <|> p2_
 
-setMaxSuccess :: Int -> Options -> Options
-setMaxSuccess n c = c {optionsMaxSuccess = Just n}
+addMatch :: String -> Config -> Config
+addMatch s c = c {configFilterPredicate = Just (filterPredicate s) `filterOr` configFilterPredicate c}
 
-setMaxSize :: Int -> Options -> Options
-setMaxSize n c = c {optionsMaxSize = Just n}
+setDepth :: Int -> Config -> Config
+setDepth n c = c {configSmallCheckDepth = n}
 
-setMaxDiscardRatio :: Int -> Options -> Options
-setMaxDiscardRatio n c = c {optionsMaxDiscardRatio = Just n}
+setMaxSuccess :: Int -> Config -> Config
+setMaxSuccess n c = c {configQuickCheckMaxSuccess = Just n}
 
-setSeed :: Integer -> Options -> Options
-setSeed n c = c {optionsSeed = Just n}
+setMaxSize :: Int -> Config -> Config
+setMaxSize n c = c {configQuickCheckMaxSize = Just n}
+
+setMaxDiscardRatio :: Int -> Config -> Config
+setMaxDiscardRatio n c = c {configQuickCheckMaxDiscardRatio = Just n}
+
+setSeed :: Integer -> Config -> Config
+setSeed n c = c {configQuickCheckSeed = Just n}
 
 data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
-
-defaultOptions :: Options
-defaultOptions = Options False False False False [] Nothing Nothing Nothing Nothing Nothing ColorAuto Nothing False Nothing
 
 formatters :: [(String, Formatter)]
 formatters = [
@@ -65,14 +92,14 @@ formatters = [
 formatHelp :: String
 formatHelp = unlines (addLineBreaks "use a custom formatter; this can be one of:" ++ map (("   " ++) . fst) formatters)
 
-type Result = Either NoConfig Options
+type Result = Either NoConfig Config
 
 data NoConfig = Help | InvalidArgument String String
 
 data Arg a = Arg {
   _argumentName   :: String
 , _argumentParser :: String -> Maybe a
-, _argumentSetter :: a -> Options -> Options
+, _argumentSetter :: a -> Config -> Config
 }
 
 mkOption :: [Char] -> String -> Arg a -> String -> OptDescr (Result -> Result)
@@ -110,18 +137,18 @@ options = [
     readFormatter :: String -> Maybe Formatter
     readFormatter = (`lookup` formatters)
 
-    setFormatter :: Formatter -> Options -> Options
-    setFormatter f c = c {optionsFormatter = Just f}
+    setFormatter :: Formatter -> Config -> Config
+    setFormatter f c = c {configFormatter = Just f}
 
-    setOutputFile :: String -> Options -> Options
-    setOutputFile file c = c {optionsOutputFile = Just file}
+    setOutputFile :: String -> Config -> Config
+    setOutputFile file c = c {configOutputFile = Right file}
 
-    setPrintCpuTime x = x >>= \c -> return c {optionsPrintCpuTime = True}
-    setDryRun       x = x >>= \c -> return c {optionsDryRun       = True}
-    setFastFail     x = x >>= \c -> return c {optionsFastFail     = True}
-    setRerun        x = x >>= \c -> return c {optionsRerun = True}
-    setNoColor      x = x >>= \c -> return c {optionsColorMode = ColorNever}
-    setColor        x = x >>= \c -> return c {optionsColorMode = ColorAlways}
+    setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
+    setDryRun       x = x >>= \c -> return c {configDryRun = True}
+    setFastFail     x = x >>= \c -> return c {configFastFail = True}
+    setRerun        x = x >>= \c -> return c {configRerun = True}
+    setNoColor      x = x >>= \c -> return c {configColorMode = ColorNever}
+    setColor        x = x >>= \c -> return c {configColorMode = ColorAlways}
 
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [
@@ -137,9 +164,9 @@ undocumentedOptions = [
   ]
   where
     setHtml :: Result -> Result
-    setHtml x = x >>= \c -> return c {optionsHtmlOutput = True}
+    setHtml x = x >>= \c -> return c {configHtmlOutput = True}
 
-parseOptions :: Options -> String -> [String] -> Either (ExitCode, String) Options
+parseOptions :: Config -> String -> [String] -> Either (ExitCode, String) Config
 parseOptions c prog args = case getOpt Permute (options ++ undocumentedOptions) args of
     (opts, [], []) -> case foldl' (flip id) (Right c) opts of
         Left Help                         -> Left (ExitSuccess, usageInfo ("Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS") options)
