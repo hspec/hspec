@@ -112,7 +112,7 @@ after action = around (`finally` action)
 
 -- | Run a custom action after the last spec item.
 afterAll :: IO () -> Spec -> Spec
-afterAll action = fromSpecList . return . SpecWithCleanup action . return . BuildSpecs . runSpecM
+afterAll action spec = runIO (runSpecM spec) >>= fromSpecList . return . SpecWithCleanup action
 
 -- | Run a custom action before and/or after every spec item.
 around :: (IO () -> IO ()) -> Spec -> Spec
