@@ -1,4 +1,6 @@
 ## Changes in 1.12.0
+  - Remove `BuildSpecs` constructor from `SpecTree`, having `runIO` this is not
+    really needed
   - Add `mapSpecTree` to `Test.Hspec.Core`
   - Add `afterAll` (see #188)
   - Omit empty `describe` groups from report

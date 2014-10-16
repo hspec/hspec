@@ -90,7 +90,6 @@ data Params = Params {
 -- | Internal representation of a spec.
 data SpecTree =
     SpecGroup String [SpecTree]
-  | BuildSpecs (IO [SpecTree])
   | SpecWithCleanup (IO ()) [SpecTree]
   | SpecItem String Item
 
@@ -108,7 +107,6 @@ mapSpecItem f = mapSpecTree go
     go :: SpecTree -> SpecTree
     go spec = case spec of
       SpecGroup d xs -> SpecGroup d (map go xs)
-      BuildSpecs xs -> BuildSpecs (map go <$> xs)
       SpecWithCleanup cleanup xs -> SpecWithCleanup cleanup (map go xs)
       SpecItem r item -> SpecItem r (f item)
 
