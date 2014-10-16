@@ -94,12 +94,10 @@ before action = around (action >>)
 
 -- | Run a custom action before the first spec item.
 beforeAll :: IO () -> Spec -> Spec
-beforeAll action = fromSpecList . return . BuildSpecs . go
-  where
-    go spec = do
-      mvar <- newMVar Nothing
-      let action_ = memoize mvar action
-      runSpecM $ before action_ spec
+beforeAll action spec = do
+  mvar <- runIO (newMVar Nothing)
+  let action_ = memoize mvar action
+  before action_ spec
 
 memoize :: MVar (Maybe a) -> IO a -> IO a
 memoize mvar action = modifyMVar mvar $ \ma -> case ma of
