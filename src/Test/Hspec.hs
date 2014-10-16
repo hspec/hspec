@@ -45,7 +45,7 @@ import qualified Test.Hspec.Core as Core
 
 -- | Combine a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
-describe label action = fromSpecList [Core.describe label [BuildSpecs $ runSpecM action]]
+describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . Core.describe label
 
 -- | An alias for `describe`.
 context :: String -> Spec -> Spec
