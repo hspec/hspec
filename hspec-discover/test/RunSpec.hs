@@ -29,6 +29,7 @@ spec = do
       run ["hspec-discover/test-data/nested-spec/Spec.hs", "", f]
       readFile f `shouldReturn` unlines [
           "{-# LINE 1 \"hspec-discover/test-data/nested-spec/Spec.hs\" #-}"
+        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
         , "module Main where"
         , "import qualified Foo.Bar.BazSpec"
         , "import qualified Foo.BarSpec"
@@ -46,6 +47,7 @@ spec = do
       run ["hspec-discover/test-data/empty-dir/Spec.hs", "", f]
       readFile f `shouldReturn` unlines [
           "{-# LINE 1 \"hspec-discover/test-data/empty-dir/Spec.hs\" #-}"
+        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
         , "module Main where"
         , "import Test.Hspec.Discover"
         , "main :: IO ()"

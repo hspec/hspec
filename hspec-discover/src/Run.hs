@@ -54,6 +54,7 @@ run args_ = do
 mkSpecModule :: FilePath -> Config -> [Spec] -> String
 mkSpecModule src c nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
+  . showString "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}\n"
   . showString ("module " ++ module_ ++" where\n")
   . importList nodes
   . showString "import Test.Hspec.Discover\n"
