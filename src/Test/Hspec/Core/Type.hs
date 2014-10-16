@@ -100,7 +100,7 @@ data Item = Item {
 }
 
 mapSpecTree :: (SpecTree -> SpecTree) -> Spec -> Spec
-mapSpecTree f = fromSpecList . return . BuildSpecs . fmap (map f) . runSpecM
+mapSpecTree f spec = runIO (runSpecM spec) >>= fromSpecList . map f
 
 mapSpecItem :: (Item -> Item) -> Spec -> Spec
 mapSpecItem f = mapSpecTree go
