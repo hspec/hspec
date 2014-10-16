@@ -17,5 +17,5 @@ toTree spec = concat <$> (runSpecM spec >>= mapM go)
     go x = case x of
       SpecGroup label xs -> return . Node label . concat <$> mapM go xs
       BuildSpecs xs -> concat <$> (xs >>= mapM go)
-      SpecWithCleanup cleanup y -> return . NodeWithCleanup cleanup <$> go y
+      SpecWithCleanup cleanup xs -> return . NodeWithCleanup cleanup . concat <$> mapM go xs
       SpecItem r item -> return [Leaf r item]
