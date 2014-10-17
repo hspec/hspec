@@ -41,6 +41,7 @@ module Test.Hspec.Formatters (
 , newParagraph
 
 -- ** Dealing with colors
+, withInfoColor
 , withSuccessColor
 , withPendingColor
 , withFailColor
@@ -61,8 +62,10 @@ module Test.Hspec.Formatters (
 
 import           Data.Maybe
 import           Test.Hspec.Util
+import           Test.Hspec.Core.Type (Location(..), LocationAccuracy(..))
 import           Text.Printf
-import           Control.Monad (unless, forM_)
+import           Control.Monad (when, unless)
+import           Data.Foldable (forM_)
 import           Control.Applicative
 import           System.IO (hPutStr, hFlush)
 
@@ -91,6 +94,7 @@ import Test.Hspec.Formatters.Internal (
   , writeLine
   , newParagraph
 
+  , withInfoColor
   , withSuccessColor
   , withPendingColor
   , withFailColor
@@ -177,19 +181,38 @@ defaultFailedFormatter = do
   forM_ (zip [1..] failures) $ \x -> do
     formatFailure x
     writeLine ""
+
+  when (hasBestEffortLocations failures) $ do
+    withInfoColor $ writeLine "Source locations marked with \"best-effort\" are calculated heuristically and may be incorrect."
+    writeLine ""
+
   unless (null failures) $ do
     write "Randomized with seed " >> usedSeed >>= writeLine . show
     writeLine ""
   where
+    hasBestEffortLocations :: [FailureRecord] -> Bool
+    hasBestEffortLocations = any p
+      where
+        p :: FailureRecord -> Bool
+        p failure = (locationAccuracy <$> failureRecordLocation failure) == Just BestEffort
+
     formatFailure :: (Int, FailureRecord) -> FormatM ()
-    formatFailure (n, FailureRecord path reason) = do
+    formatFailure (n, FailureRecord mLoc path reason) = do
       write (show n ++ ") ")
       writeLine (formatRequirement path)
       withFailColor $ do
         unless (null err) $ do
           writeLine err
+      forM_ mLoc $ \loc -> do
+        writeLine ""
+        withInfoColor $ writeLine (formatLoc loc)
       where
         err = either (("uncaught exception: " ++) . formatException) id reason
+        formatLoc (Location file line _column accuracy) = "# " ++ file ++ ":" ++ show line ++ bestEffortMarking
+          where
+            bestEffortMarking = case accuracy of
+              ExactLocation -> ""
+              BestEffort -> " (best-effort)"
 
 defaultFooter :: FormatM ()
 defaultFooter = do

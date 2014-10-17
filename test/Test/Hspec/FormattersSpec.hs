@@ -4,7 +4,7 @@ module Test.Hspec.FormattersSpec (main, spec) where
 import           Helper
 
 import qualified Test.Hspec as H
-import qualified Test.Hspec.Core as H (Result(..))
+import qualified Test.Hspec.Core as H (Result(..), Location(..), LocationAccuracy(..), Item(..), mapSpecItem)
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Formatters as H
 
@@ -158,6 +158,40 @@ failed_examplesSpec formatter = do
           H.describe "bar" $ do
             H.it "baz" False
       r `shouldSatisfy` any (== "1) foo.bar baz")
+
+
+    context "when a failed example has a source location" $ do
+      let bestEffortExplanation = "Source locations marked with \"best-effort\" are calculated heuristically and may be incorrect."
+
+      context "when source location is exact" $ do
+        it "includes that source locations" $ do
+          let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
+              addLoc e = e {H.itemLocation = Just loc}
+          r <- runSpec $ H.mapSpecItem addLoc $ do
+            H.it "foo" False
+          r `shouldSatisfy` any (== "# test/FooSpec.hs:23")
+
+        it "does not include 'best-effort' explanation" $ do
+          let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
+              addLoc e = e {H.itemLocation = Just loc}
+          r <- runSpec $ H.mapSpecItem addLoc $ do
+            H.it "foo" False
+          r `shouldSatisfy` all (/= bestEffortExplanation)
+
+      context "when source location is best-effort" $ do
+        it "marks that source location as 'best-effort'" $ do
+          let loc = H.Location "test/FooSpec.hs" 23 0 H.BestEffort
+              addLoc e = e {H.itemLocation = Just loc}
+          r <- runSpec $ H.mapSpecItem addLoc $ do
+            H.it "foo" False
+          r `shouldSatisfy` any (== "# test/FooSpec.hs:23 (best-effort)")
+
+        it "includes 'best-effort' explanation" $ do
+          let loc = H.Location "test/FooSpec.hs" 23 0 H.BestEffort
+              addLoc e = e {H.itemLocation = Just loc}
+          r <- runSpec $ H.mapSpecItem addLoc $ do
+            H.it "foo" False
+          r `shouldSatisfy` any (== bestEffortExplanation)
 
   it "summarizes the number of examples and failures" $ do
     r <- runSpec testSpec

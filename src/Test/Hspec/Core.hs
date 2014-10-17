@@ -21,6 +21,8 @@ module Test.Hspec.Core (
 , SpecTree (..)
 , mapSpecTree
 , Item (..)
+, Location (..)
+, LocationAccuracy(..)
 , mapSpecItem
 , modifyParams
 , describe

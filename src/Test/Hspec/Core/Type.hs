@@ -8,6 +8,8 @@ module Test.Hspec.Core.Type (
 , mapSpecTree
 , Item (..)
 , mapSpecItem
+, Location (..)
+, LocationAccuracy(..)
 , Example (..)
 , Result (..)
 , Params (..)
@@ -95,6 +97,7 @@ data SpecTree =
 
 data Item = Item {
   itemRequirement :: String
+, itemLocation :: Maybe Location
 , itemIsParallelizable :: Bool
 , itemExample :: Params -> (IO () -> IO ()) -> ProgressCallback -> IO Result
 }
@@ -111,6 +114,16 @@ mapSpecItem f = mapSpecTree go
       SpecWithCleanup cleanup xs -> SpecWithCleanup cleanup (map go xs)
       SpecItem item -> SpecItem (f item)
 
+data LocationAccuracy = ExactLocation | BestEffort
+  deriving (Eq, Show)
+
+data Location = Location {
+  locationFile :: String
+, locationLine :: Int
+, locationColumn :: Int
+, locationAccuracy :: LocationAccuracy
+} deriving (Eq, Show)
+
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree] -> SpecTree
 describe s = SpecGroup msg
@@ -121,7 +134,7 @@ describe s = SpecGroup msg
 
 -- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
-it s e = SpecItem $ Item requirement False (evaluateExample e)
+it s e = SpecItem $ Item requirement Nothing False (evaluateExample e)
   where
     requirement
       | null s = "(unspecified behavior)"

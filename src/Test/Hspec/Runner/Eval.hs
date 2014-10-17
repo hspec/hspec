@@ -18,7 +18,7 @@ import           Test.Hspec.Formatters.Internal
 import           Test.Hspec.Timer
 import           Data.Time.Clock.POSIX
 
-type EvalTree = Tree (String, ProgressCallback -> FormatResult -> IO (FormatM ()))
+type EvalTree = Tree (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: Bool -> Handle -> Config -> Formatter -> [Tree Item] -> FormatM ()
@@ -36,8 +36,8 @@ runFormatter useColor h c formatter specs = do
     toEvalTree :: [Tree Item] -> [EvalTree]
     toEvalTree = map (fmap f)
       where
-        f :: Item -> (String, ProgressCallback -> FormatResult -> IO (FormatM ()))
-        f (Item requirement isParallelizable e) = (requirement, parallelize isParallelizable $ e params id)
+        f :: Item -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
+        f (Item requirement loc isParallelizable e) = (requirement, loc, parallelize isParallelizable $ e params id)
 
     params :: Params
     params = Params (configQuickCheckArgs c) (configSmallCheckDepth c)
@@ -103,7 +103,7 @@ run chan reportProgress_ c formatter specs = do
     runCleanup :: IO () -> Path -> FormatM ()
     runCleanup action path = do
       r <- liftIO $ safeTry action
-      either (failed path . Left) return r
+      either (failed Nothing path . Left) return r
 
     queueSpec :: [String] -> EvalTree -> IO ()
     queueSpec rGroups (Node group xs) = do
@@ -116,8 +116,8 @@ run chan reportProgress_ c formatter specs = do
     queueSpec rGroups (Leaf e) =
       queueExample (reverse rGroups) e
 
-    queueExample :: [String] -> (String, ProgressCallback -> FormatResult -> IO (FormatM ())) -> IO ()
-    queueExample groups (requirement, e) = e reportProgress formatResult >>= defer
+    queueExample :: [String] -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ())) -> IO ()
+    queueExample groups (requirement, loc, e) = e reportProgress formatResult >>= defer
       where
         path :: Path
         path = (groups, requirement)
@@ -133,12 +133,12 @@ run chan reportProgress_ c formatter specs = do
             Right (Pending reason) -> do
               increasePendingCount
               examplePending formatter path reason
-            Right (Fail err) -> failed path (Right err)
-            Left err         -> failed path (Left  err)
+            Right (Fail err) -> failed loc path (Right err)
+            Left err         -> failed loc path (Left  err)
 
-    failed path err = do
+    failed loc path err = do
       increaseFailCount
-      addFailMessage path err
+      addFailMessage loc path err
       exampleFailed formatter path err
 
 processMessages :: IO Message -> Bool -> FormatM ()

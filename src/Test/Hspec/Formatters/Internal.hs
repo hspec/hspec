@@ -21,6 +21,7 @@ module Test.Hspec.Formatters.Internal (
 , writeLine
 , newParagraph
 
+, withInfoColor
 , withSuccessColor
 , withPendingColor
 , withFailColor
@@ -47,7 +48,7 @@ import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 import           Test.Hspec.Util (Path)
 import           Test.Hspec.Compat
-import           Test.Hspec.Core.Type (Progress)
+import           Test.Hspec.Core.Type (Progress, Location)
 
 -- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a
@@ -121,15 +122,16 @@ getTotalCount :: FormatM Int
 getTotalCount = gets totalCount
 
 -- | Append to the list of accumulated failure messages.
-addFailMessage :: Path -> Either SomeException String -> FormatM ()
-addFailMessage p m = modify $ \s -> s {failMessages = FailureRecord p m : failMessages s}
+addFailMessage :: Maybe Location -> Path -> Either SomeException String -> FormatM ()
+addFailMessage loc p m = modify $ \s -> s {failMessages = FailureRecord loc p m : failMessages s}
 
 -- | Get the list of accumulated failure messages.
 getFailMessages :: FormatM [FailureRecord]
 getFailMessages = reverse `fmap` gets failMessages
 
 data FailureRecord = FailureRecord {
-  failureRecordPath     :: Path
+  failureRecordLocation :: Maybe Location
+, failureRecordPath     :: Path
 , failureRecordMessage  :: Either SomeException String
 }
 
@@ -197,6 +199,11 @@ withSuccessColor = withColor (SetColor Foreground Dull Green) "hspec-success"
 -- default color.
 withPendingColor :: FormatM a -> FormatM a
 withPendingColor = withColor (SetColor Foreground Dull Yellow) "hspec-pending"
+
+-- | Set output color to cyan, run given action, and finally restore the
+-- default color.
+withInfoColor :: FormatM a -> FormatM a
+withInfoColor = withColor (SetColor Foreground Dull Cyan) "hspec-info"
 
 -- | Set a color, run an action, and finally reset colors.
 withColor :: SGR -> String -> FormatM a -> FormatM a
