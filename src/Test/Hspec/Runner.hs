@@ -3,8 +3,8 @@
 module Test.Hspec.Runner (
 -- * Running a spec
   hspec
-, hspecResult
 , hspecWith
+, hspecResult
 , hspecWithResult
 
 -- * Types
@@ -105,13 +105,9 @@ ensureSeed c = case configQuickCheckSeed c of
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Spec -> IO ()
-hspecWith opts spec = do
-  prog <- getProgName
-  args <- getArgs
-  c <- getConfig opts prog args
-  withArgs [] {- do not leak command-line arguments to examples -} $ do
-    r <- hspecWithResult c spec
-    unless (summaryFailures r == 0) exitFailure
+hspecWith conf spec = do
+  r <- hspecWithResult conf spec
+  unless (summaryFailures r == 0) exitFailure
 
 -- | Run given spec and returns a summary of the test run.
 --
@@ -127,34 +123,37 @@ hspecResult = hspecWithResult defaultConfig
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult c_ spec = withHandle c_ $ \h -> do
-  c <- ensureSeed c_
-  let formatter = fromMaybe specdoc (configFormatter c)
-      seed = (fromJust . configQuickCheckSeed) c
-      qcArgs = configQuickCheckArgs c
+hspecWithResult conf spec = do
+  prog <- getProgName
+  args <- getArgs
+  c <- getConfig conf prog args >>= ensureSeed
+  withArgs [] {- do not leak command-line arguments to examples -} $ withHandle c $ \h -> do
+    let formatter = fromMaybe specdoc (configFormatter c)
+        seed = (fromJust . configQuickCheckSeed) c
+        qcArgs = configQuickCheckArgs c
 
-  useColor <- doesUseColor h c
+    useColor <- doesUseColor h c
 
-  filteredSpec <- filterSpecs c . applyDryRun c <$> toTree spec
+    filteredSpec <- filterSpecs c . applyDryRun c <$> toTree spec
 
-  withHiddenCursor useColor h $
-    runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
-      runFormatter useColor h c formatter filteredSpec `finally_` do
-        failedFormatter formatter
+    withHiddenCursor useColor h $
+      runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
+        runFormatter useColor h c formatter filteredSpec `finally_` do
+          failedFormatter formatter
 
-      footerFormatter formatter
+        footerFormatter formatter
 
-      -- dump failure report
-      xs <- map failureRecordPath <$> getFailMessages
-      liftIO $ writeFailureReport FailureReport {
-          failureReportSeed = seed
-        , failureReportMaxSuccess = QC.maxSuccess qcArgs
-        , failureReportMaxSize = QC.maxSize qcArgs
-        , failureReportMaxDiscardRatio = QC.maxDiscardRatio qcArgs
-        , failureReportPaths = xs
-        }
+        -- dump failure report
+        xs <- map failureRecordPath <$> getFailMessages
+        liftIO $ writeFailureReport FailureReport {
+            failureReportSeed = seed
+          , failureReportMaxSuccess = QC.maxSuccess qcArgs
+          , failureReportMaxSize = QC.maxSize qcArgs
+          , failureReportMaxDiscardRatio = QC.maxDiscardRatio qcArgs
+          , failureReportPaths = xs
+          }
 
-      Summary <$> getTotalCount <*> getFailCount
+        Summary <$> getTotalCount <*> getFailCount
   where
     withHiddenCursor :: Bool -> Handle -> IO a -> IO a
     withHiddenCursor useColor h
