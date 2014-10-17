@@ -91,10 +91,11 @@ data Params = Params {
 data SpecTree =
     SpecGroup String [SpecTree]
   | SpecWithCleanup (IO ()) [SpecTree]
-  | SpecItem String Item
+  | SpecItem Item
 
 data Item = Item {
-  itemIsParallelizable :: Bool
+  itemRequirement :: String
+, itemIsParallelizable :: Bool
 , itemExample :: Params -> (IO () -> IO ()) -> ProgressCallback -> IO Result
 }
 
@@ -108,7 +109,7 @@ mapSpecItem f = mapSpecTree go
     go spec = case spec of
       SpecGroup d xs -> SpecGroup d (map go xs)
       SpecWithCleanup cleanup xs -> SpecWithCleanup cleanup (map go xs)
-      SpecItem r item -> SpecItem r (f item)
+      SpecItem item -> SpecItem (f item)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree] -> SpecTree
@@ -120,9 +121,9 @@ describe s = SpecGroup msg
 
 -- | Create a spec item.
 it :: Example a => String -> a -> SpecTree
-it s e = SpecItem msg $ Item False (evaluateExample e)
+it s e = SpecItem $ Item requirement False (evaluateExample e)
   where
-    msg
+    requirement
       | null s = "(unspecified behavior)"
       | otherwise = s
 

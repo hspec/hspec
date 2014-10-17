@@ -1,4 +1,5 @@
 ## Changes in 1.12.0
+  - Move item requirement to `Item` data type
   - Remove `BuildSpecs` constructor from `SpecTree`, having `runIO` this is not
     really needed
   - Add `mapSpecTree` to `Test.Hspec.Core`

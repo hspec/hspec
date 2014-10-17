@@ -44,23 +44,23 @@ import           Test.Hspec.Runner.Eval
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
-filterSpecs :: Config -> [Tree a] -> [Tree a]
+filterSpecs :: Config -> [Tree Item] -> [Tree Item]
 filterSpecs c = go []
   where
     p :: Path -> Bool
     p = fromMaybe (const True) (configFilterPredicate c)
 
-    go :: [String] -> [Tree a] -> [Tree a]
+    go :: [String] -> [Tree Item] -> [Tree Item]
     go groups = mapMaybe (goSpec groups)
 
-    goSpecs :: [String] -> [Tree a] -> ([Tree a] -> b) -> Maybe b
+    goSpecs :: [String] -> [Tree Item] -> ([Tree Item] -> a) -> Maybe a
     goSpecs groups specs ctor = case go groups specs of
       [] -> Nothing
       xs -> Just (ctor xs)
 
-    goSpec :: [String] -> Tree a -> Maybe (Tree a)
+    goSpec :: [String] -> Tree Item -> Maybe (Tree Item)
     goSpec groups spec = case spec of
-      Leaf requirement _ -> guard (p (groups, requirement)) >> return spec
+      Leaf item -> guard (p (groups, itemRequirement item)) >> return spec
       Node group specs -> goSpecs (groups ++ [group]) specs (Node group)
       NodeWithCleanup action specs -> goSpecs groups specs (NodeWithCleanup action)
 
@@ -76,7 +76,7 @@ applyDryRun c
     removeCleanup spec = case spec of
       Node x xs -> Node x (map removeCleanup xs)
       NodeWithCleanup _ xs -> NodeWithCleanup (return ()) (map removeCleanup xs)
-      leaf@(Leaf _ _) -> leaf
+      leaf@(Leaf _) -> leaf
 
 -- | Run given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.

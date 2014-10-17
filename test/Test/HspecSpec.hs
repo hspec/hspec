@@ -44,11 +44,11 @@ spec = do
       length r `shouldBe` 3
 
     it "can be nested" $ do
-      [Node foo [Node bar [Leaf baz _]]] <- toTree $ do
+      [Node foo [Node bar [Leaf _]]] <- toTree $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "baz" True
-      (foo, bar, baz) `shouldBe` ("foo", "bar", "baz")
+      (foo, bar) `shouldBe` ("foo", "bar")
 
     context "when no description is given" $ do
       it "uses a default description" $ do
@@ -57,17 +57,17 @@ spec = do
 
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
-      [Leaf requirement _] <- toTree (H.it "whatever" True)
-      requirement `shouldBe` "whatever"
+      [Leaf item] <- toTree (H.it "whatever" True)
+      itemRequirement item `shouldBe` "whatever"
 
     it "takes an example of that behavior" $ do
-      [Leaf _ item] <- toTree (H.it "whatever" True)
+      [Leaf item] <- toTree (H.it "whatever" True)
       itemExample item defaultParams id noOpProgressCallback `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do
-        [Leaf requirement _] <- toTree (H.it "" True)
-        requirement `shouldBe` "(unspecified behavior)"
+        [Leaf item] <- toTree (H.it "" True)
+        itemRequirement item `shouldBe` "(unspecified behavior)"
 
   describe "example" $ do
     it "fixes the type of an expectation" $ do
@@ -78,11 +78,11 @@ spec = do
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do
-      [Leaf _ item] <- toTree . H.parallel $ H.it "whatever" True
+      [Leaf item] <- toTree . H.parallel $ H.it "whatever" True
       itemIsParallelizable item `shouldBe` True
 
     it "is applied recursively" $ do
-      [Node _ [Node _ [Leaf _ item]]] <- toTree . H.parallel $ do
+      [Node _ [Node _ [Leaf item]]] <- toTree . H.parallel $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "baz" True
