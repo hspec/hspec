@@ -1,12 +1,4 @@
 GIT
-  remote: git://github.com/sol/jekyll-less.git
-  revision: e7bdf25c9d8c5bf50c32ad8134686ae806d55dc5
-  specs:
-    jekyll-less (0.0.4)
-      jekyll (>= 0.10.0)
-      less (>= 2.0.5)
-
-GIT
   remote: git://github.com/sol/jekyll.git
   revision: 949c5c546ca4a9a18006f1145bb3968f3d59e26f
   branch: hspec-doc
@@ -18,6 +10,14 @@ GIT
       liquid (~> 2.3)
       maruku (~> 0.5)
       pygments.rb (~> 0.3.2)
+
+GIT
+  remote: git://github.com/zroger/jekyll-less.git
+  revision: 00c94a8d6042e059a909b0026de1e36ecf53ed31
+  specs:
+    jekyll-less (0.1.0)
+      jekyll (>= 0.10.0)
+      less (>= 2.0.5)
 
 GEM
   remote: https://rubygems.org/
