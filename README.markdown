@@ -33,6 +33,7 @@ To run the test suite do:
    `hspec.cabal`
  - Make sure that `other-modules` for `test-suite spec` is up-to-date
  - Release new version of `hspec`
+ - Upload docs
 
 ## Contributors
 
