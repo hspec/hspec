@@ -1,1 +1,4 @@
 language: haskell
+
+script:
+  - cabal configure --enable-tests --ghc-options=-Werror && cabal build && cabal test
