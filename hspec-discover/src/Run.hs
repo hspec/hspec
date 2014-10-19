@@ -59,6 +59,8 @@ mkSpecModule src c nodes =
   . importList nodes
   . showString "import Test.Hspec.Discover\n"
   . maybe driver driverWithFormatter (configFormatter c)
+  . showString "spec :: Spec\n"
+  . showString "spec = "
   . formatSpecs nodes
   ) "\n"
   where
@@ -66,11 +68,9 @@ mkSpecModule src c nodes =
         case configNoMain c of
           False ->
               showString "main :: IO ()\n"
-            . showString "main = hspec $ "
-          True ->
-              showString "spec :: Spec\n"
-            . showString "spec = "
-    module_ = if configNoMain c then pathToModule src else "Main"
+            . showString "main = hspec spec\n"
+          True -> ""
+    module_ = fromMaybe (if configNoMain c then pathToModule src else "Main") (configModuleName c)
     pathToModule f = let
         fileName = last $ splitDirectories f
         m:ms = takeWhile (/='.') fileName
@@ -82,7 +82,7 @@ driverWithFormatter :: String -> ShowS
 driverWithFormatter f =
     showString "import qualified " . showString (moduleName f) . showString "\n"
   . showString "main :: IO ()\n"
-  . showString "main = hspecWithFormatter " . showString f . showString " $ "
+  . showString "main = hspecWithFormatter " . showString f . showString " spec\n"
 
 moduleName :: String -> String
 moduleName = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse

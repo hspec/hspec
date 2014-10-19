@@ -12,20 +12,22 @@ data Config = Config {
   configNested :: Bool
 , configFormatter :: Maybe String
 , configNoMain :: Bool
+, configModuleName :: Maybe String
 } deriving (Eq, Show)
 
 defaultConfig :: Config
-defaultConfig = Config False Nothing False
+defaultConfig = Config False Nothing False Nothing
 
 options :: [OptDescr (Config -> Config)]
 options = [
-    Option [] ["nested"]    (NoArg  $ \c -> c   {configNested = True}) ""
+    Option [] ["nested"] (NoArg $ \c -> c {configNested = True}) ""
   , Option [] ["formatter"] (ReqArg (\s c -> c {configFormatter = Just s}) "FORMATTER") ""
-  , Option [] ["no-main"]   (NoArg  $ \c -> c   {configNoMain = True}) ""
+  , Option [] ["module-name"] (ReqArg (\s c -> c {configModuleName = Just s}) "NAME") ""
+  , Option [] ["no-main"] (NoArg $ \c   -> c {configNoMain = True}) ""
   ]
 
 usage :: String -> String
-usage prog = "\nUsage: " ++ prog ++ " SRC CUR DST [--formatter=FORMATTER] [--no-main]\n"
+usage prog = "\nUsage: " ++ prog ++ " SRC CUR DST [--module-name=NAME]\n"
 
 parseConfig :: String -> [String] -> Either String Config
 parseConfig prog args = case getOpt Permute options args of

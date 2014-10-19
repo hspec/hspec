@@ -1,3 +1,6 @@
+## Changes in 1.12.1
+  - Add `--module-name` flag to `hspec-discover` (see #168)
+
 ## Changes in 1.12.0
   - Add optional source location to spec items
   - Move item requirement text from `SpecItem` constructor `Item` data type

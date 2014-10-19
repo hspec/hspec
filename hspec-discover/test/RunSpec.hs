@@ -6,7 +6,7 @@ import           Control.Applicative
 import           System.IO
 import           System.Directory
 import           System.FilePath
-import           Data.List (intercalate, sort)
+import           Data.List (sort)
 
 import           Run hiding (Spec)
 import qualified Run
@@ -36,8 +36,10 @@ spec = do
         , "import qualified FooSpec"
         , "import Test.Hspec.Discover"
         , "main :: IO ()"
-        , "main = hspec $" ++ unwords [
-              " postProcessSpec \"hspec-discover/test-data/nested-spec/Foo/Bar/BazSpec.hs\" (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
+        , "main = hspec spec"
+        , "spec :: Spec"
+        , "spec = " ++ unwords [
+               "postProcessSpec \"hspec-discover/test-data/nested-spec/Foo/Bar/BazSpec.hs\" (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
           , ">> postProcessSpec \"hspec-discover/test-data/nested-spec/Foo/BarSpec.hs\" (describe \"Foo.Bar\" Foo.BarSpec.spec)"
           , ">> postProcessSpec \"hspec-discover/test-data/nested-spec/FooSpec.hs\" (describe \"Foo\" FooSpec.spec)"
           ]
@@ -51,7 +53,9 @@ spec = do
         , "module Main where"
         , "import Test.Hspec.Discover"
         , "main :: IO ()"
-        , "main = hspec $ return ()"
+        , "main = hspec spec"
+        , "spec :: Spec"
+        , "spec = return ()"
         ]
 
   describe "getFilesRecursive" $ do
@@ -91,10 +95,10 @@ spec = do
 
   describe "driverWithFormatter" $ do
     it "generates a test driver that uses a custom formatter" $ do
-      driverWithFormatter "Some.Module.formatter" "" `shouldBe` intercalate "\n" [
+      driverWithFormatter "Some.Module.formatter" "" `shouldBe` unlines [
           "import qualified Some.Module"
         , "main :: IO ()"
-        , "main = hspecWithFormatter Some.Module.formatter $ "
+        , "main = hspecWithFormatter Some.Module.formatter spec"
         ]
 
   describe "moduleName" $ do

@@ -36,7 +36,10 @@ import qualified Foo.BarSpec
 import qualified BazSpec
 
 main :: IO ()
-main = hspec $ do
+main = hspec spec
+
+spec :: Spec
+spec = do
   describe "Foo"     FooSpec.spec
   describe "Foo.Bar" Foo.BarSpec.spec
   describe "Baz"     BazSpec.spec
@@ -66,3 +69,30 @@ following conventions:
  * Each spec file has to export a top-level binding `spec` of type {{'Spec'|id}}.
 
 A complete example is at <https://github.com/sol/hspec-example>.
+
+## Using a custom main function
+
+`hspec-discover` gives you a default `main` function and in many cases this is
+exactly what you want.  Hoverev, sometimes it is useful to customize the used
+main function.  This can be achieved by passid the `--module-name` flag to
+`hspec-discover`.  It tells `hspec-discover` to use a module name different
+from `Main`.  That way you can import it from your own `Main` module.
+
+Here is how you can use this to specify a different default formatter:
+
+```haskell
+-- file test/Spec.hs
+{-# OPTIONS_GHC -F -pgmF hspec-discover -optF --module-name=Spec #-}
+```
+
+```haskell
+-- file test/Main.hs
+module Main where
+
+import Test.Hspec.Runner
+import Test.Hspec.Formatters
+import qualified Spec
+
+main :: IO ()
+main = hspecWith defaultConfig {configFormatter = Just progress} Spec.spec
+```

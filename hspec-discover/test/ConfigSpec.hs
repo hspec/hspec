@@ -25,21 +25,21 @@ spec = do
       parse ["--foo"] `shouldBe` (Left . unlines) [
           "hspec-discover: unrecognized option `--foo'"
         , ""
-        , "Usage: hspec-discover SRC CUR DST [--formatter=FORMATTER] [--no-main]"
+        , "Usage: hspec-discover SRC CUR DST [--module-name=NAME]"
         ]
 
     it "returns error message on unexpected argument" $ do
       parse ["foo"]   `shouldBe` (Left . unlines) [
           "hspec-discover: unexpected argument `foo'"
         , ""
-        , "Usage: hspec-discover SRC CUR DST [--formatter=FORMATTER] [--no-main]"
+        , "Usage: hspec-discover SRC CUR DST [--module-name=NAME]"
         ]
 
     it "returns error message on --formatter=<fmt> with --no-main" $ do
       parse ["--no-main", "--formatter=foo"] `shouldBe` (Left . unlines) [
           "hspec-discover: option `--formatter=<fmt>' does not make sense with `--no-main'"
         , ""
-        , "Usage: hspec-discover SRC CUR DST [--formatter=FORMATTER] [--no-main]"
+        , "Usage: hspec-discover SRC CUR DST [--module-name=NAME]"
         ]
 
     context "when option is given multiple times" $ do
