@@ -139,7 +139,7 @@ test-suite spec
     , hspec-expectations
     , async
 
-    , hspec-meta == 1.12.0
+    , hspec-meta == 1.12.1
     , process
     , directory
     , stringbuilder
