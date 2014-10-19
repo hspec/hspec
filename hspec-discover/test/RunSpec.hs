@@ -26,9 +26,9 @@ spec :: Spec
 spec = do
   describe "run" $ do
     it "generates test driver" $ withTempFile $ \f -> do
-      run ["hspec-discover/test-data/nested-spec/Spec.hs", "", f]
+      run ["test-data/nested-spec/Spec.hs", "", f]
       readFile f `shouldReturn` unlines [
-          "{-# LINE 1 \"hspec-discover/test-data/nested-spec/Spec.hs\" #-}"
+          "{-# LINE 1 \"test-data/nested-spec/Spec.hs\" #-}"
         , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
         , "module Main where"
         , "import qualified Foo.Bar.BazSpec"
@@ -39,16 +39,16 @@ spec = do
         , "main = hspec spec"
         , "spec :: Spec"
         , "spec = " ++ unwords [
-               "postProcessSpec \"hspec-discover/test-data/nested-spec/Foo/Bar/BazSpec.hs\" (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
-          , ">> postProcessSpec \"hspec-discover/test-data/nested-spec/Foo/BarSpec.hs\" (describe \"Foo.Bar\" Foo.BarSpec.spec)"
-          , ">> postProcessSpec \"hspec-discover/test-data/nested-spec/FooSpec.hs\" (describe \"Foo\" FooSpec.spec)"
+               "postProcessSpec \"test-data/nested-spec/Foo/Bar/BazSpec.hs\" (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
+          , ">> postProcessSpec \"test-data/nested-spec/Foo/BarSpec.hs\" (describe \"Foo.Bar\" Foo.BarSpec.spec)"
+          , ">> postProcessSpec \"test-data/nested-spec/FooSpec.hs\" (describe \"Foo\" FooSpec.spec)"
           ]
         ]
 
     it "generates test driver for an empty directory" $ withTempFile $ \f -> do
-      run ["hspec-discover/test-data/empty-dir/Spec.hs", "", f]
+      run ["test-data/empty-dir/Spec.hs", "", f]
       readFile f `shouldReturn` unlines [
-          "{-# LINE 1 \"hspec-discover/test-data/empty-dir/Spec.hs\" #-}"
+          "{-# LINE 1 \"test-data/empty-dir/Spec.hs\" #-}"
         , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
         , "module Main where"
         , "import Test.Hspec.Discover"
@@ -64,7 +64,7 @@ spec = do
 
   describe "getFilesRecursive" $ do
     it "recursively returns all file entries of a given directory" $ do
-      getFilesRecursive "hspec-discover/test-data" `shouldReturn` sort [
+      getFilesRecursive "test-data" `shouldReturn` sort [
           "empty-dir/Foo/Bar/Baz/.placeholder"
         , "nested-spec/Foo/Bar/BazSpec.hs"
         , "nested-spec/Foo/BarSpec.hs"
@@ -94,7 +94,7 @@ spec = do
 
   describe "findSpecs" $ do
     it "finds specs" $ do
-      let dir = "hspec-discover/test-data/nested-spec"
+      let dir = "test-data/nested-spec"
       findSpecs (dir </> "Spec.hs") `shouldReturn` [spec_ (dir </> "Foo/Bar/BazSpec.hs") "Foo.Bar.Baz", spec_ (dir </> "Foo/BarSpec.hs") "Foo.Bar", spec_ (dir </> "FooSpec.hs") "Foo"]
 
   describe "driverWithFormatter" $ do

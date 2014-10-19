@@ -1,0 +1,2 @@
+:set -hide-packagehspec
+:set -isrc -itest -packagehspec-core

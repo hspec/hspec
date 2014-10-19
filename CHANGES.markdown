@@ -1,3 +1,6 @@
+## Changes in 1.13.0
+  - Split package into `hspec`, `hspec-core` and `hspec-discover`
+
 ## Changes in 1.12.1
   - Add `--module-name` flag to `hspec-discover` (see #168)
 

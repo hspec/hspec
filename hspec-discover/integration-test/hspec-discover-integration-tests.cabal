@@ -9,7 +9,7 @@ test-suite empty
   type:
       exitcode-stdio-1.0
   ghc-options:
-      -Wall -Werror
+      -Wall
   hs-source-dirs:
       empty
   main-is:
@@ -22,7 +22,7 @@ test-suite with-formatter
   type:
       exitcode-stdio-1.0
   ghc-options:
-      -Wall -Werror
+      -Wall
   hs-source-dirs:
       with-formatter
   main-is:
@@ -37,7 +37,7 @@ test-suite with-io-formatter
   type:
       exitcode-stdio-1.0
   ghc-options:
-      -Wall -Werror
+      -Wall
   hs-source-dirs:
       with-io-formatter
   main-is:
@@ -54,7 +54,7 @@ test-suite with-formatter-empty
   type:
       exitcode-stdio-1.0
   ghc-options:
-      -Wall -Werror
+      -Wall
   hs-source-dirs:
       with-formatter-empty
   main-is:
@@ -67,7 +67,7 @@ test-suite with-no-main
   type:
       exitcode-stdio-1.0
   ghc-options:
-      -Wall -Werror
+      -Wall
   hs-source-dirs:
       with-no-main
   main-is:
