@@ -1,18 +1,18 @@
 ## Changes in 1.12.0
-  - Move item requirement to `Item` data type
+  - Add optional source location to spec items
+  - Move item requirement text from `SpecItem` constructor `Item` data type
   - Remove `BuildSpecs` constructor from `SpecTree`, having `runIO` this is not
     really needed
   - Add `mapSpecTree` to `Test.Hspec.Core`
-  - Add optional source location to spec items
   - Add `afterAll` (see #188)
-  - Omit empty `describe` groups from report
-  - Do not print empty lines before/after spec groups
-  - Do not pass position to `Formatte.exampleGroupStarted` (we can not support
-    this with the upcomming cleanup actions #188)
-  - Deprecate `Test.Hspec.Formatters.newParagraph`
-  - Rename `configHandle` to `configOutputFile`
   - Do not return `Result` from `hspecWith` and accept command-line arguments
     (the old behavior is still available as `hspecWithResult`)
+  - Rename `configHandle` to `configOutputFile`
+  - Omit empty `describe` groups from report
+  - Do not pass position to `Formatter.exampleGroupStarted` (we can not support
+    this with the upcomming cleanup actions #188)
+  - Do not print empty lines before/after spec groups
+  - Deprecate `Test.Hspec.Formatters.newParagraph`
 
 ## Changes in 1.11.4
   - Make test suite independent from QuickCheck seed (see #187)
