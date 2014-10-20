@@ -61,3 +61,4 @@ To run the test suite do:
  * Harry Garrood
  * Jeffrey Pigarelli
  * Ryan Mulligan
+ * Raine Virta
