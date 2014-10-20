@@ -1,2 +1,1 @@
 :set -isrc -itest -optP-include -optPdist/build/autogen/cabal_macros.h
-:set -ihspec-discover/src/ -ihspec-discover/test

@@ -2,7 +2,7 @@ module Test.Hspec.QuickCheckSpec (main, spec) where
 
 import           Helper
 
-import qualified Test.Hspec as H
+import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.QuickCheck as H
 

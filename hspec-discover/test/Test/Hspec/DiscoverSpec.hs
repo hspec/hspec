@@ -6,7 +6,7 @@ import           Helper
 import           Data.String
 import           Data.String.Builder
 
-import qualified Test.Hspec as H (it)
+import qualified Test.Hspec.Core.Spec as H
 import           Test.Hspec.Core (Item(..), Location(..), LocationAccuracy(..))
 import           Test.Hspec.Runner.Tree
 import qualified Test.Hspec.Discover as H

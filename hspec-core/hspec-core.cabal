@@ -53,8 +53,9 @@ library
     , hspec-expectations == 0.6.1.*
     , async >= 2
   exposed-modules:
-      Test.Hspec
       Test.Hspec.Core
+      Test.Hspec.Core.Spec
+      Test.Hspec.Core.Hooks
       Test.Hspec.Runner
       Test.Hspec.Runner.Tree
       Test.Hspec.Formatters
@@ -83,7 +84,8 @@ test-suite spec
   other-modules:
       Mock
       Helper
-      Test.HspecSpec
+      Test.Hspec.Core.SpecSpec
+      Test.Hspec.Core.HooksSpec
       Test.Hspec.CompatSpec
       Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.TypeSpec

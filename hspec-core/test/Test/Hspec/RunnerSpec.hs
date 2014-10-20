@@ -12,13 +12,14 @@ import           System.SetEnv
 import           Test.Hspec.Compat
 
 import           Test.Hspec.FailureReport (FailureReport(..))
-import qualified Test.Hspec as H
+import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Core as H (Result(..))
 import qualified Test.Hspec.Formatters as H (silent)
 import qualified Test.Hspec.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
+import qualified Test.Hspec.Core.Hooks as H
 
 main :: IO ()
 main = hspec spec

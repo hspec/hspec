@@ -43,6 +43,7 @@ library
       base == 4.*
     , hspec-core == 1.13.0
     , hspec-discover == 1.13.0
+    , hspec-expectations
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core

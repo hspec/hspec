@@ -3,7 +3,7 @@ module Test.Hspec.FormattersSpec (main, spec) where
 
 import           Helper
 
-import qualified Test.Hspec as H
+import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core as H (Result(..), Location(..), LocationAccuracy(..), Item(..), mapSpecItem)
 import qualified Test.Hspec.Runner as H
 import qualified Test.Hspec.Formatters as H

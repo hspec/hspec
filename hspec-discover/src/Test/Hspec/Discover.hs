@@ -8,7 +8,7 @@ import           Data.List
 import           Data.Traversable hiding (mapM)
 import           Control.Monad.Trans.State
 
-import           Test.Hspec
+import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core hiding (describe)
 import           Test.Hspec.Runner
 import           Test.Hspec.Runner.Tree

@@ -11,7 +11,7 @@ module Test.Hspec.QuickCheck (
 ) where
 
 import           Test.QuickCheck
-import           Test.Hspec
+import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core (Params(..), modifyParams)
 
 -- |

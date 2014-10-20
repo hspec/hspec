@@ -36,7 +36,7 @@ import           System.IO.Silently
 import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
 
-import qualified Test.Hspec as H
+import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core as H (Params(..), Item(..), ProgressCallback, mapSpecItem)
 import qualified Test.Hspec.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
