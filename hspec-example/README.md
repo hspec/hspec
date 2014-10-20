@@ -30,7 +30,7 @@ $ runhaskell -isrc -itest test/Main.hs
 Alternatively, you can build and run the test suite manually:
 
 ```
-$ cabal configure --enable-tests --disable-optimization && cabal build && cabal test
+$ cabal configure --enable-tests --disable-optimization && cabal build && ./dist/build/spec/spec
 ```
 
 ## `ghci`
