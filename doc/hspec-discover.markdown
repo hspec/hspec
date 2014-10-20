@@ -47,7 +47,7 @@ spec = do
 
 This is error prone, and neither challenging nor interesting.  So it should be
 automated.  Hspec provides a solution for that.  We make creative use of GHC's
-support for custom preprocessors.  The developer only has to creates a
+support for custom preprocessors.  The developer only has to create a
 _test driver_ that contains a single line:
 
 ```haskell
