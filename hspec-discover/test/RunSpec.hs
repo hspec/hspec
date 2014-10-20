@@ -58,6 +58,10 @@ spec = do
         , "spec = return ()"
         ]
 
+  describe "pathToModule" $ do
+    it "derives module name from a given path" $ do
+      pathToModule "test/Spec.hs" `shouldBe` "Spec"
+
   describe "getFilesRecursive" $ do
     it "recursively returns all file entries of a given directory" $ do
       getFilesRecursive "hspec-discover/test-data" `shouldReturn` sort [
@@ -101,9 +105,9 @@ spec = do
         , "main = hspecWithFormatter Some.Module.formatter spec"
         ]
 
-  describe "moduleName" $ do
-    it "returns the module name of an fully qualified identifier" $ do
-      moduleName "Some.Module.someId" `shouldBe` "Some.Module"
+  describe "moduleNameFromId" $ do
+    it "returns the module name of a fully qualified identifier" $ do
+      moduleNameFromId "Some.Module.someId" `shouldBe` "Some.Module"
 
   describe "importList" $ do
     it "generates imports for a list of specs" $ do

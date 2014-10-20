@@ -11,7 +11,8 @@ module Run (
 , findSpecs
 , getFilesRecursive
 , driverWithFormatter
-, moduleName
+, moduleNameFromId
+, pathToModule
 ) where
 import           Control.Monad
 import           Control.Applicative
@@ -43,49 +44,53 @@ run args_ = do
       Left err -> do
         hPutStrLn stderr err
         exitFailure
-      Right c -> do
-        when (configNested c) (hPutStrLn stderr "hspec-discover: WARNING - The `--nested' flag is deprecated and will be removed in a future release!")
+      Right conf -> do
+        when (configNested conf) (hPutStrLn stderr "hspec-discover: WARNING - The `--nested' flag is deprecated and will be removed in a future release!")
         specs <- findSpecs src
-        writeFile dst (mkSpecModule src c specs)
+        writeFile dst (mkSpecModule src conf specs)
     _ -> do
       hPutStrLn stderr (usage name)
       exitFailure
 
 mkSpecModule :: FilePath -> Config -> [Spec] -> String
-mkSpecModule src c nodes =
+mkSpecModule src conf nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
   . showString "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}\n"
-  . showString ("module " ++ module_ ++" where\n")
+  . showString ("module " ++ moduleName src conf ++" where\n")
   . importList nodes
   . showString "import Test.Hspec.Discover\n"
-  . maybe driver driverWithFormatter (configFormatter c)
+  . maybe driver driverWithFormatter (configFormatter conf)
   . showString "spec :: Spec\n"
   . showString "spec = "
   . formatSpecs nodes
   ) "\n"
   where
     driver =
-        case configNoMain c of
+        case configNoMain conf of
           False ->
               showString "main :: IO ()\n"
             . showString "main = hspec spec\n"
           True -> ""
-    module_ = fromMaybe (if configNoMain c then pathToModule src else "Main") (configModuleName c)
-    pathToModule f = let
-        fileName = last $ splitDirectories f
-        m:ms = takeWhile (/='.') fileName
-     in
-        toUpper m:ms
 
+moduleName :: FilePath -> Config -> String
+moduleName src conf = fromMaybe (if configNoMain conf then pathToModule src else "Main") (configModuleName conf)
+
+-- | Derive module name from specified path.
+pathToModule :: FilePath -> String
+pathToModule f = toUpper m:ms
+  where
+    fileName = last $ splitDirectories f
+    m:ms = takeWhile (/='.') fileName
 
 driverWithFormatter :: String -> ShowS
 driverWithFormatter f =
-    showString "import qualified " . showString (moduleName f) . showString "\n"
+    showString "import qualified " . showString (moduleNameFromId f) . showString "\n"
   . showString "main :: IO ()\n"
   . showString "main = hspecWithFormatter " . showString f . showString " spec\n"
 
-moduleName :: String -> String
-moduleName = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse
+-- | Return module name of a fully qualified identifier.
+moduleNameFromId :: String -> String
+moduleNameFromId = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse
 
 -- | Generate imports for a list of specs.
 importList :: [Spec] -> ShowS
