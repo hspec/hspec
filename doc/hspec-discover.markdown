@@ -51,7 +51,7 @@ support for custom preprocessors.  The developer only has to create a
 _test driver_ that contains a single line:
 
 ```haskell
--- file test/Main.hs
+-- file test/Spec.hs
 {-# OPTIONS_GHC -F -pgmF hspec-discover #-}
 ```
 
