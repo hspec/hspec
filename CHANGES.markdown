@@ -1,3 +1,9 @@
+## next
+  - `hspec-discover`: Emit a warning if module name does not match file name
+    and `--module-name` is not explicitly specified.  This will allow us in the
+    future to derive the module name from the file name in cases where
+    --module-name is not specified.
+
 ## Changes in 1.12.1
   - Add `--module-name` flag to `hspec-discover` (see #168)
 

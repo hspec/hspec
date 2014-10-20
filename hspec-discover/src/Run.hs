@@ -45,7 +45,31 @@ run args_ = do
         hPutStrLn stderr err
         exitFailure
       Right conf -> do
-        when (configNested conf) (hPutStrLn stderr "hspec-discover: WARNING - The `--nested' flag is deprecated and will be removed in a future release!")
+        let modName = moduleName src conf
+            futureModName = futureModuleName src conf
+
+            warn :: [String] -> IO ()
+            warn xs = hPutStrLn stderr ("\nhspec-discover: WARNING in " ++ src ++ "\n" ++ msg)
+              where
+                msg = unlines $ map ("    " ++) xs
+        when (configNested conf) (warn ["The `--nested' flag is deprecated and will be removed with a future version of hspec-discover!"])
+        when (modName /= futureModName) $ do
+          let suggestSrc = replaceFileName src (modName ++ takeExtension src)
+              suggestFlag = "--module-name=" ++ modName
+          warn [
+              "Filename '" ++ src ++ "' does not match module name '" ++ modName ++ "'."
+            , "This will lead to breakage with future versions of hspec-discover!"
+            , ""
+            , "You can either rename '" ++ src ++ "' to '" ++ suggestSrc ++ "'"
+            , ""
+            , "    mv '" ++ src ++ "' '" ++ suggestSrc ++ "'"
+            , ""
+            , "or pass `" ++ suggestFlag ++ "' to hspec-discover"
+            , ""
+            , "    echo '{-# OPTIONS_GHC -F -pgmF hspec-discover -optF " ++ suggestFlag ++ " #-}' > " ++ src
+            , ""
+            , "to prevent future breakage."
+            ]
         specs <- findSpecs src
         writeFile dst (mkSpecModule src conf specs)
     _ -> do
@@ -71,6 +95,9 @@ mkSpecModule src conf nodes =
               showString "main :: IO ()\n"
             . showString "main = hspec spec\n"
           True -> ""
+
+futureModuleName :: FilePath -> Config -> String
+futureModuleName src conf = fromMaybe (pathToModule src) (configModuleName conf)
 
 moduleName :: FilePath -> Config -> String
 moduleName src conf = fromMaybe (if configNoMain conf then pathToModule src else "Main") (configModuleName conf)
