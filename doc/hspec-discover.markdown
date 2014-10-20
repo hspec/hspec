@@ -73,8 +73,8 @@ A complete example is at <https://github.com/sol/hspec-example>.
 ## Using a custom main function
 
 `hspec-discover` gives you a default `main` function and in many cases this is
-exactly what you want.  Hoverev, sometimes it is useful to customize the used
-main function.  This can be achieved by passid the `--module-name` flag to
+exactly what you want.  However, sometimes it is useful to customize the used
+main function.  This can be achieved by passing the `--module-name` flag to
 `hspec-discover`.  It tells `hspec-discover` to use a module name different
 from `Main`.  That way you can import it from your own `Main` module.
 
