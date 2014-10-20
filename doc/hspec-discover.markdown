@@ -51,7 +51,7 @@ support for custom preprocessors.  The developer only has to creates a
 _test driver_ that contains a single line:
 
 ```haskell
--- file test/Spec.hs
+-- file test/Main.hs
 {-# OPTIONS_GHC -F -pgmF hspec-discover #-}
 ```
 
@@ -78,7 +78,8 @@ main function.  This can be achieved by passing the `--module-name` flag to
 `hspec-discover`.  It tells `hspec-discover` to use a module name different
 from `Main`.  That way you can import it from your own `Main` module.
 
-Here is how you can use this to specify a different default formatter:
+Here is an example that shows how this can be utilized to specify a different
+default formatter:
 
 ```haskell
 -- file test/Spec.hs
