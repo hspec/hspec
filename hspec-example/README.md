@@ -24,7 +24,7 @@ test output.
 If you want nice output you can use `runhaskell`:
 
 ```
-$ runhaskell -isrc -itest test/Main.hs
+$ runhaskell -isrc -itest test/Spec.hs
 ```
 
 Alternatively, you can build and run the test suite manually:
@@ -45,7 +45,7 @@ $ chmod go-w .ghci
 Then you can run the specs with:
 
 ```
-$ ghci test/Main.hs
+$ ghci test/Spec.hs
 *Main> :main
 ```
 

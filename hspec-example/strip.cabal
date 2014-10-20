@@ -26,7 +26,7 @@ test-suite spec
   hs-source-dirs:
       test
   main-is:
-      Main.hs
+      Spec.hs
   build-depends:
       base    == 4.*
     , strip
