@@ -43,6 +43,7 @@ library
       base == 4.*
     , hspec-core == 1.13.0
     , hspec-discover == 1.13.0
+    , hspec-contrib == 1.13.0
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
@@ -51,6 +52,7 @@ library
       Test.Hspec.HUnit
       Test.Hspec.QuickCheck
       Test.Hspec.Discover
+      Test.Hspec.Contrib
   default-language: Haskell2010
 
 test-suite example

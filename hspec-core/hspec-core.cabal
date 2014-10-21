@@ -55,6 +55,7 @@ library
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
+      Test.Hspec.Core.Type
       Test.Hspec.Runner
       Test.Hspec.Runner.Tree
       Test.Hspec.Formatters
@@ -63,7 +64,6 @@ library
       Test.Hspec.Util
   other-modules:
       Test.Hspec.Compat
-      Test.Hspec.Core.Type
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Config
       Test.Hspec.Options

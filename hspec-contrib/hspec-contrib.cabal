@@ -1,0 +1,45 @@
+name:             hspec-contrib
+version:          1.13.0
+license:          MIT
+license-file:     LICENSE
+copyright:        (c) 2011-2014 Simon Hengel,
+                  (c) 2011-2012 Trystan Spangler,
+                  (c) 2011 Greg Weber
+maintainer:       Simon Hengel <sol@typeful.net>
+build-type:       Simple
+cabal-version:    >= 1.10
+
+source-repository head
+  type: git
+  location: https://github.com/hspec/hspec
+  subdir: hspec-contrib
+
+library
+  exposed: False
+  ghc-options:
+      -Wall
+  hs-source-dirs:
+      src
+  build-depends:
+      base == 4.*
+    , hspec-core
+  exposed-modules:
+      Test.Hspec.Contrib
+  other-modules:
+  default-language: Haskell2010
+
+test-suite spec
+  type:
+      exitcode-stdio-1.0
+  hs-source-dirs:
+      src, test
+  main-is:
+      Spec.hs
+  other-modules:
+      Test.Hspec.Contrib
+  ghc-options:
+      -Wall
+  build-depends:
+      base == 4.*
+    , hspec-meta == 1.12.1
+  default-language: Haskell2010
