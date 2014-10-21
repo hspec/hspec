@@ -30,6 +30,10 @@ An example is worth a thousand words, so here we go:
 * [Automatic spec discovery](hspec-discover.html)
 * [Parallel spec execution](parallel-spec-execution.html)
 
+## Blogosphere
+
+* [Writing controller specs for a Warp server](http://begriffs.com/posts/2014-10-19-warp-server-controller-test.html)
+
 ## Other resources
 
 * [Hspec on GitHub](https://github.com/hspec/hspec)
