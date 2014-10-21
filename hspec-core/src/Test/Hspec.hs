@@ -29,6 +29,7 @@ module Test.Hspec (
 , around
 , parallel
 , runIO
+, retryWith
 
 -- * Running a spec
 , hspec
