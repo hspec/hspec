@@ -33,6 +33,7 @@ An example is worth a thousand words, so here we go:
 ## Blogosphere
 
 * [Writing controller specs for a Warp server](http://begriffs.com/posts/2014-10-19-warp-server-controller-test.html)
+* [Testing attoparsec parsers with hspec](http://alpmestan.com/posts/2014-06-18-testing-attoparsec-parsers-with-hspec.html)
 
 ## Other resources
 
