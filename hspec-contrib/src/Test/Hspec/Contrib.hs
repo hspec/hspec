@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP, TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
 module Test.Hspec.Contrib (
   retryWith
 ) where

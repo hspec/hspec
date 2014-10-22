@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP, ScopedTypeVariables #-}
 module Test.Hspec.ContribSpec (main, spec) where
 
 import           Data.IORef
