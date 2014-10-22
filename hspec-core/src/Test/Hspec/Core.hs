@@ -27,6 +27,7 @@ module Test.Hspec.Core (
 , modifyParams
 , describe
 , it
+, retryWith
 ) where
 
 import           Test.Hspec.Core.Type

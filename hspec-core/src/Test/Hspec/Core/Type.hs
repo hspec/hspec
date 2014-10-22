@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
+{-# LANGUAGE CPP, TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable, RankNTypes #-}
 module Test.Hspec.Core.Type (
   Spec
 , SpecM (..)
@@ -24,6 +24,7 @@ module Test.Hspec.Core.Type (
 
 , pending
 , pendingWith
+, retryWith
 ) where
 
 import qualified Control.Exception as E
@@ -221,3 +222,17 @@ pending = E.throwIO (Pending Nothing)
 -- >     pendingWith "waiting for clarification from the designers"
 pendingWith :: String -> Expectation
 pendingWith = E.throwIO . Pending . Just
+
+
+data Retry a = Retry Int (Example a => a)
+
+instance Example a => Example (Retry a) where
+  evaluateExample (Retry 1 example) a b c = evaluateExample example a b c
+  evaluateExample (Retry num example) a b c | num > 1 = do
+    v <- evaluateExample example a b c
+    case v of
+      Success -> return v
+      _ -> evaluateExample (Retry (num-1) example) a b c
+
+retryWith :: forall a. Int -> (Example a => a) -> Retry a
+retryWith = Retry

@@ -66,4 +66,5 @@ test-suite example
       base == 4.*
     , hspec
     , QuickCheck
+    , random
   default-language: Haskell2010
