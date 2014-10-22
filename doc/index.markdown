@@ -32,8 +32,8 @@ An example is worth a thousand words, so here we go:
 
 ## Extensions
 
-* [hspec-smallcheck](http://hackage.haskell.org/package/hspec-smallcheck) — integration for SmallCheck
-* [hspec-checkers](http://hackage.haskell.org/package/hspec-checkers) — allows to use checkers properties from hspec
+* [`hspec-smallcheck`](http://hackage.haskell.org/package/hspec-smallcheck) — SmallCheck integration
+* [`hspec-checkers`](http://hackage.haskell.org/package/hspec-checkers) — allows to use [`checkers`](http://hackage.haskell.org/package/checkers) properties from hspec
 
 ## Blogosphere
 
