@@ -30,6 +30,11 @@ An example is worth a thousand words, so here we go:
 * [Automatic spec discovery](hspec-discover.html)
 * [Parallel spec execution](parallel-spec-execution.html)
 
+## Extensions
+
+* [hspec-smallcheck](http://hackage.haskell.org/package/hspec-smallcheck) — integration for SmallCheck
+* [hspec-checkers](http://hackage.haskell.org/package/hspec-checkers) — allows to use checkers properties from hspec
+
 ## Blogosphere
 
 * [Writing controller specs for a Warp server](http://begriffs.com/posts/2014-10-19-warp-server-controller-test.html)
@@ -40,7 +45,6 @@ An example is worth a thousand words, so here we go:
 * [Hspec on GitHub](https://github.com/hspec/hspec)
 * [Hspec on Hackage](http://hackage.haskell.org/package/hspec)
 * [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
-* [SmallCheck integration](http://hackage.haskell.org/package/hspec-smallcheck)
 * [Vim syntax file for Hspec](https://github.com/hspec/hspec.vim#readme)
 * [Guard plugin for Hspec](http://rubygems.org/gems/guard-haskell)
 
