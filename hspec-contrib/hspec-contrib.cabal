@@ -3,8 +3,7 @@ version:          1.13.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2014 Simon Hengel,
-                  (c) 2011-2012 Trystan Spangler,
-                  (c) 2011 Greg Weber
+                  (c) 2014 Junji Hashimoto
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
 cabal-version:    >= 1.10
@@ -36,10 +35,11 @@ test-suite spec
   main-is:
       Spec.hs
   other-modules:
-      Test.Hspec.Contrib
+      Test.Hspec.ContribSpec
   ghc-options:
       -Wall
   build-depends:
       base == 4.*
-    , hspec-meta == 1.12.1
+    , hspec
+    , hspec-contrib
   default-language: Haskell2010

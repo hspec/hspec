@@ -1,10 +1,10 @@
 {-# LANGUAGE CPP, ScopedTypeVariables #-}
-module Test.Hspec.Core.Conrib (main, spec) where
+module Test.Hspec.ContribSpec (main, spec) where
 
 import           Data.IORef
 
-import qualified Test.Hspec.Core.Type as H hiding (describe, it)
-import qualified Test.Hspec as H
+import           Test.Hspec
+import           Test.Hspec.Contrib
 
 main :: IO ()
 main = hspec spec
@@ -19,7 +19,5 @@ spec = do
             val <- readIORef ref
             writeIORef ref (val+1)
             return val
-      silence . H.hspec $ do
-        H.it "retry 11 times" $ do
-          H.retryWith 11 $ do
-            incr `shouldReturn` (10::Int)
+      retryWith 11 $ do
+        incr `shouldReturn` (10::Int)

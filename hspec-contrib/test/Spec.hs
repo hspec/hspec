@@ -1,1 +1,1 @@
-{-# OPTIONS_GHC -F -pgmF hspec-meta-discover #-}
+{-# OPTIONS_GHC -F -pgmF hspec-discover #-}
