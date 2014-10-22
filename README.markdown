@@ -62,3 +62,4 @@ To run the test suite do:
  * Jeffrey Pigarelli
  * Ryan Mulligan
  * Raine Virta
+ * Junji Hashimoto
