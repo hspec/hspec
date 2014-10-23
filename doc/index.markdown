@@ -35,8 +35,9 @@ An example is worth a thousand words, so here we go:
 * [hspec-expectations-lens](http://hackage.haskell.org/package/hspec-expectations-lens) — Hspec expectations for the _lens_ stuff
 * [hspec-webdriver](http://hackage.haskell.org/package/hspec-webdriver) — write end2end web application tests using _webdriver_ and hspec
 * [hspec-snap](http://hackage.haskell.org/package/hspec-snap) — a library for testing with Hspec and the _Snap Web Framework_
-* [hspec-smallcheck](http://hackage.haskell.org/package/hspec-smallcheck) — support for _SmallCheck_
 * [hspec-checkers](http://hackage.haskell.org/package/hspec-checkers) — allows to use _checkers_ properties from hspec
+* [hspec-smallcheck](http://hackage.haskell.org/package/hspec-smallcheck) — support for _SmallCheck_
+* [hspec-laws](http://hackage.haskell.org/package/hspec-laws) — document and test laws for standard type classes
 * [hspec-attoparsec](http://hackage.haskell.org/package/hspec-attoparsec) — utility functions for testing your _attoparsec_ parsers with hspec
 
 ## Blogosphere
