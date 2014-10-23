@@ -33,6 +33,7 @@ An example is worth a thousand words, so here we go:
 ## Extensions
 
 * [hspec-expectations-lens](http://hackage.haskell.org/package/hspec-expectations-lens) — Hspec expectations for the _lens_ stuff
+* [hspec-webdriver](http://hackage.haskell.org/package/hspec-webdriver) — write end2end web application tests using _webdriver_ and hspec
 * [hspec-smallcheck](http://hackage.haskell.org/package/hspec-smallcheck) — support for _SmallCheck_
 * [hspec-checkers](http://hackage.haskell.org/package/hspec-checkers) — allows to use _checkers_ properties from hspec
 * [hspec-attoparsec](http://hackage.haskell.org/package/hspec-attoparsec) — utility functions for testing your _attoparsec_ parsers with hspec
