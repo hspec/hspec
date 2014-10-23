@@ -40,6 +40,7 @@ An example is worth a thousand words, so here we go:
 * [hspec-laws](http://hackage.haskell.org/package/hspec-laws) — document and test laws for standard type classes
 * [hspec-attoparsec](http://hackage.haskell.org/package/hspec-attoparsec) — utility functions for testing your _attoparsec_ parsers with hspec
 * [hspec-jenkins](http://hackage.haskell.org/package/hspec-jenkins) — Jenkins-friendly XML formatter for Hspec
+* [hspec-expectations-lifted](http://hackage.haskell.org/package/hspec-expectations-lifted) — a version of _hspec-expectations_ generalized to MonadIO
 
 ## Blogosphere
 
