@@ -34,6 +34,7 @@ An example is worth a thousand words, so here we go:
 
 * [`hspec-smallcheck`](http://hackage.haskell.org/package/hspec-smallcheck) — SmallCheck integration
 * [`hspec-checkers`](http://hackage.haskell.org/package/hspec-checkers) — allows to use [`checkers`](http://hackage.haskell.org/package/checkers) properties from hspec
+* [`hspec-attoparsec`](http://hackage.haskell.org/package/hspec-attoparsec) — utility functions for testing your attoparsec parsers with hspec
 
 ## Blogosphere
 
