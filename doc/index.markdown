@@ -42,6 +42,7 @@ An example is worth a thousand words, so here we go:
 * [hspec-jenkins](http://hackage.haskell.org/package/hspec-jenkins) — Jenkins-friendly XML formatter for Hspec
 * [hspec-expectations-lifted](http://hackage.haskell.org/package/hspec-expectations-lifted) — a version of _hspec-expectations_ generalized to MonadIO
 * [hspec-expectations-pretty](http://hackage.haskell.org/package/hspec-expectations-pretty) — _hspec-expectations_ with pretty printing on failure
+* [hspec-test-framework](http://hackage.haskell.org/package/hspec-test-framework) and [hspec-test-framework-th](http://hackage.haskell.org/package/hspec-test-framework-th) — run _test-framework_ tests with Hspec
 
 ## Blogosphere
 
