@@ -22,7 +22,6 @@ module Test.Hspec (
 , example
 , pending
 , pendingWith
-, around
 , parallel
 , runIO
 
@@ -31,6 +30,7 @@ module Test.Hspec (
 , beforeAll
 , after
 , afterAll
+, around
 
 -- * Running a spec
 , hspec
