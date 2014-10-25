@@ -15,6 +15,8 @@ module Test.Hspec.Core.Spec (
 , runIO
 ) where
 
+import qualified Control.Exception as E
+
 import           Test.Hspec.Core.Type hiding (describe, it)
 import           Test.Hspec.HUnit ()
 import qualified Test.Hspec.Core as Core
@@ -64,3 +66,22 @@ parallel = mapSpecItem $ \item -> item {itemIsParallelizable = True}
 -- >   putStrLn
 example :: Expectation -> Expectation
 example = id
+
+-- | Specifies a pending example.
+--
+-- If you want to textually specify a behavior but do not have an example yet,
+-- use this:
+--
+-- > describe "fancyFormatter" $ do
+-- >   it "can format text in a way that everyone likes" $
+-- >     pending
+pending :: Expectation
+pending = E.throwIO (Pending Nothing)
+
+-- | Specifies a pending example with a reason for why it's pending.
+--
+-- > describe "fancyFormatter" $ do
+-- >   it "can format text in a way that everyone likes" $
+-- >     pendingWith "waiting for clarification from the designers"
+pendingWith :: String -> Expectation
+pendingWith = E.throwIO . Pending . Just
