@@ -22,13 +22,15 @@ module Test.Hspec (
 , example
 , pending
 , pendingWith
+, around
+, parallel
+, runIO
+
+-- * Hooks
 , before
 , beforeAll
 , after
 , afterAll
-, around
-, parallel
-, runIO
 
 -- * Running a spec
 , hspec
