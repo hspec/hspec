@@ -3,7 +3,7 @@ module Test.Hspec.Core.SpecSpec (main, spec) where
 import           Helper
 import           Data.List (isPrefixOf)
 
-import           Test.Hspec.Core (Item(..), Result(..))
+import           Test.Hspec.Core.Spec (Item(..), Result(..))
 import qualified Test.Hspec.Runner as H
 import           Test.Hspec.Runner.Tree
 

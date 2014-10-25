@@ -2,6 +2,8 @@ module Test.Hspec.Core.Spec (
 -- * Types
   Spec
 , Example
+, Result (..)
+, Item (..)
 
 -- * Defining a spec
 , describe
@@ -16,15 +18,12 @@ module Test.Hspec.Core.Spec (
 ) where
 
 import qualified Control.Exception as E
-
-import           Test.Hspec.Core.Type hiding (describe, it)
-import           Test.Hspec.HUnit ()
-import qualified Test.Hspec.Core as Core
 import           Test.Hspec.Expectations
+import           Test.Hspec.Core.Type
 
 -- | Combine a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
-describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . Core.describe label
+describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . specGroup label
 
 -- | An alias for `describe`.
 context :: String -> Spec -> Spec
@@ -42,7 +41,7 @@ context = describe
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
 it :: Example a => String -> a -> Spec
-it label action = fromSpecList [Core.it label action]
+it label action = fromSpecList [specItem label action]
 
 -- | An alias for `it`.
 specify :: Example a => String -> a -> Spec

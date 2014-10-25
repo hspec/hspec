@@ -3,7 +3,7 @@ module Test.Hspec.HUnitSpec (main, spec) where
 
 import           Helper hiding (example)
 
-import           Test.Hspec.Core (Item(..))
+import           Test.Hspec.Core.Spec (Item(..))
 import           Test.Hspec.Runner.Tree
 import           Test.Hspec.HUnit
 import           Test.HUnit

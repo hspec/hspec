@@ -9,8 +9,7 @@ module Test.Hspec.Core.Hooks (
 import           Control.Exception (finally)
 import           Control.Concurrent.MVar
 
-import           Test.Hspec.Core.Type hiding (describe, it)
-import           Test.Hspec.HUnit ()
+import           Test.Hspec.Core.Type
 
 -- | Run a custom action before every spec item.
 before :: IO () -> Spec -> Spec

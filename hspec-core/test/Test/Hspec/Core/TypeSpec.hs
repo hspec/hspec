@@ -6,7 +6,7 @@ import           Mock
 import           Data.List
 import           Data.IORef
 
-import qualified Test.Hspec.Core.Type as H hiding (describe, it)
+import qualified Test.Hspec.Core.Type as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Runner as H
 

@@ -33,3 +33,11 @@ import           Test.Hspec.Core.Type
 
 modifyParams :: (Params -> Params) -> Spec -> Spec
 modifyParams f = mapSpecItem $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
+
+-- | The @describe@ function combines a list of specs into a larger spec.
+describe :: String -> [SpecTree] -> SpecTree
+describe = specGroup
+
+-- | Create a spec item.
+it :: Example a => String -> a -> SpecTree
+it = specItem
