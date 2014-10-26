@@ -1,5 +1,6 @@
-## Changes in 1.13.0
+## Changes in 2.0.0
   - Split package into `hspec`, `hspec-core` and `hspec-discover`
+  - Allow hooks (`before`, `around`, etc.) to pass arguments to spec items
 
 ## Changes in 1.12.1
   - Add `--module-name` flag to `hspec-discover` (see #168)
