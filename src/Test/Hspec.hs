@@ -11,7 +11,7 @@ module Test.Hspec (
   Spec
 , SpecWith
 , Arg
-, Example (..)
+, Example
 
 -- * Setting expectations
 , module Test.Hspec.Expectations
