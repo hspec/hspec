@@ -18,7 +18,7 @@ it = do
       (line, column) = loc_start loc
   [|itLoc (Location filename line column ExactLocation)|]
 
-itLoc :: Example a => Location -> String -> a -> Spec
+itLoc :: Example a => Location -> String -> a -> SpecWith (Arg a)
 itLoc loc r = addLocation . Hspec.it r
   where
     addLocation = mapSpecItem (\item -> item {itemLocation = Just loc})
