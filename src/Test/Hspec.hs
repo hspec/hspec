@@ -32,7 +32,6 @@ module Test.Hspec (
 , before
 , beforeWith
 , beforeAll
-, beforeAllWith
 , after
 , after_
 , afterAll
