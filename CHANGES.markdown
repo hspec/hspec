@@ -7,7 +7,7 @@
 
 ## Changes in 1.12.0
   - Add optional source location to spec items
-  - Move item requirement text from `SpecItem` constructor `Item` data type
+  - Move item requirement text from `SpecItem` constructor to `Item` data type
   - Remove `BuildSpecs` constructor from `SpecTree`, having `runIO` this is not
     really needed
   - Add `mapSpecTree` to `Test.Hspec.Core`
