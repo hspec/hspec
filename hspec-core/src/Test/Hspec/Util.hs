@@ -23,7 +23,7 @@ pluralize n s = show n ++ " " ++ s ++ "s"
 -- | Convert an exception to a string.
 --
 -- This is different from `show`.  The type of the exception is included, e.g.
--- `E.ArithException` is turned into:
+-- `E.toException E.DivideByZero` is turned into:
 --
 -- @
 -- "ArithException (divide by zero)"
