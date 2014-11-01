@@ -11,6 +11,7 @@ module Test.Hspec.Util (
 
 import           Data.List
 import           Data.Char (isSpace)
+import           GHC.IO.Exception
 import qualified Control.Exception as E
 import           Control.Concurrent.Async
 
@@ -28,8 +29,34 @@ pluralize n s = show n ++ " " ++ s ++ "s"
 -- @
 -- "ArithException (divide by zero)"
 -- @
+--
+-- For `IOException`s the `IOErrorType` is included.
 formatException :: E.SomeException -> String
-formatException (E.SomeException e) = showType e ++ " (" ++ show e ++ ")"
+formatException err@(E.SomeException e) = case E.fromException err of
+  Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ " (" ++ show ioe ++ ")"
+  Nothing  -> showType e ++ " (" ++ show e ++ ")"
+  where
+    showIOErrorType :: IOException -> String
+    showIOErrorType ioe = case ioe_type ioe of
+      AlreadyExists -> "AlreadyExists"
+      NoSuchThing -> "NoSuchThing"
+      ResourceBusy -> "ResourceBusy"
+      ResourceExhausted -> "ResourceExhausted"
+      EOF -> "EOF"
+      IllegalOperation -> "IllegalOperation"
+      PermissionDenied -> "PermissionDenied"
+      UserError -> "UserError"
+      UnsatisfiedConstraints -> "UnsatisfiedConstraints"
+      SystemError -> "SystemError"
+      ProtocolError -> "ProtocolError"
+      OtherError -> "OtherError"
+      InvalidArgument -> "InvalidArgument"
+      InappropriateType -> "InappropriateType"
+      HardwareFault -> "HardwareFault"
+      UnsupportedOperation -> "UnsupportedOperation"
+      TimeExpired -> "TimeExpired"
+      ResourceVanished -> "ResourceVanished"
+      Interrupted -> "Interrupted"
 
 safeTry :: IO a -> IO (Either E.SomeException a)
 safeTry action = withAsync (action >>= E.evaluate) waitCatch
