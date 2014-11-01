@@ -1,5 +1,5 @@
 name:             hspec
-version:          1.12.1
+version:          1.12.2
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2014 Simon Hengel,
@@ -139,7 +139,7 @@ test-suite spec
     , hspec-expectations
     , async
 
-    , hspec-meta == 1.12.1
+    , hspec-meta >= 1.12
     , process
     , directory
     , stringbuilder
