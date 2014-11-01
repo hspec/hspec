@@ -39,7 +39,7 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base == 4.*
+      base >= 4.3
     , random
     , tf-random
     , setenv
