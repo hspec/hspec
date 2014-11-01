@@ -1,3 +1,6 @@
+## Changes in 1.12.2
+  - Include `IOErrorType` when printing uncaught `IOException`s (see #204)
+
 ## Changes in 1.12.1
   - Add `--module-name` flag to `hspec-discover` (see #168)
 
