@@ -1,6 +1,7 @@
 ## Changes in 2.0.0
   - Split package into `hspec`, `hspec-core` and `hspec-discover`
   - Allow hooks (`before`, `around`, etc.) to pass arguments to spec items
+  - Do not print `-` in front of spec items with `specdoc` formatter
 
 ## Changes in 1.12.2
   - Include `IOErrorType` when printing uncaught `IOException`s (see #204)

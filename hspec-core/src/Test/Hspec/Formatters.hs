@@ -137,14 +137,14 @@ specdoc = silent {
     hFlush h
 
 , exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
-    writeLine $ indentationFor nesting ++ "- " ++ requirement
+    writeLine $ indentationFor nesting ++ requirement
 
 , exampleFailed = \(nesting, requirement) _ -> withFailColor $ do
     n <- getFailCount
-    writeLine $ indentationFor nesting ++ "- " ++ requirement ++ " FAILED [" ++ show n ++ "]"
+    writeLine $ indentationFor nesting ++ requirement ++ " FAILED [" ++ show n ++ "]"
 
 , examplePending = \(nesting, requirement) reason -> withPendingColor $ do
-    writeLine $ indentationFor nesting ++ "- " ++ requirement ++ "\n     # PENDING: " ++ fromMaybe "No reason given" reason
+    writeLine $ indentationFor nesting ++ requirement ++ "\n     # PENDING: " ++ fromMaybe "No reason given" reason
 
 , failedFormatter = defaultFailedFormatter
 

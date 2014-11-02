@@ -70,16 +70,16 @@ spec = do
           ""
         , "List as a Monoid"
         , "  mappend"
-        , "    - is associative"
+        , "    is associative"
         , "  mempty"
-        , "    - is a left identity"
-        , "    - is a right identity"
+        , "    is a left identity"
+        , "    is a right identity"
         , "Maybe as a Monoid"
         , "  mappend"
-        , "    - is associative"
+        , "    is associative"
         , "  mempty"
-        , "    - is a left identity"
-        , "    - is a right identity"
+        , "    is a left identity"
+        , "    is a right identity"
         , ""
         , "Finished in 0.0000 seconds"
         , "6 examples, 0 failures"
@@ -91,8 +91,8 @@ spec = do
         H.it "example 2" True
       normalizeSummary r `shouldBe` [
           ""
-        , "- example 1"
-        , "- example 2"
+        , "example 1"
+        , "example 2"
         , ""
         , "Finished in 0.0000 seconds"
         , "2 examples, 0 failures"
@@ -100,8 +100,8 @@ spec = do
 
     it "displays a row for each successfull, failed, or pending example" $ do
       r <- runSpec testSpec
-      r `shouldSatisfy` any (== "  - fail 1 FAILED [1]")
-      r `shouldSatisfy` any (== "  - success")
+      r `shouldSatisfy` any (== "  fail 1 FAILED [1]")
+      r `shouldSatisfy` any (== "  success")
 
     it "displays a '#' with an additional message for pending examples" $ do
       r <- runSpec testSpec
@@ -120,9 +120,9 @@ spec = do
         normalizeSummary r `shouldBe` [
             ""
           , "foo"
-          , "  - example 1"
+          , "  example 1"
           , "baz"
-          , "  - example 2"
+          , "  example 2"
           , ""
           , "Finished in 0.0000 seconds"
           , "2 examples, 0 failures"

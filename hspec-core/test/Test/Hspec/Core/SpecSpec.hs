@@ -1,7 +1,6 @@
 module Test.Hspec.Core.SpecSpec (main, spec) where
 
 import           Helper
-import           Data.List (isPrefixOf)
 
 import           Test.Hspec.Core.Spec (Item(..), Result(..))
 import qualified Test.Hspec.Runner as H
@@ -18,19 +17,6 @@ runSpec = captureLines . H.hspecResult
 spec :: Spec
 spec = do
   describe "describe" $ do
-    let testSpec = do
-          H.describe "some subject" $ do
-            H.it "foo" True
-            H.it "bar" True
-            H.it "baz" True
-    it "takes a description of what the behavior is for" $ do
-      r <- runSpec testSpec
-      r `shouldSatisfy` any (== "some subject")
-
-    it "groups behaviors for what's being described" $ do
-      r <- filter (isPrefixOf "  - ") `fmap` runSpec testSpec
-      length r `shouldBe` 3
-
     it "can be nested" $ do
       [Node foo [Node bar [Leaf _]]] <- toTree $ do
         H.describe "foo" $ do

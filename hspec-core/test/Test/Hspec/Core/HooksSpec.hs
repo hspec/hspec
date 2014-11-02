@@ -173,7 +173,7 @@ spec = do
         r <- runSpec $ do
           H.afterAll_ throwException $ do
             H.it "foo" True
-        r `shouldSatisfy` any (== "- afterAll-hook FAILED [1]")
+        r `shouldSatisfy` any (== "afterAll-hook FAILED [1]")
 
   describe "around" $ do
     it "wraps every spec item with an action" $ do
