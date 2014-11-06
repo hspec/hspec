@@ -1,3 +1,6 @@
+## Changes in 1.12.3
+  - Make `hspec-discover` work with `-XNoImplicitPrelude`
+
 ## Changes in 1.12.2
   - Include `IOErrorType` when printing uncaught `IOException`s (see #204)
 

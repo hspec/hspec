@@ -1,9 +1,10 @@
 name:             hspec-discover-integration-tests
 version:          0.0.0
 build-type:       Simple
-cabal-version:    >= 1.8
+cabal-version:    >= 1.10
 
 library
+  default-language: Haskell2010
 
 test-suite empty
   type:
@@ -17,6 +18,7 @@ test-suite empty
   build-depends:
       base    == 4.*
     , hspec
+  default-language: Haskell2010
 
 test-suite with-formatter
   type:
@@ -32,6 +34,7 @@ test-suite with-formatter
   build-depends:
       base    == 4.*
     , hspec
+  default-language: Haskell2010
 
 test-suite with-io-formatter
   type:
@@ -49,6 +52,7 @@ test-suite with-io-formatter
       base    == 4.*
     , hspec
     , transformers
+  default-language: Haskell2010
 
 test-suite with-formatter-empty
   type:
@@ -62,6 +66,7 @@ test-suite with-formatter-empty
   build-depends:
       base    == 4.*
     , hspec
+  default-language: Haskell2010
 
 test-suite with-no-main
   type:
@@ -77,6 +82,7 @@ test-suite with-no-main
   build-depends:
       base    == 4.*
     , hspec
+  default-language: Haskell2010
 
 test-suite with-module-name
   type:
@@ -92,3 +98,21 @@ test-suite with-module-name
   build-depends:
       base    == 4.*
     , hspec
+  default-language: Haskell2010
+
+test-suite with-no-implicit-prelude
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall
+  hs-source-dirs:
+      with-no-implicit-prelude
+  main-is:
+      Spec.hs
+  other-modules:
+      FooSpec
+  build-depends:
+      base    == 4.*
+    , hspec
+  default-extensions: NoImplicitPrelude
+  default-language: Haskell2010

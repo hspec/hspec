@@ -1,6 +1,14 @@
 module Test.Hspec.Discover {-# WARNING
   "This module is used by @hspec-discover@.  It is not part of the public API and may change at any time."
-  #-} (Spec, hspec, hspecWithFormatter, postProcessSpec, describe) where
+  #-} (
+  Spec
+, hspec
+, hspecWithFormatter
+, postProcessSpec
+, describe
+
+, module Prelude
+) where
 
 import           Control.Applicative
 import           Data.Maybe
