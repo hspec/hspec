@@ -45,6 +45,7 @@ library
     , hspec-discover == 2.0.0
     , hspec-expectations == 0.6.1.*
     , transformers >= 0.2.2.0
+    , QuickCheck >= 2.5.1
   exposed-modules:
       Test.Hspec
       Test.Hspec.Runner

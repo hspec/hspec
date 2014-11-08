@@ -6,24 +6,11 @@ module Test.Hspec.Core.QuickCheck (
 , modifyMaxDiscardRatio
 , modifyMaxSize
 
--- * Shortcuts
-, prop
 ) where
 
 import           Test.QuickCheck
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core (Params(..), modifyParams)
-
--- |
--- > prop ".." $
--- >   ..
---
--- is a shortcut for
---
--- > it ".." $ property $
--- >   ..
-prop :: Testable prop => String -> prop -> Spec
-prop s = it s . property
 
 -- | Use a modified `maxSuccess` for given spec.
 modifyMaxSuccess :: (Int -> Int) -> Spec -> Spec

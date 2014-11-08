@@ -90,7 +90,6 @@ test-suite spec
       Test.Hspec.FailureReportSpec
       Test.Hspec.Core.FormattersSpec
       Test.Hspec.OptionsSpec
-      Test.Hspec.Core.QuickCheckSpec
       Test.Hspec.Core.RunnerSpec
       Test.Hspec.TimerSpec
       Test.Hspec.Core.UtilSpec
