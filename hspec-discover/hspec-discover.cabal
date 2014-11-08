@@ -28,17 +28,6 @@ source-repository head
   subdir: hspec-discover
 
 library
-  exposed: False
-  ghc-options:
-      -Wall
-  hs-source-dirs:
-      src
-  build-depends:
-      base == 4.*
-    , hspec-core == 1.13.0
-    , transformers >=0.2.2.0
-  exposed-modules:
-      Test.Hspec.Discover
   default-language: Haskell2010
 
 executable hspec-discover
@@ -68,18 +57,11 @@ test-suite spec
   main-is:
       Spec.hs
   other-modules:
-      Helper
-      HelperSpec
       RunSpec
       ConfigSpec
-      Test.Hspec.DiscoverSpec
   build-depends:
       base == 4.*
-    , hspec-core
-    , transformers
-
     , filepath
     , directory
-    , stringbuilder
     , hspec-meta >= 1.12
   default-language: Haskell2010

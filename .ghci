@@ -1,3 +1,1 @@
-:set -ihspec-core/src -ihspec-core/test -optP-include -optPhspec-core/dist/build/autogen/cabal_macros.h
-:set -ihspec-discover/src/ -ihspec-discover/test
-:set -isrc
+:set -isrc -itest
