@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
 -- |
 -- Stability: experimental
 --
@@ -48,16 +47,6 @@ module Test.Hspec.Formatters (
 
 -- ** Helpers
 , formatException
-
--- * Using custom formatters with @hspec-discover@
--- |
--- Anything that is an instance of `IsFormatter` can be used by
--- @hspec-discover@ as the default formatter for a spec.  If you have a
--- formatter @myFormatter@ in the module @Custom.Formatters@ you can use it
--- by passing an additional argument to @hspec-discover@.
---
--- >{-# OPTIONS_GHC -F -pgmF hspec-discover -optF --formatter=Custom.Formatters.myFormatter #-}
-, IsFormatter (..)
 ) where
 
 import           Data.Maybe
@@ -99,15 +88,6 @@ import Test.Hspec.Formatters.Internal (
   , withPendingColor
   , withFailColor
   )
-
-class IsFormatter a where
-  toFormatter :: a -> IO Formatter
-
-instance IsFormatter (IO Formatter) where
-  toFormatter = id
-
-instance IsFormatter Formatter where
-  toFormatter = return
 
 silent :: Formatter
 silent = Formatter {
