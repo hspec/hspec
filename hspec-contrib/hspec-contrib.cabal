@@ -14,7 +14,6 @@ source-repository head
   subdir: hspec-contrib
 
 library
-  exposed: False
   ghc-options:
       -Wall
   hs-source-dirs:
