@@ -4,7 +4,7 @@ import           Helper
 
 import           Test.Hspec.Core.Spec (Item(..), Result(..))
 import qualified Test.Hspec.Core.Runner as H
-import           Test.Hspec.Core.Runner.Tree
+import           Test.Hspec.Core.Type (Tree(..), runSpecM)
 
 import qualified Test.Hspec.Core.Spec as H
 
@@ -18,7 +18,7 @@ spec :: Spec
 spec = do
   describe "describe" $ do
     it "can be nested" $ do
-      [Node foo [Node bar [Leaf _]]] <- toTree $ do
+      [Node foo [Node bar [Leaf _]]] <- runSpecM $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "baz" True
@@ -26,21 +26,21 @@ spec = do
 
     context "when no description is given" $ do
       it "uses a default description" $ do
-        [Node d _] <- toTree (H.describe "" (pure ()))
+        [Node d _] <- runSpecM (H.describe "" (pure ()))
         d `shouldBe` "(no description given)"
 
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
-      [Leaf item] <- toTree (H.it "whatever" True)
+      [Leaf item] <- runSpecM (H.it "whatever" True)
       itemRequirement item `shouldBe` "whatever"
 
     it "takes an example of that behavior" $ do
-      [Leaf item] <- toTree (H.it "whatever" True)
+      [Leaf item] <- runSpecM (H.it "whatever" True)
       itemExample item defaultParams ($ ()) noOpProgressCallback `shouldReturn` Success
 
     context "when no description is given" $ do
       it "uses a default description" $ do
-        [Leaf item] <- toTree (H.it "" True)
+        [Leaf item] <- runSpecM (H.it "" True)
         itemRequirement item `shouldBe` "(unspecified behavior)"
 
   describe "example" $ do
@@ -65,11 +65,11 @@ spec = do
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do
-      [Leaf item] <- toTree . H.parallel $ H.it "whatever" True
+      [Leaf item] <- runSpecM . H.parallel $ H.it "whatever" True
       itemIsParallelizable item `shouldBe` True
 
     it "is applied recursively" $ do
-      [Node _ [Node _ [Leaf item]]] <- toTree . H.parallel $ do
+      [Node _ [Node _ [Leaf item]]] <- runSpecM . H.parallel $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "baz" True

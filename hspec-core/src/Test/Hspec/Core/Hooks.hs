@@ -52,7 +52,7 @@ around action = aroundWith $ \e () -> action e
 
 -- | Run a custom action after the last spec item.
 afterAll :: ActionWith a -> SpecWith a -> SpecWith a
-afterAll action spec = runIO (runSpecM spec) >>= fromSpecList . return . SpecWithCleanup action
+afterAll action spec = runIO (runSpecM spec) >>= fromSpecList . return . NodeWithCleanup action
 
 -- | Run a custom action after the last spec item.
 afterAll_ :: IO () -> Spec -> Spec

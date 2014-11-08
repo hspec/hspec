@@ -7,8 +7,7 @@ import           Data.String
 import           Data.String.Builder
 
 import qualified Test.Hspec.Core.Spec as H
-import           Test.Hspec.Core (Item(..), Location(..), LocationAccuracy(..))
-import           Test.Hspec.Core.Runner.Tree
+import           Test.Hspec.Core (Tree(..), Item(..), Location(..), LocationAccuracy(..), runSpecM)
 import qualified Test.Hspec.Discover as H
 
 infix 1 `shouldHaveLocation`
@@ -31,7 +30,7 @@ spec = do
             ""
             strlit "baz"
       withFileContent c $ \src -> do
-        [Leaf item1, Leaf item2, Leaf item3] <- toTree . H.postProcessSpec src $ do
+        [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src $ do
           H.it "foo" True
           H.it "bar" True
           H.it "baz" True
@@ -46,7 +45,7 @@ spec = do
               strlit "foo"
               strlit "foo"
         withFileContent c $ \src -> do
-          [Leaf item1, Leaf item2, Leaf item3] <- toTree . H.postProcessSpec src $ do
+          [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src $ do
             H.it "foo" True
             H.it "foo" True
             H.it "foo" True
@@ -60,7 +59,7 @@ spec = do
                 strlit "foo"
                 strlit "foo"
           withFileContent c $ \src -> do
-            [Leaf item1, Leaf item2, Leaf item3] <- toTree . H.postProcessSpec src $ do
+            [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src $ do
               H.it "foo" True
               H.it "foo" True
               H.it "foo" True

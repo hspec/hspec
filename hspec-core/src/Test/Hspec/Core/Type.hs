@@ -1,11 +1,12 @@
-{-# LANGUAGE CPP, TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveDataTypeable, TypeFamilies #-}
+{-# LANGUAGE CPP, TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving, DeriveFunctor, DeriveDataTypeable, TypeFamilies #-}
 module Test.Hspec.Core.Type (
   Spec
 , SpecWith
 , SpecM (..)
 , runSpecM
 , fromSpecList
-, SpecTree (..)
+, Tree (..)
+, SpecTree
 , mapSpecTree
 , Item (..)
 , ActionWith
@@ -28,11 +29,14 @@ module Test.Hspec.Core.Type (
 
 import qualified Control.Exception as E
 import           Control.Applicative
+import           Data.Foldable
+import           Data.Traversable
 import           Control.Monad.Trans.Writer
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Typeable (Typeable)
 import           Data.List (isPrefixOf)
 import           Data.Maybe (fromMaybe)
+import           Data.Monoid
 
 import           Test.Hspec.Compat
 import           Test.Hspec.Core.Util
@@ -94,10 +98,31 @@ data Params = Params {
 } deriving (Show)
 
 -- | Internal representation of a spec.
-data SpecTree a =
-    SpecGroup String [SpecTree a]
-  | SpecWithCleanup (ActionWith a) [SpecTree a]
-  | SpecItem (Item a)
+data Tree c a =
+    Node String [Tree c a]
+  | NodeWithCleanup c [Tree c a]
+  | Leaf a
+  deriving Functor
+
+instance Foldable (Tree c) where -- Note: GHC 7.0.1 fails to derive this instance
+  foldMap = go
+    where
+      go :: Monoid m => (a -> m) -> Tree c a -> m
+      go f t = case t of
+        Node _ xs -> foldMap (foldMap f) xs
+        NodeWithCleanup _ xs -> foldMap (foldMap f) xs
+        Leaf x -> f x
+
+instance Traversable (Tree c) where -- Note: GHC 7.0.1 fails to derive this instance
+  sequenceA = go
+    where
+      go :: Applicative f => Tree c (f a) -> f (Tree c a)
+      go t = case t of
+        Node label xs -> Node label <$> sequenceA (map go xs)
+        NodeWithCleanup action xs -> NodeWithCleanup action <$> sequenceA (map go xs)
+        Leaf a -> Leaf <$> a
+
+type SpecTree a = Tree (ActionWith a) (Item a)
 
 data Item a = Item {
   itemRequirement :: String
@@ -116,9 +141,9 @@ mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith 
 mapSpecItem g f = mapSpecTree go
   where
     go spec = case spec of
-      SpecGroup d xs -> SpecGroup d (map go xs)
-      SpecWithCleanup cleanup xs -> SpecWithCleanup (g cleanup) (map go xs)
-      SpecItem item -> SpecItem (f item)
+      Node d xs -> Node d (map go xs)
+      NodeWithCleanup cleanup xs -> NodeWithCleanup (g cleanup) (map go xs)
+      Leaf item -> Leaf (f item)
 
 data LocationAccuracy = ExactLocation | BestEffort
   deriving (Eq, Show)
@@ -135,7 +160,7 @@ mapSpecItem_ = mapSpecItem id
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
 specGroup :: String -> [SpecTree a] -> SpecTree a
-specGroup s = SpecGroup msg
+specGroup s = Node msg
   where
     msg
       | null s = "(no description given)"
@@ -143,7 +168,7 @@ specGroup s = SpecGroup msg
 
 -- | Create a spec item.
 specItem :: Example a => String -> a -> SpecTree (Arg a)
-specItem s e = SpecItem $ Item requirement Nothing False (evaluateExample e)
+specItem s e = Leaf $ Item requirement Nothing False (evaluateExample e)
   where
     requirement
       | null s = "(unspecified behavior)"

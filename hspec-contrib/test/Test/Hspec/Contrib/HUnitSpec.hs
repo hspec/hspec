@@ -6,17 +6,17 @@ import           Test.QuickCheck
 import           Control.Applicative
 
 import           Test.Hspec.Core.Spec (Item(..))
-import           Test.Hspec.Core.Runner.Tree
+import           Test.Hspec.Core (Tree(..), runSpecM)
 import           Test.Hspec.Contrib.HUnit
 import           Test.HUnit
 
 main :: IO ()
 main = hspec spec
 
-shouldYield :: Test -> [Tree String] -> Expectation
-a `shouldYield` b = map (Blind . fmap itemRequirement) <$> toTree (fromHUnitTest a) `shouldReturn` map Blind b
+shouldYield :: Test -> [Tree (ActionWith ()) String] -> Expectation
+a `shouldYield` b = map (Blind . fmap itemRequirement) <$> runSpecM (fromHUnitTest a) `shouldReturn` map Blind b
 
-instance Eq a => Eq (Tree a) where
+instance Eq a => Eq (Tree c a) where
   x == y = case (x, y) of
     (Node s1 xs, Node s2 ys) -> s1 == s2 && xs == ys
     (Leaf x1, Leaf x2) -> x1 == x2

@@ -18,7 +18,8 @@ module Test.Hspec.Core (
 , fromSpecList
 
 -- * Internal representation of a spec tree
-, SpecTree (..)
+, Tree (..)
+, SpecTree
 , mapSpecTree
 , Item (..)
 , Location (..)

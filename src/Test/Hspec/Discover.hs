@@ -20,7 +20,6 @@ import           Control.Monad.Trans.State
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core hiding (describe)
 import           Test.Hspec.Core.Runner
-import           Test.Hspec.Core.Runner.Tree
 import           Test.Hspec.Formatters
 import           Test.Hspec.Core.Util
 
@@ -45,9 +44,9 @@ locationHeuristicFromFile :: FilePath -> Spec -> Spec
 locationHeuristicFromFile file spec = do
   mInput <- either (const Nothing) Just <$> (runIO . safeTry . readFile) file
   let lookupLoc = maybe (\_ _ _ -> Nothing) (lookupLocation file)  mInput
-  runIO (toTree spec) >>= fromTree . addLoctions lookupLoc
+  runIO (runSpecM spec) >>= fromSpecList . addLoctions lookupLoc
 
-addLoctions :: (Int -> Int -> String -> Maybe Location) -> [Tree (Item a)] -> [Tree (Item a)]
+addLoctions :: (Int -> Int -> String -> Maybe Location) -> [SpecTree a] -> [SpecTree a]
 addLoctions lookupLoc = map (fmap f) . enumerate
   where
     f :: ((Int, Int), Item a) -> Item a
@@ -55,7 +54,7 @@ addLoctions lookupLoc = map (fmap f) . enumerate
 
 type EnumerateM = State [(String, Int)]
 
-enumerate :: [Tree (Item a)] -> [Tree ((Int, Int), (Item a))]
+enumerate :: [SpecTree a] -> [Tree (ActionWith a) ((Int, Int), (Item a))]
 enumerate tree = (mapM (traverse addPosition) tree >>= mapM (traverse addTotal)) `evalState` []
   where
     addPosition :: Item a -> EnumerateM (Int, Item a)

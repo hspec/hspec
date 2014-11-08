@@ -38,33 +38,32 @@ import           Test.Hspec.Core.Formatters.Internal
 import           Test.Hspec.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 
-import           Test.Hspec.Core.Runner.Tree
 import           Test.Hspec.Core.Runner.Eval
 
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
-filterSpecs :: Config -> [Tree (Item a)] -> [Tree (Item a)]
+filterSpecs :: Config -> [SpecTree a] -> [SpecTree a]
 filterSpecs c = go []
   where
     p :: Path -> Bool
     p = fromMaybe (const True) (configFilterPredicate c)
 
-    go :: [String] -> [Tree (Item a)] -> [Tree (Item a)]
+    go :: [String] -> [SpecTree a] -> [SpecTree a]
     go groups = mapMaybe (goSpec groups)
 
-    goSpecs :: [String] -> [Tree (Item a)] -> ([Tree (Item a)] -> b) -> Maybe b
+    goSpecs :: [String] -> [SpecTree a] -> ([SpecTree a] -> b) -> Maybe b
     goSpecs groups specs ctor = case go groups specs of
       [] -> Nothing
       xs -> Just (ctor xs)
 
-    goSpec :: [String] -> Tree (Item a) -> Maybe (Tree (Item a))
+    goSpec :: [String] -> SpecTree a -> Maybe (SpecTree a)
     goSpec groups spec = case spec of
       Leaf item -> guard (p (groups, itemRequirement item)) >> return spec
       Node group specs -> goSpecs (groups ++ [group]) specs (Node group)
       NodeWithCleanup action specs -> goSpecs groups specs (NodeWithCleanup action)
 
-applyDryRun :: Config -> [Tree (Item ())] -> [Tree (Item ())]
+applyDryRun :: Config -> [SpecTree ()] -> [SpecTree ()]
 applyDryRun c
   | configDryRun c = map (removeCleanup . fmap markSuccess)
   | otherwise = id
@@ -72,10 +71,10 @@ applyDryRun c
     markSuccess :: Item () -> Item ()
     markSuccess item = item {itemExample = evaluateExample Success}
 
-    removeCleanup :: Tree (Item ()) -> Tree (Item ())
+    removeCleanup :: SpecTree () -> SpecTree ()
     removeCleanup spec = case spec of
       Node x xs -> Node x (map removeCleanup xs)
-      NodeWithCleanup _ xs -> NodeWithCleanup (return ()) (map removeCleanup xs)
+      NodeWithCleanup _ xs -> NodeWithCleanup (\() -> return ()) (map removeCleanup xs)
       leaf@(Leaf _) -> leaf
 
 -- | Run given spec and write a report to `stdout`.
@@ -124,7 +123,7 @@ hspecWithResult conf spec = do
 
     useColor <- doesUseColor h c
 
-    filteredSpec <- filterSpecs c . applyDryRun c <$> toTree spec
+    filteredSpec <- filterSpecs c . applyDryRun c <$> runSpecM spec
 
     withHiddenCursor useColor h $
       runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do

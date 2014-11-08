@@ -10,7 +10,6 @@ import           System.IO (Handle)
 import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Runner.Tree
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
 import           Test.Hspec.Core.Formatters
@@ -18,10 +17,10 @@ import           Test.Hspec.Core.Formatters.Internal
 import           Test.Hspec.Timer
 import           Data.Time.Clock.POSIX
 
-type EvalTree = Tree (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
+type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: Bool -> Handle -> Config -> Formatter -> [Tree (Item ())] -> FormatM ()
+runFormatter :: Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
 runFormatter useColor h c formatter specs = do
   headerFormatter formatter
   chan <- liftIO newChan
@@ -33,7 +32,7 @@ runFormatter useColor h c formatter specs = do
       | useColor = every 0.05 $ exampleProgress formatter h
       | otherwise = return $ \_ _ -> return ()
 
-    toEvalTree :: [Tree (Item ())] -> [EvalTree]
+    toEvalTree :: [SpecTree ()] -> [EvalTree]
     toEvalTree = map (fmap f)
       where
         f :: Item () -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
@@ -112,7 +111,7 @@ run chan reportProgress_ c formatter specs = do
       defer (exampleGroupDone formatter)
     queueSpec rGroups (NodeWithCleanup action xs) = do
       forM_ xs (queueSpec rGroups)
-      defer (runCleanup action (reverse rGroups, "afterAll-hook"))
+      defer (runCleanup (action ()) (reverse rGroups, "afterAll-hook"))
     queueSpec rGroups (Leaf e) =
       queueExample (reverse rGroups) e
 

@@ -2,7 +2,7 @@
 module Test.Hspec.THSpec (main, spec) where
 
 import           Test.Hspec
-import           Test.Hspec.Core (Location(..), LocationAccuracy(..), Item(..), SpecTree(..), runSpecM)
+import           Test.Hspec.Core (Tree(..), Location(..), LocationAccuracy(..), Item(..), runSpecM)
 
 import qualified Test.Hspec.TH as H
 
@@ -13,7 +13,7 @@ infix 1 `shouldHaveLocation`
 
 shouldHaveLocation :: Spec -> Location -> Expectation
 x `shouldHaveLocation` loc = do
-  [SpecItem item] <- runSpecM x
+  [Leaf item] <- runSpecM x
   itemLocation item `shouldBe` Just loc
 
 spec :: Spec
