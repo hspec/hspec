@@ -1,5 +1,9 @@
 module Test.Hspec.QuickCheck (
-  module Test.Hspec.Core.QuickCheck
+-- * Params
+  modifyMaxSuccess
+, modifyMaxDiscardRatio
+, modifyMaxSize
+
 -- * Shortcuts
 , prop
 ) where
