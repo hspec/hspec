@@ -1,6 +1,6 @@
 -- |
 -- Stability: provisional
-module Test.Hspec.QuickCheck (
+module Test.Hspec.Core.QuickCheck (
 -- * Params
   modifyMaxSuccess
 , modifyMaxDiscardRatio

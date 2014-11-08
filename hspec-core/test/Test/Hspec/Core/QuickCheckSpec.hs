@@ -1,10 +1,10 @@
-module Test.Hspec.QuickCheckSpec (main, spec) where
+module Test.Hspec.Core.QuickCheckSpec (main, spec) where
 
 import           Helper
 
 import qualified Test.Hspec.Core.Spec as H
-import qualified Test.Hspec.Runner as H
-import qualified Test.Hspec.QuickCheck as H
+import qualified Test.Hspec.Core.Runner as H
+import qualified Test.Hspec.Core.QuickCheck as H
 
 main :: IO ()
 main = hspec spec

@@ -6,7 +6,7 @@ import           Test.QuickCheck
 import           Control.Applicative
 
 import           Test.Hspec.Core.Spec (Item(..))
-import           Test.Hspec.Runner.Tree
+import           Test.Hspec.Core.Runner.Tree
 import           Test.Hspec.Contrib.HUnit
 import           Test.HUnit
 

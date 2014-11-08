@@ -8,7 +8,7 @@ import           Data.String.Builder
 
 import qualified Test.Hspec.Core.Spec as H
 import           Test.Hspec.Core (Item(..), Location(..), LocationAccuracy(..))
-import           Test.Hspec.Runner.Tree
+import           Test.Hspec.Core.Runner.Tree
 import qualified Test.Hspec.Discover as H
 
 infix 1 `shouldHaveLocation`

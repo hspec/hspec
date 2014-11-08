@@ -3,8 +3,8 @@ module Test.Hspec.Core.SpecSpec (main, spec) where
 import           Helper
 
 import           Test.Hspec.Core.Spec (Item(..), Result(..))
-import qualified Test.Hspec.Runner as H
-import           Test.Hspec.Runner.Tree
+import qualified Test.Hspec.Core.Runner as H
+import           Test.Hspec.Core.Runner.Tree
 
 import qualified Test.Hspec.Core.Spec as H
 

@@ -38,7 +38,7 @@ import           Test.QuickCheck hiding (Result(..))
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core as H (Params(..), ProgressCallback, mapSpecItem_)
-import qualified Test.Hspec.Runner as H
+import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 
 throwException :: IO ()

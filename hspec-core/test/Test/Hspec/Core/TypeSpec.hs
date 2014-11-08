@@ -8,7 +8,7 @@ import           Data.IORef
 
 import qualified Test.Hspec.Core.Type as H
 import qualified Test.Hspec.Core.Spec as H
-import qualified Test.Hspec.Runner as H
+import qualified Test.Hspec.Core.Runner as H
 
 main :: IO ()
 main = hspec spec

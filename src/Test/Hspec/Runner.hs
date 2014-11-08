@@ -1,3 +1,2 @@
-{-# LANGUAGE PackageImports #-}
-module Test.Hspec.Runner (module Test.Hspec.Runner) where
-import "hspec-core" Test.Hspec.Runner
+module Test.Hspec.Runner (module Test.Hspec.Core.Runner) where
+import           Test.Hspec.Core.Runner

@@ -1,4 +1,4 @@
-module Test.Hspec.RunnerSpec (main, spec) where
+module Test.Hspec.Core.RunnerSpec (main, spec) where
 
 import           Helper
 import           System.IO (stderr)
@@ -13,9 +13,9 @@ import           Test.Hspec.Compat
 
 import           Test.Hspec.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Core.Spec as H
-import qualified Test.Hspec.Runner as H
-import qualified Test.Hspec.Formatters as H (silent)
-import qualified Test.Hspec.QuickCheck as H
+import qualified Test.Hspec.Core.Runner as H
+import qualified Test.Hspec.Core.Formatters as H (silent)
+import qualified Test.Hspec.Core.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
 import qualified Test.Hspec.Core.Hooks as H

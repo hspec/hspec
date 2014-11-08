@@ -33,7 +33,6 @@ source-repository head
   subdir: hspec-core
 
 library
-  exposed: False
   ghc-options:
       -Wall
   hs-source-dirs:
@@ -56,10 +55,10 @@ library
       Test.Hspec.Core
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
-      Test.Hspec.Runner
-      Test.Hspec.Runner.Tree
-      Test.Hspec.Formatters
-      Test.Hspec.QuickCheck
+      Test.Hspec.Core.Runner
+      Test.Hspec.Core.Runner.Tree
+      Test.Hspec.Core.Formatters
+      Test.Hspec.Core.QuickCheck
       Test.Hspec.Util
   other-modules:
       Test.Hspec.Compat
@@ -68,8 +67,8 @@ library
       Test.Hspec.Config
       Test.Hspec.Options
       Test.Hspec.FailureReport
-      Test.Hspec.Runner.Eval
-      Test.Hspec.Formatters.Internal
+      Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Timer
   default-language: Haskell2010
 
@@ -89,10 +88,10 @@ test-suite spec
       Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.TypeSpec
       Test.Hspec.FailureReportSpec
-      Test.Hspec.FormattersSpec
+      Test.Hspec.Core.FormattersSpec
       Test.Hspec.OptionsSpec
-      Test.Hspec.QuickCheckSpec
-      Test.Hspec.RunnerSpec
+      Test.Hspec.Core.QuickCheckSpec
+      Test.Hspec.Core.RunnerSpec
       Test.Hspec.TimerSpec
       Test.Hspec.UtilSpec
   ghc-options:

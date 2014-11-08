@@ -19,8 +19,8 @@ import           Control.Monad.Trans.State
 
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core hiding (describe)
-import           Test.Hspec.Runner
-import           Test.Hspec.Runner.Tree
+import           Test.Hspec.Core.Runner
+import           Test.Hspec.Core.Runner.Tree
 import           Test.Hspec.Formatters
 import           Test.Hspec.Util
 

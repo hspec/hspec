@@ -4,7 +4,7 @@ import           Helper
 import           Data.IORef
 
 import qualified Test.Hspec.Core.Spec as H
-import qualified Test.Hspec.Runner as H
+import qualified Test.Hspec.Core.Runner as H
 
 import qualified Test.Hspec.Core.Hooks as H
 

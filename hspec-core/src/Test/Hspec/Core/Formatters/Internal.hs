@@ -1,5 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Test.Hspec.Formatters.Internal (
+module Test.Hspec.Core.Formatters.Internal (
 
 -- * Public API
   Formatter (..)

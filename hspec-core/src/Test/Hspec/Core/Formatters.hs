@@ -3,7 +3,7 @@
 --
 -- This module contains formatters that can be used with
 -- `Test.Hspec.Runner.hspecWith`.
-module Test.Hspec.Formatters (
+module Test.Hspec.Core.Formatters (
 
 -- * Formatters
   silent
@@ -63,7 +63,7 @@ import           System.IO (hPutStr, hFlush)
 --
 -- Everything imported here has to be re-exported, so that users can implement
 -- their own formatters.
-import Test.Hspec.Formatters.Internal (
+import Test.Hspec.Core.Formatters.Internal (
     Formatter (..)
   , FormatM
 

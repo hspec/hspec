@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, DeriveFunctor #-}
-module Test.Hspec.Runner.Tree where
+module Test.Hspec.Core.Runner.Tree where
 
 import           Control.Applicative
 import           Data.Foldable

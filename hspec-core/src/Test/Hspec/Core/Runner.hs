@@ -1,6 +1,6 @@
 -- |
 -- Stability: provisional
-module Test.Hspec.Runner (
+module Test.Hspec.Core.Runner (
 -- * Running a spec
   hspec
 , hspecWith
@@ -33,13 +33,13 @@ import           Test.Hspec.Compat (lookupEnv)
 import           Test.Hspec.Util (Path)
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
-import           Test.Hspec.Formatters
-import           Test.Hspec.Formatters.Internal
+import           Test.Hspec.Core.Formatters
+import           Test.Hspec.Core.Formatters.Internal
 import           Test.Hspec.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 
-import           Test.Hspec.Runner.Tree
-import           Test.Hspec.Runner.Eval
+import           Test.Hspec.Core.Runner.Tree
+import           Test.Hspec.Core.Runner.Eval
 
 -- | Filter specs by given predicate.
 --

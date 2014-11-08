@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor #-}
-module Test.Hspec.Runner.Eval (runFormatter) where
+module Test.Hspec.Core.Runner.Eval (runFormatter) where
 
 import           Control.Applicative
 import           Control.Monad
@@ -10,11 +10,11 @@ import           System.IO (Handle)
 import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Util
-import           Test.Hspec.Runner.Tree
+import           Test.Hspec.Core.Runner.Tree
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
-import           Test.Hspec.Formatters
-import           Test.Hspec.Formatters.Internal
+import           Test.Hspec.Core.Formatters
+import           Test.Hspec.Core.Formatters.Internal
 import           Test.Hspec.Timer
 import           Data.Time.Clock.POSIX
 
