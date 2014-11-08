@@ -1,7 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
-module Test.Hspec.Contrib (
-  retryWith
-) where
+module Test.Hspec.Contrib.Retry (retryWith) where
 
 import           Test.Hspec.Core
 

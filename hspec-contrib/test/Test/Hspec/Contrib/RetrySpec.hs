@@ -1,9 +1,9 @@
-module Test.Hspec.ContribSpec (main, spec) where
+module Test.Hspec.Contrib.RetrySpec (main, spec) where
 
 import           Data.IORef
 
 import           Test.Hspec
-import           Test.Hspec.Contrib
+import           Test.Hspec.Contrib.Retry
 
 main :: IO ()
 main = hspec spec
