@@ -1,4 +1,4 @@
-module Test.Hspec.HUnit (
+module Test.Hspec.Contrib.HUnit (
 -- * Interoperability with HUnit
   fromHUnitTest
 ) where

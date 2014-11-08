@@ -1,5 +1,5 @@
 import Test.Hspec
-import Test.Hspec.HUnit (fromHUnitTest)
+import Test.Hspec.Contrib.HUnit (fromHUnitTest)
 import Test.HUnit
 
 main :: IO ()

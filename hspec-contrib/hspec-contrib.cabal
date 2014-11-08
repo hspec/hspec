@@ -22,8 +22,10 @@ library
   build-depends:
       base == 4.*
     , hspec-core
+    , HUnit
   exposed-modules:
       Test.Hspec.Contrib.Retry
+      Test.Hspec.Contrib.HUnit
   other-modules:
   default-language: Haskell2010
 
@@ -41,5 +43,8 @@ test-suite spec
   build-depends:
       base == 4.*
     , hspec-contrib
+    , hspec-core
+    , HUnit
+    , QuickCheck
     , hspec
   default-language: Haskell2010

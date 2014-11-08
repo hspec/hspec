@@ -1,11 +1,13 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Test.Hspec.HUnitSpec (main, spec) where
+module Test.Hspec.Contrib.HUnitSpec (main, spec) where
 
-import           Helper hiding (example)
+import           Test.Hspec
+import           Test.QuickCheck
+import           Control.Applicative
 
 import           Test.Hspec.Core.Spec (Item(..))
 import           Test.Hspec.Runner.Tree
-import           Test.Hspec.HUnit
+import           Test.Hspec.Contrib.HUnit
 import           Test.HUnit
 
 main :: IO ()

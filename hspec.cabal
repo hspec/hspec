@@ -49,7 +49,6 @@ library
       Test.Hspec
       Test.Hspec.Runner
       Test.Hspec.Formatters
-      Test.Hspec.HUnit
       Test.Hspec.QuickCheck
       Test.Hspec.Discover
   default-language: Haskell2010

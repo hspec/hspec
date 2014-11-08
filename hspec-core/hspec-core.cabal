@@ -59,7 +59,6 @@ library
       Test.Hspec.Runner
       Test.Hspec.Runner.Tree
       Test.Hspec.Formatters
-      Test.Hspec.HUnit
       Test.Hspec.QuickCheck
       Test.Hspec.Util
   other-modules:
@@ -91,7 +90,6 @@ test-suite spec
       Test.Hspec.Core.TypeSpec
       Test.Hspec.FailureReportSpec
       Test.Hspec.FormattersSpec
-      Test.Hspec.HUnitSpec
       Test.Hspec.OptionsSpec
       Test.Hspec.QuickCheckSpec
       Test.Hspec.RunnerSpec

@@ -7,7 +7,7 @@ Pygments.start(File.join(File.dirname(__FILE__), "../pygments"))
 module Hspec
   module CustomFilters
     def runhaskell(args)
-      cmd = "runhaskell -Wall -Werror -i../hspec-core/src -i../src -optP-include -optP../hspec-core/dist/build/autogen/cabal_macros.h #{args}"
+      cmd = "runhaskell -Wall -Werror -i../hspec-core/src -i../src -i../hspec-contrib/src/ -optP-include -optP../hspec-core/dist/build/autogen/cabal_macros.h #{args}"
       cache  = ".cache/runhaskell"
       system "mkdir -p #{cache}"
 
@@ -37,7 +37,7 @@ module Hspec
         'Spec'              => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html#t:Spec',
         'hspec'             => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspec',
         'hspecWith'         => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspecWith',
-        'fromHUnitTest'     => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-HUnit.html#v:fromHUnitTest',
+        'fromHUnitTest'     => 'http://hackage.haskell.org/packages/archive/hspec-contrib/latest/doc/html/Test-Hspec-Contrib-HUnit.html#v:fromHUnitTest',
 
         'Selector'          => 'http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#t:Selector',
         'shouldThrow'       => 'http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:shouldThrow',
