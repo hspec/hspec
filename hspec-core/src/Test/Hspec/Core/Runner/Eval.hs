@@ -9,7 +9,7 @@ import           System.IO (Handle)
 
 import           Control.Monad.IO.Class (liftIO)
 
-import           Test.Hspec.Util
+import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Runner.Tree
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config

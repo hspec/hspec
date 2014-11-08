@@ -1,10 +1,10 @@
-module Test.Hspec.UtilSpec (main, spec) where
+module Test.Hspec.Core.UtilSpec (main, spec) where
 
 import           Helper
 import           Control.Concurrent
 import qualified Control.Exception as E
 
-import           Test.Hspec.Util
+import           Test.Hspec.Core.Util
 
 main :: IO ()
 main = hspec spec

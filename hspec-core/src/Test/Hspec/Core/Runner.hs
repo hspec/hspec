@@ -30,7 +30,7 @@ import qualified Test.QuickCheck as QC
 import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Compat (lookupEnv)
-import           Test.Hspec.Util (Path)
+import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Type
 import           Test.Hspec.Config
 import           Test.Hspec.Core.Formatters

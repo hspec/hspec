@@ -50,7 +50,7 @@ module Test.Hspec.Core.Formatters (
 ) where
 
 import           Data.Maybe
-import           Test.Hspec.Util
+import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Type (Location(..), LocationAccuracy(..))
 import           Text.Printf
 import           Control.Monad (when, unless)

@@ -14,7 +14,7 @@ import           System.Console.GetOpt
 
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Compat
-import           Test.Hspec.Util
+import           Test.Hspec.Core.Util
 
 data Config = Config {
   configDryRun :: Bool

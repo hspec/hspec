@@ -59,7 +59,7 @@ library
       Test.Hspec.Core.Runner.Tree
       Test.Hspec.Core.Formatters
       Test.Hspec.Core.QuickCheck
-      Test.Hspec.Util
+      Test.Hspec.Core.Util
   other-modules:
       Test.Hspec.Compat
       Test.Hspec.Core.Type
@@ -93,7 +93,7 @@ test-suite spec
       Test.Hspec.Core.QuickCheckSpec
       Test.Hspec.Core.RunnerSpec
       Test.Hspec.TimerSpec
-      Test.Hspec.UtilSpec
+      Test.Hspec.Core.UtilSpec
   ghc-options:
       -Wall
   build-depends:

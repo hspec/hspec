@@ -35,7 +35,7 @@ import           Data.List (isPrefixOf)
 import           Data.Maybe (fromMaybe)
 
 import           Test.Hspec.Compat
-import           Test.Hspec.Util
+import           Test.Hspec.Core.Util
 import           Test.Hspec.Expectations (Expectation)
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC

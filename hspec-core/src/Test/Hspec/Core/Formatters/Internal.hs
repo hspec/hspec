@@ -46,7 +46,7 @@ import           Control.Monad.IO.Class
 import qualified System.CPUTime as CPUTime
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
-import           Test.Hspec.Util (Path)
+import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Compat
 import           Test.Hspec.Core.Type (Progress, Location)
 

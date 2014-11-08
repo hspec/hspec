@@ -1,4 +1,4 @@
-module Test.Hspec.Util (
+module Test.Hspec.Core.Util (
   pluralize
 , formatException
 , lineBreaksAt

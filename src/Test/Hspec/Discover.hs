@@ -22,7 +22,7 @@ import           Test.Hspec.Core hiding (describe)
 import           Test.Hspec.Core.Runner
 import           Test.Hspec.Core.Runner.Tree
 import           Test.Hspec.Formatters
-import           Test.Hspec.Util
+import           Test.Hspec.Core.Util
 
 class IsFormatter a where
   toFormatter :: a -> IO Formatter

@@ -18,7 +18,7 @@ import           Test.QuickCheck.Random
 
 import           System.Random
 
-import           Test.Hspec.Util
+import           Test.Hspec.Core.Util
 
 aroundProperty :: ((a -> IO ()) -> IO ()) -> (a -> Property) -> Property
 #if MIN_VERSION_QuickCheck(2,7,0)

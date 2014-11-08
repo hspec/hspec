@@ -12,7 +12,7 @@ import           System.IO
 import           System.Exit
 import qualified Test.QuickCheck as QC
 
-import           Test.Hspec.Util
+import           Test.Hspec.Core.Util
 import           Test.Hspec.Options
 import           Test.Hspec.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)

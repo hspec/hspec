@@ -7,7 +7,7 @@ module Test.Hspec.FailureReport (
 import           System.IO
 import           System.SetEnv
 import           Test.Hspec.Compat
-import           Test.Hspec.Util (Path, safeTry)
+import           Test.Hspec.Core.Util (Path, safeTry)
 
 data FailureReport = FailureReport {
   failureReportSeed :: Integer
