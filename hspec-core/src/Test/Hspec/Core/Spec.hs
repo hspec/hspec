@@ -21,7 +21,7 @@ module Test.Hspec.Core.Spec (
 ) where
 
 import qualified Control.Exception as E
-import           Test.Hspec.Expectations
+import           Test.Hspec.Expectations (Expectation)
 import           Test.Hspec.Core.Type
 
 -- | Combine a list of specs into a larger spec.

@@ -36,7 +36,7 @@ import           Data.Maybe (fromMaybe)
 
 import           Test.Hspec.Compat
 import           Test.Hspec.Util
-import           Test.Hspec.Expectations
+import           Test.Hspec.Expectations (Expectation)
 import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.State as QC
