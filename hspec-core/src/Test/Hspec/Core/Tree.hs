@@ -2,14 +2,13 @@
 -- |
 -- Stability: unstable
 module Test.Hspec.Core.Tree (
--- * Internal representation of a spec tree
   SpecTree
-, specGroup
-, specItem
 , Tree (..)
 , Item (..)
 , Location (..)
 , LocationAccuracy (..)
+, specGroup
+, specItem
 ) where
 
 import           Control.Applicative

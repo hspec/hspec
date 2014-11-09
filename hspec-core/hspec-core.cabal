@@ -56,13 +56,13 @@ library
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.Runner
-      Test.Hspec.Core.Example
-      Test.Hspec.Core.Tree
       Test.Hspec.Core.Formatters
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
   other-modules:
       Test.Hspec.Compat
+      Test.Hspec.Core.Example
+      Test.Hspec.Core.Tree
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Config

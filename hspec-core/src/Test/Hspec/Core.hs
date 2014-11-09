@@ -8,6 +8,7 @@ module Test.Hspec.Core (
 -- * A type class for examples
   Example (..)
 , Params (..)
+, ActionWith
 , Progress
 , ProgressCallback
 , Result (..)
@@ -18,13 +19,12 @@ module Test.Hspec.Core (
 , fromSpecList
 
 -- * Internal representation of a spec tree
-, Tree (..)
 , SpecTree
-, mapSpecTree
+, Tree (..)
 , Item (..)
 , Location (..)
 , LocationAccuracy(..)
-, ActionWith
+, mapSpecTree
 , mapSpecItem
 , mapSpecItem_
 , modifyParams

@@ -17,26 +17,17 @@ module Test.Hspec.Core.Spec (
 , parallel
 , runIO
 
--- * Examples and spec items
-, Example (..)
-, Item (..)
-, Location (..)
-, LocationAccuracy(..)
-, Params (..)
-, ActionWith
-, ProgressCallback
-, Progress
-, Result (..)
+-- * A type class for examples
+, module Test.Hspec.Core.Example
 
 -- * Internal representation of a spec tree
-, Tree (..)
-, SpecTree
+, module Test.Hspec.Core.Tree
+
+-- * Others
 , mapSpecTree
 , mapSpecItem
 , mapSpecItem_
 , modifyParams
-, specGroup
-, specItem
 ) where
 
 import qualified Control.Exception as E

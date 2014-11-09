@@ -24,7 +24,7 @@ import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Compat
 
--- | A type class for examples.
+-- | A type class for examples
 class Example e where
   type Arg e
   evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
@@ -37,10 +37,10 @@ data Params = Params {
 type Progress = (Int, Int)
 type ProgressCallback = Progress -> IO ()
 
--- | An `IO` action that expects an argument of type @a@.
+-- | An `IO` action that expects an argument of type @a@
 type ActionWith a = a -> IO ()
 
--- | The result of running an example.
+-- | The result of running an example
 data Result = Success | Pending (Maybe String) | Fail String
   deriving (Eq, Show, Read, Typeable)
 
