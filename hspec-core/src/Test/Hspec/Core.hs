@@ -28,6 +28,10 @@ module Test.Hspec.Core (
 , mapSpecItem
 , mapSpecItem_
 , modifyParams
+, specGroup
+, specItem
+
+-- * Deprecated functions
 , describe
 , it
 ) where
@@ -35,10 +39,10 @@ module Test.Hspec.Core (
 import           Test.Hspec.Core.Spec hiding (describe, it)
 
 
--- | The @describe@ function combines a list of specs into a larger spec.
+{-# DEPRECATED describe "use `specGroup` instead" #-}
 describe :: String -> [SpecTree a] -> SpecTree a
 describe = specGroup
 
--- | Create a spec item.
+{-# DEPRECATED it "use `specItem` instead" #-}
 it :: Example a => String -> a -> SpecTree (Arg a)
 it = specItem
