@@ -7,10 +7,7 @@ module Test.Hspec.Core.Spec (
 
 -- * Defining a spec
   describe
-, context
 , it
-, specify
-, example
 , pending
 , pendingWith
 , parallel
@@ -36,10 +33,6 @@ import           Test.Hspec.Core.Spec.Monad
 describe :: String -> SpecWith a -> SpecWith a
 describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . specGroup label
 
--- | @context@ is an alias for `describe`.
-context :: String -> SpecWith a -> SpecWith a
-context = describe
-
 -- | The @it@ function creates a spec item.
 --
 -- A spec item consists of:
@@ -54,29 +47,10 @@ context = describe
 it :: Example a => String -> a -> SpecWith (Arg a)
 it label action = fromSpecList [specItem label action]
 
--- | @specify@ is an alias for `it`.
-specify :: Example a => String -> a -> SpecWith (Arg a)
-specify = it
-
 -- | `parallel` marks all spec items of the given spec to be safe for parallel
 -- evaluation.
 parallel :: SpecWith a -> SpecWith a
 parallel = mapSpecItem_ $ \item -> item {itemIsParallelizable = True}
-
--- | @example@ is a type restricted version of `id`.  It can be used to get better
--- error messages on type mismatches.
---
--- Compare e.g.
---
--- > it "exposes some behavior" $ example $ do
--- >   putStrLn
---
--- with
---
--- > it "exposes some behavior" $ do
--- >   putStrLn
-example :: Expectation -> Expectation
-example = id
 
 -- | `pending` can be used to indicate that an example is /pending/.
 --

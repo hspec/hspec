@@ -43,13 +43,6 @@ spec = do
         [Leaf item] <- runSpecM (H.it "" True)
         itemRequirement item `shouldBe` "(unspecified behavior)"
 
-  describe "example" $ do
-    it "fixes the type of an expectation" $ do
-      r <- runSpec $ do
-        H.it "foo" $ H.example $ do
-          pure ()
-      r `shouldSatisfy` any (== "1 example, 0 failures")
-
   describe "pending" $ do
     it "specifies a pending example" $ do
       r <- runSpec $ do
