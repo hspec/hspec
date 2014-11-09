@@ -173,7 +173,7 @@ data Formatter = Formatter {
 -- Calling this multiple times has the same effect as calling it once.
 newParagraph :: FormatM ()
 newParagraph = writeLine ""
-{-# DEPRECATED newParagraph "use `writeLine \"\"` instead" #-}
+{-# DEPRECATED newParagraph "use @writeLine \"\"@ instead" #-}
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
