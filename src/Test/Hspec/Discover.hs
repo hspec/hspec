@@ -20,7 +20,7 @@ import           Control.Monad.Trans.State
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Runner
 import           Test.Hspec.Formatters
-import           Test.Hspec.Core.Util
+import           Test.Hspec.Core.Util (safeTry)
 
 class IsFormatter a where
   toFormatter :: a -> IO Formatter

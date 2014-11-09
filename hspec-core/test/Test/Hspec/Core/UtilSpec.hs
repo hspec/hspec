@@ -12,16 +12,13 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "pluralize" $ do
-    it "returns an amount and a word given an amount and word" $ do
+    it "returns singular when used with 1" $ do
       pluralize 1 "thing" `shouldBe` "1 thing"
 
-    it "returns a singular word given the number 1" $ do
-      pluralize 1 "thing" `shouldBe` "1 thing"
-
-    it "returns a plural word given a number greater than 1" $ do
+    it "returns plural when used with number greater 1" $ do
       pluralize 2 "thing" `shouldBe` "2 things"
 
-    it "returns a plural word given the number 0" $ do
+    it "returns plural when used with 0" $ do
       pluralize 0 "thing" `shouldBe` "0 things"
 
   describe "formatException" $ do
