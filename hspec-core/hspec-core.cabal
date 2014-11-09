@@ -62,6 +62,7 @@ library
   other-modules:
       Test.Hspec.Compat
       Test.Hspec.Core.Type
+      Test.Hspec.Core.Example
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Config
       Test.Hspec.Options
@@ -85,7 +86,7 @@ test-suite spec
       Test.Hspec.Core.HooksSpec
       Test.Hspec.CompatSpec
       Test.Hspec.Core.QuickCheckUtilSpec
-      Test.Hspec.Core.TypeSpec
+      Test.Hspec.Core.ExampleSpec
       Test.Hspec.FailureReportSpec
       Test.Hspec.Core.FormattersSpec
       Test.Hspec.OptionsSpec

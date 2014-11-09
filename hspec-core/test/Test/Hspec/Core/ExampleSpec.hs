@@ -1,12 +1,12 @@
 {-# LANGUAGE CPP, ScopedTypeVariables, TypeFamilies #-}
-module Test.Hspec.Core.TypeSpec (main, spec) where
+module Test.Hspec.Core.ExampleSpec (main, spec) where
 
 import           Helper
 import           Mock
 import           Data.List
 import           Data.IORef
 
-import qualified Test.Hspec.Core.Type as H
+import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 

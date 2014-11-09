@@ -41,6 +41,8 @@ module Test.Hspec.Core.Spec (
 
 import qualified Control.Exception as E
 import           Test.Hspec.Expectations (Expectation)
+
+import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Type
 
 modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
