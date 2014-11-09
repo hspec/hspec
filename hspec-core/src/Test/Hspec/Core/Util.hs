@@ -1,3 +1,4 @@
+-- | Stability: unstable
 module Test.Hspec.Core.Util (
 -- * String functions
   pluralize

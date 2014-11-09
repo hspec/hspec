@@ -1,3 +1,4 @@
+-- | Stability: provisional
 module Test.Hspec.Core.Hooks (
   before
 , beforeWith

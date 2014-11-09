@@ -1,5 +1,4 @@
--- |
--- Stability: provisional
+-- | Stability: provisional
 module Test.Hspec.Core.QuickCheck (
   modifyMaxSuccess
 , modifyMaxDiscardRatio

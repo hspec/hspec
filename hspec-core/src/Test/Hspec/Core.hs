@@ -1,36 +1,6 @@
--- |
--- Stability: experimental
---
--- This module provides access to Hspec's internals.  It is less stable than
--- other parts of the API.  For most users "Test.Hspec" is more suitable!
+-- | Stability: unstable
 module Test.Hspec.Core (
-
--- * A type class for examples
-  Example (..)
-, Params (..)
-, ActionWith
-, Progress
-, ProgressCallback
-, Result (..)
-
--- * A writer monad for constructing specs
-, SpecM
-, runSpecM
-, fromSpecList
-
--- * Internal representation of a spec tree
-, SpecTree
-, Tree (..)
-, Item (..)
-, Location (..)
-, LocationAccuracy(..)
-, mapSpecTree
-, mapSpecItem
-, mapSpecItem_
-, modifyParams
-, specGroup
-, specItem
-
+  module Test.Hspec.Core.Spec
 -- * Deprecated functions
 , describe
 , it
