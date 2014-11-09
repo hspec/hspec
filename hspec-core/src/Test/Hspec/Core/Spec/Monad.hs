@@ -1,25 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Test.Hspec.Core.Type (
+module Test.Hspec.Core.Spec.Monad (
   Spec
 , SpecWith
 , SpecM (..)
 , runSpecM
 , fromSpecList
-, Tree (..)
-, SpecTree
-, mapSpecTree
-, Item (..)
-, ActionWith
-, Location (..)
-, LocationAccuracy(..)
+, runIO
 
+, mapSpecTree
 , mapSpecItem
 , mapSpecItem_
-
-, specGroup
-, specItem
-
-, runIO
 ) where
 
 import           Control.Applicative
@@ -56,15 +46,6 @@ fromSpecList = SpecM . tell
 runIO :: IO r -> SpecM a r
 runIO = SpecM . liftIO
 
-type SpecTree a = Tree (ActionWith a) (Item a)
-
-data Item a = Item {
-  itemRequirement :: String
-, itemLocation :: Maybe Location
-, itemIsParallelizable :: Bool
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
-}
-
 mapSpecTree :: (SpecTree a -> SpecTree b) -> SpecWith a -> SpecWith b
 mapSpecTree f spec = runIO (runSpecM spec) >>= fromSpecList . map f
 
@@ -78,29 +59,3 @@ mapSpecItem g f = mapSpecTree go
 
 mapSpecItem_ :: (Item a -> Item a) -> SpecWith a -> SpecWith a
 mapSpecItem_ = mapSpecItem id
-
-data LocationAccuracy = ExactLocation | BestEffort
-  deriving (Eq, Show)
-
-data Location = Location {
-  locationFile :: String
-, locationLine :: Int
-, locationColumn :: Int
-, locationAccuracy :: LocationAccuracy
-} deriving (Eq, Show)
-
--- | The @specGroup@ function combines a list of specs into a larger spec.
-specGroup :: String -> [SpecTree a] -> SpecTree a
-specGroup s = Node msg
-  where
-    msg
-      | null s = "(no description given)"
-      | otherwise = s
-
--- | Create a spec item.
-specItem :: Example a => String -> a -> SpecTree (Arg a)
-specItem s e = Leaf $ Item requirement Nothing False (evaluateExample e)
-  where
-    requirement
-      | null s = "(unspecified behavior)"
-      | otherwise = s

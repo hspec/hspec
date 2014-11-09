@@ -43,7 +43,8 @@ import qualified Control.Exception as E
 import           Test.Hspec.Expectations (Expectation)
 
 import           Test.Hspec.Core.Example
-import           Test.Hspec.Core.Type
+import           Test.Hspec.Core.Tree
+import           Test.Hspec.Core.Spec.Monad
 
 modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}

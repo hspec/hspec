@@ -1,6 +1,15 @@
 {-# LANGUAGE DeriveFunctor #-}
+-- |
+-- Stability: unstable
 module Test.Hspec.Core.Tree (
-  Tree (..)
+-- * Internal representation of a spec tree
+  SpecTree
+, specGroup
+, specItem
+, Tree (..)
+, Item (..)
+, Location (..)
+, LocationAccuracy (..)
 ) where
 
 import           Control.Applicative
@@ -8,7 +17,9 @@ import           Data.Foldable
 import           Data.Traversable
 import           Data.Monoid
 
--- | Internal representation of a spec.
+import           Test.Hspec.Core.Example
+
+-- | Internal tree data structure
 data Tree c a =
     Node String [Tree c a]
   | NodeWithCleanup c [Tree c a]
@@ -32,3 +43,62 @@ instance Traversable (Tree c) where -- Note: GHC 7.0.1 fails to derive this inst
         Node label xs -> Node label <$> sequenceA (map go xs)
         NodeWithCleanup action xs -> NodeWithCleanup action <$> sequenceA (map go xs)
         Leaf a -> Leaf <$> a
+
+-- | A tree is used to represent a spec internally.  The tree is parametrize
+-- over the type of cleanup actions and the type of the actual spec items.
+type SpecTree a = Tree (ActionWith a) (Item a)
+
+-- |
+-- @Item@ is used to represent spec items internally.  A spec item consists of:
+--
+-- * a textual description of a desired behavior
+-- * an example for that behavior
+-- * additional meta information
+--
+-- Everything that is an instance of the `Example` type class can be used as an
+-- example, including QuickCheck properties, Hspec expectations and HUnit
+-- assertions.
+data Item a = Item {
+  -- | Textual description of behavior
+  itemRequirement :: String
+  -- | Source location of the spec item
+, itemLocation :: Maybe Location
+  -- | A flag that indicates whether it is safe to evaluate this spec item in
+  -- parallel with other spec items
+, itemIsParallelizable :: Bool
+  -- | Example for behavior
+, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+}
+
+-- | @Location@ is used to represent source locations.
+data Location = Location {
+  locationFile :: String
+, locationLine :: Int
+, locationColumn :: Int
+, locationAccuracy :: LocationAccuracy
+} deriving (Eq, Show)
+
+-- | A marker for source locations
+data LocationAccuracy =
+  -- | The source location is accurate
+  ExactLocation |
+  -- | The source location was determined on a best-effort basis and my be
+  -- wrong or inaccurate
+  BestEffort
+  deriving (Eq, Show)
+
+-- | The @specGroup@ function combines a list of specs into a larger spec.
+specGroup :: String -> [SpecTree a] -> SpecTree a
+specGroup s = Node msg
+  where
+    msg
+      | null s = "(no description given)"
+      | otherwise = s
+
+-- | The @specItem@ function creates a spec item.
+specItem :: Example a => String -> a -> SpecTree (Arg a)
+specItem s e = Leaf $ Item requirement Nothing False (evaluateExample e)
+  where
+    requirement
+      | null s = "(unspecified behavior)"
+      | otherwise = s
