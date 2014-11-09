@@ -2,6 +2,7 @@
   - Split package into `hspec`, `hspec-core` and `hspec-discover`
   - Allow hooks (`before`, `around`, etc.) to pass arguments to spec items
   - Do not print `-` in front of spec items with `specdoc` formatter
+  - Move `Test.Hspec.HUnit` to `hspec-contrib`
 
 ## Changes in 1.12.4
   - Add `specGroup` and `specItem` to `Test.Hspec.Core`
