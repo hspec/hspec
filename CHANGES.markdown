@@ -1,3 +1,7 @@
+## Changes in 1.12.4
+  - Add `specGroup` and `specItem` to `Test.Hspec.Core`
+  - Deprecate `Test.Hspec.Core.it` and `Test.Hspec.Core.describe`
+
 ## Changes in 1.12.3
   - Make `hspec-discover` work with `-XNoImplicitPrelude`
 

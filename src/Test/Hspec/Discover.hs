@@ -17,7 +17,7 @@ import           Data.Traversable hiding (mapM)
 import           Control.Monad.Trans.State
 
 import           Test.Hspec
-import           Test.Hspec.Core.Type hiding (describe)
+import           Test.Hspec.Core.Type
 import           Test.Hspec.Runner
 import           Test.Hspec.Runner.Tree
 import           Test.Hspec.Formatters

@@ -16,8 +16,8 @@ module Test.Hspec.Core.Type (
 , Progress
 , ProgressCallback
 
-, describe
-, it
+, specGroup
+, specItem
 , forceResult
 
 , runIO
@@ -124,17 +124,17 @@ data Location = Location {
 , locationAccuracy :: LocationAccuracy
 } deriving (Eq, Show)
 
--- | The @describe@ function combines a list of specs into a larger spec.
-describe :: String -> [SpecTree] -> SpecTree
-describe s = SpecGroup msg
+-- | The @specGroup@ function combines a list of specs into a larger spec.
+specGroup :: String -> [SpecTree] -> SpecTree
+specGroup s = SpecGroup msg
   where
     msg
       | null s = "(no description given)"
       | otherwise = s
 
--- | Create a spec item.
-it :: Example a => String -> a -> SpecTree
-it s e = SpecItem $ Item requirement Nothing False (evaluateExample e)
+-- | The @specItem@ function creates a spec item.
+specItem :: Example a => String -> a -> SpecTree
+specItem s e = SpecItem $ Item requirement Nothing False (evaluateExample e)
   where
     requirement
       | null s = "(unspecified behavior)"

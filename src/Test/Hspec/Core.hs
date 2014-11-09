@@ -25,6 +25,10 @@ module Test.Hspec.Core (
 , LocationAccuracy(..)
 , mapSpecItem
 , modifyParams
+, specGroup
+, specItem
+
+-- * Deprecated functions
 , describe
 , it
 ) where
@@ -33,3 +37,11 @@ import           Test.Hspec.Core.Type
 
 modifyParams :: (Params -> Params) -> Spec -> Spec
 modifyParams f = mapSpecItem $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
+
+{-# DEPRECATED describe "use `specGroup` instead" #-}
+describe :: String -> [SpecTree] -> SpecTree
+describe = specGroup
+
+{-# DEPRECATED it "use `specItem` instead" #-}
+it :: Example a => String -> a -> SpecTree
+it = specItem

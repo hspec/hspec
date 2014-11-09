@@ -37,7 +37,7 @@ module Test.Hspec (
 import           Control.Exception (finally)
 import           Control.Concurrent.MVar
 
-import           Test.Hspec.Core.Type hiding (describe, it)
+import           Test.Hspec.Core.Type
 import           Test.Hspec.Runner
 import           Test.Hspec.HUnit ()
 import           Test.Hspec.Expectations
@@ -45,7 +45,7 @@ import qualified Test.Hspec.Core as Core
 
 -- | Combine a list of specs into a larger spec.
 describe :: String -> Spec -> Spec
-describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . Core.describe label
+describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . Core.specGroup label
 
 -- | An alias for `describe`.
 context :: String -> Spec -> Spec
@@ -63,7 +63,7 @@ context = describe
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
 it :: Example a => String -> a -> Spec
-it label action = fromSpecList [Core.it label action]
+it label action = fromSpecList [Core.specItem label action]
 
 -- | An alias for `it`.
 specify :: Example a => String -> a -> Spec
