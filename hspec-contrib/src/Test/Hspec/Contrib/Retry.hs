@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies #-}
 module Test.Hspec.Contrib.Retry (retryWith) where
 
-import           Test.Hspec.Core
+import           Test.Hspec.Core.Spec
 
 data Retry a = Retry Int a
 

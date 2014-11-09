@@ -52,7 +52,6 @@ library
     , hspec-expectations
     , async >= 2
   exposed-modules:
-      Test.Hspec.Core
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.Runner

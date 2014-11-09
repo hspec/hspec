@@ -2,7 +2,7 @@
 module Test.Hspec.THSpec (main, spec) where
 
 import           Test.Hspec
-import           Test.Hspec.Core (Tree(..), Location(..), LocationAccuracy(..), Item(..), runSpecM)
+import           Test.Hspec.Core.Spec
 
 import qualified Test.Hspec.TH as H
 

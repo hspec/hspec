@@ -1,5 +1,5 @@
 -- | Stability: unstable
-module Test.Hspec.Core (
+module Test.Hspec.Core {-# DEPRECATED "use \"Test.Hspec.Core.Spec\" instead" #-} (
   module Test.Hspec.Core.Spec
 -- * Deprecated functions
 , describe

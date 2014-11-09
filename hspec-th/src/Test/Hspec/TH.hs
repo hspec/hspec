@@ -9,7 +9,7 @@ import qualified Language.Haskell.TH as TH
 
 import           Test.Hspec hiding (it)
 import qualified Test.Hspec as Hspec
-import           Test.Hspec.Core (Location(..), LocationAccuracy(..), Item(..), mapSpecItem_)
+import           Test.Hspec.Core.Spec hiding (it)
 
 it :: Q Exp
 it = do

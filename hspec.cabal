@@ -52,6 +52,7 @@ library
       Test.Hspec.Formatters
       Test.Hspec.QuickCheck
       Test.Hspec.Discover
+      Test.Hspec.Core
   default-language: Haskell2010
 
 test-suite spec

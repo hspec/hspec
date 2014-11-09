@@ -5,8 +5,7 @@ import           Test.Hspec
 import           Test.QuickCheck
 import           Control.Applicative
 
-import           Test.Hspec.Core.Spec (Item(..))
-import           Test.Hspec.Core (Tree(..), runSpecM)
+import           Test.Hspec.Core.Spec
 import           Test.Hspec.Contrib.HUnit
 import           Test.HUnit
 
