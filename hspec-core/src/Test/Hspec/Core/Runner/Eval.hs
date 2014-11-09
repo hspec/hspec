@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
 module Test.Hspec.Core.Runner.Eval (runFormatter) where
 
 import           Control.Applicative
@@ -8,14 +7,15 @@ import           Control.Concurrent
 import           System.IO (Handle)
 
 import           Control.Monad.IO.Class (liftIO)
+import           Control.DeepSeq (deepseq)
+import           Data.Time.Clock.POSIX
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Type
+import           Test.Hspec.Core.Spec
 import           Test.Hspec.Config
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Formatters.Internal
 import           Test.Hspec.Timer
-import           Data.Time.Clock.POSIX
 
 type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 
@@ -86,6 +86,12 @@ runParallel e reportProgress formatResult = do
 
 evalExample :: IO Result -> IO (Either E.SomeException Result)
 evalExample e = safeTry $ forceResult <$> e
+  where
+    forceResult :: Result -> Result
+    forceResult r = case r of
+      Success   -> r
+      Pending m -> m `deepseq` r
+      Fail    m -> m `deepseq` r
 
 data Message = Done | Run (FormatM ())
 

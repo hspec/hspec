@@ -1,12 +1,10 @@
 module Test.Hspec.Core.Spec (
 -- * Types
   Spec
-, Arg
 , SpecWith
-, ActionWith
-, Example
-, Result (..)
-, Item (..)
+, SpecM
+, runSpecM
+, fromSpecList
 
 -- * Defining a spec
 , describe
@@ -18,11 +16,35 @@ module Test.Hspec.Core.Spec (
 , pendingWith
 , parallel
 , runIO
+
+-- * Examples and spec items
+, Example (..)
+, Item (..)
+, Location (..)
+, LocationAccuracy(..)
+, Params (..)
+, ActionWith
+, ProgressCallback
+, Progress
+, Result (..)
+
+-- * Internal representation of a spec tree
+, Tree (..)
+, SpecTree
+, mapSpecTree
+, mapSpecItem
+, mapSpecItem_
+, modifyParams
+, specGroup
+, specItem
 ) where
 
 import qualified Control.Exception as E
 import           Test.Hspec.Expectations (Expectation)
 import           Test.Hspec.Core.Type
+
+modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
+modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
 
 -- | Combine a list of specs into a larger spec.
 describe :: String -> SpecWith a -> SpecWith a

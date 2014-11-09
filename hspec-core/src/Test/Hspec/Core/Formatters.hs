@@ -51,7 +51,7 @@ module Test.Hspec.Core.Formatters (
 
 import           Data.Maybe
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Type (Location(..), LocationAccuracy(..))
+import           Test.Hspec.Core.Spec (Location(..), LocationAccuracy(..))
 import           Text.Printf
 import           Control.Monad (when, unless)
 import           Data.Foldable (forM_)

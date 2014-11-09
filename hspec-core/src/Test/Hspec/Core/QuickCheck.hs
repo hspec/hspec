@@ -9,7 +9,6 @@ module Test.Hspec.Core.QuickCheck (
 
 import           Test.QuickCheck
 import           Test.Hspec.Core.Spec
-import           Test.Hspec.Core (Params(..), modifyParams)
 
 -- | Use a modified `maxSuccess` for given spec.
 modifyMaxSuccess :: (Int -> Int) -> SpecWith a -> SpecWith a

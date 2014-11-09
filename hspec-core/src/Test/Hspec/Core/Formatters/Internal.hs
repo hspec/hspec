@@ -48,7 +48,7 @@ import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Compat
-import           Test.Hspec.Core.Type (Progress, Location)
+import           Test.Hspec.Core.Spec (Progress, Location)
 
 -- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a

@@ -31,7 +31,7 @@ import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Compat (lookupEnv)
 import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Type
+import           Test.Hspec.Core.Spec
 import           Test.Hspec.Config
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Formatters.Internal

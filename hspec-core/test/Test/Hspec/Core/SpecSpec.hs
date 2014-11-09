@@ -4,7 +4,7 @@ import           Helper
 
 import           Test.Hspec.Core.Spec (Item(..), Result(..))
 import qualified Test.Hspec.Core.Runner as H
-import           Test.Hspec.Core.Type (Tree(..), runSpecM)
+import           Test.Hspec.Core.Spec (Tree(..), runSpecM)
 
 import qualified Test.Hspec.Core.Spec as H
 

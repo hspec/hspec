@@ -32,10 +32,8 @@ module Test.Hspec.Core (
 , it
 ) where
 
-import           Test.Hspec.Core.Type
+import           Test.Hspec.Core.Spec hiding (describe, it)
 
-modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
-modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: String -> [SpecTree a] -> SpecTree a

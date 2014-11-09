@@ -22,7 +22,6 @@ module Test.Hspec.Core.Type (
 
 , specGroup
 , specItem
-, forceResult
 
 , runIO
 ) where
@@ -48,7 +47,6 @@ import qualified Test.QuickCheck.Property as QCP
 import qualified Test.QuickCheck.IO ()
 
 import           Test.Hspec.Core.QuickCheckUtil
-import           Control.DeepSeq (deepseq)
 
 type Spec = SpecWith ()
 
@@ -80,12 +78,6 @@ runIO = SpecM . liftIO
 -- | The result of running an example.
 data Result = Success | Pending (Maybe String) | Fail String
   deriving (Eq, Show, Read, Typeable)
-
-forceResult :: Result -> Result
-forceResult r = case r of
-  Success   -> r
-  Pending m -> m `deepseq` r
-  Fail    m -> m `deepseq` r
 
 instance E.Exception Result
 

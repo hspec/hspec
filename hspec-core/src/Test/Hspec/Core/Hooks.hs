@@ -14,7 +14,7 @@ module Test.Hspec.Core.Hooks (
 import           Control.Exception (finally)
 import           Control.Concurrent.MVar
 
-import           Test.Hspec.Core.Type
+import           Test.Hspec.Core.Spec
 
 -- | Run a custom action before every spec item.
 before :: IO a -> SpecWith a -> Spec

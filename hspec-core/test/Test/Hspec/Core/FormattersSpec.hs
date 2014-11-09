@@ -4,7 +4,6 @@ module Test.Hspec.Core.FormattersSpec (main, spec) where
 import           Helper
 
 import qualified Test.Hspec.Core.Spec as H
-import qualified Test.Hspec.Core as H (Location(..), LocationAccuracy(..), mapSpecItem_)
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Formatters as H
 
