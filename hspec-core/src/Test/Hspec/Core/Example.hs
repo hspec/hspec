@@ -2,10 +2,10 @@
 module Test.Hspec.Core.Example (
   Example (..)
 , Params (..)
-, Result (..)
 , ActionWith
 , Progress
 , ProgressCallback
+, Result (..)
 ) where
 
 import           Data.Maybe (fromMaybe)
