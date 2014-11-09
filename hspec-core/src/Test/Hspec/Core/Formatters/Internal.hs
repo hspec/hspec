@@ -190,7 +190,7 @@ writeLine s = write s >> write "\n"
 withFailColor :: FormatM a -> FormatM a
 withFailColor = withColor (SetColor Foreground Dull Red) "hspec-failure"
 
--- | Set output to color green, run given action, and finally restore the
+-- | Set output color to green, run given action, and finally restore the
 -- default color.
 withSuccessColor :: FormatM a -> FormatM a
 withSuccessColor = withColor (SetColor Foreground Dull Green) "hspec-success"
