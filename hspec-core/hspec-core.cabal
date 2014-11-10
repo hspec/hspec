@@ -13,9 +13,7 @@ stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
-description:      Hspec is a testing framework for Haskell.
-                  .
-                  This package exports internal types and functions that can be
+description:      This package exposes internal types and functions that can be
                   used to extend Hspec's functionality.
 
 source-repository head
