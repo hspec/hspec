@@ -1,3 +1,6 @@
+## Changes in 2.0.1
+  - Add missing extra source files to for `hspec-discover`
+
 ## Changes in 2.0.0
   - Split package into `hspec`, `hspec-core` and `hspec-discover`
   - Allow hooks (`before`, `around`, etc.) to pass arguments to spec items
