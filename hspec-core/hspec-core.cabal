@@ -13,19 +13,10 @@ stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
-description:      Hspec is a testing framework for Haskell. It is inspired by
-                  the Ruby library RSpec. Some of Hspec's distinctive features
-                  are:
+description:      Hspec is a testing framework for Haskell.
                   .
-                  * a friendly DSL for defining tests
-                  .
-                  * integration with QuickCheck, SmallCheck, and HUnit
-                  .
-                  * parallel test execution
-                  .
-                  * automatic discovery of test files
-                  .
-                  The Hspec Manual is at <http://hspec.github.io/>.
+                  This package exports internal types and functions that can be
+                  used to extend Hspec's functionality.
 
 source-repository head
   type: git
@@ -38,7 +29,7 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >= 4.3
+      base >= 4.3 && < 5
     , random
     , tf-random
     , setenv
@@ -80,19 +71,19 @@ test-suite spec
   main-is:
       Spec.hs
   other-modules:
-      Mock
       Helper
-      Test.Hspec.Core.SpecSpec
-      Test.Hspec.Core.HooksSpec
+      Mock
       Test.Hspec.CompatSpec
-      Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.ExampleSpec
-      Test.Hspec.FailureReportSpec
       Test.Hspec.Core.FormattersSpec
-      Test.Hspec.OptionsSpec
+      Test.Hspec.Core.HooksSpec
+      Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.RunnerSpec
-      Test.Hspec.TimerSpec
+      Test.Hspec.Core.SpecSpec
       Test.Hspec.Core.UtilSpec
+      Test.Hspec.FailureReportSpec
+      Test.Hspec.OptionsSpec
+      Test.Hspec.TimerSpec
   ghc-options:
       -Wall
   build-depends:
