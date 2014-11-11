@@ -1,5 +1,5 @@
 name:             hspec2
-version:          0.5.1
+version:          0.6.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2014 Simon Hengel,
@@ -17,15 +17,6 @@ description:      This is an alpha release of Hspec 2.0.
                   If you are looking for a stable solution for testing Haskell
                   code, use the 1.x series of Hspec: <http://hspec.github.io/>
 
-extra-source-files:
-  changelog
-
--- find hspec-discover/test-data/ -type f
-  hspec-discover/test-data/nested-spec/FooSpec.hs
-  hspec-discover/test-data/nested-spec/Foo/Bar/BazSpec.hs
-  hspec-discover/test-data/nested-spec/Foo/BarSpec.hs
-  hspec-discover/test-data/empty-dir/Foo/Bar/Baz/.placeholder
-
 source-repository head
   type: git
   location: https://github.com/hspec/hspec
@@ -38,136 +29,13 @@ Library
       src
   build-depends:
       base == 4.*
-    , random
-    , tf-random
-    , setenv
-    , ansi-terminal >= 0.5
-    , time
-    , transformers >= 0.2.2.0
-    , deepseq
-    , HUnit >= 1.2.5
-    , QuickCheck >= 2.5.1
-    , quickcheck-io
-    , hspec-expectations == 0.6.1.*
-    , async >= 2
+    , hspec-discover == 2.0.*
+    , hspec == 2.0.*
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
-      Test.Hspec.Runner
-      Test.Hspec.Formatters
-      Test.Hspec.HUnit
-      Test.Hspec.QuickCheck
       Test.Hspec.Discover
-  other-modules:
-      Test.Hspec.Util
-      Test.Hspec.Compat
-      Test.Hspec.Core.Type
-      Test.Hspec.Core.QuickCheckUtil
-      Test.Hspec.Config
-      Test.Hspec.Options
-      Test.Hspec.FailureReport
-      Test.Hspec.Runner.Eval
-      Test.Hspec.Runner.Tree
-      Test.Hspec.Formatters.Internal
-      Test.Hspec.Timer
-  default-language: Haskell2010
-
-executable hspec-discover
-  ghc-options:
-      -Wall
-  hs-source-dirs:
-      hspec-discover/src
-  main-is:
-      Main.hs
-  other-modules:
-      Run
-      Config
-  build-depends:
-      base == 4.*
-    , filepath
-    , directory
-  default-language: Haskell2010
-
-test-suite spec
-  type:
-      exitcode-stdio-1.0
-  hs-source-dirs:
-      src, test
-  main-is:
-      Spec.hs
-  other-modules:
-      Mock
-      Helper
-      HelperSpec
-      Test.HspecSpec
-      Test.Hspec.CompatSpec
-      Test.Hspec.Core.QuickCheckUtilSpec
-      Test.Hspec.Core.TypeSpec
-      Test.Hspec.DiscoverSpec
-      Test.Hspec.FailureReportSpec
-      Test.Hspec.FormattersSpec
-      Test.Hspec.HUnitSpec
-      Test.Hspec.OptionsSpec
-      Test.Hspec.QuickCheckSpec
-      Test.Hspec.RunnerSpec
-      Test.Hspec.TimerSpec
-      Test.Hspec.UtilSpec
-  ghc-options:
-      -Wall -Werror
-  build-depends:
-      base == 4.*
-    , random
-    , tf-random
-    , setenv
-    , silently >= 1.2.4
-    , ansi-terminal
-    , time
-    , transformers
-    , deepseq
-    , HUnit
-    , QuickCheck
-    , quickcheck-io
-    , hspec-expectations
-    , async
-
-    , hspec-meta == 1.12.1
-    , process
-    , directory
-    , stringbuilder
-    , ghc-paths
-  default-language: Haskell2010
-
-test-suite example
-  type:
-      exitcode-stdio-1.0
-  main-is:
-      Spec.hs
-  hs-source-dirs:
-      example
-  ghc-options:
-      -Wall -Werror
-  build-depends:
-      base == 4.*
-    , hspec2
-    , QuickCheck
-  default-language: Haskell2010
-
-test-suite hspec-discover-spec
-  type:
-      exitcode-stdio-1.0
-  ghc-options:
-      -Wall -Werror
-  hs-source-dirs:
-      hspec-discover/src
-    , hspec-discover/test
-  main-is:
-      Spec.hs
-  other-modules:
-      RunSpec
-      ConfigSpec
-  build-depends:
-      base == 4.*
-    , filepath
-    , directory
-    , hspec-meta
+      Test.Hspec.Formatters
+      Test.Hspec.QuickCheck
+      Test.Hspec.Runner
   default-language: Haskell2010
