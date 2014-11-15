@@ -2,6 +2,8 @@
 
 set -e errexit
 
+git clone https://github.com/hspec/hspec-example
+
 (cd hspec-core     && cabal install --only-dependencies --enable-tests && cabal configure --enable-tests --ghc-options=-Werror && cabal build && cabal test && cabal sdist && cabal install dist/hspec-*.tar.gz)
 (cd hspec-discover && cabal install --only-dependencies --enable-tests && cabal configure --enable-tests --ghc-options=-Werror && cabal build && cabal test && cabal sdist && cabal install dist/hspec-*.tar.gz)
 (                     cabal install --only-dependencies --enable-tests && cabal configure --enable-tests --ghc-options=-Werror && cabal build && cabal test && cabal sdist && cabal install dist/hspec-*.tar.gz)
