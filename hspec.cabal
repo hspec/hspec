@@ -77,18 +77,3 @@ test-suite spec
     , stringbuilder
     , hspec-meta >= 1.12
   default-language: Haskell2010
-
-test-suite example
-  type:
-      exitcode-stdio-1.0
-  main-is:
-      Spec.hs
-  hs-source-dirs:
-      example
-  ghc-options:
-      -Wall
-  build-depends:
-      base == 4.*
-    , hspec
-    , QuickCheck
-  default-language: Haskell2010

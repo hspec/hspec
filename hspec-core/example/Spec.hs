@@ -1,6 +1,8 @@
 module Main (main, spec) where
 
-import Test.Hspec
+import Test.Hspec.Core.Spec
+import Test.Hspec.Core.Runner
+import Test.Hspec.Expectations
 import Test.QuickCheck
 
 main :: IO ()
