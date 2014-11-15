@@ -141,14 +141,14 @@ failed_examplesSpec formatter = do
   context "displays a detailed list of failures" $ do
     it "prints all requirements that are not met" $ do
       r <- runSpec testSpec
-      r `shouldSatisfy` any (== "1) Example fail 1")
+      r `shouldSatisfy` any (== "  1) Example fail 1")
 
     it "prints the exception type for requirements that fail due to an uncaught exception" $ do
       r <- runSpec $ do
         H.it "foobar" (undefined :: Bool)
       r `shouldContain` [
-          "1) foobar"
-        , "uncaught exception: ErrorCall (Prelude.undefined)"
+          "  1) foobar"
+        , "       uncaught exception: ErrorCall (Prelude.undefined)"
         ]
 
     it "prints all descriptions when a nested requirement fails" $ do
@@ -156,7 +156,7 @@ failed_examplesSpec formatter = do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "baz" False
-      r `shouldSatisfy` any (== "1) foo.bar baz")
+      r `shouldSatisfy` any (== "  1) foo.bar baz")
 
 
     context "when a failed example has a source location" $ do
@@ -168,7 +168,7 @@ failed_examplesSpec formatter = do
               addLoc e = e {H.itemLocation = Just loc}
           r <- runSpec $ H.mapSpecItem_ addLoc $ do
             H.it "foo" False
-          r `shouldSatisfy` any (== "# test/FooSpec.hs:23")
+          r `shouldSatisfy` any (== "     # test/FooSpec.hs:23")
 
         it "does not include 'best-effort' explanation" $ do
           let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
@@ -183,7 +183,7 @@ failed_examplesSpec formatter = do
               addLoc e = e {H.itemLocation = Just loc}
           r <- runSpec $ H.mapSpecItem_ addLoc $ do
             H.it "foo" False
-          r `shouldSatisfy` any (== "# test/FooSpec.hs:23 (best-effort)")
+          r `shouldSatisfy` any (== "     # test/FooSpec.hs:23 (best-effort)")
 
         it "includes 'best-effort' explanation" $ do
           let loc = H.Location "test/FooSpec.hs" 23 0 H.BestEffort

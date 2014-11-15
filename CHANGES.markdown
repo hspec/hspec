@@ -1,3 +1,6 @@
+## Next
+  - Indent error messages for failed examples (fixes #186)
+
 ## Changes in 2.0.1
   - Add missing extra source files to for `hspec-discover`
 

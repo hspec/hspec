@@ -158,15 +158,18 @@ defaultFailedFormatter = do
 
   failures <- getFailMessages
 
-  forM_ (zip [1..] failures) $ \x -> do
-    formatFailure x
-    writeLine ""
-
-  when (hasBestEffortLocations failures) $ do
-    withInfoColor $ writeLine "Source locations marked with \"best-effort\" are calculated heuristically and may be incorrect."
-    writeLine ""
-
   unless (null failures) $ do
+    writeLine "Failures:"
+    writeLine ""
+
+    forM_ (zip [1..] failures) $ \x -> do
+      formatFailure x
+      writeLine ""
+
+    when (hasBestEffortLocations failures) $ do
+      withInfoColor $ writeLine "Source locations marked with \"best-effort\" are calculated heuristically and may be incorrect."
+      writeLine ""
+
     write "Randomized with seed " >> usedSeed >>= writeLine . show
     writeLine ""
   where
@@ -178,17 +181,17 @@ defaultFailedFormatter = do
 
     formatFailure :: (Int, FailureRecord) -> FormatM ()
     formatFailure (n, FailureRecord mLoc path reason) = do
-      write (show n ++ ") ")
+      write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
       withFailColor $ do
-        unless (null err) $ do
-          writeLine err
+        forM_ (lines err) $ \x -> do
+          writeLine ("       " ++ x)
       forM_ mLoc $ \loc -> do
         writeLine ""
         withInfoColor $ writeLine (formatLoc loc)
       where
         err = either (("uncaught exception: " ++) . formatException) id reason
-        formatLoc (Location file line _column accuracy) = "# " ++ file ++ ":" ++ show line ++ bestEffortMarking
+        formatLoc (Location file line _column accuracy) = "     # " ++ file ++ ":" ++ show line ++ bestEffortMarking
           where
             bestEffortMarking = case accuracy of
               ExactLocation -> ""
