@@ -30,4 +30,4 @@ test-suite spec
   build-depends:
       base    == 4.*
     , strip
-    , hspec   >= 1.12.1
+    , hspec   == 2.*
