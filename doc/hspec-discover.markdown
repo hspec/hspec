@@ -68,7 +68,7 @@ following conventions:
    match the file name.
  * Each spec file has to export a top-level binding `spec` of type {{'Spec'|id}}.
 
-A complete example is at <https://github.com/sol/hspec-example>.
+A complete example is at <https://github.com/hspec/hspec/tree/master/hspec-example>.
 
 ## Using a custom main function
 
