@@ -63,3 +63,4 @@ To run the test suite do:
  * Ryan Mulligan
  * Raine Virta
  * Junji Hashimoto
+ * Jan Matějka
