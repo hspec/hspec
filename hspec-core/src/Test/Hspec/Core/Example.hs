@@ -2,6 +2,7 @@
 module Test.Hspec.Core.Example (
   Example (..)
 , Params (..)
+, defaultParams
 , ActionWith
 , Progress
 , ProgressCallback
@@ -35,6 +36,12 @@ data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
 , paramsSmallCheckDepth :: Int
 } deriving (Show)
+
+defaultParams :: Params
+defaultParams = Params {
+  paramsQuickCheckArgs = QC.stdArgs
+, paramsSmallCheckDepth = 5
+}
 
 type Progress = (Int, Int)
 type ProgressCallback = Progress -> IO ()

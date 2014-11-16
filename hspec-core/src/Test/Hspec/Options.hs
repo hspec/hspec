@@ -15,6 +15,7 @@ import           System.Console.GetOpt
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Compat
 import           Test.Hspec.Core.Util
+import           Test.Hspec.Core.Example (Params(..), defaultParams)
 
 data Config = Config {
   configDryRun :: Bool
@@ -48,7 +49,7 @@ defaultConfig = Config {
 , configQuickCheckMaxSuccess = Nothing
 , configQuickCheckMaxDiscardRatio = Nothing
 , configQuickCheckMaxSize = Nothing
-, configSmallCheckDepth = 5
+, configSmallCheckDepth = paramsSmallCheckDepth defaultParams
 , configColorMode = ColorAuto
 , configFormatter = Nothing
 , configHtmlOutput = False

@@ -68,7 +68,7 @@ normalizeSummary = map f
         | otherwise  = x
 
 defaultParams :: H.Params
-defaultParams = H.Params stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000} (H.configSmallCheckDepth H.defaultConfig)
+defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000}}
 
 noOpProgressCallback :: H.ProgressCallback
 noOpProgressCallback _ = return ()

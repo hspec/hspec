@@ -16,6 +16,7 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Options
 import           Test.Hspec.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
+import           Test.Hspec.Core.Example (Params(..), defaultParams)
 
 -- | Add a filter predicate to config.  If there is already a filter predicate,
 -- then combine them with `||`.
@@ -50,7 +51,7 @@ configQuickCheckArgs c = qcArgs
         maybe id setSeed (configQuickCheckSeed c)
       . maybe id setMaxDiscardRatio (configQuickCheckMaxDiscardRatio c)
       . maybe id setMaxSize (configQuickCheckMaxSize c)
-      . maybe id setMaxSuccess (configQuickCheckMaxSuccess c)) QC.stdArgs
+      . maybe id setMaxSuccess (configQuickCheckMaxSuccess c)) (paramsQuickCheckArgs defaultParams)
 
     setMaxSuccess :: Int -> QC.Args -> QC.Args
     setMaxSuccess n args = args {QC.maxSuccess = n}
