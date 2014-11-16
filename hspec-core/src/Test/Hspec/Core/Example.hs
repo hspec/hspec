@@ -18,7 +18,6 @@ import           Test.Hspec.Expectations (Expectation)
 
 import qualified Test.QuickCheck.State as QC
 import qualified Test.QuickCheck.Property as QCP
-import qualified Test.QuickCheck.IO ()
 
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
