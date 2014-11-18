@@ -1,3 +1,5 @@
+-- |
+-- maintainer: Simon Hengel <sol@typeful.net>
 module Test.Hspec.Contrib.HUnit (
 -- * Interoperability with HUnit
   fromHUnitTest

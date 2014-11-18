@@ -1,4 +1,6 @@
 {-# LANGUAGE TypeFamilies #-}
+-- |
+-- maintainer: Junji Hashimoto <junji.hashimoto@gree.net>
 module Test.Hspec.Contrib.Retry (retryWith) where
 
 import           Test.Hspec.Core.Spec
