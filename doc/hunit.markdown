@@ -17,8 +17,10 @@ seamlessly.
 
 ### Running a HUnit test suite with Hspec
 
-Hspec's {{'fromHUnitTest'|id}} can be used to convert a HUnit test
-suite to a `Spec`.  This can be used to run existing HUnit tests with Hspec.
-Ordinary spec items and HUnit tests can be freely intermixed.
+{{'fromHUnitTest'|id}} from the
+[`hspec-contrib`](http://hackage.haskell.org/package/hspec-contrib) package can
+be used to convert a HUnit test suite to a `Spec`.  This can be used to run
+existing HUnit tests with Hspec.  Ordinary spec items and HUnit tests can be
+freely intermixed.
 
 {% example HUnitTestSuite.hs %}
