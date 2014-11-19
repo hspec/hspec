@@ -1,6 +1,8 @@
-## Next
+## Changes in 2.0.2
   - Indent error messages for failed examples (fixes #186)
   - Export `defaultParams` from `Test.Hspec.Core.Example`
+  - Bring back `Test.Hspec.HUnit` and deprecate it to provide a smother upgrade
+    path
 
 ## Changes in 2.0.1
   - Add missing extra source files to for `hspec-discover`
