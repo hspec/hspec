@@ -1,3 +1,6 @@
+## Next
+  - Generalize `after_`, `afterAll_` and `around_`
+
 ## Changes in 2.0.2
   - Indent error messages for failed examples (fixes #186)
   - Export `defaultParams` from `Test.Hspec.Core.Example`

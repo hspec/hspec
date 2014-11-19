@@ -44,8 +44,8 @@ after :: ActionWith a -> SpecWith a -> SpecWith a
 after action = aroundWith $ \e x -> e x `finally` action x
 
 -- | Run a custom action after every spec item.
-after_ :: IO () -> Spec -> Spec
-after_ action = after $ \() -> action
+after_ :: IO () -> SpecWith a -> SpecWith a
+after_ action = after $ \_ -> action
 
 -- | Run a custom action before and/or after every spec item.
 around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
@@ -56,12 +56,12 @@ afterAll :: ActionWith a -> SpecWith a -> SpecWith a
 afterAll action spec = runIO (runSpecM spec) >>= fromSpecList . return . NodeWithCleanup action
 
 -- | Run a custom action after the last spec item.
-afterAll_ :: IO () -> Spec -> Spec
-afterAll_ action = afterAll (\() -> action)
+afterAll_ :: IO () -> SpecWith a -> SpecWith a
+afterAll_ action = afterAll (\_ -> action)
 
 -- | Run a custom action before and/or after every spec item.
-around_ :: (IO () -> IO ()) -> Spec -> Spec
-around_ action = around $ action . ($ ())
+around_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
+around_ action = aroundWith $ \e a -> action (e a)
 
 -- | Run a custom action before and/or after every spec item.
 aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
