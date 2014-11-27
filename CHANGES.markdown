@@ -1,4 +1,4 @@
-## Next
+## Changes in 2.1.0
   - Generalize `after_`, `afterAll_` and `around_`
 
 ## Changes in 2.0.2
