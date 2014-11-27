@@ -102,5 +102,4 @@ test-suite spec
     , hspec-meta >= 1.12
     , silently >= 1.2.4
     , process
-    , ghc-paths
   default-language: Haskell2010
