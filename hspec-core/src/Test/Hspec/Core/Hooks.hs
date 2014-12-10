@@ -1,6 +1,7 @@
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
   before
+, before_
 , beforeWith
 , beforeAll
 , after
@@ -20,6 +21,10 @@ import           Test.Hspec.Core.Spec
 -- | Run a custom action before every spec item.
 before :: IO a -> SpecWith a -> Spec
 before action = around (action >>=)
+
+-- | Run a custom action before every spec item.
+before_ :: IO () -> SpecWith a -> SpecWith a
+before_ action = around_ (action >>)
 
 -- | Run a custom action before every spec item.
 beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
