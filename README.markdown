@@ -64,3 +64,4 @@ To run the test suite do:
  * Raine Virta
  * Junji Hashimoto
  * Jan Matějka
+ * Ömer Sinan Ağacan
