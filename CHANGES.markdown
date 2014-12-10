@@ -1,5 +1,6 @@
 ## Changes in 2.1.1
   - Add `before_`
+  - Add command-line option `--skip`
 
 ## Changes in 2.1.0
   - Generalize `after_`, `afterAll_` and `around_`

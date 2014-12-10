@@ -47,7 +47,8 @@ filterSpecs :: Config -> [SpecTree a] -> [SpecTree a]
 filterSpecs c = go []
   where
     p :: Path -> Bool
-    p = fromMaybe (const True) (configFilterPredicate c)
+    p path = (fromMaybe (const True) (configFilterPredicate c) path) &&
+               not (fromMaybe (const False) (configSkipPredicate c) path)
 
     go :: [String] -> [SpecTree a] -> [SpecTree a]
     go groups = mapMaybe (goSpec groups)

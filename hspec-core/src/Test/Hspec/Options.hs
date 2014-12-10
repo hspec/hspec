@@ -27,6 +27,7 @@ data Config = Config {
 -- that satisfy the predicate are run.
 , configRerun :: Bool
 , configFilterPredicate :: Maybe (Path -> Bool)
+, configSkipPredicate :: Maybe (Path -> Bool)
 , configQuickCheckSeed :: Maybe Integer
 , configQuickCheckMaxSuccess :: Maybe Int
 , configQuickCheckMaxDiscardRatio :: Maybe Int
@@ -45,6 +46,7 @@ defaultConfig = Config {
 , configFastFail = False
 , configRerun = False
 , configFilterPredicate = Nothing
+, configSkipPredicate = Nothing
 , configQuickCheckSeed = Nothing
 , configQuickCheckMaxSuccess = Nothing
 , configQuickCheckMaxDiscardRatio = Nothing
@@ -63,6 +65,9 @@ filterOr p1_ p2_ = case (p1_, p2_) of
 
 addMatch :: String -> Config -> Config
 addMatch s c = c {configFilterPredicate = Just (filterPredicate s) `filterOr` configFilterPredicate c}
+
+addSkip :: String -> Config -> Config
+addSkip s c = c {configSkipPredicate = Just (filterPredicate s) `filterOr` configSkipPredicate c}
 
 setDepth :: Int -> Config -> Config
 setDepth n c = c {configSmallCheckDepth = n}
@@ -118,6 +123,7 @@ options :: [OptDescr (Result -> Result)]
 options = [
     Option   []  ["help"]             (NoArg (const $ Left Help))         (h "display this help and exit")
   , mkOption "m"  "match"             (Arg "PATTERN" return addMatch)     (h "only run examples that match given PATTERN")
+  , mkOption []   "skip"              (Arg "PATTERN" return addSkip)      (h "skip examples that match given PATTERN")
   , Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
   , Option   []  ["no-color"]         (NoArg setNoColor)                  (h "do not colorize the output")
   , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp

@@ -268,6 +268,22 @@ spec = do
               H.it "example 3" $ mockAction e3
         (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 1, 0)
 
+      it "only runs examples that match a given pattern (-m and --skip combined)" $ do
+        e1 <- newMock
+        e2 <- newMock
+        e3 <- newMock
+        e4 <- newMock
+        silence . withArgs ["-m", "/bar/example", "--skip", "example 3"] . H.hspec $ do
+          H.describe "foo" $ do
+            H.describe "bar" $ do
+              H.it "example 1" $ mockAction e1
+              H.it "example 2" $ mockAction e2
+              H.it "example 3" $ mockAction e3
+            H.describe "baz" $ do
+              H.it "example 4" $ mockAction e4
+        (,,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 <*> mockCounter e4
+          `shouldReturn` (1, 1, 0, 0)
+
       it "can be given multiple times" $ do
         e1 <- newMock
         e2 <- newMock
