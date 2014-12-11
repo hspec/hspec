@@ -30,6 +30,7 @@ module Test.Hspec (
 -- * Hooks
 , ActionWith
 , before
+, before_
 , beforeWith
 , beforeAll
 , after

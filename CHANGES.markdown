@@ -1,3 +1,6 @@
+## Changes in 2.1.2
+  - Re-export `before_` from `Test.Hspec`
+
 ## Changes in 2.1.1
   - Add `before_`
   - Add command-line option `--skip`
