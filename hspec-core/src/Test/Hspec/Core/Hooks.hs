@@ -73,7 +73,9 @@ aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundWith action = mapAround (. action)
 
 mapAround :: ((ActionWith b -> IO ()) -> ActionWith a -> IO ()) -> SpecWith a -> SpecWith b
-mapAround f = mapSpecItem (untangle f) $ \i@Item{itemExample = e} -> i{itemExample = (. f) . e}
+mapAround f = mapSpecItem (untangle f) $ \i@Item{itemExample = e} -> i{
+    itemExample = \params aroundAction progressCallback -> e params (f aroundAction) progressCallback
+  }
 
 untangle  :: ((ActionWith b -> IO ()) -> ActionWith a -> IO ()) -> ActionWith a -> ActionWith b
 untangle f g = \b -> f ($ b) g
