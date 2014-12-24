@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP, TypeFamilies, FlexibleInstances, TypeSynonymInstances, DeriveDataTypeable #-}
+-- TODO: Have a separate type class that captures the idea of what an Example needs to support for arbitrary arguments.
 module Test.Hspec.Core.Example (
   Example (..)
 , Params (..)
@@ -61,11 +62,28 @@ instance Example Bool where
 
 instance Example Expectation where
   type Arg Expectation = ()
-  evaluateExample e = evaluateExample (\() -> e)
+  evaluateExample e params around = evaluateExample (\() -> e) params (foo around)
+
+foo :: (ActionWith a -> IO ()) -> ActionWith ((), a) -> IO ()
+foo around action = around (bar action)
+
+bar :: (((), a) -> IO ()) -> a -> IO ()
+bar action a = action ((), a)
+
+baz :: (a -> b -> c -> r) -> (a, (b, (c, ()))) -> r
+baz action = (\(a, (b, (c, ()))) -> action a b c)
 
 instance Example (a -> Expectation) where
-  type Arg (a -> Expectation) = a
-  evaluateExample e _ action _ = (action e >> return Success) `E.catches` [
+  type Arg (a -> Expectation) = (a, ())
+  evaluateExample e params around = evaluateExample (\() -> e) params (foo around)
+
+instance Example (a -> b -> Expectation) where
+  type Arg (a -> b -> Expectation) = (a, (b, ()))
+  evaluateExample e params around = evaluateExample (\() -> e) params (foo around)
+
+instance Example (a -> b -> c -> Expectation) where
+  type Arg (a -> b -> c -> Expectation) = (a, (b, (c, ())))
+  evaluateExample e _ around _ = ((around $ baz e) >> return Success) `E.catches` [
       E.Handler (\(HUnitFailure err) -> return (Fail err))
     , E.Handler (return :: Result -> IO Result)
     ]
@@ -76,12 +94,20 @@ instance Example Result where
 
 instance Example QC.Property where
   type Arg QC.Property = ()
-  evaluateExample e = evaluateExample (\() -> e)
+  evaluateExample e params around = evaluateExample (\() -> e) params (foo around)
 
 instance Example (a -> QC.Property) where
-  type Arg (a -> QC.Property) = a
-  evaluateExample p c action progressCallback = do
-    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
+  type Arg (a -> QC.Property) = (a, ())
+  evaluateExample e params around = evaluateExample (\() -> e) params (foo around)
+
+instance Example (a -> b -> QC.Property) where
+  type Arg (a -> b -> QC.Property) = (a, (b, ()))
+  evaluateExample e params around = evaluateExample (\() -> e) params (foo around)
+
+instance Example (a -> b -> c -> QC.Property) where
+  type Arg (a -> b -> c -> QC.Property) = (a, (b, (c, ())))
+  evaluateExample p params around progressCallback = do
+    r <- QC.quickCheckWithResult (paramsQuickCheckArgs params) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty around (baz p))
     return $
       case r of
         QC.Success {}               -> Success

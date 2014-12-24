@@ -13,11 +13,11 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "before" $ do
+  describe "before_" $ do
     it "runs an action before every spec item" $ do
       ref <- newIORef ([] :: [String])
-      let append n = modifyIORef ref (++ return n)
-      silence $ H.hspec $ H.before (append "before") $ do
+      let append n = modifyIORef ref (++ [n])
+      silence $ H.hspec $ H.before_ (append "before") $ do
         H.it "foo" $ do
           append "foo"
         H.it "bar" $ do
@@ -32,8 +32,8 @@ spec = do
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
         ref <- newIORef ([] :: [String])
-        let append n = modifyIORef ref (++ return n)
-        silence $ H.hspec $ H.before (append "before outer") $  H.before (append "before inner") $ do
+        let append n = modifyIORef ref (++ [n])
+        silence $ H.hspec $ H.before_ (append "before outer") $  H.before_ (append "before inner") $ do
           H.it "foo" $ do
             append "foo"
         readIORef ref `shouldReturn` [
@@ -41,6 +41,16 @@ spec = do
           , "before inner"
           , "foo"
           ]
+
+  describe "before" $ do
+
+    it "" $ do
+      ref <- newIORef ([] :: [String])
+      let append n = modifyIORef ref (++ [n])
+      H.hspec .  H.before (return "foo") . H.before (return 23 :: IO Int) . H.before (return 42.0 :: IO Double) $ do
+        H.it "can take up to three arguments" $ \a b c -> do
+          append (show (a, b, c))
+      readIORef ref `shouldReturn` [show (42.0 :: Double, 23 :: Int, "foo")]
 
     context "when used with an action that returns a value" $ do
       it "passes that value to the spec item" $ do
@@ -53,10 +63,11 @@ spec = do
       it "runs action before every check of the property" $ do
         ref <- newIORef ([] :: [String])
         let append n = modifyIORef ref (++ return n)
-        silence $ H.hspec $ H.before (append "before") $ do
-          H.it "foo" $ property $ append "foo"
+        silence $ H.hspec $ H.before (append "before" >> return "foo") $ do
+          H.it "foo" $ \x -> property $ append x
         readIORef ref `shouldReturn` (take 200 . cycle) ["before", "foo"]
 
+{-
   describe "beforeWith" $ do
     it "runs an action before every spec item" $ do
       let action :: Int -> IO String
@@ -64,8 +75,10 @@ spec = do
       property $ \n -> do
         silence $ H.hspec $ H.before (return n) $ H.beforeWith action $ do
           H.it "foo" $ (`shouldBe` show n)
+-}
 
   describe "beforeAll" $ do
+  {-
     it "runs an action before the first spec item" $ do
       ref <- newIORef []
       let append n = modifyIORef ref (++ return n)
@@ -87,6 +100,7 @@ spec = do
         silence $ H.hspec $ H.beforeAll (append "beforeAll") $ do
           return ()
         readIORef ref `shouldReturn` []
+        -}
 
     context "when used with an action that returns a value" $ do
       it "passes that value to the spec item" $ do
@@ -218,6 +232,7 @@ spec = do
           , "after outer"
           ]
 
+{-
   describe "aroundWith" $ do
     it "wraps every spec item with an action" $ do
       let action :: H.ActionWith String -> H.ActionWith Int
@@ -225,6 +240,7 @@ spec = do
       property $ \n -> do
         silence $ H.hspec $ H.before (return n) $ H.aroundWith action $ do
           H.it "foo" $ (`shouldBe` show n)
+      -}
   where
     runSpec :: H.Spec -> IO [String]
     runSpec = captureLines . H.hspecResult

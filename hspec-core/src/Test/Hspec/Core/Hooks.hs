@@ -19,7 +19,7 @@ import           Control.Concurrent.MVar
 import           Test.Hspec.Core.Spec
 
 -- | Run a custom action before every spec item.
-before :: IO a -> SpecWith a -> Spec
+before :: IO a -> SpecWith (a, b) -> SpecWith b
 before action = around (action >>=)
 
 -- | Run a custom action before every spec item.
@@ -31,7 +31,7 @@ beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
 beforeWith action = aroundWith $ \e x -> action x >>= e
 
 -- | Run a custom action before the first spec item.
-beforeAll :: IO a -> SpecWith a -> Spec
+beforeAll :: IO a -> SpecWith (a, b) -> SpecWith b
 beforeAll action spec = do
   mvar <- runIO (newMVar Nothing)
   let action_ = memoize mvar action
@@ -45,16 +45,19 @@ memoize mvar action = modifyMVar mvar $ \ma -> case ma of
     return (Just a, a)
 
 -- | Run a custom action after every spec item.
-after :: ActionWith a -> SpecWith a -> SpecWith a
-after action = aroundWith $ \e x -> e x `finally` action x
+after :: ActionWith a -> SpecWith (a, b) -> SpecWith (a, b)
+after action = aroundWith $ \e x -> e x `finally` action (fst x)
 
 -- | Run a custom action after every spec item.
 after_ :: IO () -> SpecWith a -> SpecWith a
-after_ action = after $ \_ -> action
+after_ action = aroundWith $ \e x -> e x `finally` action
 
 -- | Run a custom action before and/or after every spec item.
-around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
-around action = aroundWith $ \e () -> action e
+around :: (ActionWith a -> IO ()) -> SpecWith (a, b) -> SpecWith b
+-- around action = aroundWith $ \e () -> action e
+around f = mapAround foo
+  where
+    foo g h = f $ \a -> g $ \b -> h (a, b)
 
 -- | Run a custom action after the last spec item.
 afterAll :: ActionWith a -> SpecWith a -> SpecWith a

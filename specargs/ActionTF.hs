@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies, FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+module ActionTF where
 
 import Prelude hiding (curry, uncurry)
 
@@ -66,3 +67,6 @@ uncurry2 = uncurry
 
 uncurry3 :: Example3_ a b c -> Example3 a b c
 uncurry3 = uncurry
+
+baz :: (((a, (b, (c, ()))) -> IO ()) -> IO ()) -> (a -> b -> c -> IO ()) -> IO ()
+baz = (. uncurry)
