@@ -56,6 +56,7 @@ An example is worth a thousand words, so here we go:
 * [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
 * [Vim syntax file for Hspec](https://github.com/hspec/hspec.vim#readme)
 * [Guard plugin for Hspec](http://rubygems.org/gems/guard-haskell)
+* [Sublime Text snippets for Hspec](https://github.com/ayakovlenko/hspec-sublime-snippets)
 
 ## Support
 
