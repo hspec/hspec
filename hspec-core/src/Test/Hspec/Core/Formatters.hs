@@ -181,17 +181,16 @@ defaultFailedFormatter = do
 
     formatFailure :: (Int, FailureRecord) -> FormatM ()
     formatFailure (n, FailureRecord mLoc path reason) = do
+      forM_ mLoc $ \loc -> do
+        withInfoColor $ writeLine (formatLoc loc)
       write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
       withFailColor $ do
         forM_ (lines err) $ \x -> do
           writeLine ("       " ++ x)
-      forM_ mLoc $ \loc -> do
-        writeLine ""
-        withInfoColor $ writeLine (formatLoc loc)
       where
         err = either (("uncaught exception: " ++) . formatException) id reason
-        formatLoc (Location file line _column accuracy) = "     # " ++ file ++ ":" ++ show line ++ bestEffortMarking
+        formatLoc (Location file line _column accuracy) = "  " ++ file ++ ":" ++ show line ++ ":" ++ bestEffortMarking
           where
             bestEffortMarking = case accuracy of
               ExactLocation -> ""

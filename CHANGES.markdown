@@ -1,3 +1,6 @@
+## Changes in 2.1.3
+  - Format source locations like gcc does
+
 ## Changes in 2.1.2
   - Re-export `before_` from `Test.Hspec`
 
