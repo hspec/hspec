@@ -41,16 +41,18 @@ run args_ = do
   name <- getProgName
   case args_ of
     src : _ : dst : args -> case parseConfig name args of
-      Left err -> do
-        hPutStrLn stderr err
-        exitFailure
+      Left err -> exitError err
+      Right conf | configHelp conf -> putStrLn (helpMessage name)
       Right conf -> do
         when (configNested conf) (hPutStrLn stderr "hspec-discover: WARNING - The `--nested' flag is deprecated and will be removed in a future release!")
         specs <- findSpecs src
         writeFile dst (mkSpecModule src conf specs)
-    _ -> do
-      hPutStrLn stderr (usage name)
-      exitFailure
+    ["help"] -> putStrLn (helpMessage name)
+    _ -> exitError $ "\n" ++ usage name ++ "\nTry `hspec-discover --help` for more information."
+  where
+    exitError err = do
+        hPutStrLn stderr err
+        exitFailure
 
 mkSpecModule :: FilePath -> Config -> [Spec] -> String
 mkSpecModule src conf nodes =
