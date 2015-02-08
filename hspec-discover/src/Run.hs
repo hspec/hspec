@@ -67,12 +67,10 @@ mkSpecModule src conf nodes =
   . formatSpecs nodes
   ) "\n"
   where
-    driver =
-        case configNoMain conf of
-          False ->
-              showString "main :: IO ()\n"
-            . showString "main = hspec spec\n"
-          True -> ""
+    driver = if configNoMain conf
+             then ""
+             else showString "main :: IO ()\n"
+                . showString "main = hspec spec\n"
 
 moduleName :: FilePath -> Config -> String
 moduleName src conf = fromMaybe (if configNoMain conf then pathToModule src else "Main") (configModuleName conf)
