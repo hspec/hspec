@@ -84,6 +84,14 @@ spec = do
     it "returns Nothing for invalid spec name" $ do
       fileToSpec "" "foo" `shouldBe` Nothing
 
+    context "when spec does not have a valid module name" $ do
+      it "returns Nothing" $ do
+        fileToSpec "" "flycheck_Spec.hs" `shouldBe` Nothing
+
+    context "when any component of a hierarchical module name is not valid"$ do
+      it "returns Nothing" $ do
+        fileToSpec "" ("Valid" </> "invalid"  </>"MiddleNamesSpec.hs") `shouldBe` Nothing
+
     context "when path has directory component" $ do
       it "converts path to spec name" $ do
         let file = "Foo" </> "Bar" </> "BazSpec.hs"

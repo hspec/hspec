@@ -1,3 +1,7 @@
+## Changes in 2.1.4
+  - Make `hspec-discover` ignore modules with invalid module names, this fixes
+    issues with `flycheck`'s temporary files
+
 ## Changes in 2.1.3
   - Format source locations like gcc does
 
