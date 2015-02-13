@@ -51,40 +51,42 @@ main = hspec $ do
         parse "some invalid input" `shouldBe` Left "parse error"
 ```
 
-### Using hooks: \`before\`, \`after\`, \`around\`
+### Using hooks
 
-`before` runs a custom `IO` action before every spec item. For example, if you
+`before_` runs a custom `IO` action before every spec item. For example, if you
 have an action `flushDb` which flushes your database, you can run it before
 every spec item with:
 
 ```hspec
 main :: IO ()
-main = hspec $ before flushDb $ do
+main = hspec $ before_ flushDb $ do
   describe "/api/users/count" $ do
     it "returns the number of users" $ do
       post "/api/users/create" "name=Jay"
       get "/api/users/count" `shouldReturn` 1
+
     context "when there are no users" $ do
       it "returns 0" $ do
-        callApi "GET" "/api/users/count" `shouldReturn` 0
+        get "/api/users/count" `shouldReturn` 0
 ```
 
-Similarly, `after` runs a custom `IO` action after every spec item:
+Similarly, `after_` runs a custom `IO` action after every spec item:
 
 ```hspec
 main :: IO ()
-main = hspec $ after truncateDatabase $ do
+main = hspec $ after_ truncateDatabase $ do
   describe "createUser" $ do
     it "creates a new user" $ do
       let eva = User (UserId 3) (Name "Eva") (Age 28)
       createUser eva
       getUser (UserId 3) `shouldReturn` eva
+
   describe "countUsers" $ do
     it "counts all registered users" $ do
       countUsers `shouldReturn` 0
 ```
 
-`around` is passed an `IO` action for each spec item so that it can perform
+`around_` is passed an `IO` action for each spec item so that it can perform
 whatever setup and teardown is necessary.
 
 ```hspec
@@ -98,14 +100,15 @@ withStubbedApi action =
           (const action)
 
 main :: IO ()
-main = hspec $ around withStubbedApi $ do
+main = hspec $ around_ withStubbedApi $ do
   describe "api client" $ do
     it "should authenticate" $ do
       c <- newClient (Just ("user", "pass"))
-      get c "/api/auth" `shouldReturn` http200
+      get c "/api/auth" `shouldReturn` status200
+
     it "should allow anonymous access" $ do
       c <- newClient Nothing
-      get c "/api/dogs" `shouldReturn` http200
+      get c "/api/dogs" `shouldReturn` status200
 ```
 
 Hooks do not support passing values to spec items (for example, if you wanted
@@ -144,13 +147,14 @@ main = hspec $ do
   describe "/login" $ do
     it "should use correct status codes" $ do
       pending
+
     it "should require basic authentication" $ do
       pendingWith "need to fix base64 first"
 ```
 
-It's advisable to resolve all pending specs before committing your changes.
+It's advisable to resolve all pending spec items before committing your changes.
 
-The report produced at the end of testing counts passed, failed, and pending
-specs separately, and having unresolved pending specs does not cause your test
-suite to fail; that is, it can still exit with a status code of 0 if there are
-unresolved pending specs.
+The report produced at the end of a test run counts passed, failed, and pending
+spec items separately, and having unresolved pending spec items does not cause
+your test suite to fail; that is, it can still exit with a status code of 0 if
+there are unresolved pending spec items.
