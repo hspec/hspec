@@ -121,12 +121,21 @@ findSpecs src = do
 fileToSpec :: FilePath -> FilePath -> Maybe Spec
 fileToSpec dir file = case reverse $ splitDirectories file of
   x:xs -> case stripSuffix "Spec.hs" x <|> stripSuffix "Spec.lhs" x of
-    Just name | (not . null) name -> Just . Spec (dir </> file) $ (intercalate "." . reverse) (name : xs)
+    Just name | isValidModuleName name && all isValidModuleName xs ->
+      Just . Spec (dir </> file) $ (intercalate "." . reverse) (name : xs)
     _ -> Nothing
   _ -> Nothing
   where
     stripSuffix :: Eq a => [a] -> [a] -> Maybe [a]
     stripSuffix suffix str = reverse <$> stripPrefix (reverse suffix) (reverse str)
+
+-- See `Cabal.Distribution.ModuleName` (http://git.io/bj34)
+isValidModuleName :: String -> Bool
+isValidModuleName [] = False
+isValidModuleName (c:cs) = isUpper c && all isValidModuleChar cs
+
+isValidModuleChar :: Char -> Bool
+isValidModuleChar c = isAlphaNum c || c == '_' || c == '\''
 
 getFilesRecursive :: FilePath -> IO [FilePath]
 getFilesRecursive baseDir = sort <$> go []

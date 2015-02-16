@@ -65,3 +65,4 @@ To run the test suite do:
  * Junji Hashimoto
  * Jan Matějka
  * Ömer Sinan Ağacan
+ * Pedro Tacla Yamada
