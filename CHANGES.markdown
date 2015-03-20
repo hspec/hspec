@@ -1,3 +1,6 @@
+## Changes in 2.1.5
+  - Compatibility with QuickCheck-2.8
+
 ## Changes in 2.1.4
   - Make `hspec-discover` ignore modules with invalid module names, this fixes
     issues with `flycheck`'s temporary files

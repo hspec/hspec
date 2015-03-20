@@ -88,6 +88,9 @@ instance Example (a -> QC.Property) where
         QC.Failure {QC.output = m}  -> fromMaybe (Fail $ sanitizeFailureMessage r) (parsePending m)
         QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ pluralize n "test" )
         QC.NoExpectedFailure {}     -> Fail ("No expected failure")
+#if MIN_VERSION_QuickCheck(2,8,0)
+        QC.InsufficientCoverage {}  -> Fail ("Insufficient coverage")
+#endif
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
         \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
