@@ -1,8 +1,7 @@
 module Test.Hspec.Contrib.RetrySpec (main, spec) where
 
-import           Data.IORef
+import           Helper
 
-import           Test.Hspec
 import           Test.Hspec.Contrib.Retry
 
 main :: IO ()

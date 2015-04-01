@@ -1,7 +1,7 @@
 module Helper (
   module Test.Hspec.Meta
+, module Test.Hspec.Compat
 , module Test.QuickCheck
-, module Control.Applicative
 , module System.IO.Silently
 , sleep
 , timeout
@@ -20,11 +20,12 @@ module Helper (
 , shouldUseArgs
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Compat
+
 import           Data.List
 import           Data.Char
-import           Data.IORef
 import           Control.Monad
-import           Control.Applicative
 import           System.Environment (withArgs)
 import           System.Exit
 import           Control.Concurrent

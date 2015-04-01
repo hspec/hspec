@@ -57,6 +57,7 @@ test-suite spec
   main-is:
       Spec.hs
   other-modules:
+      Helper
       RunSpec
       ConfigSpec
   build-depends:

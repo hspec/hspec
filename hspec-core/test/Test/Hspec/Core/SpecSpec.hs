@@ -1,5 +1,6 @@
 module Test.Hspec.Core.SpecSpec (main, spec) where
 
+import           Prelude ()
 import           Helper
 
 import           Test.Hspec.Core.Spec (Item(..), Result(..))

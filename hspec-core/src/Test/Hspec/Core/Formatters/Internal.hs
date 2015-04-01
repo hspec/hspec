@@ -35,10 +35,12 @@ module Test.Hspec.Core.Formatters.Internal (
 , finally_
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Compat
+
 import qualified System.IO as IO
 import           System.IO (Handle)
 import           Control.Monad
-import           Control.Applicative
 import           Control.Exception (SomeException, AsyncException(..), bracket_, try, throwIO)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (gets, modify)
@@ -47,7 +49,6 @@ import qualified System.CPUTime as CPUTime
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Compat
 import           Test.Hspec.Core.Spec (Progress, Location)
 
 -- | A lifted version of `Control.Monad.Trans.State.gets`

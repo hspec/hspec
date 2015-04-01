@@ -1,7 +1,7 @@
 module Mock where
 
-import           Control.Applicative
-import           Data.IORef
+import           Prelude ()
+import           Test.Hspec.Compat
 
 newtype Mock = Mock (IORef Int)
 

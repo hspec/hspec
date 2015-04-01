@@ -1,8 +1,7 @@
 module RunSpec (main, spec) where
 
-import           Test.Hspec.Meta
+import           Helper
 
-import           Control.Applicative
 import           System.IO
 import           System.Directory
 import           System.FilePath

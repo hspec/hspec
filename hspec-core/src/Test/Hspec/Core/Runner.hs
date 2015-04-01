@@ -16,9 +16,10 @@ module Test.Hspec.Core.Runner (
 , configAddFilter
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Compat
+
 import           Control.Monad
-import           Control.Applicative
-import           Data.Monoid
 import           Data.Maybe
 import           System.IO
 import           System.Environment (getProgName, getArgs, withArgs)
@@ -29,7 +30,6 @@ import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
 import           Control.Monad.IO.Class (liftIO)
 
-import           Test.Hspec.Compat (lookupEnv)
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Config

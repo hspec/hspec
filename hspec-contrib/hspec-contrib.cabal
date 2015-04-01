@@ -43,6 +43,7 @@ test-suite spec
   main-is:
       Spec.hs
   other-modules:
+      Helper
       Test.Hspec.Contrib.RetrySpec
       Test.Hspec.Contrib.HUnitSpec
   ghc-options:

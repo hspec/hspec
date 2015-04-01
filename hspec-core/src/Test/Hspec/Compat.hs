@@ -5,10 +5,45 @@ module Test.Hspec.Compat (
 , readMaybe
 , lookupEnv
 , module Data.IORef
+
+, module Prelude
+, module Control.Applicative
+, module Data.Foldable
+, module Data.Traversable
+, module Data.Monoid
+
 #if !MIN_VERSION_base(4,6,0)
 , modifyIORef'
 #endif
 ) where
+
+import           Control.Applicative
+import           Data.Foldable
+import           Data.Traversable
+import           Data.Monoid
+
+import           Prelude hiding (
+    all
+  , and
+  , any
+  , concat
+  , concatMap
+  , elem
+  , foldl
+  , foldl1
+  , foldr
+  , foldr1
+  , mapM
+  , mapM_
+  , maximum
+  , minimum
+  , notElem
+  , or
+  , product
+  , sequence
+  , sequence_
+  , sum
+  )
 
 #if !MIN_VERSION_base(4,3,0)
 import           Control.Monad.Trans.Error () -- for Monad (Either e)

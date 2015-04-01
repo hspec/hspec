@@ -1,9 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hspec.Contrib.HUnitSpec (main, spec) where
 
-import           Test.Hspec
-import           Test.QuickCheck
-import           Control.Applicative
+import           Helper
 
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Contrib.HUnit

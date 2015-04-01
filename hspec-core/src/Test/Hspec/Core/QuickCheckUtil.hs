@@ -1,9 +1,10 @@
 {-# LANGUAGE CPP #-}
 module Test.Hspec.Core.QuickCheckUtil where
 
-import           Control.Applicative
+import           Prelude ()
+import           Test.Hspec.Compat
+
 import           Data.Int
-import           Data.IORef
 import           Test.QuickCheck hiding (Result(..))
 import           Test.QuickCheck as QC
 import           Test.QuickCheck.Property hiding (Result(..))

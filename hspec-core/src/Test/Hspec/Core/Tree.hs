@@ -11,10 +11,8 @@ module Test.Hspec.Core.Tree (
 , specItem
 ) where
 
-import           Control.Applicative
-import           Data.Foldable
-import           Data.Traversable
-import           Data.Monoid
+import           Prelude ()
+import           Test.Hspec.Compat
 
 import           Test.Hspec.Core.Example
 

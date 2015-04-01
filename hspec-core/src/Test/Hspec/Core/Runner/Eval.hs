@@ -1,7 +1,9 @@
 module Test.Hspec.Core.Runner.Eval (runFormatter) where
 
-import           Control.Applicative
-import           Control.Monad
+import           Prelude ()
+import           Test.Hspec.Compat
+
+import           Control.Monad (unless, when)
 import qualified Control.Exception as E
 import           Control.Concurrent
 import           System.IO (Handle)

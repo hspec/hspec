@@ -6,14 +6,14 @@ module Test.Hspec.Options (
 , parseOptions
 ) where
 
-import           Control.Applicative
-import           Data.List
+import           Prelude ()
+import           Test.Hspec.Compat
+
 import           System.IO
 import           System.Exit
 import           System.Console.GetOpt
 
 import           Test.Hspec.Core.Formatters
-import           Test.Hspec.Compat
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 

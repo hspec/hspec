@@ -13,7 +13,9 @@ module Test.Hspec.Core.Spec.Monad (
 , modifyParams
 ) where
 
-import           Control.Applicative
+import           Prelude ()
+import           Test.Hspec.Compat
+
 import           Control.Monad.Trans.Writer
 import           Control.Monad.IO.Class (liftIO)
 

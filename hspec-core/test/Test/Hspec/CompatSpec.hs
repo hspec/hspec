@@ -3,8 +3,6 @@ module Test.Hspec.CompatSpec (main, spec) where
 
 import           Helper
 import           System.SetEnv
-
-import           Test.Hspec.Compat
 import           Data.Typeable
 
 data SomeType = SomeType

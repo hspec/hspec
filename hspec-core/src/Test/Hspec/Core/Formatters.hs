@@ -49,13 +49,14 @@ module Test.Hspec.Core.Formatters (
 , formatException
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Compat
+
 import           Data.Maybe
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Location(..), LocationAccuracy(..))
 import           Text.Printf
 import           Control.Monad (when, unless)
-import           Data.Foldable (forM_)
-import           Control.Applicative
 import           System.IO (hPutStr, hFlush)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make

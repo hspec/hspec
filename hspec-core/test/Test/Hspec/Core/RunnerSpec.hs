@@ -1,15 +1,16 @@
 module Test.Hspec.Core.RunnerSpec (main, spec) where
 
+import           Prelude ()
 import           Helper
+
 import           System.IO (stderr)
-import           Control.Monad
+import           Control.Monad (replicateM_)
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import           Control.Concurrent
 import qualified Control.Exception as E
 import           Mock
 import           System.SetEnv
-import           Test.Hspec.Compat
 
 import           Test.Hspec.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Core.Spec as H

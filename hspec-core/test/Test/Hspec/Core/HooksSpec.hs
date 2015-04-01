@@ -1,7 +1,7 @@
 module Test.Hspec.Core.HooksSpec (main, spec) where
 
+import           Prelude ()
 import           Helper
-import           Data.IORef
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H

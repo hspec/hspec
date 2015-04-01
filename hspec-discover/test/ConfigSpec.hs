@@ -1,6 +1,6 @@
 module ConfigSpec (main, spec) where
 
-import           Test.Hspec.Meta
+import           Helper
 
 import           Config
 

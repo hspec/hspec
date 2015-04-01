@@ -4,7 +4,6 @@ module Test.Hspec.Core.ExampleSpec (main, spec) where
 import           Helper
 import           Mock
 import           Data.List
-import           Data.IORef
 
 import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H

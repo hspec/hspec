@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module Test.Hspec.Core.FormattersSpec (main, spec) where
 
+import           Prelude ()
 import           Helper
 
 import qualified Test.Hspec.Core.Spec as H
