@@ -99,7 +99,7 @@ test-suite spec
     , hspec-expectations
     , async
 
-    , hspec-meta >= 1.12
+    , hspec-meta >= 2.1.5
     , silently >= 1.2.4
     , process
   default-language: Haskell2010
