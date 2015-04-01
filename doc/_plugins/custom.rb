@@ -35,7 +35,7 @@ module Hspec
         '@?='               => 'http://hackage.haskell.org/packages/archive/HUnit/latest/doc/html/Test-HUnit-Base.html#v:-64--63--61-',
 
         'Spec'              => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html#t:Spec',
-        'hspec'             => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Runner.html#v:hspec',
+        'hspec'             => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html#v:hspec',
         'hspecWith'         => 'http://hackage.haskell.org/packages/archive/hspec-core/latest/doc/html/Test-Hspec-Core-Runner.html#v:hspecWith',
         'fromHUnitTest'     => 'http://hackage.haskell.org/packages/archive/hspec-contrib/latest/doc/html/Test-Hspec-Contrib-HUnit.html#v:fromHUnitTest',
 
