@@ -2,7 +2,7 @@ name:             hspec-th
 version:          0.0.0
 license:          MIT
 license-file:     LICENSE
-copyright:        (c) 2014 Simon Hengel
+copyright:        (c) 2015 Simon Hengel
 author:           Simon Hengel <sol@typeful.net>
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
