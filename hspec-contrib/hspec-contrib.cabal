@@ -29,9 +29,11 @@ library
       base == 4.*
     , hspec-core
     , HUnit
+    , logging-facade
   exposed-modules:
       Test.Hspec.Contrib.Retry
       Test.Hspec.Contrib.HUnit
+      Test.Hspec.Contrib.LoggingFacade
   other-modules:
   default-language: Haskell2010
 
@@ -46,12 +48,14 @@ test-suite spec
       Helper
       Test.Hspec.Contrib.RetrySpec
       Test.Hspec.Contrib.HUnitSpec
+      Test.Hspec.Contrib.LoggingFacadeSpec
   ghc-options:
       -Wall
   build-depends:
       base == 4.*
     , hspec-core
     , HUnit
+    , logging-facade
 
     , hspec-contrib
     , hspec
