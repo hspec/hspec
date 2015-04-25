@@ -42,7 +42,10 @@ mkConfig mFailureReport opts = opts {
 
     matchFilter = configFilterPredicate opts
 
-    rerunFilter = flip elem . failureReportPaths <$> mFailureReport
+    rerunFilter = case failureReportPaths <$> mFailureReport of
+      Just [] -> Nothing
+      Just xs -> Just (`elem` xs)
+      Nothing -> Nothing
 
 configQuickCheckArgs :: Config -> QC.Args
 configQuickCheckArgs c = qcArgs

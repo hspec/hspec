@@ -103,6 +103,19 @@ spec = do
           [flag, "23"] `shouldUseArgs` ((== 23) . accessor)
           ["--rerun"] `shouldUseArgs` ((== 23) . accessor)
 
+      context "when no examples failed previously" $ do
+        it "runs all examples" $ do
+          let run = capture_ . H.hspec $ do
+                H.it "example 1" True
+                H.it "example 2" True
+                H.it "example 3" True
+
+          r0 <- run
+          r0 `shouldContain` "3 examples, 0 failures"
+
+          r1 <- withArgs ["--rerun"] run
+          r1 `shouldContain` "3 examples, 0 failures"
+
       context "when there is no failure report in the environment" $ do
         it "runs everything" $ do
           unsetEnv "HSPEC_FAILURES"

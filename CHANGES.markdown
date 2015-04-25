@@ -1,3 +1,6 @@
+## Changes next
+  - If there were no previous failures, run all spec items on `--rerun`
+
 ## Changes in 2.1.5
   - Compatibility with QuickCheck-2.8
 
