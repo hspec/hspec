@@ -96,7 +96,7 @@ spec = do
 
       it "reuses the same seed" $ do
         r <- runPropFoo ["--seed", "42"]
-        runPropFoo ["-r"] `shouldReturn` r
+        runPropFoo ["--rerun"] `shouldReturn` r
 
       forM_ quickCheckOptions $ \(flag, accessor) -> do
         it ("reuses same " ++ flag) $ do
@@ -106,23 +106,23 @@ spec = do
       context "when there is no failure report in the environment" $ do
         it "runs everything" $ do
           unsetEnv "HSPEC_FAILURES"
-          r <- hSilence [stderr] $ withArgs ["-r"] runSpec
+          r <- hSilence [stderr] $ withArgs ["--rerun"] runSpec
           r `shouldSatisfy` elem "5 examples, 3 failures"
 
         it "prints a warning to stderr" $ do
           unsetEnv "HSPEC_FAILURES"
-          r <- hCapture_ [stderr] $ withArgs ["-r"] runSpec
+          r <- hCapture_ [stderr] $ withArgs ["--rerun"] runSpec
           r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
 
       context "when parsing of failure report fails" $ do
         it "runs everything" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hSilence [stderr] $ withArgs ["-r"] runSpec
+          r <- hSilence [stderr] $ withArgs ["--rerun"] runSpec
           r `shouldSatisfy` elem "5 examples, 3 failures"
 
         it "prints a warning to stderr" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hCapture_ [stderr] $ withArgs ["-r"] runSpec
+          r <- hCapture_ [stderr] $ withArgs ["--rerun"] runSpec
           r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
 
 
