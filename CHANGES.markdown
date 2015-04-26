@@ -1,4 +1,4 @@
-## Changes next
+## Changes in 2.1.6
   - If there were no previous failures, run all spec items on `--rerun`
 
 ## Changes in 2.1.5
