@@ -80,6 +80,21 @@ spec = do
         , "bar"
         ]
 
+  describe "beforeAll_" $ do
+    it "runs an action before the first spec item" $ do
+      ref <- newIORef []
+      let append n = modifyIORef ref (++ return n)
+      silence $ H.hspec $ H.beforeAll (append "beforeAll_") $ do
+        H.it "foo" $ do
+          append "foo"
+        H.it "bar" $ do
+          append "bar"
+      readIORef ref `shouldReturn` [
+          "beforeAll_"
+        , "foo"
+        , "bar"
+        ]
+
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
         ref <- newIORef []

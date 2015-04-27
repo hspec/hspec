@@ -1,3 +1,6 @@
+## Changes in 2.1.7
+  - Add `beforeAll_`
+
 ## Changes in 2.1.6
   - If there were no previous failures, run all spec items on `--rerun`
 

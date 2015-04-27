@@ -4,6 +4,7 @@ module Test.Hspec.Core.Hooks (
 , before_
 , beforeWith
 , beforeAll
+, beforeAll_
 , after
 , after_
 , afterAll
@@ -36,6 +37,13 @@ beforeAll action spec = do
   mvar <- runIO (newMVar Nothing)
   let action_ = memoize mvar action
   before action_ spec
+
+-- | Run a custom action before the first spec item.
+beforeAll_ :: IO () -> SpecWith a -> SpecWith a
+beforeAll_ action spec = do
+  mvar <- runIO (newMVar Nothing)
+  let action_ = memoize mvar action
+  before_ action_ spec
 
 memoize :: MVar (Maybe a) -> IO a -> IO a
 memoize mvar action = modifyMVar mvar $ \ma -> case ma of
