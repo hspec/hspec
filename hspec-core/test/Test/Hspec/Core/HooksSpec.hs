@@ -34,7 +34,11 @@ spec = do
 
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
-        pending
+        (rec, retrieve) <- mkAppend
+        runSilent .  H.before (rec "outer" >> return "foo") . H.before (rec "in-between" >> return 23) . H.before (rec "inner" >> return 42.0) $ do
+          H.it "foo" $ \a b c -> do
+            rec $ show (a :: String, b :: Int, c :: Double)
+        retrieve `shouldReturn` ["outer", "in-between", "inner", show ("foo" :: String, 23 :: Int, 42 :: Double)]
 
     context "when used with a QuickCheck property" $ do
       it "runs action before every check of the property" $ do
@@ -45,7 +49,10 @@ spec = do
 
       context "when used multiple times" $ do
         it "is evaluated outside in" $ do
-          pending
+          (rec, retrieve) <- mkAppend
+          runSilent .  H.before (rec "outer" >> return "foo") . H.before (rec "in-between" >> return 23) . H.before (rec "inner" >> return 42.0) $ do
+            H.it "foo" $ \a b c -> property $ rec $ show (a :: String, b :: Int, c :: Double)
+          retrieve `shouldReturn` (take 400 . cycle) ["outer", "in-between", "inner", show ("foo" :: String, 23 :: Int, 42 :: Double)]
 
   describe "before_" $ do
     it "runs an action before every spec item" $ do
@@ -105,6 +112,12 @@ spec = do
 
       retrieve `shouldReturn` ["foo 24"]
 
+  describe "beforeWithArg" $ do
+    it "transforms spec argument" $ do
+      pending
+    it "can be used multiple times" $ do
+      pending
+
   describe "beforeAll" $ do
     it "runs an action before the first spec item" $ do
       (rec, retrieve) <- mkAppend
@@ -128,7 +141,11 @@ spec = do
 
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
-        pending
+        (rec, retrieve) <- mkAppend
+        runSilent .  H.beforeAll (rec "outer" >> return "foo") . H.beforeAll (rec "in-between" >> return 23) . H.beforeAll (rec "inner" >> return 42.0) $ do
+          H.it "foo" $ \a b c -> do
+            rec $ show (a :: String, b :: Int, c :: Double)
+        retrieve `shouldReturn` ["outer", "in-between", "inner", show ("foo" :: String, 23 :: Int, 42 :: Double)]
 
   describe "beforeAll_" $ do
     it "runs an action before the first spec item" $ do
@@ -186,7 +203,20 @@ spec = do
 
     context "when used multiple times" $ do
       it "is evaluated inside out" $ do
-        pending
+        (rec, retrieve) <- mkAppend
+        runSilent $ H.before (rec "outer" >> return "from outer") $ do
+          (H.after $ rec . ("after outer " ++)) $ do
+            H.before (rec "inner" >> return "from inner") $ do
+              (H.after $ rec . ("after inner " ++)) $ do
+                H.it "foo" $ \_ _ -> do
+                  rec "foo"
+        retrieve `shouldReturn` [
+            "outer"
+          , "inner"
+          , "foo"
+          , "after inner from inner"
+          , "after outer from outer"
+          ]
 
   describe "after_" $ do
     it "runs an action after every spec item" $ do
@@ -239,6 +269,26 @@ spec = do
         , "before"
         , "from before"
         ]
+
+    context "when used multiple times" $ do
+      it "is evaluated inside out" $ do
+        (rec, retrieve) <- mkAppend
+        runSilent $ H.before (rec "outer" >> return "from outer") $ do
+          (H.afterAll $ rec . ("afterAll outer " ++)) $ do
+            H.before (rec "inner" >> return "from inner") $ do
+              (H.afterAll $ rec . ("afterAll inner " ++)) $ do
+                H.it "foo" $ \_ _ -> do
+                  rec "foo"
+        retrieve `shouldReturn` [
+            "outer"
+          , "inner"
+          , "foo"
+          , "outer"
+          , "inner"
+          , "afterAll inner from inner"
+          , "outer"
+          , "afterAll outer from outer"
+          ]
 
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
@@ -314,7 +364,21 @@ spec = do
 
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
-        pending
+        (rec, retrieve) <- mkAppend
+        let action xs a e = rec ("before " ++ xs) >> e a >> rec ("after " ++ xs)
+
+        runSilent $ H.around (action "outer" "foo") $ H.around (action "in-between" 23) $ H.around (action "inner" 42.0) $ do
+          H.it "foo" $ \a b c -> do
+            rec $ show (a :: String, b :: Int, c :: Double)
+        retrieve `shouldReturn` [
+            "before outer"
+          , "before in-between"
+          , "before inner"
+          , show ("foo" :: String, 23 :: Int, 42 :: Double)
+          , "after inner"
+          , "after in-between"
+          , "after outer"
+          ]
 
   describe "around_" $ do
     it "wraps every spec item with an action" $ do
@@ -358,6 +422,11 @@ spec = do
       runSilent $ H.before (return 23) $ H.aroundWith action $ do
         H.it "foo" rec
       retrieve `shouldReturn` ["23"]
+
+  describe "aroundWithArg" $ do
+    it "wraps every spec item with an action" $ do
+      pending
+
   where
     runSpec :: H.Spec -> IO [String]
     runSpec = captureLines . H.hspecResult
