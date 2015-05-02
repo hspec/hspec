@@ -35,15 +35,13 @@ beforeWith action = aroundWith $ \e x -> action x >>= e
 beforeAll :: IO a -> SpecWith a -> Spec
 beforeAll action spec = do
   mvar <- runIO (newMVar Nothing)
-  let action_ = memoize mvar action
-  before action_ spec
+  before (memoize mvar action) spec
 
 -- | Run a custom action before the first spec item.
 beforeAll_ :: IO () -> SpecWith a -> SpecWith a
 beforeAll_ action spec = do
   mvar <- runIO (newMVar Nothing)
-  let action_ = memoize mvar action
-  before_ action_ spec
+  before_ (memoize mvar action) spec
 
 memoize :: MVar (Maybe a) -> IO a -> IO a
 memoize mvar action = modifyMVar mvar $ \ma -> case ma of
