@@ -270,6 +270,18 @@ spec = do
         , "afterAll_"
         ]
 
+    context "when used multiple times" $ do
+      it "is evaluated inside out" $ do
+        (rec, retrieve) <- mkAppend
+        runSilent $ H.afterAll_ (rec "after outer") $ H.afterAll_ (rec "after inner") $ do
+          H.it "foo" $ do
+            rec "foo"
+        retrieve `shouldReturn` [
+            "foo"
+          , "after inner"
+          , "after outer"
+          ]
+
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
         (rec, retrieve) <- mkAppend
