@@ -56,7 +56,7 @@ spec = do
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
         (append, retrieve) <- mkAppend
-        runSilent $ H.before_ (append "outer") $  H.before_ (append "inner") $ do
+        runSilent $ H.before_ (append "outer") $ H.before_ (append "inner") $ do
           H.it "foo" $ do
             append "foo"
         retrieve `shouldReturn` ["outer", "inner", "foo"]
@@ -155,7 +155,7 @@ spec = do
     context "when used multiple times" $ do
       it "is evaluated inside out" $ do
         (append, retrieve) <- mkAppend
-        runSilent $ H.after_ (append "after outer") $  H.after_ (append "after inner") $ do
+        runSilent $ H.after_ (append "after outer") $ H.after_ (append "after inner") $ do
           H.it "foo" $ do
             append "foo"
         retrieve `shouldReturn` [
