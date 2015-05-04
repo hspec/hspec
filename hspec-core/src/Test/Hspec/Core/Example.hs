@@ -22,6 +22,7 @@ import qualified Test.QuickCheck.State as QC
 import qualified Test.QuickCheck.Property as QCP
 
 import           Test.Hspec.Core.QuickCheckUtil
+import           Test.Hspec.Core.Uncurry
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Compat
 
@@ -62,19 +63,19 @@ instance Example Bool where
 
 instance Example Expectation where
   type Arg Expectation = ()
-  evaluateExample = evaluateExpectation . uncurry0
+  evaluateExample = evaluateExpectation . uncurryT
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = (a, ())
-  evaluateExample = evaluateExpectation . uncurry1
+  evaluateExample = evaluateExpectation . uncurryT
 
 instance Example (a -> b -> Expectation) where
   type Arg (a -> b -> Expectation) = (b, (a, ()))
-  evaluateExample = evaluateExpectation . uncurry2
+  evaluateExample = evaluateExpectation . uncurryT
 
 instance Example (a -> b -> c -> Expectation) where
   type Arg (a -> b -> c -> Expectation) = (c, (b, (a, ())))
-  evaluateExample = evaluateExpectation . uncurry3
+  evaluateExample = evaluateExpectation . uncurryT
 
 evaluateExpectation :: (a -> Expectation) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 evaluateExpectation e _ around _ = ((around e) >> return Success) `E.catches` [
@@ -88,19 +89,19 @@ instance Example Result where
 
 instance Example QC.Property where
   type Arg QC.Property = ()
-  evaluateExample = evaluateProperty . uncurry0
+  evaluateExample = evaluateProperty . uncurryT
 
 instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = (a, ())
-  evaluateExample = evaluateProperty . uncurry1
+  evaluateExample = evaluateProperty . uncurryT
 
 instance Example (a -> b -> QC.Property) where
   type Arg (a -> b -> QC.Property) = (b, (a, ()))
-  evaluateExample = evaluateProperty . uncurry2
+  evaluateExample = evaluateProperty . uncurryT
 
 instance Example (a -> b -> c -> QC.Property) where
   type Arg (a -> b -> c -> QC.Property) = (c, (b, (a, ())))
-  evaluateExample = evaluateProperty . uncurry3
+  evaluateExample = evaluateProperty . uncurryT
 
 evaluateProperty :: (a -> QC.Property) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 evaluateProperty p params around progressCallback = do
@@ -151,15 +152,3 @@ evaluateProperty p params around progressCallback = do
           n = length exceptionPrefix
 
       exceptionPrefix = "*** Failed! Exception: '"
-
-uncurry0 :: r -> () -> r
-uncurry0 r () = r
-
-uncurry1 :: (a -> r) -> (a, ()) -> r
-uncurry1 action = (\(a, ()) -> action a)
-
-uncurry2 :: (a -> b -> r) -> (b, (a, ())) -> r
-uncurry2 action = (\(b, (a, ())) -> action a b)
-
-uncurry3 :: (a -> b -> c -> r) -> (c, (b, (a, ()))) -> r
-uncurry3 action = (\(c, (b, (a, ()))) -> action a b c)
