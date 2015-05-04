@@ -83,6 +83,26 @@ evaluateExpectation e _ around _ = ((around e) >> return Success) `E.catches` [
   , E.Handler (return :: Result -> IO Result)
   ]
 
+instance Testable t => Example (a -> b -> c -> d -> t) where
+  type Arg (a -> b -> c -> d -> t) = (d, (c, (b, (a, ()))))
+  -- e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+  evaluateExample = evaluate . uncurryT
+
+class Testable t where
+  -- type Foo t x
+  evaluate :: (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+
+instance Testable Expectation where
+  -- type Foo Expectation a = a
+  evaluate = evaluateExpectation
+
+instance Testable QC.Property where
+  -- type Foo QC.Property a = a
+  evaluate = evaluateProperty
+
+-- evaluate_ :: forall proxy t a. (Testable t, UncurryT (a -> t)) => proxy t -> Curry (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+-- evaluate_ _ = (evaluate :: (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result) . uncurryT
+
 instance Example Result where
   type Arg Result = ()
   evaluateExample r _ _ _ = return r

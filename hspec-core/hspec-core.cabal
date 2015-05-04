@@ -49,15 +49,16 @@ library
       Test.Hspec.Core.Formatters
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
+      Test.Hspec.Core.Example
   other-modules:
       Test.Hspec.Compat
       Test.Hspec.Config
-      Test.Hspec.Core.Example
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Tree
+      Test.Hspec.Core.Uncurry
       Test.Hspec.FailureReport
       Test.Hspec.Options
       Test.Hspec.Timer

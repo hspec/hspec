@@ -25,3 +25,7 @@ instance UncurryT ((c, (b, (a, ()))) -> r) where
 instance UncurryT ((d, (c, (b, (a, ())))) -> r) where
   type Curry ((d, (c, (b, (a, ())))) -> r) = a -> b -> c -> d -> r
   uncurryT f (x, xs) = uncurryT f xs x
+
+instance UncurryT ((e, (d, (c, (b, (a, ()))))) -> r) where
+  type Curry ((e, (d, (c, (b, (a, ()))))) -> r) = a -> b -> c -> d -> e -> r
+  uncurryT f (x, xs) = uncurryT f xs x
