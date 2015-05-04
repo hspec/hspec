@@ -2,26 +2,26 @@
 {-# LANGUAGE TypeFamilies #-}
 module Test.Hspec.Core.Uncurry where
 
-class UncurryT a where
-  type F a
-  uncurryT :: F a -> a
+class UncurryT f where
+  type Curry f
+  uncurryT :: Curry f -> f
 
 instance UncurryT (() -> r) where
-  type F (() -> r) = r
+  type Curry (() -> r) = r
   uncurryT f () = f
 
 instance UncurryT ((a, ()) -> r) where
-  type F ((a, ()) -> r) = a -> r
+  type Curry ((a, ()) -> r) = a -> r
   uncurryT f (x, xs) = uncurryT f xs x
 
 instance UncurryT ((b, (a, ())) -> r) where
-  type F ((b, (a, ())) -> r) = a -> b -> r
+  type Curry ((b, (a, ())) -> r) = a -> b -> r
   uncurryT f (x, xs) = uncurryT f xs x
 
 instance UncurryT ((c, (b, (a, ()))) -> r) where
-  type F ((c, (b, (a, ()))) -> r) = a -> b -> c -> r
+  type Curry ((c, (b, (a, ()))) -> r) = a -> b -> c -> r
   uncurryT f (x, xs) = uncurryT f xs x
 
 instance UncurryT ((d, (c, (b, (a, ())))) -> r) where
-  type F ((d, (c, (b, (a, ())))) -> r) = a -> b -> c -> d -> r
+  type Curry ((d, (c, (b, (a, ())))) -> r) = a -> b -> c -> d -> r
   uncurryT f (x, xs) = uncurryT f xs x
