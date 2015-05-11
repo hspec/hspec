@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP, TypeFamilies, FlexibleInstances, TypeSynonymInstances, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts #-}
 -- TODO: Have a separate type class that captures the idea of what an Example needs to support for arbitrary arguments.
 module Test.Hspec.Core.Example (
   Example (..)
@@ -29,10 +30,9 @@ import           Test.Hspec.Compat
 -- | A type class for examples
 class Example e where
   type Arg e
-#if __GLASGOW_HASKELL__ >= 704
-  type Arg e = ()
-#endif
+  type T e
   evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+  toSimple :: e -> (Arg e -> T e)
 
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
@@ -57,25 +57,24 @@ data Result = Success | Pending (Maybe String) | Fail String
 
 instance E.Exception Result
 
+class Testable t where
+  evaluateTestable :: (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+
 instance Example Bool where
   type Arg Bool = ()
+  type T Bool = Bool
   evaluateExample b _ _ _ = if b then return Success else return (Fail "")
+  toSimple b = \ () -> b
 
 instance Example Expectation where
   type Arg Expectation = ()
-  evaluateExample = evaluateExpectation . uncurryT
+  type T Expectation = Expectation
+  evaluateExample e params around progress =
+    evaluateTestable (\ () -> e) params around progress
+  toSimple e = \ () -> e
 
-instance Example (a -> Expectation) where
-  type Arg (a -> Expectation) = (a, ())
-  evaluateExample = evaluateExpectation . uncurryT
-
-instance Example (a -> b -> Expectation) where
-  type Arg (a -> b -> Expectation) = (b, (a, ()))
-  evaluateExample = evaluateExpectation . uncurryT
-
-instance Example (a -> b -> c -> Expectation) where
-  type Arg (a -> b -> c -> Expectation) = (c, (b, (a, ())))
-  evaluateExample = evaluateExpectation . uncurryT
+instance Testable Expectation where
+  evaluateTestable = evaluateExpectation
 
 evaluateExpectation :: (a -> Expectation) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 evaluateExpectation e _ around _ = ((around e) >> return Success) `E.catches` [
@@ -83,45 +82,27 @@ evaluateExpectation e _ around _ = ((around e) >> return Success) `E.catches` [
   , E.Handler (return :: Result -> IO Result)
   ]
 
-instance Testable t => Example (a -> b -> c -> d -> t) where
-  type Arg (a -> b -> c -> d -> t) = (d, (c, (b, (a, ()))))
-  -- e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-  evaluateExample = evaluate . uncurryT
-
-class Testable t where
-  -- type Foo t x
-  evaluate :: (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
-
-instance Testable Expectation where
-  -- type Foo Expectation a = a
-  evaluate = evaluateExpectation
-
-instance Testable QC.Property where
-  -- type Foo QC.Property a = a
-  evaluate = evaluateProperty
-
--- evaluate_ :: forall proxy t a. (Testable t, UncurryT (a -> t)) => proxy t -> Curry (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
--- evaluate_ _ = (evaluate :: (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result) . uncurryT
+instance (Example e, Testable (T e)) => Example (a -> e) where
+  type Arg (a -> e) = (a, Arg e)
+  type T (a -> e) = T e
+  evaluateExample e params around progress =
+    evaluateTestable (toSimple e) params around progress
+  toSimple f = \ (a, innerArg) -> toSimple (f a) innerArg
 
 instance Example Result where
   type Arg Result = ()
+  type T Result = Result
   evaluateExample r _ _ _ = return r
+  toSimple r = \ () -> r
 
 instance Example QC.Property where
   type Arg QC.Property = ()
+  type T QC.Property = QC.Property
   evaluateExample = evaluateProperty . uncurryT
+  toSimple p = \ () -> p
 
-instance Example (a -> QC.Property) where
-  type Arg (a -> QC.Property) = (a, ())
-  evaluateExample = evaluateProperty . uncurryT
-
-instance Example (a -> b -> QC.Property) where
-  type Arg (a -> b -> QC.Property) = (b, (a, ()))
-  evaluateExample = evaluateProperty . uncurryT
-
-instance Example (a -> b -> c -> QC.Property) where
-  type Arg (a -> b -> c -> QC.Property) = (c, (b, (a, ())))
-  evaluateExample = evaluateProperty . uncurryT
+instance Testable QC.Property where
+  evaluateTestable = evaluateProperty
 
 evaluateProperty :: (a -> QC.Property) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 evaluateProperty p params around progressCallback = do

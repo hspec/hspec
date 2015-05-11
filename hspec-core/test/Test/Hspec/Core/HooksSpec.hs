@@ -36,7 +36,7 @@ spec = do
       it "is evaluated outside in" $ do
         (rec, retrieve) <- mkAppend
         runSilent .  H.before (rec "outer" >> return "foo") . H.before (rec "in-between" >> return 23) . H.before (rec "inner" >> return 42.0) $ do
-          H.it "foo" $ \a b c -> do
+          H.it "foo" $ \c b a -> do
             rec $ show (a :: String, b :: Int, c :: Double)
         retrieve `shouldReturn` ["outer", "in-between", "inner", show ("foo" :: String, 23 :: Int, 42 :: Double)]
 
@@ -51,7 +51,7 @@ spec = do
         it "is evaluated outside in" $ do
           (rec, retrieve) <- mkAppend
           runSilent .  H.before (rec "outer" >> return "foo") . H.before (rec "in-between" >> return 23) . H.before (rec "inner" >> return 42.0) $ do
-            H.it "foo" $ \a b c -> property $ rec $ show (a :: String, b :: Int, c :: Double)
+            H.it "foo" $ \c b a -> property $ rec $ show (a :: String, b :: Int, c :: Double)
           retrieve `shouldReturn` (take 400 . cycle) ["outer", "in-between", "inner", show ("foo" :: String, 23 :: Int, 42 :: Double)]
 
   describe "before_" $ do
@@ -143,7 +143,7 @@ spec = do
       it "is evaluated outside in" $ do
         (rec, retrieve) <- mkAppend
         runSilent .  H.beforeAll (rec "outer" >> return "foo") . H.beforeAll (rec "in-between" >> return 23) . H.beforeAll (rec "inner" >> return 42.0) $ do
-          H.it "foo" $ \a b c -> do
+          H.it "foo" $ \c b a -> do
             rec $ show (a :: String, b :: Int, c :: Double)
         retrieve `shouldReturn` ["outer", "in-between", "inner", show ("foo" :: String, 23 :: Int, 42 :: Double)]
 
@@ -368,7 +368,7 @@ spec = do
         let action xs a e = rec ("before " ++ xs) >> e a >> rec ("after " ++ xs)
 
         runSilent $ H.around (action "outer" "foo") $ H.around (action "in-between" 23) $ H.around (action "inner" 42.0) $ do
-          H.it "foo" $ \a b c -> do
+          H.it "foo" $ \c b a -> do
             rec $ show (a :: String, b :: Int, c :: Double)
         retrieve `shouldReturn` [
             "before outer"
