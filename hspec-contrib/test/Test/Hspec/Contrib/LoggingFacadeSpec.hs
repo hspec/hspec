@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 module Test.Hspec.Contrib.LoggingFacadeSpec (main, spec) where
 
 import Test.Hspec

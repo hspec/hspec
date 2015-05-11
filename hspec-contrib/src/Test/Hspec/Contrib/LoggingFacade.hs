@@ -23,3 +23,4 @@ captureLogs action = bracket enter exit act
       val <- action
       logs <- readIORef ref
       return (reverse logs, val)
+{-# DEPRECATED captureLogs "Use \"Test.Mockery.Logging.captureLogMessages\" from package @mockery@ instead" #-}
