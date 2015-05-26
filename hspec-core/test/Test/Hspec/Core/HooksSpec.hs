@@ -1,10 +1,14 @@
+{-# LANGUAGE TypeFamilies #-}
+
 module Test.Hspec.Core.HooksSpec (main, spec) where
 
-import           Prelude ()
+import           Control.Monad.IO.Class
+import           Control.Monad.Trans.Reader
 import           Helper
+import           Prelude ()
 
-import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
+import qualified Test.Hspec.Core.Spec as H
 
 import qualified Test.Hspec.Core.Hooks as H
 
@@ -20,8 +24,38 @@ mkAppend = do
   let rec n = modifyIORef ref (++ [n])
   return (rec, readIORef ref)
 
+newtype TestReader = TestReader (ReaderT String IO ())
+
+instance H.Example TestReader where
+  type Arg TestReader = (String, ())
+  type T TestReader = Expectation
+  toSimple (TestReader action) (s, ()) = runReaderT action s
+
+-- instance
+
 spec :: Spec
 spec = do
+
+  context "with hspec-wai style examples" $ do
+    it "works" $ do
+      (rec, retrieve) <- mkAppend
+      runSilent $ H.before (return "value") $ do
+        H.it "foo" $ do
+          TestReader $ do
+            x <- ask
+            liftIO $ rec x
+      retrieve `shouldReturn` ["value"]
+
+    it "works with multiple arguments" $ do
+      (rec, retrieve) <- mkAppend
+      runSilent $ H.before (return "foo") $ H.before (return "value") $ do
+        H.it "foo" $ \ y -> do
+          TestReader $ do
+            x <- ask
+            liftIO $ rec ("x: " ++ x)
+            liftIO $ rec ("y: " ++ y)
+      retrieve `shouldReturn` ["x: foo", "y: value"]
+
   describe "before" $ do
     it "runs an action before every spec item" $ do
       (rec, retrieve) <- mkAppend
@@ -36,8 +70,7 @@ spec = do
       it "is evaluated outside in" $ do
         (rec, retrieve) <- mkAppend
         runSilent .  H.before (rec "outer" >> return "foo") . H.before (rec "in-between" >> return 23) . H.before (rec "inner" >> return 42.0) $ do
-          H.it "foo" $ \c b a -> do
-            rec $ show (a :: String, b :: Int, c :: Double)
+          ((H.it "foo" $ \c b a -> rec $ show (a :: String, b :: Int, c :: Double)) :: H.SpecWith (Double, (Int, (String, ()))))
         retrieve `shouldReturn` ["outer", "in-between", "inner", show ("foo" :: String, 23 :: Int, 42 :: Double)]
 
     context "when used with a QuickCheck property" $ do
@@ -365,7 +398,8 @@ spec = do
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
         (rec, retrieve) <- mkAppend
-        let action xs a e = rec ("before " ++ xs) >> e a >> rec ("after " ++ xs)
+        let action :: String -> a -> ActionWith a -> IO ()
+            action xs a e = rec ("before " ++ xs) >> e a >> rec ("after " ++ xs)
 
         runSilent $ H.around (action "outer" "foo") $ H.around (action "in-between" 23) $ H.around (action "inner" 42.0) $ do
           H.it "foo" $ \c b a -> do

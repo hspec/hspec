@@ -1,8 +1,11 @@
 {-# LANGUAGE CPP, TypeFamilies, FlexibleInstances, TypeSynonymInstances, DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- TODO: Have a separate type class that captures the idea of what an Example needs to support for arbitrary arguments.
 module Test.Hspec.Core.Example (
   Example (..)
+, evaluateExample
+, Testable
 , Params (..)
 , defaultParams
 , ActionWith
@@ -11,28 +14,33 @@ module Test.Hspec.Core.Example (
 , Result (..)
 ) where
 
-import           Data.Maybe (fromMaybe)
-import           Data.List (isPrefixOf)
-import           Test.HUnit.Lang (HUnitFailure(..))
+import           Control.DeepSeq
 import qualified Control.Exception as E
+import           Data.List (isPrefixOf)
+import           Data.Maybe (fromMaybe)
 import           Data.Typeable (Typeable)
-import qualified Test.QuickCheck as QC
+import           Test.HUnit.Lang (HUnitFailure(..))
 import           Test.Hspec.Expectations (Expectation)
+import qualified Test.QuickCheck as QC
 
-import qualified Test.QuickCheck.State as QC
 import qualified Test.QuickCheck.Property as QCP
+import qualified Test.QuickCheck.State as QC
 
+import           Test.Hspec.Compat
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Uncurry
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Compat
 
 -- | A type class for examples
-class Example e where
+class (Testable (T e)) => Example e where
   type Arg e
   type T e
-  evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
   toSimple :: e -> (Arg e -> T e)
+
+evaluateExample :: (Example e) =>
+  e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+evaluateExample e params around progress =
+  evaluateTestable (toSimple e) params around progress
 
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
@@ -63,14 +71,15 @@ class Testable t where
 instance Example Bool where
   type Arg Bool = ()
   type T Bool = Bool
-  evaluateExample b _ _ _ = if b then return Success else return (Fail "")
   toSimple b = \ () -> b
+
+instance Testable Bool where
+  evaluateTestable e params aroundWrapper callback =
+    evaluateTestable (\ a -> if e a then Success else Fail "") params aroundWrapper callback
 
 instance Example Expectation where
   type Arg Expectation = ()
   type T Expectation = Expectation
-  evaluateExample e params around progress =
-    evaluateTestable (\ () -> e) params around progress
   toSimple e = \ () -> e
 
 instance Testable Expectation where
@@ -85,20 +94,23 @@ evaluateExpectation e _ around _ = ((around e) >> return Success) `E.catches` [
 instance (Example e, Testable (T e)) => Example (a -> e) where
   type Arg (a -> e) = (a, Arg e)
   type T (a -> e) = T e
-  evaluateExample e params around progress =
-    evaluateTestable (toSimple e) params around progress
-  toSimple f = \ (a, innerArg) -> toSimple (f a) innerArg
+  toSimple e = \ (a, innerArg) -> toSimple (e a) innerArg
 
 instance Example Result where
   type Arg Result = ()
   type T Result = Result
-  evaluateExample r _ _ _ = return r
   toSimple r = \ () -> r
+
+instance Testable Result where
+  evaluateTestable e params aroundWrapper callback = do
+    ref <- newIORef Success
+    aroundWrapper $ \ arg -> do
+      writeIORef ref (e arg) -- FIXME: force result
+    readIORef ref
 
 instance Example QC.Property where
   type Arg QC.Property = ()
   type T QC.Property = QC.Property
-  evaluateExample = evaluateProperty . uncurryT
   toSimple p = \ () -> p
 
 instance Testable QC.Property where

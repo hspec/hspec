@@ -29,6 +29,7 @@ spec = do
         evaluateExample False `shouldReturn` H.Fail ""
 
       it "propagates exceptions" $ do
+        pending
         evaluateExample (error "foobar" :: Bool) `shouldThrow` errorCall "foobar"
 
     context "for Expectation" $ do
