@@ -1,5 +1,5 @@
 name:             hspec-core
-version:          2.1.7
+version:          2.1.8
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,
@@ -54,7 +54,7 @@ library
     , HUnit >= 1.2.5
     , QuickCheck >= 2.5.1
     , quickcheck-io
-    , hspec-expectations
+    , hspec-expectations == 0.7.0.*
     , async >= 2
   ghc-options: -Wall
   default-language: Haskell2010
@@ -89,7 +89,7 @@ test-suite spec
     , HUnit >= 1.2.5
     , QuickCheck >= 2.5.1
     , quickcheck-io
-    , hspec-expectations
+    , hspec-expectations == 0.7.0.*
     , async >= 2
 
     , hspec-meta >= 2.1.5

@@ -14,9 +14,6 @@ module Helper (
 , ignoreUserInterrupt
 , throwException
 
-, shouldStartWith
-, shouldEndWith
-
 , shouldUseArgs
 ) where
 
@@ -52,12 +49,6 @@ ignoreUserInterrupt action = E.catchJust (guard . (== E.UserInterrupt)) action r
 
 captureLines :: IO a -> IO [String]
 captureLines = fmap lines . capture_
-
-shouldStartWith :: (Eq a, Show a) => [a] -> [a] -> Expectation
-x `shouldStartWith` y = x `shouldSatisfy` isPrefixOf y
-
-shouldEndWith :: (Eq a, Show a) => [a] -> [a] -> Expectation
-x `shouldEndWith` y = x `shouldSatisfy` isSuffixOf y
 
 -- replace times in summary with zeroes
 normalizeSummary :: [String] -> [String]

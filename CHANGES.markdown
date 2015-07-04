@@ -1,3 +1,6 @@
+## Changes in 2.1.8
+  - Depend on `hspec-expectations-0.7.0"
+
 ## Changes in 2.1.7
   - Add `beforeAll_`
 
