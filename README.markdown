@@ -31,7 +31,6 @@ To run the test suite do:
  - Update version constraint for `hspec-meta`
  - Add `find hspec-discover/test-data/ -type f` under `extra-source-files` in
    `hspec.cabal`
- - Make sure that `other-modules` for `test-suite spec` is up-to-date
  - Release new version of `hspec`
  - Upload docs
 

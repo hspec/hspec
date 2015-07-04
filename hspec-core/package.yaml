@@ -1,0 +1,54 @@
+version: 2.1.8
+synopsis: A Testing Framework for Haskell
+description: >
+  This package exposes internal types and functions that can be used to extend
+  Hspec's functionality.
+license: MIT
+copyright:
+  - (c) 2011-2015 Simon Hengel
+  - (c) 2011-2012 Trystan Spangler
+  - (c) 2011 Greg Weber
+maintainer: Simon Hengel <sol@typeful.net>
+category: Testing
+stability: experimental
+homepage: http://hspec.github.io/
+
+github: hspec/hspec/hspec-core
+
+ghc-options: -Wall
+
+dependencies:
+  - base >= 4.3 && < 5
+  - random
+  - tf-random
+  - setenv
+  - ansi-terminal >= 0.5
+  - time
+  - transformers >= 0.2.2.0
+  - deepseq
+  - HUnit >= 1.2.5
+  - QuickCheck >= 2.5.1
+  - quickcheck-io
+  - hspec-expectations == 0.7.0.*
+  - async >= 2
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Test.Hspec.Core.Spec
+    - Test.Hspec.Core.Hooks
+    - Test.Hspec.Core.Runner
+    - Test.Hspec.Core.Formatters
+    - Test.Hspec.Core.QuickCheck
+    - Test.Hspec.Core.Util
+
+tests:
+  spec:
+    main: Spec.hs
+    source-dirs:
+      - test
+      - src
+    dependencies:
+      - hspec-meta >= 2.1.5
+      - silently >= 1.2.4
+      - process

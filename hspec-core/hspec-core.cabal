@@ -1,3 +1,7 @@
+-- This file has been generated from package.yaml by hpack version 0.4.0.
+--
+-- see: https://github.com/sol/hpack
+
 name:             hspec-core
 version:          2.1.8
 license:          MIT
@@ -13,8 +17,7 @@ stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
-description:      This package exposes internal types and functions that can be
-                  used to extend Hspec's functionality.
+description:      This package exposes internal types and functions that can be used to extend Hspec's functionality.
 
 source-repository head
   type: git
@@ -77,6 +80,23 @@ test-suite spec
       Test.Hspec.FailureReportSpec
       Test.Hspec.OptionsSpec
       Test.Hspec.TimerSpec
+      Test.Hspec.Compat
+      Test.Hspec.Config
+      Test.Hspec.Core.Example
+      Test.Hspec.Core.Formatters.Internal
+      Test.Hspec.Core.Formatters
+      Test.Hspec.Core.Hooks
+      Test.Hspec.Core.QuickCheck
+      Test.Hspec.Core.QuickCheckUtil
+      Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Runner
+      Test.Hspec.Core.Spec.Monad
+      Test.Hspec.Core.Spec
+      Test.Hspec.Core.Tree
+      Test.Hspec.Core.Util
+      Test.Hspec.FailureReport
+      Test.Hspec.Options
+      Test.Hspec.Timer
   build-depends:
       base >= 4.3 && < 5
     , random
