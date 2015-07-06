@@ -1,3 +1,5 @@
+{-# LANGUAGE ImplicitParams #-}
+{-# LANGUAGE RecordWildCards #-}
 -- |
 -- Stability: unstable
 --
@@ -22,7 +24,12 @@ module Test.Hspec.Core.Spec (
 , module Test.Hspec.Core.Tree
 ) where
 
+import           GHC.SrcLoc
+import           GHC.Stack
+import           System.Directory (getCurrentDirectory)
+import           System.FilePath (makeRelative)
 import qualified Control.Exception as E
+
 import           Test.Hspec.Expectations (Expectation)
 
 import           Test.Hspec.Core.Example
@@ -44,8 +51,23 @@ describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . specGrou
 -- > describe "absolute" $ do
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
-it :: Example a => String -> a -> SpecWith (Arg a)
-it label action = fromSpecList [specItem label action]
+it :: (?loc :: CallStack, Example a) => String -> a -> SpecWith (Arg a)
+it label action = do
+  cwd <- runIO getCurrentDirectory
+  addLocation cwd $ fromSpecList [specItem label action]
+  where
+    addLocation cwd = mapSpecItem_ (\item -> item { itemLocation = toLocation cwd <$> srcLoc })
+
+    -- The IP type signatures on ?loc here and on ‘it’ itself as well
+    -- as the actual IP names are *essential*: if the names differ or
+    -- one of the signatures is missing, IP scoping rules or CallStack
+    -- rules will mess the stack up and we won't get what we wanted.
+    srcLoc = case reverse (getCallStack (?loc :: (?loc :: CallStack) => CallStack)) of
+      ("it", loc):_ -> Just loc
+      _ -> Nothing
+
+    toLocation cwd s =
+      Location (makeRelative cwd $ srcLocFile s) (srcLocStartLine s) (srcLocStartCol s) ExactLocation
 
 -- | `parallel` marks all spec items of the given spec to be safe for parallel
 -- evaluation.
