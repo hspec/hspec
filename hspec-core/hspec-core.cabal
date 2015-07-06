@@ -59,6 +59,8 @@ library
     , quickcheck-io
     , hspec-expectations == 0.7.0.*
     , async >= 2
+    , filepath
+    , directory
   ghc-options: -Wall
   default-language: Haskell2010
 
@@ -111,6 +113,8 @@ test-suite spec
     , quickcheck-io
     , hspec-expectations == 0.7.0.*
     , async >= 2
+    , filepath
+    , directory
 
     , hspec-meta >= 2.1.5
     , silently >= 1.2.4
