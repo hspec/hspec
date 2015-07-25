@@ -1,7 +1,19 @@
+{-# LANGUAGE RecordWildCards #-}
+
+{-# LANGUAGE CPP #-}
+#if MIN_VERSION_base(4,8,1)
+#define HAS_SOURCE_LOCATIONS
+{-# LANGUAGE ImplicitParams #-}
+#endif
 module Test.Hspec.Core.SpecSpec (main, spec) where
 
 import           Prelude ()
 import           Helper
+
+#ifdef HAS_SOURCE_LOCATIONS
+import           GHC.SrcLoc
+import           GHC.Stack
+#endif
 
 import           Test.Hspec.Core.Spec (Item(..), Result(..))
 import qualified Test.Hspec.Core.Runner as H
@@ -38,6 +50,14 @@ spec = do
     it "takes an example of that behavior" $ do
       [Leaf item] <- runSpecM (H.it "whatever" True)
       itemExample item defaultParams ($ ()) noOpProgressCallback `shouldReturn` Success
+
+#ifdef HAS_SOURCE_LOCATIONS
+    it "adds source locations" $ do
+      [Leaf item] <- runSpecM (H.it "foo" True)
+      let [(_, loc)] = (getCallStack ?loc)
+          location = H.Location (srcLocFile loc) (pred $ srcLocStartLine loc) 32 H.ExactLocation
+      itemLocation item `shouldBe` Just location
+#endif
 
     context "when no description is given" $ do
       it "uses a default description" $ do

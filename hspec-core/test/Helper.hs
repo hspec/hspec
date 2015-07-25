@@ -15,6 +15,8 @@ module Helper (
 , throwException
 
 , shouldUseArgs
+
+, removeLocations
 ) where
 
 import           Prelude ()
@@ -79,3 +81,6 @@ shouldUseArgs args p = do
         H.it "foo" False
   (silence . ignoreExitCode . withArgs args . H.hspec) spec
   readIORef spy >>= (`shouldSatisfy` p)
+
+removeLocations :: H.SpecWith a -> H.SpecWith a
+removeLocations = H.mapSpecItem_ (\item -> item{H.itemLocation = Nothing})

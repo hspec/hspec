@@ -151,7 +151,7 @@ spec = do
         mvar <- newEmptyMVar
         sync <- newEmptyMVar
         threadId <- forkIO $ do
-          r <- captureLines . ignoreUserInterrupt . withArgs ["--seed", "23"] . H.hspec $ do
+          r <- captureLines . ignoreUserInterrupt . withArgs ["--seed", "23"] . H.hspec . removeLocations $ do
             H.it "foo" False
             H.it "bar" $ do
               putMVar sync ()
@@ -229,7 +229,7 @@ spec = do
 
     context "with --fail-fast" $ do
       it "stops after first failure" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec . removeLocations $ do
           H.it "foo" True
           H.it "bar" False
           H.it "baz" False
@@ -249,7 +249,7 @@ spec = do
           ]
 
       it "works for nested specs" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec . removeLocations $ do
           H.describe "foo" $ do
             H.it "bar" False
             H.it "baz" True

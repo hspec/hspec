@@ -15,6 +15,9 @@ infix 1 `shouldHaveLocation`
 shouldHaveLocation :: Item a -> (String, Int) -> Expectation
 item `shouldHaveLocation` (src, line) = itemLocation item `shouldBe` Just (Location src line 0 BestEffort)
 
+removeLocations :: H.SpecWith a -> H.SpecWith a
+removeLocations = H.mapSpecItem_ (\item -> item{H.itemLocation = Nothing})
+
 main :: IO ()
 main = hspec spec
 
@@ -30,7 +33,7 @@ spec = do
             ""
             strlit "baz"
       withFileContent c $ \src -> do
-        [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src $ do
+        [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src . removeLocations $ do
           H.it "foo" True
           H.it "bar" True
           H.it "baz" True
@@ -45,7 +48,7 @@ spec = do
               strlit "foo"
               strlit "foo"
         withFileContent c $ \src -> do
-          [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src $ do
+          [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src . removeLocations $ do
             H.it "foo" True
             H.it "foo" True
             H.it "foo" True
@@ -59,7 +62,7 @@ spec = do
                 strlit "foo"
                 strlit "foo"
           withFileContent c $ \src -> do
-            [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src $ do
+            [Leaf item1, Leaf item2, Leaf item3] <- runSpecM . H.postProcessSpec src . removeLocations $ do
               H.it "foo" True
               H.it "foo" True
               H.it "foo" True
