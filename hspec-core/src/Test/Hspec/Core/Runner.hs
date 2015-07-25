@@ -114,6 +114,7 @@ hspecResult = hspecWithResult defaultConfig
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
 hspecWithResult conf spec = do
+  -- hSetBuffering stdout LineBuffering
   prog <- getProgName
   args <- getArgs
   c <- getConfig conf prog args >>= ensureSeed
@@ -144,6 +145,10 @@ hspecWithResult conf spec = do
           }
 
         Summary <$> getTotalCount <*> getFailCount
+  `E.finally` do
+    putStrLn "\nFlushing handles!\n"
+    hFlush stdout
+    hFlush stderr
   where
     withHiddenCursor :: Bool -> Handle -> IO a -> IO a
     withHiddenCursor useColor h
