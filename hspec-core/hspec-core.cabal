@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.4.0.
+-- This file has been generated from package.yaml by hpack version 0.5.4.
 --
 -- see: https://github.com/sol/hpack
 
@@ -25,7 +25,23 @@ source-repository head
   subdir: hspec-core
 
 library
-  hs-source-dirs: src
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  build-depends:
+      base >= 4.3 && < 5
+    , random
+    , tf-random
+    , setenv
+    , ansi-terminal >= 0.5
+    , time
+    , transformers >= 0.2.2.0
+    , deepseq
+    , HUnit >= 1.2.5
+    , QuickCheck >= 2.5.1
+    , quickcheck-io
+    , hspec-expectations == 0.7.0.*
+    , async >= 2
   exposed-modules:
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
@@ -45,6 +61,15 @@ library
       Test.Hspec.FailureReport
       Test.Hspec.Options
       Test.Hspec.Timer
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+    , src
+  ghc-options: -Wall
   build-depends:
       base >= 4.3 && < 5
     , random
@@ -59,13 +84,9 @@ library
     , quickcheck-io
     , hspec-expectations == 0.7.0.*
     , async >= 2
-  ghc-options: -Wall
-  default-language: Haskell2010
-
-test-suite spec
-  type: exitcode-stdio-1.0
-  hs-source-dirs: test, src
-  main-is: Spec.hs
+    , hspec-meta >= 2.1.5
+    , silently >= 1.2.4
+    , process
   other-modules:
       Helper
       Mock
@@ -83,37 +104,18 @@ test-suite spec
       Test.Hspec.Compat
       Test.Hspec.Config
       Test.Hspec.Core.Example
-      Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters
+      Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.QuickCheckUtil
-      Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner
-      Test.Hspec.Core.Spec.Monad
+      Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Spec
+      Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Tree
       Test.Hspec.Core.Util
       Test.Hspec.FailureReport
       Test.Hspec.Options
       Test.Hspec.Timer
-  build-depends:
-      base >= 4.3 && < 5
-    , random
-    , tf-random
-    , setenv
-    , ansi-terminal >= 0.5
-    , time
-    , transformers >= 0.2.2.0
-    , deepseq
-    , HUnit >= 1.2.5
-    , QuickCheck >= 2.5.1
-    , quickcheck-io
-    , hspec-expectations == 0.7.0.*
-    , async >= 2
-
-    , hspec-meta >= 2.1.5
-    , silently >= 1.2.4
-    , process
-  ghc-options: -Wall
   default-language: Haskell2010
