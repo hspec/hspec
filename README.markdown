@@ -36,32 +36,34 @@ To run the test suite do:
 
 ## Contributors
 
- * Trystan Spangler
- * Greg Weber
- * Björn Buckwalter
- * Yi Huang
- * Lucas Severyn
- * Simon Hengel
- * Niklas Hambüchen
- * Clark Gaebel
- * Fujimura Daisuke
- * Michael Snoyman
- * Takayuki Muranushi
- * Sönke Hahn
- * Peter Simons
- * Markus Klinik
- * Konstantine Rybnikov
- * Alfredo Di Napoli
- * Matvey B. Aksenov
  * Alan Zimmerman
- * Ron Watkins
+ * Alfredo Di Napoli
+ * Björn Buckwalter
+ * Clark Gaebel
  * Daniel Gröber
- * Zhang Yichao
+ * Fujimura Daisuke
+ * Greg Weber
  * Harry Garrood
- * Jeffrey Pigarelli
- * Ryan Mulligan
- * Raine Virta
- * Junji Hashimoto
  * Jan Matějka
+ * Jeffrey Pigarelli
+ * Julian K. Arni
+ * Junji Hashimoto
+ * Konstantine Rybnikov
+ * Lucas Severyn
+ * Markus Klinik
+ * Mateusz Kowalczyk
+ * Matvey B. Aksenov
+ * Michael Snoyman
+ * Niklas Hambüchen
  * Ömer Sinan Ağacan
  * Pedro Tacla Yamada
+ * Peter Simons
+ * Raine Virta
+ * Ron Watkins
+ * Ryan Mulligan
+ * Simon Hengel
+ * Sönke Hahn
+ * Takayuki Muranushi
+ * Trystan Spangler
+ * Yi Huang
+ * Zhang Yichao
