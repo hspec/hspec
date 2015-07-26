@@ -433,3 +433,20 @@ spec = do
       r <- timeout dt . silence . H.hspecResult . H.parallel $ do
         replicateM_ n (H.it "foo" $ sleep t)
       r `shouldBe` Just (H.Summary n 0)
+
+    context "with -j" $ do
+      it "limits parallelism" $ do
+        currentRef <- newIORef (0 :: Int)
+        highRef <- newIORef 0
+        let n = 10
+            t = 0.01
+            j = 2
+            start = do
+              current <- atomicModifyIORef currentRef $ \x -> let y = succ x in (y, y)
+              atomicModifyIORef highRef $ \x -> (max x current, ())
+            stop = atomicModifyIORef currentRef $ \x -> (pred x, ())
+        r <- withArgs ["-j", show j] . H.hspecResult . H.parallel $ do
+          replicateM_ n $ H.it "foo" $ E.bracket_ start stop $ sleep t
+        r `shouldBe` H.Summary n 0
+        high <- readIORef highRef
+        high `shouldBe` j

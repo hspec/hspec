@@ -61,6 +61,7 @@ To run the test suite do:
  * Raine Virta
  * Ron Watkins
  * Ryan Mulligan
+ * Ryan Trinkle
  * Simon Hengel
  * Sönke Hahn
  * Takayuki Muranushi

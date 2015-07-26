@@ -25,6 +25,7 @@ import           System.IO
 import           System.Environment (getProgName, getArgs, withArgs)
 import           System.Exit
 import qualified Control.Exception as E
+import           Control.Concurrent
 
 import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
@@ -122,13 +123,17 @@ hspecWithResult conf spec = do
         seed = (fromJust . configQuickCheckSeed) c
         qcArgs = configQuickCheckArgs c
 
+    jobsSem <- case configMaxParallelJobs c of
+      Nothing -> return Nothing
+      Just maxJobs -> liftM Just $ newQSem maxJobs
+
     useColor <- doesUseColor h c
 
     filteredSpec <- filterSpecs c . applyDryRun c <$> runSpecM spec
 
     withHiddenCursor useColor h $
       runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
-        runFormatter useColor h c formatter filteredSpec `finally_` do
+        runFormatter jobsSem useColor h c formatter filteredSpec `finally_` do
           failedFormatter formatter
 
         footerFormatter formatter

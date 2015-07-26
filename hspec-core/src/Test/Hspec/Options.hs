@@ -37,6 +37,7 @@ data Config = Config {
 , configFormatter :: Maybe Formatter
 , configHtmlOutput :: Bool
 , configOutputFile :: Either Handle FilePath
+, configMaxParallelJobs :: Maybe Int
 }
 
 defaultConfig :: Config
@@ -56,6 +57,7 @@ defaultConfig = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configOutputFile = Left stdout
+, configMaxParallelJobs = Nothing
 }
 
 filterOr :: Maybe (Path -> Bool) -> Maybe (Path -> Bool) -> Maybe (Path -> Bool)
@@ -137,6 +139,8 @@ options = [
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
   , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previously test run (only works in GHCi)")
+  , mkOption "j"  "jobs"              (Arg "N" readMaybe setMaxJobs)      (h "run at most N tests simultaneously (default: unlimited)")
+  , Option   []  ["unlimited-jobs"]   (NoArg clearMaxJobs)                (h "allow an unlimited number of jobs to run simultaneously (this is the default)")
   ]
   where
     h = unlines . addLineBreaks
@@ -150,12 +154,18 @@ options = [
     setOutputFile :: String -> Config -> Config
     setOutputFile file c = c {configOutputFile = Right file}
 
+    setMaxJobs :: Int -> Config -> Config
+    setMaxJobs n c = c {configMaxParallelJobs = Just n}
+
+
+
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun = True}
     setFastFail     x = x >>= \c -> return c {configFastFail = True}
     setRerun        x = x >>= \c -> return c {configRerun = True}
     setNoColor      x = x >>= \c -> return c {configColorMode = ColorNever}
     setColor        x = x >>= \c -> return c {configColorMode = ColorAlways}
+    clearMaxJobs    x = x >>= \c -> return c {configMaxParallelJobs = Nothing}
 
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [
