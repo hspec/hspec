@@ -1,11 +1,12 @@
 {-# LANGUAGE CPP, TypeFamilies, FlexibleInstances, TypeSynonymInstances, DeriveDataTypeable #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- TODO: Have a separate type class that captures the idea of what an Example needs to support for arbitrary arguments.
 module Test.Hspec.Core.Example (
   Example (..)
-, evaluateExample
-, Testable
 , Params (..)
 , defaultParams
 , ActionWith
@@ -31,17 +32,6 @@ import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Uncurry
 import           Test.Hspec.Core.Util
 
--- | A type class for examples
-class (Testable (T e)) => Example e where
-  type Arg e
-  type T e
-  toSimple :: e -> (Arg e -> T e)
-
-evaluateExample :: (Example e) =>
-  e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-evaluateExample e params around progress =
-  evaluateTestable (toSimple e) params around progress
-
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
 , paramsSmallCheckDepth :: Int
@@ -65,23 +55,42 @@ data Result = Success | Pending (Maybe String) | Fail String
 
 instance E.Exception Result
 
-class Testable t where
-  evaluateTestable :: (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+-- | A type class for examples
+class Example e where
+  type ArgTypes e :: [*]
+  evaluateExample :: e -> (((HList (ArgTypes e)) -> IO ()) -> IO ()) -> IO Result
+  -- evaluateExample :: e -> HList (ArgTypes e) -> IO Result
 
-instance Example Bool where
-  type Arg Bool = ()
-  type T Bool = Bool
-  toSimple b = \ () -> b
+data HList (a :: [*]) where
+  Nil :: HList '[]
+  Cons :: x -> HList xs -> HList (x ': xs)
 
-instance Testable Bool where
-  evaluateTestable e params aroundWrapper callback =
-    evaluateTestable (\ a -> if e a then Success else Fail "") params aroundWrapper callback
+instance Example Result where
+  type ArgTypes Result = '[]
+  evaluateExample e aroundWrapper = do
+    ref <- newIORef Success
+    aroundWrapper $ \Nil -> do
+      E.evaluate e >>= writeIORef ref -- FIXME: deepseq result
+    readIORef ref
+  
+--instance Example Bool where
+--  type ArgTypes Bool = '[]
+--  evaluateExample e = evaluateExample (if e then Success else Fail "")
+
+instance (Example e) => Example (a -> e) where
+  type ArgTypes (a -> e) = a ': ArgTypes e
+  evaluateExample e aroundWrapper = do
+    ref <- newIORef Success
+    aroundWrapper $ \(Cons x xs) ->
+      evaluateExample _ (\action -> action xs) >>= writeIORef ref
+    readIORef ref
 
 instance Example Expectation where
-  type Arg Expectation = ()
-  type T Expectation = Expectation
-  toSimple e = \ () -> e
+  type ArgTypes Expectation = '[]
+  evaluateExample e aroundWrapper = aroundWrapper (\Nil -> e) >> return Success -- fixme: handle exceptions
 
+
+{-
 instance Testable Expectation where
   evaluateTestable = evaluateExpectation
 
@@ -90,24 +99,6 @@ evaluateExpectation e _ around _ = ((around e) >> return Success) `E.catches` [
     E.Handler (\(HUnitFailure err) -> return (Fail err))
   , E.Handler (return :: Result -> IO Result)
   ]
-
-instance (Example e, Testable (T e)) => Example (a -> e) where
-  type Arg (a -> e) = (a, Arg e)
-  type T (a -> e) = T e
-  toSimple e = \ (a, innerArg) -> toSimple (e a) innerArg
-
-instance Example Result where
-  type Arg Result = ()
-  type T Result = Result
-  toSimple r = \ () -> r
-
-instance Testable Result where
-  evaluateTestable e params aroundWrapper callback = do
-    ref <- newIORef Success
-    aroundWrapper $ \ arg -> do
-      writeIORef ref (e arg) -- FIXME: force result
-    readIORef ref
-
 instance Example QC.Property where
   type Arg QC.Property = ()
   type T QC.Property = QC.Property
@@ -116,7 +107,9 @@ instance Example QC.Property where
 instance Testable QC.Property where
   evaluateTestable = evaluateProperty
 
-evaluateProperty :: (a -> QC.Property) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+evaluateExample :: (a -> b -> QC.Property)  -> HList (ArgTypes e) -> IO Result
+
+evaluateProperty :: (a -> QC.Property) -> Params -> ((a -> IO ()) -> IO ()) -> ProgressCallback -> IO Result
 evaluateProperty p params around progressCallback = do
     r <- QC.quickCheckWithResult (paramsQuickCheckArgs params) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty around p)
     return $
@@ -165,3 +158,4 @@ evaluateProperty p params around progressCallback = do
           n = length exceptionPrefix
 
       exceptionPrefix = "*** Failed! Exception: '"
+-}
