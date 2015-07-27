@@ -1,13 +1,14 @@
 {-# LANGUAGE CPP, ScopedTypeVariables, TypeFamilies #-}
 module Test.Hspec.Core.ExampleSpec (main, spec) where
 
+import           Control.Exception
+import           Data.List
 import           Helper
 import           Mock
-import           Data.List
 
 import qualified Test.Hspec.Core.Example as H
-import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
+import qualified Test.Hspec.Core.Spec as H
 
 main :: IO ()
 main = hspec spec
@@ -29,7 +30,7 @@ spec = do
         evaluateExample False `shouldReturn` H.Fail ""
 
       it "propagates exceptions" $ do
-        evaluateExample (error "foobar" :: Bool) `shouldThrow` errorCall "foobar"
+        (evaluateExample (error "foobar" :: Bool) >>= evaluate) `shouldThrow` errorCall "foobar"
 
     context "for Expectation" $ do
       it "returns Success if all expectations hold" $ do

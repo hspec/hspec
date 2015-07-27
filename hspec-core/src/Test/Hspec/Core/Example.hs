@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP, TypeFamilies, FlexibleInstances, TypeSynonymInstances, DeriveDataTypeable #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 -- TODO: Have a separate type class that captures the idea of what an Example needs to support for arbitrary arguments.
 module Test.Hspec.Core.Example (
   Example (..)
@@ -10,21 +13,22 @@ module Test.Hspec.Core.Example (
 , Result (..)
 ) where
 
-import           Data.Maybe (fromMaybe)
-import           Data.List (isPrefixOf)
-import           Test.HUnit.Lang (HUnitFailure(..))
 import qualified Control.Exception as E
+import           Data.List (isPrefixOf)
+import           Data.Maybe (fromMaybe)
+import           Data.Proxy
 import           Data.Typeable (Typeable)
-import qualified Test.QuickCheck as QC
+import           Test.HUnit.Lang (HUnitFailure(..))
 import           Test.Hspec.Expectations (Expectation)
+import qualified Test.QuickCheck as QC
 
-import qualified Test.QuickCheck.State as QC
 import qualified Test.QuickCheck.Property as QCP
+import qualified Test.QuickCheck.State as QC
 
+import           Test.Hspec.Compat
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Uncurry
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Compat
 
 -- | A type class for examples
 class Example e where
@@ -57,71 +61,73 @@ data Result = Success | Pending (Maybe String) | Fail String
 
 instance E.Exception Result
 
+class EvaluateExample e where
+  evaluate_ :: (a -> e) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+
+instance EvaluateExample Bool where
+  evaluate_ b _ aroundAction _ = do
+    ref <- newIORef Success
+    aroundAction $ \arg -> writeIORef ref (if b arg then Success else Fail "")
+    readIORef ref
+
 instance Example Bool where
   type Arg Bool = ()
-  evaluateExample b _ _ _ = if b then return Success else return (Fail "")
+  evaluateExample = foo Proxy
+
+foo :: forall f . (EvaluateExample (T f), (ArgC f -> T f) ~ f, UncurryT f) =>
+  Proxy f -> Curry f -> Params -> (ActionWith (ArgC f) -> IO ()) -> ProgressCallback -> IO Result
+foo Proxy = evaluate_ . (uncurryT :: Curry f -> ArgC f -> T f)
 
 instance Example Expectation where
   type Arg Expectation = ()
-  evaluateExample = evaluateExpectation . uncurryT
+  evaluateExample = foo Proxy
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = (a, ())
-  evaluateExample = evaluateExpectation . uncurryT
+  evaluateExample = foo Proxy
 
 instance Example (a -> b -> Expectation) where
   type Arg (a -> b -> Expectation) = (b, (a, ()))
-  evaluateExample = evaluateExpectation . uncurryT
+  evaluateExample = foo Proxy
 
 instance Example (a -> b -> c -> Expectation) where
   type Arg (a -> b -> c -> Expectation) = (c, (b, (a, ())))
-  evaluateExample = evaluateExpectation . uncurryT
+  evaluateExample = foo Proxy
 
-evaluateExpectation :: (a -> Expectation) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
-evaluateExpectation e _ around _ = ((around e) >> return Success) `E.catches` [
-    E.Handler (\(HUnitFailure err) -> return (Fail err))
-  , E.Handler (return :: Result -> IO Result)
-  ]
+instance EvaluateExample Expectation where
+  evaluate_ e _ around _ = ((around e) >> return Success) `E.catches` [
+      E.Handler (\(HUnitFailure err) -> return (Fail err))
+    , E.Handler (return :: Result -> IO Result)
+    ]
 
-instance Testable t => Example (a -> b -> c -> d -> t) where
-  type Arg (a -> b -> c -> d -> t) = (d, (c, (b, (a, ()))))
-  -- e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-  evaluateExample = evaluate . uncurryT
-
-class Testable t where
-  -- type Foo t x
-  evaluate :: (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
-
-instance Testable Expectation where
-  -- type Foo Expectation a = a
-  evaluate = evaluateExpectation
-
-instance Testable QC.Property where
-  -- type Foo QC.Property a = a
-  evaluate = evaluateProperty
-
--- evaluate_ :: forall proxy t a. (Testable t, UncurryT (a -> t)) => proxy t -> Curry (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
--- evaluate_ _ = (evaluate :: (a -> t) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result) . uncurryT
+instance EvaluateExample Result where
+  evaluate_ e _ aroundAction _ = do
+    ref <- newIORef Success
+    aroundAction $ \arg -> writeIORef ref (e arg)
+    readIORef ref
 
 instance Example Result where
   type Arg Result = ()
-  evaluateExample r _ _ _ = return r
+  evaluateExample = evaluate_ . uncurryT
 
 instance Example QC.Property where
   type Arg QC.Property = ()
-  evaluateExample = evaluateProperty . uncurryT
+  evaluateExample = evaluate_ . uncurryT
 
 instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = (a, ())
-  evaluateExample = evaluateProperty . uncurryT
+  evaluateExample = foo Proxy
 
 instance Example (a -> b -> QC.Property) where
   type Arg (a -> b -> QC.Property) = (b, (a, ()))
-  evaluateExample = evaluateProperty . uncurryT
+  evaluateExample = evaluate_ . uncurryT
 
 instance Example (a -> b -> c -> QC.Property) where
   type Arg (a -> b -> c -> QC.Property) = (c, (b, (a, ())))
-  evaluateExample = evaluateProperty . uncurryT
+  evaluateExample = evaluate_ . uncurryT
+
+instance EvaluateExample QC.Property where
+  evaluate_ = evaluateProperty
 
 evaluateProperty :: (a -> QC.Property) -> Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 evaluateProperty p params around progressCallback = do
