@@ -430,7 +430,7 @@ spec = do
       let n = 10
           t = 0.01
           dt = t * (fromIntegral n / 2)
-      r <- timeout dt . silence . H.hspecResult . H.parallel $ do
+      r <- timeout dt . silence . withArgs ["-j", show n] . H.hspecResult . H.parallel $ do
         replicateM_ n (H.it "foo" $ sleep t)
       r `shouldBe` Just (H.Summary n 0)
 

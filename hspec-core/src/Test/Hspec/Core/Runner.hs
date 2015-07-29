@@ -123,9 +123,9 @@ hspecWithResult conf spec = do
         seed = (fromJust . configQuickCheckSeed) c
         qcArgs = configQuickCheckArgs c
 
-    jobsSem <- case configMaxParallelJobs c of
-      Nothing -> return Nothing
-      Just maxJobs -> liftM Just $ newQSem maxJobs
+    jobsSem <- newQSem =<< case configMaxParallelJobs c of
+      Nothing -> getNumCapabilities
+      Just maxJobs -> return maxJobs
 
     useColor <- doesUseColor h c
 

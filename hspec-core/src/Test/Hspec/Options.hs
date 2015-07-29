@@ -7,6 +7,7 @@ module Test.Hspec.Options (
 ) where
 
 import           Prelude ()
+import           Control.Monad
 import           Test.Hspec.Compat
 
 import           System.IO
@@ -139,14 +140,19 @@ options = [
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
   , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previously test run (only works in GHCi)")
-  , mkOption "j"  "jobs"              (Arg "N" readMaybe setMaxJobs)      (h "run at most N tests simultaneously (default: unlimited)")
-  , Option   []  ["unlimited-jobs"]   (NoArg clearMaxJobs)                (h "allow an unlimited number of jobs to run simultaneously (this is the default)")
+  , mkOption "j"  "jobs"              (Arg "N" readMaxJobs setMaxJobs)    (h "run at most N parallelizable tests simultaneously (default: number of available processors)")
   ]
   where
     h = unlines . addLineBreaks
 
     readFormatter :: String -> Maybe Formatter
     readFormatter = (`lookup` formatters)
+
+    readMaxJobs :: String -> Maybe Int
+    readMaxJobs s = do
+      n <- readMaybe s
+      guard $ n > 0
+      return n
 
     setFormatter :: Formatter -> Config -> Config
     setFormatter f c = c {configFormatter = Just f}
@@ -157,15 +163,12 @@ options = [
     setMaxJobs :: Int -> Config -> Config
     setMaxJobs n c = c {configMaxParallelJobs = Just n}
 
-
-
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun = True}
     setFastFail     x = x >>= \c -> return c {configFastFail = True}
     setRerun        x = x >>= \c -> return c {configRerun = True}
     setNoColor      x = x >>= \c -> return c {configColorMode = ColorNever}
     setColor        x = x >>= \c -> return c {configColorMode = ColorAlways}
-    clearMaxJobs    x = x >>= \c -> return c {configMaxParallelJobs = Nothing}
 
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [

@@ -22,7 +22,7 @@ import           Test.Hspec.Timer
 type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: Maybe QSem -> Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
+runFormatter :: QSem -> Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
 runFormatter jobsSem useColor h c formatter specs = do
   headerFormatter formatter
   chan <- liftIO newChan
@@ -53,27 +53,22 @@ every seconds action = do
 
 type FormatResult = Either E.SomeException Result -> FormatM ()
 
-parallelize :: Maybe QSem -> Bool -> (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+parallelize :: QSem -> Bool -> (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
 parallelize jobsSem isParallelizable e
   | isParallelizable = runParallel jobsSem e
-  | otherwise = runSequentially jobsSem e
+  | otherwise = runSequentially e
 
-limitParallelism :: Maybe QSem -> IO a -> IO a
-limitParallelism jobsSem = case jobsSem of
-  Nothing -> id
-  Just s -> E.bracket_ (waitQSem s) (signalQSem s)
-
-runSequentially :: Maybe QSem -> (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
-runSequentially jobsSem e reportProgress formatResult = return $ do
-  result <- liftIO $ limitParallelism jobsSem $ evalExample (e reportProgress)
+runSequentially :: (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+runSequentially e reportProgress formatResult = return $ do
+  result <- liftIO $ evalExample (e reportProgress)
   formatResult result
 
 data Report = ReportProgress Progress | ReportResult (Either E.SomeException Result)
 
-runParallel :: Maybe QSem -> (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+runParallel :: QSem -> (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
 runParallel jobsSem e reportProgress formatResult = do
   mvar <- newEmptyMVar
-  _ <- forkIO $ limitParallelism jobsSem $ do
+  _ <- forkIO $ E.bracket_ (waitQSem jobsSem) (signalQSem jobsSem) $ do
     let progressCallback = replaceMVar mvar . ReportProgress
     result <- evalExample (e progressCallback)
     replaceMVar mvar (ReportResult result)
