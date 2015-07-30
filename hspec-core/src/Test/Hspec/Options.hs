@@ -7,6 +7,7 @@ module Test.Hspec.Options (
 ) where
 
 import           Prelude ()
+import           Control.Monad
 import           Test.Hspec.Compat
 
 import           System.IO
@@ -37,6 +38,7 @@ data Config = Config {
 , configFormatter :: Maybe Formatter
 , configHtmlOutput :: Bool
 , configOutputFile :: Either Handle FilePath
+, configMaxParallelJobs :: Maybe Int
 }
 
 defaultConfig :: Config
@@ -56,6 +58,7 @@ defaultConfig = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configOutputFile = Left stdout
+, configMaxParallelJobs = Nothing
 }
 
 filterOr :: Maybe (Path -> Bool) -> Maybe (Path -> Bool) -> Maybe (Path -> Bool)
@@ -137,6 +140,7 @@ options = [
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
   , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previously test run (only works in GHCi)")
+  , mkOption "j"  "jobs"              (Arg "N" readMaxJobs setMaxJobs)    (h "run at most N parallelizable tests simultaneously (default: number of available processors)")
   ]
   where
     h = unlines . addLineBreaks
@@ -144,11 +148,20 @@ options = [
     readFormatter :: String -> Maybe Formatter
     readFormatter = (`lookup` formatters)
 
+    readMaxJobs :: String -> Maybe Int
+    readMaxJobs s = do
+      n <- readMaybe s
+      guard $ n > 0
+      return n
+
     setFormatter :: Formatter -> Config -> Config
     setFormatter f c = c {configFormatter = Just f}
 
     setOutputFile :: String -> Config -> Config
     setOutputFile file c = c {configOutputFile = Right file}
+
+    setMaxJobs :: Int -> Config -> Config
+    setMaxJobs n c = c {configMaxParallelJobs = Just n}
 
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun = True}
