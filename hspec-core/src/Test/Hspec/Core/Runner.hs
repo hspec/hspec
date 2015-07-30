@@ -1,3 +1,10 @@
+{-# LANGUAGE CPP #-}
+
+#if MIN_VERSION_base(4,6,0)
+-- Control.Concurrent.QSem is deprecated in base-4.6.0.*
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
+#endif
+
 -- |
 -- Stability: provisional
 module Test.Hspec.Core.Runner (
