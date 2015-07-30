@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module Test.Hspec.Compat (
-  showType
+  getDefaultConcurrentJobs
+, showType
 , showFullType
 , readMaybe
 , lookupEnv
@@ -56,10 +57,18 @@ import           System.Environment
 
 #if MIN_VERSION_base(4,4,0)
 import           Data.Typeable.Internal (tyConModule, tyConName)
+import           Control.Concurrent
 #endif
 
 #if !MIN_VERSION_base(4,6,0)
 import qualified Text.ParserCombinators.ReadP as P
+#endif
+
+getDefaultConcurrentJobs :: IO Int
+#if MIN_VERSION_base(4,4,0)
+getDefaultConcurrentJobs = getNumCapabilities
+#else
+getDefaultConcurrentJobs = return 1
 #endif
 
 #if !MIN_VERSION_base(4,6,0)

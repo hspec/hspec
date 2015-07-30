@@ -36,7 +36,8 @@ spec = do
         evaluateExample (23 `shouldBe` (23 :: Int)) `shouldReturn` H.Success
 
       it "returns Fail if an expectation does not hold" $ do
-        evaluateExample (23 `shouldBe` (42 :: Int)) `shouldReturn` H.Fail "expected: 42\n but got: 23"
+        H.Fail msg <- evaluateExample (23 `shouldBe` (42 :: Int))
+        msg `shouldEndWith` "expected: 42\n but got: 23"
 
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
@@ -101,9 +102,9 @@ spec = do
       context "when used with shouldBe" $ do
         it "shows what falsified it" $ do
           H.Fail r <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> 23 `shouldBe` (42 :: Int)
-          r `shouldBe` intercalate "\n" [
-              "Falsifiable (after 1 test): "
-            , "expected: 42"
+          r `shouldStartWith` "Falsifiable (after 1 test): \n"
+          r `shouldEndWith` intercalate "\n" [
+              "expected: 42"
             , " but got: 23"
             , "0"
             , "1"

@@ -131,7 +131,7 @@ hspecWithResult conf spec = do
         qcArgs = configQuickCheckArgs c
 
     jobsSem <- newQSem =<< case configConcurrentJobs c of
-      Nothing -> getNumCapabilities
+      Nothing -> getDefaultConcurrentJobs
       Just maxJobs -> return maxJobs
 
     useColor <- doesUseColor h c
