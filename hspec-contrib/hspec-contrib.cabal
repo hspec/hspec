@@ -1,5 +1,5 @@
 name:             hspec-contrib
-version:          0.2.2
+version:          0.3.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,
@@ -29,11 +29,9 @@ library
       base == 4.*
     , hspec-core
     , HUnit
-    , logging-facade
   exposed-modules:
       Test.Hspec.Contrib.Retry
       Test.Hspec.Contrib.HUnit
-      Test.Hspec.Contrib.LoggingFacade
   other-modules:
   default-language: Haskell2010
 
@@ -48,14 +46,12 @@ test-suite spec
       Helper
       Test.Hspec.Contrib.RetrySpec
       Test.Hspec.Contrib.HUnitSpec
-      Test.Hspec.Contrib.LoggingFacadeSpec
   ghc-options:
       -Wall
   build-depends:
       base == 4.*
     , hspec-core
     , HUnit
-    , logging-facade
 
     , hspec-contrib
     , hspec
