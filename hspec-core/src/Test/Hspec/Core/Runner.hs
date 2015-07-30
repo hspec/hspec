@@ -123,7 +123,7 @@ hspecWithResult conf spec = do
         seed = (fromJust . configQuickCheckSeed) c
         qcArgs = configQuickCheckArgs c
 
-    jobsSem <- newQSem =<< case configMaxParallelJobs c of
+    jobsSem <- newQSem =<< case configConcurrentJobs c of
       Nothing -> getNumCapabilities
       Just maxJobs -> return maxJobs
 

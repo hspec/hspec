@@ -1,10 +1,11 @@
 module Test.Hspec.OptionsSpec (main, spec) where
 
+import           Control.Monad
 import           Helper
 import           System.Exit
 
-import           Test.Hspec.Options hiding (parseOptions)
 import qualified Test.Hspec.Options as Options
+import           Test.Hspec.Options hiding (parseOptions)
 
 main :: IO ()
 main = hspec spec
@@ -42,3 +43,11 @@ spec = do
     context "with --depth" $ do
       it "sets depth parameter for SmallCheck" $ do
         configSmallCheckDepth <$> parseOptions ["--depth", "23"] `shouldBe` Right 23
+
+    context "with --jobs" $ do
+      it "sets number of concurrent jobs" $ do
+        configConcurrentJobs <$> parseOptions ["--jobs=23"] `shouldBe` Right (Just 23)
+
+      it "rejects values < 1" $ do
+        let msg = "my-spec: invalid argument `0' for `--jobs'\nTry `my-spec --help' for more information.\n"
+        void (parseOptions ["--jobs=0"]) `shouldBe` Left (ExitFailure 1, msg)

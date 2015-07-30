@@ -38,7 +38,7 @@ data Config = Config {
 , configFormatter :: Maybe Formatter
 , configHtmlOutput :: Bool
 , configOutputFile :: Either Handle FilePath
-, configMaxParallelJobs :: Maybe Int
+, configConcurrentJobs :: Maybe Int
 }
 
 defaultConfig :: Config
@@ -58,7 +58,7 @@ defaultConfig = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configOutputFile = Left stdout
-, configMaxParallelJobs = Nothing
+, configConcurrentJobs = Nothing
 }
 
 filterOr :: Maybe (Path -> Bool) -> Maybe (Path -> Bool) -> Maybe (Path -> Bool)
@@ -161,7 +161,7 @@ options = [
     setOutputFile file c = c {configOutputFile = Right file}
 
     setMaxJobs :: Int -> Config -> Config
-    setMaxJobs n c = c {configMaxParallelJobs = Just n}
+    setMaxJobs n c = c {configConcurrentJobs = Just n}
 
     setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
     setDryRun       x = x >>= \c -> return c {configDryRun = True}
