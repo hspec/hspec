@@ -43,7 +43,7 @@ library
       base == 4.*
     , hspec-core == 2.1.9
     , hspec-discover == 2.1.9
-    , hspec-expectations == 0.7.0.*
+    , hspec-expectations == 0.7.1.*
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
     , HUnit >= 1.2.5

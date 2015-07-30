@@ -1,5 +1,6 @@
 ## Changes in 2.1.9
-  - Make use of GHC 7.10.2 source locations for `it`
+  - Make use of GHC 7.10.2 source locations
+  - Add `--jobs`
 
 ## Changes in 2.1.8
   - Depend on `hspec-expectations-0.7.0"
