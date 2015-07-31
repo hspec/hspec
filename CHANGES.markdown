@@ -1,3 +1,6 @@
+## Changes in 2.1.10
+  - GHC 7.0.* compatibility
+
 ## Changes in 2.1.9
   - Make use of GHC 7.10.2 source locations
   - Add `--jobs`
