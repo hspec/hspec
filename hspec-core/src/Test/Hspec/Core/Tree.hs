@@ -81,7 +81,7 @@ data Item a = Item {
 
 -- | @Location@ is used to represent source locations.
 data Location = Location {
-  locationFile :: String
+  locationFile :: FilePath
 , locationLine :: Int
 , locationColumn :: Int
 , locationAccuracy :: LocationAccuracy
