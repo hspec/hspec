@@ -14,7 +14,7 @@ module Test.Hspec.Core.Hooks (
 , aroundWith
 ) where
 
-import           Control.Exception (finally)
+import           Control.Exception (SomeException, finally, throwIO, try)
 import           Control.Concurrent.MVar
 
 import           Test.Hspec.Core.Spec
@@ -34,21 +34,29 @@ beforeWith action = aroundWith $ \e x -> action x >>= e
 -- | Run a custom action before the first spec item.
 beforeAll :: IO a -> SpecWith a -> Spec
 beforeAll action spec = do
-  mvar <- runIO (newMVar Nothing)
+  mvar <- runIO (newMVar Empty)
   before (memoize mvar action) spec
 
 -- | Run a custom action before the first spec item.
 beforeAll_ :: IO () -> SpecWith a -> SpecWith a
 beforeAll_ action spec = do
-  mvar <- runIO (newMVar Nothing)
+  mvar <- runIO (newMVar Empty)
   before_ (memoize mvar action) spec
 
-memoize :: MVar (Maybe a) -> IO a -> IO a
-memoize mvar action = modifyMVar mvar $ \ma -> case ma of
-  Just a -> return (ma, a)
-  Nothing -> do
-    a <- action
-    return (Just a, a)
+data Memoized a =
+    Empty
+  | Memoized a
+  | Failed SomeException
+
+memoize :: MVar (Memoized a) -> IO a -> IO a
+memoize mvar action = do
+  result <- modifyMVar mvar $ \ma -> case ma of
+    Empty -> do
+      a <- try action
+      return (either Failed Memoized a, a)
+    Memoized a -> return (ma, Right a)
+    Failed _ -> throwIO (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+  either throwIO return result
 
 -- | Run a custom action after every spec item.
 after :: ActionWith a -> SpecWith a -> SpecWith a
