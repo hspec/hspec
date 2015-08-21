@@ -29,7 +29,7 @@ dependencies:
   - HUnit >= 1.2.5
   - QuickCheck >= 2.5.1
   - quickcheck-io
-  - hspec-expectations == 0.7.1.*
+  - hspec-expectations == 0.7.2.*
   - async >= 2
 
 library:
