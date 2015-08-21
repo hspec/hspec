@@ -49,6 +49,6 @@ tests:
       - test
       - src
     dependencies:
-      - hspec-meta >= 2.1.5
+      - hspec-meta >= 2.2.0
       - silently >= 1.2.4
       - process

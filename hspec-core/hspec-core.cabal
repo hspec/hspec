@@ -84,7 +84,7 @@ test-suite spec
     , quickcheck-io
     , hspec-expectations == 0.7.1.*
     , async >= 2
-    , hspec-meta >= 2.1.5
+    , hspec-meta >= 2.2.0
     , silently >= 1.2.4
     , process
   other-modules:
