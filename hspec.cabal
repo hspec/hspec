@@ -1,5 +1,5 @@
 name:             hspec
-version:          2.1.10
+version:          2.2.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,
@@ -41,8 +41,8 @@ library
       src
   build-depends:
       base == 4.*
-    , hspec-core == 2.1.10
-    , hspec-discover == 2.1.10
+    , hspec-core == 2.2.0
+    , hspec-discover == 2.2.0
     , hspec-expectations == 0.7.1.*
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1

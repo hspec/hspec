@@ -1,3 +1,6 @@
+## Changes in 2.2.0
+  - Add source locations to test `Result`
+
 ## Changes in 2.1.10
   - GHC 7.0.* compatibility
 
