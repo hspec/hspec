@@ -66,7 +66,11 @@ instance Example Expectation where
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
   evaluateExample e _ action _ = (action e >> return Success) `E.catches` [
+#if MIN_VERSION_HUnit(1,3,0)
+      E.Handler (\(HUnitFailure _ err) -> return (Fail err))
+#else
       E.Handler (\(HUnitFailure err) -> return (Fail err))
+#endif
     , E.Handler (return :: Result -> IO Result)
     ]
 
