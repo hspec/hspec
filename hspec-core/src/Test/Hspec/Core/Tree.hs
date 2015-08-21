@@ -12,8 +12,6 @@ module Test.Hspec.Core.Tree (
   SpecTree
 , Tree (..)
 , Item (..)
-, Location (..)
-, LocationAccuracy (..)
 , specGroup
 , specItem
 ) where
@@ -78,23 +76,6 @@ data Item a = Item {
   -- | Example for behavior
 , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 }
-
--- | @Location@ is used to represent source locations.
-data Location = Location {
-  locationFile :: FilePath
-, locationLine :: Int
-, locationColumn :: Int
-, locationAccuracy :: LocationAccuracy
-} deriving (Eq, Show)
-
--- | A marker for source locations
-data LocationAccuracy =
-  -- | The source location is accurate
-  ExactLocation |
-  -- | The source location was determined on a best-effort basis and my be
-  -- wrong or inaccurate
-  BestEffort
-  deriving (Eq, Show)
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
 specGroup :: String -> [SpecTree a] -> SpecTree a

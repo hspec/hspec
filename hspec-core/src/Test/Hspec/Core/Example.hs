@@ -7,11 +7,13 @@ module Test.Hspec.Core.Example (
 , Progress
 , ProgressCallback
 , Result (..)
+, Location (..)
+, LocationAccuracy (..)
 ) where
 
 import           Data.Maybe (fromMaybe)
 import           Data.List (isPrefixOf)
-import           Test.HUnit.Lang (HUnitFailure(..))
+import qualified Test.HUnit.Lang as HUnit
 import qualified Control.Exception as E
 import           Data.Typeable (Typeable)
 import qualified Test.QuickCheck as QC
@@ -50,27 +52,52 @@ type ProgressCallback = Progress -> IO ()
 type ActionWith a = a -> IO ()
 
 -- | The result of running an example
-data Result = Success | Pending (Maybe String) | Fail String
+data Result = Success | Pending (Maybe String) | Fail (Maybe Location) String
   deriving (Eq, Show, Read, Typeable)
 
 instance E.Exception Result
 
+-- | @Location@ is used to represent source locations.
+data Location = Location {
+  locationFile :: FilePath
+, locationLine :: Int
+, locationColumn :: Int
+, locationAccuracy :: LocationAccuracy
+} deriving (Eq, Show, Read)
+
+-- | A marker for source locations
+data LocationAccuracy =
+  -- | The source location is accurate
+  ExactLocation |
+  -- | The source location was determined on a best-effort basis and my be
+  -- wrong or inaccurate
+  BestEffort
+  deriving (Eq, Show, Read)
+
 instance Example Bool where
   type Arg Bool = ()
-  evaluateExample b _ _ _ = if b then return Success else return (Fail "")
+  evaluateExample b _ _ _ = if b then return Success else return (Fail Nothing "")
 
 instance Example Expectation where
   type Arg Expectation = ()
   evaluateExample e = evaluateExample (\() -> e)
 
+hunitFailureToResult :: HUnit.HUnitFailure -> Result
+hunitFailureToResult e = case e of
+#if MIN_VERSION_HUnit(1,3,0)
+  HUnit.HUnitFailure loc err -> Fail location err
+    where
+      location = case loc of
+        Nothing -> Nothing
+        Just (HUnit.Location f l c) -> Just $ Location f l c ExactLocation
+#else
+  HUnit.HUnitFailure err -> Fail Nothing err
+#endif
+
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
   evaluateExample e _ action _ = (action e >> return Success) `E.catches` [
-#if MIN_VERSION_HUnit(1,3,0)
-      E.Handler (\(HUnitFailure _ err) -> return (Fail err))
-#else
-      E.Handler (\(HUnitFailure err) -> return (Fail err))
-#endif
+      E.Handler (return . hunitFailureToResult)
     , E.Handler (return :: Result -> IO Result)
     ]
 
@@ -89,11 +116,11 @@ instance Example (a -> QC.Property) where
     return $
       case r of
         QC.Success {}               -> Success
-        QC.Failure {QC.output = m}  -> fromMaybe (Fail $ sanitizeFailureMessage r) (parsePending m)
-        QC.GaveUp {QC.numTests = n} -> Fail ("Gave up after " ++ pluralize n "test" )
-        QC.NoExpectedFailure {}     -> Fail ("No expected failure")
+        QC.Failure {QC.output = m}  -> fromMaybe (Fail Nothing $ sanitizeFailureMessage r) (parsePending m)
+        QC.GaveUp {QC.numTests = n} -> Fail Nothing ("Gave up after " ++ pluralize n "test" )
+        QC.NoExpectedFailure {}     -> Fail Nothing ("No expected failure")
 #if MIN_VERSION_QuickCheck(2,8,0)
-        QC.InsufficientCoverage {}  -> Fail ("Insufficient coverage")
+        QC.InsufficientCoverage {}  -> Fail Nothing ("Insufficient coverage")
 #endif
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $

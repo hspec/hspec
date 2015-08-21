@@ -19,11 +19,11 @@ testSpec :: H.Spec
 testSpec = do
   H.describe "Example" $ do
     H.it "success"    (H.Success)
-    H.it "fail 1"     (H.Fail "fail message")
+    H.it "fail 1"     (H.Fail Nothing "fail message")
     H.it "pending"    (H.pendingWith "pending message")
-    H.it "fail 2"     (H.Fail "")
+    H.it "fail 2"     (H.Fail Nothing "")
     H.it "exceptions" (undefined :: H.Result)
-    H.it "fail 3"     (H.Fail "")
+    H.it "fail 3"     (H.Fail Nothing "")
 
 spec :: Spec
 spec = do
