@@ -191,10 +191,13 @@ defaultFailedFormatter = do
           writeLine ("       " ++ x)
       where
         err = either (("uncaught exception: " ++) . formatException) id reason
-        formatLoc (Location file line _column accuracy) = "  " ++ file ++ ":" ++ show line ++ ":" ++ bestEffortMarking
+        formatLoc (Location file line _column accuracy) = "  " ++ file ++ ":" ++ show line ++ ":" ++ message
           where
-            bestEffortMarking = case accuracy of
-              ExactLocation -> ""
+            message = case accuracy of
+              ExactLocation -> " " -- NOTE: Vim's default 'errorformat'
+                                   -- requires a non-empty message.  This is
+                                   -- why we use a single space as message
+                                   -- here.
               BestEffort -> " (best-effort)"
 
 defaultFooter :: FormatM ()

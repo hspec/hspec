@@ -168,7 +168,7 @@ failed_examplesSpec formatter = do
             addLoc e = e {H.itemLocation = Just loc}
         r <- runSpec $ H.mapSpecItem_ addLoc $ do
           H.it "foo" False
-        r `shouldContain` ["  test/FooSpec.hs:23:", "  1) foo"]
+        r `shouldContain` ["  test/FooSpec.hs:23: ", "  1) foo"]
 
       context "when source location is exact" $ do
         it "includes that source locations" $ do
@@ -176,7 +176,7 @@ failed_examplesSpec formatter = do
               addLoc e = e {H.itemLocation = Just loc}
           r <- runSpec $ H.mapSpecItem_ addLoc $ do
             H.it "foo" False
-          r `shouldSatisfy` any (== "  test/FooSpec.hs:23:")
+          r `shouldSatisfy` any (== "  test/FooSpec.hs:23: ")
 
         it "does not include 'best-effort' explanation" $ do
           let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
