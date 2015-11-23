@@ -1,13 +1,17 @@
+{-# LANGUAGE CPP #-}
 module Test.Hspec.FailureReport (
   FailureReport (..)
 , writeFailureReport
 , readFailureReport
 ) where
 
-import           System.IO
+#ifndef __GHCJS__
 import           System.SetEnv
+import           Test.Hspec.Core.Util (safeTry)
+#endif
+import           System.IO
 import           Test.Hspec.Compat
-import           Test.Hspec.Core.Util (Path, safeTry)
+import           Test.Hspec.Core.Util (Path)
 
 data FailureReport = FailureReport {
   failureReportSeed :: Integer
@@ -18,6 +22,14 @@ data FailureReport = FailureReport {
 } deriving (Eq, Show, Read)
 
 writeFailureReport :: FailureReport -> IO ()
+#ifdef __GHCJS__
+writeFailureReport _ = return ()
+  -- ghcjs currently does not support setting environment variables
+  -- (https://github.com/ghcjs/ghcjs/issues/263). Since writing a failure report
+  -- into the environment is a non-essential feature we just disable this to be
+  -- able to run hspec test-suites with ghcjs at all. Should be reverted once
+  -- the issue is fixed.
+#else
 writeFailureReport x = do
   -- on Windows this can throw an exception when the input is too large, hence
   -- we use `safeTry` here
@@ -25,6 +37,7 @@ writeFailureReport x = do
   where
     onError err = do
       hPutStrLn stderr ("WARNING: Could not write environment variable HSPEC_FAILURES (" ++ show err ++ ")")
+#endif
 
 readFailureReport :: IO (Maybe FailureReport)
 readFailureReport = do

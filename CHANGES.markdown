@@ -1,5 +1,6 @@
 ## Changes in 2.2.1
   - Make sure that Vim's default `errorformat` recognizes exact locations
+  - GHCJS compatibility
 
 ## Changes in 2.2.0
   - Add source locations to test `Result`
