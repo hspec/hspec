@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.2.0
+version:          2.2.1
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,
