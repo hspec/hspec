@@ -51,8 +51,8 @@ spec = do
       show e `shouldBe` "foobar"
 
     it "evaluates result to weak head normal form" $ do
-      Left e <- safeTry (return undefined)
-      show e `shouldBe` "Prelude.undefined"
+      Left e <- safeTry (return $ E.throw $ E.ErrorCall "foo")
+      show e `shouldBe` "foo"
 
     it "does not catch asynchronous exceptions" $ do
       mvar <- newEmptyMVar

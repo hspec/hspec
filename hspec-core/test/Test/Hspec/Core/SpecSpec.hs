@@ -11,7 +11,9 @@ import           Prelude ()
 import           Helper
 
 #ifdef HAS_SOURCE_LOCATIONS
+#if !MIN_VERSION_base(4,9,0)
 import           GHC.SrcLoc
+#endif
 import           GHC.Stack
 #endif
 
