@@ -1,4 +1,4 @@
-version: 2.2.1
+version: 2.2.2
 synopsis: A Testing Framework for Haskell
 description: >
   This package exposes internal types and functions that can be used to extend

@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.5.4.
+-- This file has been generated from package.yaml by hpack version 0.8.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.2.1
+version:          2.2.2
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,

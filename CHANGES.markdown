@@ -1,3 +1,6 @@
+## Changes in 2.2.2
+  - Fix compilation for GHC 8.0.1-rc1
+
 ## Changes in 2.2.1
   - Make sure that Vim's default `errorformat` recognizes exact locations
   - GHCJS compatibility
