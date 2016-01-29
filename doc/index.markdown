@@ -39,6 +39,7 @@ An example is worth a thousand words, so here we go:
 * [hspec-smallcheck](http://hackage.haskell.org/package/hspec-smallcheck) — support for _SmallCheck_
 * [hspec-laws](http://hackage.haskell.org/package/hspec-laws) — document and test laws for standard type classes
 * [hspec-attoparsec](http://hackage.haskell.org/package/hspec-attoparsec) — utility functions for testing your _attoparsec_ parsers with hspec
+* [hspec-megaparsec](http://hackage.haskell.org/package/hspec-megaparsec) — utility functions for testing your _megaparsec_ parsers with hspec
 * [hspec-jenkins](http://hackage.haskell.org/package/hspec-jenkins) — Jenkins-friendly XML formatter for Hspec
 * [hspec-expectations-lifted](http://hackage.haskell.org/package/hspec-expectations-lifted) — a version of _hspec-expectations_ generalized to MonadIO
 * [hspec-expectations-pretty](http://hackage.haskell.org/package/hspec-expectations-pretty) — _hspec-expectations_ with pretty printing on failure
