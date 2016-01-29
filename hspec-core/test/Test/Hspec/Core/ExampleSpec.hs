@@ -4,6 +4,7 @@ module Test.Hspec.Core.ExampleSpec (main, spec) where
 import           Helper
 import           Mock
 import           Data.List
+import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
@@ -89,7 +90,7 @@ spec = do
         readIORef ref `shouldReturn` 2000
 
       it "pretty-prints exceptions" $ do
-        H.Fail _ r <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (error "foobar" :: Bool))
+        H.Fail _ r <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (E.throw (E.ErrorCall "foobar") :: Bool))
         r `shouldBe` intercalate "\n" [
 #if MIN_VERSION_QuickCheck(2,7,0)
             "uncaught exception: ErrorCall (foobar) (after 1 test)"

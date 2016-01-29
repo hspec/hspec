@@ -3,6 +3,7 @@ module Test.Hspec.Core.FormattersSpec (main, spec) where
 
 import           Prelude ()
 import           Helper
+import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
@@ -146,10 +147,10 @@ failed_examplesSpec formatter = do
 
     it "prints the exception type for requirements that fail due to an uncaught exception" $ do
       r <- runSpec $ do
-        H.it "foobar" (undefined :: Bool)
+        H.it "foobar" (E.throw (E.ErrorCall "baz") :: Bool)
       r `shouldContain` [
           "  1) foobar"
-        , "       uncaught exception: ErrorCall (Prelude.undefined)"
+        , "       uncaught exception: ErrorCall (baz)"
         ]
 
     it "prints all descriptions when a nested requirement fails" $ do
