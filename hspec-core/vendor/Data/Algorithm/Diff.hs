@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Algorithm.Diff
@@ -34,7 +35,7 @@ data DI = F | S | B deriving (Show, Eq)
 -- 'Both' contains both the left and right values, in case you are using a form
 -- of equality that doesn't check all data (for example, if you are using a
 -- newtype to only perform equality on side of a tuple).
-data Diff a = First a | Second a | Both a a deriving (Show, Eq)
+data Diff a = First a | Second a | Both a a deriving (Show, Eq, Functor)
 
 data DL = DL {poi :: !Int, poj :: !Int, path::[DI]} deriving (Show, Eq)
 
