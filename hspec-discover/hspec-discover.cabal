@@ -1,3 +1,7 @@
+-- This file has been generated from package.yaml by hpack version 0.11.2.
+--
+-- see: https://github.com/sol/hpack
+
 name:             hspec-discover
 version:          2.2.2
 license:          MIT
@@ -17,10 +21,10 @@ description:      Automatically discover and run Hspec tests
                   <http://hspec.github.io/hspec-discover.html>
 
 extra-source-files:
-  test-data/nested-spec/FooSpec.hs
-  test-data/nested-spec/Foo/Bar/BazSpec.hs
-  test-data/nested-spec/Foo/BarSpec.hs
-  test-data/empty-dir/Foo/Bar/Baz/.placeholder
+    test-data/empty-dir/Foo/Bar/Baz/.placeholder
+    test-data/nested-spec/Foo/Bar/BazSpec.hs
+    test-data/nested-spec/Foo/BarSpec.hs
+    test-data/nested-spec/FooSpec.hs
 
 source-repository head
   type: git
@@ -28,18 +32,22 @@ source-repository head
   subdir: hspec-discover
 
 library
+  ghc-options: -Wall
+  build-depends:
+      base == 4.*
+    , filepath
+    , directory
   default-language: Haskell2010
 
 executable hspec-discover
-  ghc-options:
-      -Wall
+  ghc-options: -Wall
   hs-source-dirs:
       src
-  main-is:
-      Main.hs
+    , driver
+  main-is: hspec-discover.hs
   other-modules:
-      Run
       Config
+      Run
   build-depends:
       base == 4.*
     , filepath
@@ -47,19 +55,18 @@ executable hspec-discover
   default-language: Haskell2010
 
 test-suite spec
-  type:
-      exitcode-stdio-1.0
-  ghc-options:
-      -Wall
+  type: exitcode-stdio-1.0
+  ghc-options: -Wall
   hs-source-dirs:
       src
     , test
-  main-is:
-      Spec.hs
+  main-is: Spec.hs
   other-modules:
+      Config
+      Run
+      ConfigSpec
       Helper
       RunSpec
-      ConfigSpec
   build-depends:
       base == 4.*
     , filepath
