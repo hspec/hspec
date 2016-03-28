@@ -26,19 +26,23 @@ dependencies:
   - filepath
   - directory
 
-library: {}
+library:
+  source-dirs: src
+  exposed: no
 
 executables:
   hspec-discover:
-    source-dirs:
-      - src
-      - driver
     main: hspec-discover.hs
+    source-dirs:
+      - driver
+    dependencies:
+      - hspec-discover
 
 tests:
   spec:
     main: Spec.hs
     source-dirs:
-      - src
       - test
-    dependencies: hspec-meta >= 2.2.0
+    dependencies:
+      - hspec-discover
+      - hspec-meta >= 2.2.0

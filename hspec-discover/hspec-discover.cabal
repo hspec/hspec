@@ -32,38 +32,38 @@ source-repository head
   subdir: hspec-discover
 
 library
+  hs-source-dirs:
+      src
   ghc-options: -Wall
   build-depends:
       base == 4.*
     , filepath
     , directory
+  exposed: False
+  exposed-modules:
+      Test.Hspec.Discover.Config
+      Test.Hspec.Discover.Run
   default-language: Haskell2010
 
 executable hspec-discover
   ghc-options: -Wall
   hs-source-dirs:
-      src
-    , driver
+      driver
   main-is: hspec-discover.hs
-  other-modules:
-      Test.Hspec.Discover.Config
-      Test.Hspec.Discover.Run
   build-depends:
       base == 4.*
     , filepath
     , directory
+    , hspec-discover
   default-language: Haskell2010
 
 test-suite spec
   type: exitcode-stdio-1.0
   ghc-options: -Wall
   hs-source-dirs:
-      src
-    , test
+      test
   main-is: Spec.hs
   other-modules:
-      Test.Hspec.Discover.Config
-      Test.Hspec.Discover.Run
       ConfigSpec
       Helper
       RunSpec
@@ -71,5 +71,6 @@ test-suite spec
       base == 4.*
     , filepath
     , directory
+    , hspec-discover
     , hspec-meta >= 2.2.0
   default-language: Haskell2010

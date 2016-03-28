@@ -1,6 +1,9 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | A preprocessor that finds and combines specs.
+--
+-- /NOTE:/ This module is not meant for public consumption.  For user
+-- documentation look at http://hspec.github.io/hspec-discover.html.
 module Test.Hspec.Discover.Run (
   run
 

@@ -1,4 +1,5 @@
 ## Changes in 2.2.3
+  - Make sure that `cabal haddock` works for `hspec-discover`
   - Forward compatibility for HUnit 1.4
   - Fix tests for GHC 8.0.1-rc1
 
