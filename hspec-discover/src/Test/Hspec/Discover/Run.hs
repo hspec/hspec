@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | A preprocessor that finds and combines specs.
-module Run (
+module Test.Hspec.Discover.Run (
   run
 
 -- exported for testing
@@ -26,7 +26,7 @@ import           System.IO
 import           System.Directory (doesDirectoryExist, getDirectoryContents, doesFileExist)
 import           System.FilePath hiding (combine)
 
-import           Config
+import           Test.Hspec.Discover.Config
 
 instance IsString ShowS where
   fromString = showString

@@ -2,7 +2,7 @@ module ConfigSpec (main, spec) where
 
 import           Helper
 
-import           Config
+import           Test.Hspec.Discover.Config
 
 main :: IO ()
 main = hspec spec

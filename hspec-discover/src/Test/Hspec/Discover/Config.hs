@@ -1,4 +1,4 @@
-module Config (
+module Test.Hspec.Discover.Config (
   Config (..)
 , defaultConfig
 , parseConfig

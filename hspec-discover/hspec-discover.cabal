@@ -46,8 +46,8 @@ executable hspec-discover
     , driver
   main-is: hspec-discover.hs
   other-modules:
-      Config
-      Run
+      Test.Hspec.Discover.Config
+      Test.Hspec.Discover.Run
   build-depends:
       base == 4.*
     , filepath
@@ -62,8 +62,8 @@ test-suite spec
     , test
   main-is: Spec.hs
   other-modules:
-      Config
-      Run
+      Test.Hspec.Discover.Config
+      Test.Hspec.Discover.Run
       ConfigSpec
       Helper
       RunSpec

@@ -7,8 +7,8 @@ import           System.Directory
 import           System.FilePath
 import           Data.List (sort)
 
-import           Run hiding (Spec)
-import qualified Run
+import           Test.Hspec.Discover.Run hiding (Spec)
+import qualified Test.Hspec.Discover.Run
 
 main :: IO ()
 main = hspec spec
@@ -123,4 +123,4 @@ spec = do
         , "import qualified BarSpec"
         ]
   where
-    spec_ = Run.Spec
+    spec_ = Test.Hspec.Discover.Run.Spec
