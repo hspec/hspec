@@ -1,3 +1,7 @@
+-- This file has been generated from package.yaml by hpack version 0.12.0.
+--
+-- see: https://github.com/sol/hpack
+
 name:             hspec
 version:          2.2.3
 license:          MIT
@@ -28,15 +32,14 @@ description:      Hspec is a testing framework for Haskell. It is inspired by
                   The Hspec Manual is at <http://hspec.github.io/>.
 
 extra-source-files:
-  changelog
+    changelog
 
 source-repository head
   type: git
   location: https://github.com/hspec/hspec
 
 library
-  ghc-options:
-      -Wall
+  ghc-options: -Wall
   hs-source-dirs:
       src
   build-depends:
@@ -49,32 +52,35 @@ library
     , HUnit >= 1.2.5
   exposed-modules:
       Test.Hspec
-      Test.Hspec.Runner
-      Test.Hspec.Formatters
-      Test.Hspec.QuickCheck
-      Test.Hspec.Discover
       Test.Hspec.Core
+      Test.Hspec.Discover
+      Test.Hspec.Formatters
       Test.Hspec.HUnit
+      Test.Hspec.QuickCheck
+      Test.Hspec.Runner
+  other-modules:
+      Paths_hspec
   default-language: Haskell2010
 
 test-suite spec
-  type:
-      exitcode-stdio-1.0
-  ghc-options:
-      -Wall
+  type: exitcode-stdio-1.0
+  ghc-options: -Wall
   hs-source-dirs:
       test
-  main-is:
-      Spec.hs
+  main-is: Spec.hs
   other-modules:
       Helper
       HelperSpec
       Test.Hspec.DiscoverSpec
   build-depends:
       base == 4.*
-    , hspec-core
+    , hspec-core == 2.2.3
+    , hspec-discover == 2.2.3
+    , hspec-expectations == 0.7.2.*
+    , transformers >= 0.2.2.0
+    , QuickCheck >= 2.5.1
+    , HUnit >= 1.2.5
     , hspec
-
     , directory
     , stringbuilder
     , hspec-meta >= 2.2.0

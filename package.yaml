@@ -1,0 +1,64 @@
+name:             hspec
+version:          2.2.3
+license:          MIT
+copyright:
+  - (c) 2011-2015 Simon Hengel
+  - (c) 2011-2012 Trystan Spangler
+  - (c) 2011 Greg Weber
+maintainer:       Simon Hengel <sol@typeful.net>
+category:         Testing
+stability:        experimental
+bug-reports:      https://github.com/hspec/hspec/issues
+homepage:         http://hspec.github.io/
+synopsis:         A Testing Framework for Haskell
+description: |
+  Hspec is a testing framework for Haskell. It is inspired by
+  the Ruby library RSpec. Some of Hspec's distinctive features
+  are:
+
+  * a friendly DSL for defining tests
+
+  * integration with QuickCheck, SmallCheck, and HUnit
+
+  * parallel test execution
+
+  * automatic discovery of test files
+
+  The Hspec Manual is at <http://hspec.github.io/>.
+
+extra-source-files: changelog
+
+github: hspec/hspec
+
+ghc-options: -Wall
+
+dependencies:
+  - base == 4.*
+  - hspec-core == 2.2.3
+  - hspec-discover == 2.2.3
+  - hspec-expectations == 0.7.2.*
+  - transformers >= 0.2.2.0
+  - QuickCheck >= 2.5.1
+  - HUnit >= 1.2.5
+
+library:
+  source-dirs: src
+  dependencies:
+  exposed-modules:
+    - Test.Hspec
+    - Test.Hspec.Core
+    - Test.Hspec.Discover
+    - Test.Hspec.Formatters
+    - Test.Hspec.HUnit
+    - Test.Hspec.QuickCheck
+    - Test.Hspec.Runner
+
+tests:
+  spec:
+    source-dirs: test
+    main: Spec.hs
+    dependencies:
+      - hspec
+      - directory
+      - stringbuilder
+      - hspec-meta >= 2.2.0
