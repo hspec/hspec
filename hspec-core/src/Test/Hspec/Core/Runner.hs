@@ -31,6 +31,10 @@ import           Data.Maybe
 import           System.IO
 import           System.Environment (getProgName, getArgs, withArgs)
 import           System.Exit
+#ifndef TEST
+import           System.FilePath (combine, makeRelative)
+import           System.Directory (getHomeDirectory, doesFileExist)
+#endif
 import qualified Control.Exception as E
 import           Control.Concurrent
 
@@ -122,9 +126,7 @@ hspecResult = hspecWithResult defaultConfig
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
 hspecWithResult conf spec = do
-  prog <- getProgName
-  args <- getArgs
-  c <- getConfig conf prog args >>= ensureSeed
+  c <- readConfig conf >>= ensureSeed
   withArgs [] {- do not leak command-line arguments to examples -} $ withHandle c $ \h -> do
     let formatter = fromMaybe specdoc (configFormatter c)
         seed = (fromJust . configQuickCheckSeed) c
@@ -172,6 +174,34 @@ hspecWithResult conf spec = do
     withHandle c action = case configOutputFile c of
       Left h -> action h
       Right path -> withFile path WriteMode action
+
+-- | Applies command line options to 'Config'.
+readConfig :: Config -> IO Config
+readConfig conf = do
+  prog <- getProgName
+  args <- getArgs
+#ifdef TEST
+  getConfig prog conf ("", args)
+#else
+  let localConfFile = makeRelative "." ".hspec"
+  globalConfFile <- ( `combine` ".hspec" ) <$> getHomeDirectory
+
+  localArgs <- readConfFileOptions localConfFile
+  globalArgs <- readConfFileOptions globalConfFile
+
+  foldM (getConfig prog) conf
+    [ (" (defined in " ++ globalConfFile ++ ")", globalArgs)
+    , (" (defined in " ++ localConfFile ++ ")", localArgs)
+    , ("", args)
+    ]
+
+-- | Reads command line configuration options from file.
+readConfFileOptions :: FilePath -> IO [String]
+readConfFileOptions fileName = do
+  confFileExists <- doesFileExist fileName
+  if confFileExists then lines <$> readFile fileName else return []
+
+#endif
 
 isDumb :: IO Bool
 isDumb = maybe False (== "dumb") <$> lookupEnv "TERM"

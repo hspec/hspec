@@ -42,6 +42,8 @@ library
     , quickcheck-io
     , hspec-expectations == 0.7.2.*
     , async >= 2
+    , directory
+    , filepath
   exposed-modules:
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
@@ -70,6 +72,7 @@ test-suite spec
       test
     , src
   ghc-options: -Wall
+  cpp-options: -DTEST
   build-depends:
       base >= 4.3 && < 5
     , random
@@ -84,6 +87,8 @@ test-suite spec
     , quickcheck-io
     , hspec-expectations == 0.7.2.*
     , async >= 2
+    , directory
+    , filepath
     , hspec-meta >= 2.2.0
     , silently >= 1.2.4
     , process

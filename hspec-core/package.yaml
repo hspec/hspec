@@ -31,6 +31,8 @@ dependencies:
   - quickcheck-io
   - hspec-expectations == 0.7.2.*
   - async >= 2
+  - directory
+  - filepath
 
 library:
   source-dirs: src
@@ -44,6 +46,7 @@ library:
 
 tests:
   spec:
+    cpp-options: -DTEST
     main: Spec.hs
     source-dirs:
       - test

@@ -186,13 +186,13 @@ undocumentedOptions = [
     setHtml :: Result -> Result
     setHtml x = x >>= \c -> return c {configHtmlOutput = True}
 
-parseOptions :: Config -> String -> [String] -> Either (ExitCode, String) Config
-parseOptions c prog args = case getOpt Permute (options ++ undocumentedOptions) args of
+parseOptions :: Config -> String -> String -> [String] -> Either (ExitCode, String) Config
+parseOptions c prog source args = case getOpt Permute (options ++ undocumentedOptions) args of
     (opts, [], []) -> case foldl' (flip id) (Right c) opts of
         Left Help                         -> Left (ExitSuccess, usageInfo ("Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS") options)
-        Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n")
+        Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'")
         Right x -> Right x
-    (_, _, err:_)  -> tryHelp err
-    (_, arg:_, _)  -> tryHelp ("unexpected argument `" ++ arg ++ "'\n")
+    (_, _, err:_)  -> tryHelp (init err)
+    (_, arg:_, _)  -> tryHelp ("unexpected argument `" ++ arg ++ "'")
   where
-    tryHelp msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ "Try `" ++ prog ++ " --help' for more information.\n")
+    tryHelp msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ source ++ "\nTry `" ++ prog ++ " --help' for more information.\n")
