@@ -86,7 +86,7 @@ spec = do
               e
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
-        H.Success <- evaluateExampleWith action (property $ modifyIORef ref succ)
+        H.Success <- evaluateExampleWith action (property $ \(_ :: Int) -> modifyIORef ref succ)
         readIORef ref `shouldReturn` 2000
 
       it "pretty-prints exceptions" $ do

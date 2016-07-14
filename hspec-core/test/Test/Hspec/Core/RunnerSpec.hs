@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.RunnerSpec (main, spec) where
 
 import           Prelude ()
@@ -330,7 +331,7 @@ spec = do
       it "tries QuickCheck properties specified number of times" $ do
         m <- newMock
         silence . withArgs ["--qc-max-success", "23"] . H.hspec $ do
-          H.it "foo" $ property $ do
+          H.it "foo" $ property $ \(_ :: Int) -> do
             mockAction m
         mockCounter m `shouldReturn` 23
 

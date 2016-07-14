@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.HooksSpec (main, spec) where
 
 import           Prelude ()
@@ -40,7 +41,7 @@ spec = do
       it "runs action before every check of the property" $ do
         (rec, retrieve) <- mkAppend
         runSilent $ H.before (rec "before" >> return "value") $ do
-          H.it "foo" $ \value -> property $ rec value
+          H.it "foo" $ \value -> property $ \(_ :: Int) -> rec value
         retrieve `shouldReturn` (take 200 . cycle) ["before", "value"]
 
       context "when used multiple times" $ do
@@ -69,14 +70,14 @@ spec = do
       it "runs action before every check of the property" $ do
         (rec, retrieve) <- mkAppend
         runSilent $ H.before_ (rec "before") $ do
-          H.it "foo" $ property $ rec "foo"
+          H.it "foo" $ property $ \(_ :: Int) -> rec "foo"
         retrieve `shouldReturn` (take 200 . cycle) ["before", "foo"]
 
       context "when used multiple times" $ do
         it "is evaluated outside in" $ do
           (rec, retrieve) <- mkAppend
           runSilent $ H.before_ (rec "outer") $ H.before_ (rec "inner") $ do
-            H.it "foo" $ property $ rec "foo"
+            H.it "foo" $ property $ \(_ :: Int) -> rec "foo"
           retrieve `shouldReturn` (take 300 . cycle) ["outer", "inner", "foo"]
 
   describe "beforeWith" $ do
