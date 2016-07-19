@@ -111,9 +111,10 @@ main = hspec $ around_ withStubbedApi $ do
       get c "/api/dogs" `shouldReturn` status200
 ```
 
-Hooks do not support passing values to spec items (for example, if you wanted
+Hooks support passing values to spec items (for example, if you wanted
 to open a database connection before each item and pass the connection in).
-However this shouldn't be a problem; you can just do something like this:
+This can be done with `before`, `around` and `after`. Here's an example
+for how to use `around`:
 
 ```hspec
 openConnection :: IO Connection
@@ -127,11 +128,12 @@ withDatabaseConnection = bracket openConnection closeConnection
 
 spec :: Spec
 spec = do
-  describe "createRecipe" $ do
-    it "creates a new recipe" $ withDatabaseConnection $ \c -> do
-      let ingredients = [Eggs, Butter, Flour, Sugar]
-      createRecipe c (Recipe "Cake" ingredients)
-      getRecipe c "Cake" `shouldReturn` ingredients
+  around withDatabaseConnection $ do
+    describe "createRecipe" $ do
+      it "creates a new recipe" $ \c -> do
+        let ingredients = [Eggs, Butter, Flour, Sugar]
+        createRecipe c (Recipe "Cake" ingredients)
+        getRecipe c "Cake" `shouldReturn` ingredients
 ```
 
 ### Using \`pending\` and \`pendingWith\`
