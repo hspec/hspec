@@ -1,4 +1,4 @@
-jekyll=bundle exec jekyll
+jekyll=tinc exec bundle exec jekyll
 
 all:
 	$(jekyll)
@@ -17,6 +17,7 @@ watch-less: less
 
 setup: pygments
 	bundle install
+	tinc
 
 pygments:
 	git clone https://github.com/sol/pygments -b hspec-doc

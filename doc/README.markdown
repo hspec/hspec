@@ -2,7 +2,7 @@
 
 A working ruby setup, including [Bundler](http://gembundler.com/), is required
 to build the documentation locally; the `bundle` command has to be on your
-`PATH`.
+`PATH`. Also [tinc](https://github.com/sol/tinc) is needed.
 
 If you are building the documentation for the first time, run:
 
