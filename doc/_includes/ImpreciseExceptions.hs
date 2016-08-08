@@ -1,5 +1,4 @@
 import Test.Hspec
-import Control.Applicative ((<$>), (<*>))
 import Control.Exception (evaluate)
 
 main :: IO ()
