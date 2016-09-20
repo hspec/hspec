@@ -1,3 +1,6 @@
+## Changes in 2.2.4
+  - Compatibility with QuickCheck-2.9
+
 ## Changes in 2.2.3
   - Make sure that `cabal haddock` works for `hspec-discover`
   - Forward compatibility for HUnit 1.4

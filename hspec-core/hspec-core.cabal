@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.8.0.
+-- This file has been generated from package.yaml by hpack version 0.14.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.2.3
+version:          2.2.4
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,
@@ -61,6 +61,7 @@ library
       Test.Hspec.FailureReport
       Test.Hspec.Options
       Test.Hspec.Timer
+      Paths_hspec_core
   default-language: Haskell2010
 
 test-suite spec
