@@ -18,7 +18,8 @@ spec :: Spec
 spec = do
   describe "parseOptions" $ do
 
-    let parseOptions = Options.parseOptions defaultConfig "my-spec"
+    let parseOps = Options.parseOptions defaultConfig "my-spec"
+        parseOptions = parseOps ""
 
     it "sets configColorMode to ColorAuto" $ do
       configColorMode <$> parseOptions [] `shouldBe` Right ColorAuto
@@ -39,6 +40,10 @@ spec = do
       context "when given an invalid argument" $ do
         it "returns an error message" $ do
           fromLeft (parseOptions ["--qc-max-success", "foo"]) `shouldBe` (ExitFailure 1, "my-spec: invalid argument `foo' for `--qc-max-success'\nTry `my-spec --help' for more information.\n")
+
+      context "appends source to error message" $ do
+        it "returns an error message with source specified" $ do
+          fromLeft (parseOps " (defined in ./.hspec)" ["--qc-max-success", "foo"]) `shouldBe` (ExitFailure 1, "my-spec: invalid argument `foo' for `--qc-max-success' (defined in ./.hspec)\nTry `my-spec --help' for more information.\n")
 
     context "with --depth" $ do
       it "sets depth parameter for SmallCheck" $ do

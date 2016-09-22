@@ -68,9 +68,9 @@ configQuickCheckArgs c = qcArgs
     setSeed :: Integer -> QC.Args -> QC.Args
     setSeed n args = args {QC.replay = Just (mkGen (fromIntegral n), 0)}
 
-getConfig :: Config -> String -> [String] -> IO Config
-getConfig opts_ prog args = do
-  case parseOptions opts_ prog args of
+getConfig :: String -> Config -> (String, [String]) -> IO Config
+getConfig prog opts_ (source, args) = do
+  case parseOptions opts_ prog source args of
     Left (err, msg) -> exitWithMessage err msg
     Right opts -> do
       r <- if configRerun opts then readFailureReport else return Nothing
