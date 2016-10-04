@@ -1,3 +1,4 @@
+name: hspec-core
 version: 2.2.4
 synopsis: A Testing Framework for Haskell
 description: >
