@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.14.1.
+-- This file has been generated from package.yaml by hpack version 0.15.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec
-version:          2.2.4
+version:          2.3.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,
@@ -44,9 +44,9 @@ library
       src
   build-depends:
       base == 4.*
-    , hspec-core == 2.2.4
-    , hspec-discover == 2.2.4
-    , hspec-expectations == 0.7.2.*
+    , hspec-core == 2.3.0
+    , hspec-discover == 2.3.0
+    , hspec-expectations == 0.8.0.*
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
     , HUnit >= 1.2.5
@@ -74,9 +74,9 @@ test-suite spec
       Test.Hspec.DiscoverSpec
   build-depends:
       base == 4.*
-    , hspec-core == 2.2.4
-    , hspec-discover == 2.2.4
-    , hspec-expectations == 0.7.2.*
+    , hspec-core == 2.3.0
+    , hspec-discover == 2.3.0
+    , hspec-expectations == 0.8.0.*
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
     , HUnit >= 1.2.5

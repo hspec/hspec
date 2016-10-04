@@ -1,3 +1,6 @@
+## Changes in 2.3.0
+  - Proper support for GHC 8 call stacks
+
 ## Changes in 2.2.4
   - Compatibility with QuickCheck-2.9
 

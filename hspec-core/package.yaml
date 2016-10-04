@@ -1,5 +1,5 @@
 name: hspec-core
-version: 2.2.4
+version: 2.3.0
 synopsis: A Testing Framework for Haskell
 description: >
   This package exposes internal types and functions that can be used to extend
@@ -30,8 +30,9 @@ dependencies:
   - HUnit >= 1.2.5
   - QuickCheck >= 2.5.1
   - quickcheck-io
-  - hspec-expectations == 0.7.2.*
+  - hspec-expectations == 0.8.0.*
   - async >= 2
+  - call-stack
 
 library:
   source-dirs: src

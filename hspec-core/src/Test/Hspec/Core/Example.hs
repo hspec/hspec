@@ -14,6 +14,11 @@ module Test.Hspec.Core.Example (
 import           Data.Maybe (fromMaybe)
 import           Data.List (isPrefixOf)
 import qualified Test.HUnit.Lang as HUnit
+
+#if MIN_VERSION_HUnit(1,4,0)
+import           Data.CallStack
+#endif
+
 import qualified Control.Exception as E
 import           Data.Typeable (Typeable)
 import qualified Test.QuickCheck as QC
@@ -89,7 +94,11 @@ hunitFailureToResult e = case e of
     where
       location = case mLoc of
         Nothing -> Nothing
+#if MIN_VERSION_HUnit(1,4,0)
+        Just loc -> Just $ Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc) ExactLocation
+#else
         Just loc -> Just $ Location (HUnit.locationFile loc) (HUnit.locationLine loc) (HUnit.locationColumn loc) ExactLocation
+#endif
 #else
   HUnit.HUnitFailure err -> Fail Nothing err
 #endif
