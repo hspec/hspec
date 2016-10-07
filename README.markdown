@@ -29,8 +29,6 @@ To run the test suite do:
  - Rebase `travis-ci-osx` on `HEAD` and make sure that the build passes
  - Release new version of `hspec-meta`
  - Update version constraint for `hspec-meta`
- - Add `find hspec-discover/test-data/ -type f` under `extra-source-files` in
-   `hspec.cabal`
  - Release new version of `hspec`
  - Upload docs
 
