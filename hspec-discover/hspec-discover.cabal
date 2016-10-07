@@ -72,5 +72,5 @@ test-suite spec
     , filepath
     , directory
     , hspec-discover
-    , hspec-meta >= 2.2.0
+    , hspec-meta >= 2.3.0
   default-language: Haskell2010

@@ -45,4 +45,4 @@ tests:
       - test
     dependencies:
       - hspec-discover
-      - hspec-meta >= 2.2.0
+      - hspec-meta >= 2.3.0

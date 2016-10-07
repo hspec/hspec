@@ -87,7 +87,7 @@ test-suite spec
     , hspec-expectations == 0.8.0.*
     , async >= 2
     , call-stack
-    , hspec-meta >= 2.2.0
+    , hspec-meta >= 2.3.0
     , silently >= 1.2.4
     , process
   other-modules:
