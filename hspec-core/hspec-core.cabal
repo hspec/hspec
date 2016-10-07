@@ -38,6 +38,7 @@ library
     , transformers >= 0.2.2.0
     , deepseq
     , HUnit >= 1.2.5
+    , call-stack >=0.1
     , QuickCheck >= 2.5.1
     , quickcheck-io
     , hspec-expectations == 0.7.2.*
@@ -69,7 +70,7 @@ test-suite spec
   main-is: Spec.hs
   hs-source-dirs:
       test
-      src
+    , src
   ghc-options: -Wall
   build-depends:
       base >= 4.3 && < 5
@@ -81,6 +82,7 @@ test-suite spec
     , transformers >= 0.2.2.0
     , deepseq
     , HUnit >= 1.2.5
+    , call-stack >=0.1
     , QuickCheck >= 2.5.1
     , quickcheck-io
     , hspec-expectations == 0.7.2.*
