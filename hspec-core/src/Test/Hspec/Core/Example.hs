@@ -26,6 +26,10 @@ import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Compat
 
+#if MIN_VERSION_HUnit(1,4,0)
+import Data.CallStack as CallStack (SrcLoc (..))
+#endif
+
 -- | A type class for examples
 class Example e where
   type Arg e
@@ -89,7 +93,12 @@ hunitFailureToResult e = case e of
     where
       location = case mLoc of
         Nothing -> Nothing
-        Just loc -> Just $ Location (HUnit.locationFile loc) (HUnit.locationLine loc) (HUnit.locationColumn loc) ExactLocation
+        Just loc -> Just $ Location
+#if MIN_VERSION_HUnit(1,4,0)
+          (CallStack.srcLocFile loc) (CallStack.srcLocStartLine loc) (CallStack.srcLocStartCol loc) ExactLocation
+#else
+          (HUnit.locationFile loc) (HUnit.locationLine loc) (HUnit.locationColumn loc) ExactLocation
+#endif
 #else
   HUnit.HUnitFailure err -> Fail Nothing err
 #endif
