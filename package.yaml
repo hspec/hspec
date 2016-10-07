@@ -40,6 +40,7 @@ dependencies:
   - transformers >= 0.2.2.0
   - QuickCheck >= 2.5.1
   - HUnit >= 1.2.5
+  - call-stack
 
 library:
   source-dirs: src

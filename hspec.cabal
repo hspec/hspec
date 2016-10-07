@@ -50,6 +50,7 @@ library
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
     , HUnit >= 1.2.5
+    , call-stack
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
@@ -80,6 +81,7 @@ test-suite spec
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
     , HUnit >= 1.2.5
+    , call-stack
     , hspec
     , directory
     , stringbuilder

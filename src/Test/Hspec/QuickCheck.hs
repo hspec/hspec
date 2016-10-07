@@ -1,8 +1,5 @@
-{-# LANGUAGE CPP #-}
-#if MIN_VERSION_base(4,8,1)
-#define HAS_SOURCE_LOCATIONS
-{-# LANGUAGE ImplicitParams #-}
-#endif
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.QuickCheck (
 -- * Params
   modifyMaxSuccess
@@ -13,9 +10,7 @@ module Test.Hspec.QuickCheck (
 , prop
 ) where
 
-#ifdef HAS_SOURCE_LOCATIONS
-import           GHC.Stack
-#endif
+import           Data.CallStack
 
 import           Test.Hspec
 import           Test.QuickCheck
@@ -29,9 +24,5 @@ import           Test.Hspec.Core.QuickCheck
 --
 -- > it ".." $ property $
 -- >   ..
-#ifdef HAS_SOURCE_LOCATIONS
-prop :: (?loc :: CallStack, Testable prop) => String -> prop -> Spec
-#else
-prop :: (Testable prop) => String -> prop -> Spec
-#endif
+prop :: (HasCallStack, Testable prop) => String -> prop -> Spec
 prop s = it s . property

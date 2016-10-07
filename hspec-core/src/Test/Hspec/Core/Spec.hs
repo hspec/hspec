@@ -1,8 +1,5 @@
-{-# LANGUAGE CPP #-}
-#if MIN_VERSION_base(4,8,1)
-#define HAS_SOURCE_LOCATIONS
-{-# LANGUAGE ImplicitParams #-}
-#endif
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 -- |
 -- Stability: unstable
 --
@@ -27,11 +24,8 @@ module Test.Hspec.Core.Spec (
 , module Test.Hspec.Core.Tree
 ) where
 
-#ifdef HAS_SOURCE_LOCATIONS
-import           GHC.Stack
-#endif
-
 import qualified Control.Exception as E
+import           Data.CallStack
 
 import           Test.Hspec.Expectations (Expectation)
 
@@ -54,11 +48,7 @@ describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . specGrou
 -- > describe "absolute" $ do
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
-#ifdef HAS_SOURCE_LOCATIONS
-it :: (?loc :: CallStack, Example a) => String -> a -> SpecWith (Arg a)
-#else
-it :: Example a => String -> a -> SpecWith (Arg a)
-#endif
+it :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 it label action = fromSpecList [specItem label action]
 
 -- | `parallel` marks all spec items of the given spec to be safe for parallel

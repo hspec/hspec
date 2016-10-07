@@ -1,10 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
-
-{-# LANGUAGE CPP #-}
-#if MIN_VERSION_base(4,8,1)
-#define HAS_SOURCE_LOCATIONS
-{-# LANGUAGE ImplicitParams #-}
-#endif
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 -- |
 -- Stability: unstable
@@ -16,12 +12,7 @@ module Test.Hspec.Core.Tree (
 , specItem
 ) where
 
-#ifdef HAS_SOURCE_LOCATIONS
-#if !MIN_VERSION_base(4,9,0)
-import           GHC.SrcLoc
-#endif
-import           GHC.Stack
-#endif
+import           Data.CallStack
 
 import           Prelude ()
 import           Test.Hspec.Compat
@@ -88,11 +79,7 @@ specGroup s = Node msg
       | otherwise = s
 
 -- | The @specItem@ function creates a spec item.
-#ifdef HAS_SOURCE_LOCATIONS
-specItem :: (?loc :: CallStack, Example a) => String -> a -> SpecTree (Arg a)
-#else
-specItem :: Example a => String -> a -> SpecTree (Arg a)
-#endif
+specItem :: (HasCallStack, Example a) => String -> a -> SpecTree (Arg a)
 specItem s e = Leaf $ Item requirement location False (evaluateExample e)
   where
     requirement
@@ -100,10 +87,6 @@ specItem s e = Leaf $ Item requirement location False (evaluateExample e)
       | otherwise = s
 
     location :: Maybe Location
-#ifdef HAS_SOURCE_LOCATIONS
-    location = case reverse (getCallStack ?loc) of
+    location = case reverse callStack of
       (_, loc) : _ -> Just (Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc) ExactLocation)
       _ -> Nothing
-#else
-    location = Nothing
-#endif
