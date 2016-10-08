@@ -46,32 +46,17 @@ import           Prelude hiding (
   , sum
   )
 
-#if !MIN_VERSION_base(4,3,0)
-import           Control.Monad.Trans.Error () -- for Monad (Either e)
-#endif
-
 import           Data.Typeable (Typeable, typeOf, typeRepTyCon)
 import           Text.Read
 import           Data.IORef
 import           System.Environment
 
-#if MIN_VERSION_base(4,4,0)
 import           Data.Typeable.Internal (tyConModule, tyConName)
 import           Control.Concurrent
-#endif
 
 #if !MIN_VERSION_base(4,6,0)
 import qualified Text.ParserCombinators.ReadP as P
-#endif
 
-getDefaultConcurrentJobs :: IO Int
-#if MIN_VERSION_base(4,4,0)
-getDefaultConcurrentJobs = getNumCapabilities
-#else
-getDefaultConcurrentJobs = return 1
-#endif
-
-#if !MIN_VERSION_base(4,6,0)
 -- |Strict version of 'modifyIORef'
 modifyIORef' :: IORef a -> (a -> a) -> IO ()
 modifyIORef' ref f = do
@@ -111,17 +96,11 @@ lookupEnv k = lookup k `fmap` getEnvironment
 
 showType :: Typeable a => a -> String
 showType a = let t = typeRepTyCon (typeOf a) in
-#if MIN_VERSION_base(4,4,0)
   show t
-#else
-  (reverse . takeWhile (/= '.') . reverse . show) t
-#endif
-
 
 showFullType :: Typeable a => a -> String
 showFullType a = let t = typeRepTyCon (typeOf a) in
-#if MIN_VERSION_base(4,4,0)
   tyConModule t ++ "." ++ tyConName t
-#else
-  show t
-#endif
+
+getDefaultConcurrentJobs :: IO Int
+getDefaultConcurrentJobs = getNumCapabilities

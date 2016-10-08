@@ -19,7 +19,7 @@ github: hspec/hspec/hspec-core
 ghc-options: -Wall
 
 dependencies:
-  - base >= 4.3 && < 5
+  - base >= 4.5.0.0 && < 5
   - random
   - tf-random
   - setenv
