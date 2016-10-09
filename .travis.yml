@@ -17,8 +17,12 @@ env:
   - CABALVER=1.24 GHCVER=8.0.1
 
   - CABALVER=1.22 GHCVER=7.4.2 QC=QuickCheck-2.5.1.1
-  - CABALVER=1.22 GHCVER=7.6.2 QC=QuickCheck-2.6
-  - CABALVER=1.22 GHCVER=7.8.3 QC=QuickCheck-2.6
+  - CABALVER=1.22 GHCVER=7.6.3 QC=QuickCheck-2.6
+  - CABALVER=1.22 GHCVER=7.8.4 QC=QuickCheck-2.6
+
+  - CABALVER=1.18 GHCVER=7.8.4 HU=HUnit-1.3.1.2
+  - CABALVER=1.22 GHCVER=7.10.3 HU=HUnit-1.3.1.2
+  - CABALVER=1.24 GHCVER=8.0.1 HU=HUnit-1.3.1.2
 
 before_install:
   - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
@@ -29,6 +33,7 @@ before_install:
   - cabal --version
   - travis_retry cabal update
   - if [ -n "$QC" ]; then cabal install $QC; fi
+  - if [ -n "$HU" ]; then cabal install $HU; fi
 
 script:
   - ./travis.sh
