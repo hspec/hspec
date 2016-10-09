@@ -10,8 +10,6 @@ module Test.Hspec.QuickCheck (
 , prop
 ) where
 
-import           Data.CallStack
-
 import           Test.Hspec
 import           Test.QuickCheck
 import           Test.Hspec.Core.QuickCheck
