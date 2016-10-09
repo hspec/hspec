@@ -1,3 +1,6 @@
+## Changes in 2.3.1
+  - Fix build for HUnit < 1.4
+
 ## Changes in 2.3.0
   - Proper support for GHC 8 call stacks
 

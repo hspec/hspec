@@ -1,5 +1,5 @@
 name: hspec-core
-version: 2.3.0
+version: 2.3.1
 synopsis: A Testing Framework for Haskell
 description: >
   This package exposes internal types and functions that can be used to extend
@@ -51,6 +51,6 @@ tests:
       - test
       - src
     dependencies:
-      - hspec-meta >= 2.3.0
+      - hspec-meta >= 2.3.1
       - silently >= 1.2.4
       - process

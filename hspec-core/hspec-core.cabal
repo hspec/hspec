@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.3.0
+version:          2.3.1
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,
@@ -87,7 +87,7 @@ test-suite spec
     , hspec-expectations == 0.8.0.*
     , async >= 2
     , call-stack
-    , hspec-meta >= 2.3.0
+    , hspec-meta >= 2.3.1
     , silently >= 1.2.4
     , process
   other-modules:
