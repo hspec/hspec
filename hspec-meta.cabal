@@ -36,7 +36,7 @@ library
       base == 4.*
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
-    , hspec-expectations
+    , hspec-expectations >= 0.8.0
     , HUnit
     , setenv
     , deepseq
@@ -86,7 +86,7 @@ executable hspec-meta-discover
       base == 4.*
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
-    , hspec-expectations
+    , hspec-expectations >= 0.8.0
     , HUnit
     , setenv
     , deepseq
