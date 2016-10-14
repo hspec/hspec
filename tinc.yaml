@@ -1,0 +1,5 @@
+dependencies:
+  - name: hspec-core
+    path: hspec-core
+  - name: hspec-discover
+    path: hspec-discover
