@@ -27,6 +27,7 @@ source-repository head
 library
   hs-source-dirs:
       src
+      vendor
   ghc-options: -Wall
   build-depends:
       base >= 4.5.0.0 && < 5
@@ -43,6 +44,7 @@ library
     , hspec-expectations == 0.8.2.*
     , async >= 2
     , call-stack
+    , array
   exposed-modules:
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
@@ -62,6 +64,7 @@ library
       Test.Hspec.FailureReport
       Test.Hspec.Options
       Test.Hspec.Timer
+      Data.Algorithm.Diff
       Paths_hspec_core
   default-language: Haskell2010
 
@@ -70,6 +73,7 @@ test-suite spec
   main-is: Spec.hs
   hs-source-dirs:
       src
+      vendor
       test
   ghc-options: -Wall
   build-depends:
@@ -87,6 +91,7 @@ test-suite spec
     , hspec-expectations == 0.8.2.*
     , async >= 2
     , call-stack
+    , array
     , hspec-meta >= 2.3.2
     , silently >= 1.2.4
     , process
@@ -108,6 +113,7 @@ test-suite spec
       Test.Hspec.FailureReport
       Test.Hspec.Options
       Test.Hspec.Timer
+      Data.Algorithm.Diff
       Helper
       Mock
       Test.Hspec.CompatSpec

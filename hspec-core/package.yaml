@@ -34,8 +34,11 @@ dependencies:
   - async >= 2
   - call-stack
 
+  - array # for Diff
+
 source-dirs:
   - src
+  - vendor
 
 library:
   exposed-modules:
