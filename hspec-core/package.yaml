@@ -34,8 +34,10 @@ dependencies:
   - async >= 2
   - call-stack
 
+source-dirs:
+  - src
+
 library:
-  source-dirs: src
   exposed-modules:
     - Test.Hspec.Core.Spec
     - Test.Hspec.Core.Hooks
@@ -49,7 +51,6 @@ tests:
     main: Spec.hs
     source-dirs:
       - test
-      - src
     dependencies:
       - hspec-meta >= 2.3.1
       - silently >= 1.2.4

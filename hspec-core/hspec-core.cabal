@@ -69,8 +69,8 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   hs-source-dirs:
-      test
       src
+      test
   ghc-options: -Wall
   build-depends:
       base >= 4.5.0.0 && < 5
@@ -91,19 +91,6 @@ test-suite spec
     , silently >= 1.2.4
     , process
   other-modules:
-      Helper
-      Mock
-      Test.Hspec.CompatSpec
-      Test.Hspec.Core.ExampleSpec
-      Test.Hspec.Core.FormattersSpec
-      Test.Hspec.Core.HooksSpec
-      Test.Hspec.Core.QuickCheckUtilSpec
-      Test.Hspec.Core.RunnerSpec
-      Test.Hspec.Core.SpecSpec
-      Test.Hspec.Core.UtilSpec
-      Test.Hspec.FailureReportSpec
-      Test.Hspec.OptionsSpec
-      Test.Hspec.TimerSpec
       Test.Hspec.Compat
       Test.Hspec.Config
       Test.Hspec.Core.Example
@@ -121,4 +108,17 @@ test-suite spec
       Test.Hspec.FailureReport
       Test.Hspec.Options
       Test.Hspec.Timer
+      Helper
+      Mock
+      Test.Hspec.CompatSpec
+      Test.Hspec.Core.ExampleSpec
+      Test.Hspec.Core.FormattersSpec
+      Test.Hspec.Core.HooksSpec
+      Test.Hspec.Core.QuickCheckUtilSpec
+      Test.Hspec.Core.RunnerSpec
+      Test.Hspec.Core.SpecSpec
+      Test.Hspec.Core.UtilSpec
+      Test.Hspec.FailureReportSpec
+      Test.Hspec.OptionsSpec
+      Test.Hspec.TimerSpec
   default-language: Haskell2010
