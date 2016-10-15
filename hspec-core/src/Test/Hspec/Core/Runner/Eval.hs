@@ -100,7 +100,7 @@ evalExample e = safeTry $ forceResult <$> e
     forceResult r = case r of
       Success -> r
       Pending m -> m `deepseq` r
-      Fail _ m -> m `deepseq` r
+      Failure _ m -> m `deepseq` r
 
 data Message = Done | Run (FormatM ())
 
@@ -147,7 +147,7 @@ run chan reportProgress_ c formatter specs = do
             Right (Pending reason) -> do
               increasePendingCount
               examplePending formatter path reason
-            Right (Fail loc_ err) -> failed (loc_ <|> loc) path (Right err)
+            Right (Failure loc_ err) -> failed (loc_ <|> loc) path (Right err)
             Left err         -> failed loc path (Left  err)
 
     failed loc path err = do
