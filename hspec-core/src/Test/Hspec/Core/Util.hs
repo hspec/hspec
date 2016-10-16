@@ -46,7 +46,7 @@ strip :: String -> String
 strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
 
 -- |
--- ensure that lines are not longer then given `n`, insert line breaks at word
+-- ensure that lines are not longer than given `n`, insert line breaks at word
 -- boundaries
 lineBreaksAt :: Int -> String -> [String]
 lineBreaksAt n input = case words input of
