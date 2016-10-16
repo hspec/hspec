@@ -1,3 +1,6 @@
+## Changes in 2.3.2
+  - Compatibility with HUnit 1.5
+
 ## Changes in 2.3.1
   - Fix build for HUnit < 1.4
 

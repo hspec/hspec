@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.3.1
+version:          2.3.2
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2015 Simon Hengel,
@@ -40,7 +40,7 @@ library
     , HUnit >= 1.2.5
     , QuickCheck >= 2.5.1
     , quickcheck-io
-    , hspec-expectations == 0.8.0.*
+    , hspec-expectations == 0.8.2.*
     , async >= 2
     , call-stack
   exposed-modules:
@@ -84,10 +84,10 @@ test-suite spec
     , HUnit >= 1.2.5
     , QuickCheck >= 2.5.1
     , quickcheck-io
-    , hspec-expectations == 0.8.0.*
+    , hspec-expectations == 0.8.2.*
     , async >= 2
     , call-stack
-    , hspec-meta >= 2.3.1
+    , hspec-meta >= 2.3.2
     , silently >= 1.2.4
     , process
   other-modules:
