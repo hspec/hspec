@@ -1,5 +1,6 @@
 ## Changes next
   - Rename `Fail` constructor of `Result`-type to `Failure`
+  - Add `FailureReason` type
 
 ## Changes in 2.3.2
   - Compatibility with HUnit 1.5

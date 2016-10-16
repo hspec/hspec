@@ -9,6 +9,7 @@ module Test.Hspec.Core.Example (
 , Result (..)
 , Location (..)
 , LocationAccuracy (..)
+, FailureReason (..)
 ) where
 
 import           Data.Maybe (fromMaybe)
@@ -20,6 +21,7 @@ import           Data.CallStack
 #endif
 
 import qualified Control.Exception as E
+import           Control.DeepSeq
 import           Data.Typeable (Typeable)
 import qualified Test.QuickCheck as QC
 import           Test.Hspec.Expectations (Expectation)
@@ -57,8 +59,17 @@ type ProgressCallback = Progress -> IO ()
 type ActionWith a = a -> IO ()
 
 -- | The result of running an example
-data Result = Success | Pending (Maybe String) | Failure (Maybe Location) String
+data Result = Success | Pending (Maybe String) | Failure (Maybe Location) FailureReason
   deriving (Eq, Show, Read, Typeable)
+
+data FailureReason = NoReason | Reason String | ExpectedButGot (Maybe String) String String
+    deriving (Eq, Show, Read, Typeable)
+
+instance NFData FailureReason where
+  rnf reason = case reason of
+    NoReason -> ()
+    Reason r -> r `deepseq` ()
+    ExpectedButGot p e a  -> p `deepseq` e `deepseq` a `deepseq` ()
 
 instance E.Exception Result
 
@@ -81,7 +92,7 @@ data LocationAccuracy =
 
 instance Example Bool where
   type Arg Bool = ()
-  evaluateExample b _ _ _ = if b then return Success else return (Failure Nothing "")
+  evaluateExample b _ _ _ = if b then return Success else return (Failure Nothing NoReason)
 
 instance Example Expectation where
   type Arg Expectation = ()
@@ -92,9 +103,11 @@ hunitFailureToResult e = case e of
 #if MIN_VERSION_HUnit(1,3,0)
   HUnit.HUnitFailure mLoc err ->
 #if MIN_VERSION_HUnit(1,5,0)
-      Failure location (HUnit.formatFailureReason err)
+      case err of
+        HUnit.Reason reason -> Failure location (Reason reason)
+        HUnit.ExpectedButGot preface expected actual -> Failure location (ExpectedButGot preface expected actual)
 #else
-      Failure location err
+      Failure location (Reason err)
 #endif
     where
       location = case mLoc of
@@ -130,11 +143,11 @@ instance Example (a -> QC.Property) where
     return $
       case r of
         QC.Success {}               -> Success
-        QC.Failure {QC.output = m}  -> fromMaybe (Failure Nothing $ sanitizeFailureMessage r) (parsePending m)
-        QC.GaveUp {QC.numTests = n} -> Failure Nothing ("Gave up after " ++ pluralize n "test" )
-        QC.NoExpectedFailure {}     -> Failure Nothing ("No expected failure")
+        QC.Failure {QC.output = m}  -> fromMaybe (Failure Nothing . Reason $ sanitizeFailureMessage r) (parsePending m)
+        QC.GaveUp {QC.numTests = n} -> Failure Nothing (Reason $ "Gave up after " ++ pluralize n "test" )
+        QC.NoExpectedFailure {}     -> Failure Nothing (Reason $ "No expected failure")
 #if MIN_VERSION_QuickCheck(2,8,0)
-        QC.InsufficientCoverage {}  -> Failure Nothing ("Insufficient coverage")
+        QC.InsufficientCoverage {}  -> Failure Nothing (Reason $ "Insufficient coverage")
 #endif
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $

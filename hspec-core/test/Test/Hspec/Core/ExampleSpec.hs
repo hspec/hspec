@@ -27,7 +27,7 @@ spec = do
         evaluateExample True `shouldReturn` H.Success
 
       it "returns Failure on False" $ do
-        evaluateExample False `shouldReturn` H.Failure Nothing ""
+        evaluateExample False `shouldReturn` H.Failure Nothing H.NoReason
 
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Bool) `shouldThrow` errorCall "foobar"
@@ -38,7 +38,11 @@ spec = do
 
       it "returns Failure if an expectation does not hold" $ do
         H.Failure _ msg <- evaluateExample (23 `shouldBe` (42 :: Int))
-        msg `shouldEndWith` "expected: 42\n but got: 23"
+#if MIN_VERSION_HUnit(1,5,0)
+        msg `shouldBe` H.ExpectedButGot Nothing "42" "23"
+#else
+        msg `shouldBe` H.Reason "expected: 42\n but got: 23"
+#endif
 
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
@@ -72,7 +76,7 @@ spec = do
 
       it "shows what falsified it" $ do
         H.Failure _ r <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> False
-        r `shouldBe` intercalate "\n"  [
+        r `shouldBe` (H.Reason . intercalate "\n")  [
             "Falsifiable (after 1 test): "
           , "0"
           , "1"
@@ -91,7 +95,7 @@ spec = do
 
       it "pretty-prints exceptions" $ do
         H.Failure _ r <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (E.throw (E.ErrorCall "foobar") :: Bool))
-        r `shouldBe` intercalate "\n" [
+        r `shouldBe` (H.Reason . intercalate "\n") [
 #if MIN_VERSION_QuickCheck(2,7,0)
             "uncaught exception: ErrorCall (foobar) (after 1 test)"
 #else
@@ -102,7 +106,7 @@ spec = do
 
       context "when used with shouldBe" $ do
         it "shows what falsified it" $ do
-          H.Failure _ r <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> 23 `shouldBe` (42 :: Int)
+          H.Failure _ (H.Reason r) <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> 23 `shouldBe` (42 :: Int)
           r `shouldStartWith` "Falsifiable (after 1 test): \n"
           r `shouldEndWith` intercalate "\n" [
               "expected: 42"

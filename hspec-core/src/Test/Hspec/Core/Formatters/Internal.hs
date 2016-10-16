@@ -3,6 +3,7 @@ module Test.Hspec.Core.Formatters.Internal (
 
 -- * Public API
   Formatter (..)
+, FailureReason (..)
 , FormatM
 
 , getSuccessCount
@@ -50,6 +51,7 @@ import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec (Progress, Location)
+import           Test.Hspec.Core.Example (FailureReason(..))
 
 -- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a
@@ -123,7 +125,7 @@ getTotalCount :: FormatM Int
 getTotalCount = gets totalCount
 
 -- | Append to the list of accumulated failure messages.
-addFailMessage :: Maybe Location -> Path -> Either SomeException String -> FormatM ()
+addFailMessage :: Maybe Location -> Path -> Either SomeException FailureReason -> FormatM ()
 addFailMessage loc p m = modify $ \s -> s {failMessages = FailureRecord loc p m : failMessages s}
 
 -- | Get the list of accumulated failure messages.
@@ -133,7 +135,7 @@ getFailMessages = reverse `fmap` gets failMessages
 data FailureRecord = FailureRecord {
   failureRecordLocation :: Maybe Location
 , failureRecordPath     :: Path
-, failureRecordMessage  :: Either SomeException String
+, failureRecordMessage  :: Either SomeException FailureReason
 }
 
 data Formatter = Formatter {
@@ -156,7 +158,7 @@ data Formatter = Formatter {
 , exampleSucceeded    :: Path -> FormatM ()
 
 -- | evaluated after each failed example
-, exampleFailed       :: Path -> Either SomeException String -> FormatM ()
+, exampleFailed       :: Path -> Either SomeException FailureReason -> FormatM ()
 
 -- | evaluated after each pending example
 , examplePending      :: Path -> Maybe String -> FormatM ()

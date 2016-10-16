@@ -19,6 +19,7 @@ module Test.Hspec.Core.Formatters (
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
 , Formatter (..)
+, FailureReason (..)
 , FormatM
 
 -- ** Accessing the runner state
@@ -53,6 +54,7 @@ import           Prelude ()
 import           Test.Hspec.Compat
 
 import           Data.Maybe
+import           Data.List
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Location(..), LocationAccuracy(..))
 import           Text.Printf
@@ -66,6 +68,7 @@ import           System.IO (hPutStr, hFlush)
 -- their own formatters.
 import Test.Hspec.Core.Formatters.Internal (
     Formatter (..)
+  , FailureReason (..)
   , FormatM
 
   , getSuccessCount
@@ -190,7 +193,8 @@ defaultFailedFormatter = do
         forM_ (lines err) $ \x -> do
           writeLine ("       " ++ x)
       where
-        err = either (("uncaught exception: " ++) . formatException) id reason
+        err = either (("uncaught exception: " ++) . formatException) formatFailureReason reason
+
         formatLoc (Location file line _column accuracy) = "  " ++ file ++ ":" ++ show line ++ ":" ++ message
           where
             message = case accuracy of
@@ -199,6 +203,11 @@ defaultFailedFormatter = do
                                    -- why we use a single space as message
                                    -- here.
               BestEffort -> " (best-effort)"
+
+formatFailureReason :: FailureReason -> String
+formatFailureReason NoReason = ""
+formatFailureReason (Reason reason) = reason
+formatFailureReason (ExpectedButGot preface expected actual) = intercalate "\n" . maybe id (:) preface $ ["expected: " ++ expected, " but got: " ++ actual]
 
 defaultFooter :: FormatM ()
 defaultFooter = do
