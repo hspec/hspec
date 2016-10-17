@@ -77,6 +77,7 @@ test-suite spec
       vendor
       test
   ghc-options: -Wall
+  cpp-options: -DTEST
   build-depends:
       base >= 4.5.0.0 && < 5
     , random

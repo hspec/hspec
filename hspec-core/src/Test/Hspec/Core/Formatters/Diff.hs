@@ -2,7 +2,7 @@
 module Test.Hspec.Core.Formatters.Diff (
   Diff (..)
 , diff
-#ifndef TEST
+#ifdef TEST
 , breakList
 #endif
 ) where

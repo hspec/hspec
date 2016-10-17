@@ -51,6 +51,7 @@ library:
 
 tests:
   spec:
+    cpp-options: -DTEST
     main: Spec.hs
     source-dirs:
       - test
