@@ -35,6 +35,7 @@ data Config = Config {
 , configQuickCheckMaxSize :: Maybe Int
 , configSmallCheckDepth :: Int
 , configColorMode :: ColorMode
+, configDiff :: Bool
 , configFormatter :: Maybe Formatter
 , configHtmlOutput :: Bool
 , configOutputFile :: Either Handle FilePath
@@ -55,6 +56,7 @@ defaultConfig = Config {
 , configQuickCheckMaxSize = Nothing
 , configSmallCheckDepth = paramsSmallCheckDepth defaultParams
 , configColorMode = ColorAuto
+, configDiff = False
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configOutputFile = Left stdout
@@ -129,6 +131,8 @@ options = [
   , mkOption []   "skip"              (Arg "PATTERN" return addSkip)      (h "skip examples that match given PATTERN")
   , Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
   , Option   []  ["no-color"]         (NoArg setNoColor)                  (h "do not colorize the output")
+  , Option   []  ["diff"]             (NoArg setDiff)                     (h "show colorized diffs")
+  , Option   []  ["no-diff"]          (NoArg setNoDiff)                   (h "do not show colorized diffs")
   , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
   , mkOption "o"  "out"               (Arg "FILE" return setOutputFile)   (h "write output to a file instead of STDOUT")
   , mkOption []   "depth"             (Arg "N" readMaybe setDepth)        (h "maximum depth of generated test values for SmallCheck properties")
@@ -167,8 +171,10 @@ options = [
     setDryRun       x = x >>= \c -> return c {configDryRun = True}
     setFastFail     x = x >>= \c -> return c {configFastFail = True}
     setRerun        x = x >>= \c -> return c {configRerun = True}
-    setNoColor      x = x >>= \c -> return c {configColorMode = ColorNever}
     setColor        x = x >>= \c -> return c {configColorMode = ColorAlways}
+    setNoColor      x = x >>= \c -> return c {configColorMode = ColorNever}
+    setDiff         x = x >>= \c -> return c {configDiff = True}
+    setNoDiff       x = x >>= \c -> return c {configDiff = False}
 
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [

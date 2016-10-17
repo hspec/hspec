@@ -1,4 +1,5 @@
 ## Changes next
+  - Add support for `--diff`
   - Rename `Fail` constructor of `Result`-type to `Failure`
   - Add `FailureReason` type
 

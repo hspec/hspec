@@ -139,7 +139,7 @@ hspecWithResult conf spec = do
     filteredSpec <- filterSpecs c . applyDryRun c <$> runSpecM spec
 
     withHiddenCursor useColor h $
-      runFormatM useColor (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
+      runFormatM useColor (configDiff c) (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
         runFormatter jobsSem useColor h c formatter filteredSpec `finally_` do
           failedFormatter formatter
 
