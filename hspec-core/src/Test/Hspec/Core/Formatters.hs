@@ -46,15 +46,17 @@ module Test.Hspec.Core.Formatters (
 , withPendingColor
 , withFailColor
 
+, extraChunk
+, missingChunk
+
 -- ** Helpers
 , formatException
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Compat
+import           Test.Hspec.Compat hiding (First)
 
 import           Data.Maybe
-import           Data.List
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Location(..), LocationAccuracy(..))
 import           Text.Printf
@@ -91,7 +93,12 @@ import Test.Hspec.Core.Formatters.Internal (
   , withSuccessColor
   , withPendingColor
   , withFailColor
+
+  , extraChunk
+  , missingChunk
   )
+
+import           Test.Hspec.Core.Formatters.Diff
 
 silent :: Formatter
 silent = Formatter {
@@ -189,12 +196,33 @@ defaultFailedFormatter = do
         withInfoColor $ writeLine (formatLoc loc)
       write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
-      withFailColor $ do
-        forM_ (lines err) $ \x -> do
-          writeLine ("       " ++ x)
-      where
-        err = either (("uncaught exception: " ++) . formatException) formatFailureReason reason
+      case reason of
+        Left e -> indent $ (("uncaught exception: " ++) . formatException) e
+        Right NoReason -> return ()
+        Right (Reason err) -> indent err
+        Right (ExpectedButGot preface expected actual) -> do
+          mapM_ indent preface
 
+          let chunks = diff expected actual
+
+          write (indentation ++ "expected: ")
+          forM_ chunks $ \chunk -> case chunk of
+            Both a _ -> write a
+            First a -> extraChunk a
+            Second _ -> return ()
+          writeLine ""
+
+          write (indentation ++ " but got: ")
+          forM_ chunks $ \chunk -> case chunk of
+            Both a _ -> write a
+            First _ -> return ()
+            Second a -> missingChunk a
+          writeLine ""
+      where
+        indentation = "       "
+        indent message = do
+          forM_ (lines message) $ \line -> do
+            writeLine (indentation ++ line)
         formatLoc (Location file line _column accuracy) = "  " ++ file ++ ":" ++ show line ++ ":" ++ message
           where
             message = case accuracy of
@@ -203,11 +231,6 @@ defaultFailedFormatter = do
                                    -- why we use a single space as message
                                    -- here.
               BestEffort -> " (best-effort)"
-
-formatFailureReason :: FailureReason -> String
-formatFailureReason NoReason = ""
-formatFailureReason (Reason reason) = reason
-formatFailureReason (ExpectedButGot preface expected actual) = intercalate "\n" . maybe id (:) preface $ ["expected: " ++ expected, " but got: " ++ actual]
 
 defaultFooter :: FormatM ()
 defaultFooter = do

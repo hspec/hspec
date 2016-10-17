@@ -27,6 +27,9 @@ module Test.Hspec.Core.Formatters.Internal (
 , withPendingColor
 , withFailColor
 
+, extraChunk
+, missingChunk
+
 -- * Functions for internal use
 , runFormatM
 , increaseSuccessCount
@@ -66,6 +69,7 @@ modify f = FormatM $ do
 data FormatterState = FormatterState {
   stateHandle     :: Handle
 , stateUseColor   :: Bool
+, stateUseDiff    :: Bool
 , produceHTML     :: Bool
 , successCount    :: Int
 , pendingCount    :: Int
@@ -89,11 +93,11 @@ totalCount s = successCount s + pendingCount s + failCount s
 newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
-runFormatM :: Bool -> Bool -> Bool -> Integer -> Handle -> FormatM a -> IO a
-runFormatM useColor produceHTML_ printCpuTime seed handle (FormatM action) = do
+runFormatM :: Bool -> Bool -> Bool -> Bool -> Integer -> Handle -> FormatM a -> IO a
+runFormatM useColor useDiff produceHTML_ printCpuTime seed handle (FormatM action) = do
   time <- getPOSIXTime
   cpuTime <- if printCpuTime then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState handle useColor produceHTML_ 0 0 0 [] seed cpuTime time)
+  st <- newIORef (FormatterState handle useColor useDiff produceHTML_ 0 0 0 [] seed cpuTime time)
   evalStateT action st
 
 -- | Increase the counter for successful examples
@@ -233,6 +237,22 @@ withColor_ color (FormatM action) = do
 
       -- run action
       (runStateT action st)
+
+-- | Output given chunk in red.
+extraChunk :: String -> FormatM ()
+extraChunk s = do
+  useDiff <- gets stateUseDiff
+  case useDiff of
+    True -> withFailColor $ write s
+    False -> write s
+
+-- | Output given chunk in green.
+missingChunk :: String -> FormatM ()
+missingChunk s = do
+  useDiff <- gets stateUseDiff
+  case useDiff of
+    True -> withSuccessColor $ write s
+    False -> write s
 
 -- |
 -- @finally_ actionA actionB@ runs @actionA@ and then @actionB@.  @actionB@ is

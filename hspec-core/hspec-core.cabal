@@ -56,6 +56,7 @@ library
       Test.Hspec.Compat
       Test.Hspec.Config
       Test.Hspec.Core.Example
+      Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
@@ -100,6 +101,7 @@ test-suite spec
       Test.Hspec.Config
       Test.Hspec.Core.Example
       Test.Hspec.Core.Formatters
+      Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
@@ -118,6 +120,7 @@ test-suite spec
       Mock
       Test.Hspec.CompatSpec
       Test.Hspec.Core.ExampleSpec
+      Test.Hspec.Core.Formatters.DiffSpec
       Test.Hspec.Core.FormattersSpec
       Test.Hspec.Core.HooksSpec
       Test.Hspec.Core.QuickCheckUtilSpec

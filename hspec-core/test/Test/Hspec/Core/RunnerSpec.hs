@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.RunnerSpec (main, spec) where
 
@@ -311,6 +312,30 @@ spec = do
           H.describe "baz" $ do
             H.it "example 3" $ mockAction e3
         (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 0, 1)
+
+    context "with --diff" $ do
+      it "shows colorized diffs" $ do
+#if MIN_VERSION_HUnit(1,5,0)
+        r <- capture_ . ignoreExitCode . withArgs ["--diff", "--color"] . H.hspec $ do
+          H.it "foo" $ do
+            23 `shouldBe` (42 :: Int)
+        r `shouldContain` unlines [
+            "       expected: \ESC[31m42\ESC[0m"
+          , "        but got: \ESC[32m23\ESC[0m"
+          ]
+#else
+        pending
+#endif
+
+    context "with --no-diff" $ do
+      it "it does not show colorized diffs" $ do
+        r <- capture_ . ignoreExitCode . withArgs ["--no-diff", "--color"] . H.hspec $ do
+          H.it "foo" $ do
+            23 `shouldBe` (42 :: Int)
+        r `shouldContain` unlines [
+            "       expected: 42"
+          , "        but got: 23"
+          ]
 
     context "with --format" $ do
       it "uses specified formatter" $ do
