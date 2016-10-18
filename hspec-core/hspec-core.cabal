@@ -44,6 +44,8 @@ library
     , hspec-expectations == 0.8.2.*
     , async >= 2
     , call-stack
+    , directory
+    , filepath
     , array
   exposed-modules:
       Test.Hspec.Core.Spec
@@ -93,10 +95,13 @@ test-suite spec
     , hspec-expectations == 0.8.2.*
     , async >= 2
     , call-stack
+    , directory
+    , filepath
     , array
     , hspec-meta >= 2.3.2
     , silently >= 1.2.4
     , process
+    , temporary
   other-modules:
       Test.Hspec.Compat
       Test.Hspec.Config
@@ -117,9 +122,11 @@ test-suite spec
       Test.Hspec.Options
       Test.Hspec.Timer
       Data.Algorithm.Diff
+      All
       Helper
       Mock
       Test.Hspec.CompatSpec
+      Test.Hspec.ConfigSpec
       Test.Hspec.Core.ExampleSpec
       Test.Hspec.Core.Formatters.DiffSpec
       Test.Hspec.Core.FormattersSpec

@@ -1,5 +1,6 @@
 ## Changes next
   - Add support for `--diff`
+  - Read command-line options from config files `~/.hspec` and `.hspec`
   - Rename `Fail` constructor of `Result`-type to `Failure`
   - Add `FailureReason` type
 

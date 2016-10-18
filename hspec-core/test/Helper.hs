@@ -14,6 +14,9 @@ module Helper (
 , ignoreUserInterrupt
 , throwException
 
+, withEnvironment
+, inTempDirectory
+
 , shouldUseArgs
 
 , removeLocations
@@ -24,14 +27,18 @@ import           Test.Hspec.Compat
 
 import           Data.List
 import           Data.Char
-import           Control.Monad
-import           System.Environment (withArgs)
+import           Control.Monad (guard)
+import           System.Environment (withArgs, getEnvironment)
 import           System.Exit
 import           Control.Concurrent
 import qualified Control.Exception as E
+import           Control.Exception (bracket)
 import qualified System.Timeout as System
 import           Data.Time.Clock.POSIX
 import           System.IO.Silently
+import           System.SetEnv
+import           System.Directory
+import           System.IO.Temp
 
 import           Test.Hspec.Meta
 import           Test.QuickCheck hiding (Result(..))
@@ -84,3 +91,27 @@ shouldUseArgs args p = do
 
 removeLocations :: H.SpecWith a -> H.SpecWith a
 removeLocations = H.mapSpecItem_ (\item -> item{H.itemLocation = Nothing})
+
+withEnvironment :: [(String, String)] -> IO a -> IO a
+withEnvironment environment action = bracket saveEnv restoreEnv $ const action
+  where
+    saveEnv :: IO [(String, String)]
+    saveEnv = do
+      env <- clearEnv
+      forM_ environment $ uncurry setEnv
+      return env
+    restoreEnv :: [(String, String)] -> IO ()
+    restoreEnv env = do
+      _ <- clearEnv
+      forM_ env $ uncurry setEnv
+    clearEnv :: IO [(String, String)]
+    clearEnv = do
+      env <- getEnvironment
+      forM_ env (unsetEnv . fst)
+      return env
+
+inTempDirectory :: IO a -> IO a
+inTempDirectory action = withSystemTempDirectory "mockery" $ \path -> do
+  bracket getCurrentDirectory setCurrentDirectory $ \_ -> do
+    setCurrentDirectory path
+    action

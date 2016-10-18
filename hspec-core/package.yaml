@@ -33,6 +33,8 @@ dependencies:
   - hspec-expectations == 0.8.2.*
   - async >= 2
   - call-stack
+  - directory
+  - filepath
 
   - array # for Diff
 
@@ -59,3 +61,4 @@ tests:
       - hspec-meta >= 2.3.2
       - silently >= 1.2.4
       - process
+      - temporary

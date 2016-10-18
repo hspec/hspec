@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Test.Hspec.Config (
   Config (..)
 , ColorMode(..)
@@ -5,11 +6,20 @@ module Test.Hspec.Config (
 , getConfig
 , configAddFilter
 , configQuickCheckArgs
+#ifdef TEST
+, readConfigFiles
+#endif
 ) where
 
 import           Control.Applicative
+import           Control.Exception
+import           Control.Monad
+import           Data.Maybe
 import           System.IO
+import           System.IO.Error
 import           System.Exit
+import           System.FilePath
+import           System.Directory
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
@@ -70,11 +80,41 @@ configQuickCheckArgs c = qcArgs
 
 getConfig :: Config -> String -> [String] -> IO Config
 getConfig opts_ prog args = do
-  case parseOptions opts_ prog args of
+  configFiles <- do
+    ignore <- ignoreConfigFile opts_ args
+    case ignore of
+      True -> return []
+      False -> readConfigFiles
+  case parseOptions opts_ prog configFiles args of
     Left (err, msg) -> exitWithMessage err msg
     Right opts -> do
       r <- if configRerun opts then readFailureReport else return Nothing
       return (mkConfig r opts)
+
+readConfigFiles :: IO [ConfigFile]
+readConfigFiles = do
+  global <- readGlobalConfigFile
+  local <- readLocalConfigFile
+  return $ catMaybes [global, local]
+
+readGlobalConfigFile :: IO (Maybe ConfigFile)
+readGlobalConfigFile = do
+  mHome <- tryJust (guard . isDoesNotExistError) getHomeDirectory
+  case mHome of
+    Left _ -> return Nothing
+    Right home -> readConfigFile (home </> ".hspec")
+
+readLocalConfigFile :: IO (Maybe ConfigFile)
+readLocalConfigFile = do
+  mName <- tryJust (guard . isDoesNotExistError) (canonicalizePath ".hspec")
+  case mName of
+    Left _ -> return Nothing
+    Right name -> readConfigFile name
+
+readConfigFile :: FilePath -> IO (Maybe ConfigFile)
+readConfigFile name = do
+  exists <- doesFileExist name
+  if exists then Just . (,) name . words <$> readFile name else return Nothing
 
 exitWithMessage :: ExitCode -> String -> IO a
 exitWithMessage err msg = do

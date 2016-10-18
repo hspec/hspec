@@ -4,6 +4,8 @@ module Test.Hspec.Options (
 , defaultConfig
 , filterOr
 , parseOptions
+, ConfigFile
+, ignoreConfigFile
 ) where
 
 import           Prelude ()
@@ -18,15 +20,18 @@ import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 
+type ConfigFile = (FilePath, [String])
+
 data Config = Config {
-  configDryRun :: Bool
+  configIgnoreConfigFile :: Bool
+, configDryRun :: Bool
 , configPrintCpuTime :: Bool
 , configFastFail :: Bool
+, configRerun :: Bool
 
 -- |
 -- A predicate that is used to filter the spec before it is run.  Only examples
 -- that satisfy the predicate are run.
-, configRerun :: Bool
 , configFilterPredicate :: Maybe (Path -> Bool)
 , configSkipPredicate :: Maybe (Path -> Bool)
 , configQuickCheckSeed :: Maybe Integer
@@ -44,7 +49,8 @@ data Config = Config {
 
 defaultConfig :: Config
 defaultConfig = Config {
-  configDryRun = False
+  configIgnoreConfigFile = False
+, configDryRun = False
 , configPrintCpuTime = False
 , configFastFail = False
 , configRerun = False
@@ -124,12 +130,22 @@ mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name]
 addLineBreaks :: String -> [String]
 addLineBreaks = lineBreaksAt 44
 
-options :: [OptDescr (Result -> Result)]
-options = [
+h :: String -> String
+h = unlines . addLineBreaks
+
+commandLineOptions :: [OptDescr (Result -> Result)]
+commandLineOptions = [
     Option   []  ["help"]             (NoArg (const $ Left Help))         (h "display this help and exit")
+  , Option   []  ["ignore-dot-hspec"] (NoArg setIgnoreConfigFile)         (h "do not read options from ~/.hspec and .hspec")
   , mkOption "m"  "match"             (Arg "PATTERN" return addMatch)     (h "only run examples that match given PATTERN")
   , mkOption []   "skip"              (Arg "PATTERN" return addSkip)      (h "skip examples that match given PATTERN")
-  , Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
+  ]
+  where
+    setIgnoreConfigFile x = x >>= \c -> return c {configIgnoreConfigFile = True}
+
+configFileOptions :: [OptDescr (Result -> Result)]
+configFileOptions = [
+    Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
   , Option   []  ["no-color"]         (NoArg setNoColor)                  (h "do not colorize the output")
   , Option   []  ["diff"]             (NoArg setDiff)                     (h "show colorized diffs")
   , Option   []  ["no-diff"]          (NoArg setNoDiff)                   (h "do not show colorized diffs")
@@ -147,8 +163,6 @@ options = [
   , mkOption "j"  "jobs"              (Arg "N" readMaxJobs setMaxJobs)    (h "run at most N parallelizable tests simultaneously (default: number of available processors)")
   ]
   where
-    h = unlines . addLineBreaks
-
     readFormatter :: String -> Maybe Formatter
     readFormatter = (`lookup` formatters)
 
@@ -176,6 +190,9 @@ options = [
     setDiff         x = x >>= \c -> return c {configDiff = True}
     setNoDiff       x = x >>= \c -> return c {configDiff = False}
 
+documentedOptions :: [OptDescr (Result -> Result)]
+documentedOptions = commandLineOptions ++ configFileOptions
+
 undocumentedOptions :: [OptDescr (Result -> Result)]
 undocumentedOptions = [
     -- for compatibility with test-framework
@@ -192,13 +209,43 @@ undocumentedOptions = [
     setHtml :: Result -> Result
     setHtml x = x >>= \c -> return c {configHtmlOutput = True}
 
-parseOptions :: Config -> String -> [String] -> Either (ExitCode, String) Config
-parseOptions c prog args = case getOpt Permute (options ++ undocumentedOptions) args of
-    (opts, [], []) -> case foldl' (flip id) (Right c) opts of
-        Left Help                         -> Left (ExitSuccess, usageInfo ("Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS") options)
-        Left (InvalidArgument flag value) -> tryHelp ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'\n")
-        Right x -> Right x
-    (_, _, err:_)  -> tryHelp err
-    (_, arg:_, _)  -> tryHelp ("unexpected argument `" ++ arg ++ "'\n")
+recognizedOptions :: [OptDescr (Result -> Result)]
+recognizedOptions = documentedOptions ++ undocumentedOptions
+
+parseOptions :: Config -> String -> [ConfigFile] -> [String] -> Either (ExitCode, String) Config
+parseOptions config prog configFiles args = do
+  foldM (parseFileOptions prog) config configFiles >>= parseCommandLineOptions prog args
+
+parseCommandLineOptions :: String -> [String] -> Config -> Either (ExitCode, String) Config
+parseCommandLineOptions prog args config = case parse recognizedOptions config args of
+  Right Nothing -> Left (ExitSuccess, usageInfo ("Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS") documentedOptions)
+  Right (Just c) -> Right c
+  Left err -> failure err
   where
-    tryHelp msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ "Try `" ++ prog ++ " --help' for more information.\n")
+    failure msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ "\nTry `" ++ prog ++ " --help' for more information.\n")
+
+parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
+parseFileOptions prog config (name, args) = case parse configFileOptions config args of
+  Right Nothing -> error "this should never happen"
+  Right (Just c) -> Right c
+  Left err -> failure err
+  where
+    failure msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ " in config file " ++ name ++ "\n")
+
+parse :: [OptDescr (Result -> Result)] -> Config -> [String] -> Either String (Maybe Config)
+parse options config args = case getOpt Permute options args of
+  (opts, [], []) -> case foldl' (flip id) (Right config) opts of
+    Left Help -> Right Nothing
+    Left (InvalidArgument flag value) -> Left ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'")
+    Right x -> Right (Just x)
+  (_, _, err:_) -> Left (init err)
+  (_, arg:_, _) -> Left ("unexpected argument `" ++ arg ++ "'")
+
+ignoreConfigFile :: Config -> [String] -> IO Bool
+ignoreConfigFile config args = do
+  ignore <- lookupEnv "IGNORE_DOT_HSPEC"
+  case ignore of
+    Just _ -> return True
+    Nothing -> case parse recognizedOptions config args of
+      Right (Just c) -> return (configIgnoreConfigFile c)
+      _ -> return False
