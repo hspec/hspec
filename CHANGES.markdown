@@ -1,4 +1,5 @@
 ## Changes next
+  - Report exceptions in `beforeAll` operations only once
   - Include `CHANGES.markdown` in package tarball
   - Add support for `--diff`
   - Read command-line options from config files `~/.hspec` and `.hspec`
