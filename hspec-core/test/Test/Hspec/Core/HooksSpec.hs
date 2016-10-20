@@ -1,11 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.HooksSpec (main, spec) where
 
-import           Prelude ()
+import           Control.Exception
 import           Helper
+import           Prelude ()
 
-import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
+import qualified Test.Hspec.Core.Spec as H
 
 import qualified Test.Hspec.Core.Hooks as H
 
@@ -119,6 +120,15 @@ spec = do
         , "foo value"
         , "bar value"
         ]
+
+    context "when specified action throws an exception" $ do
+      it "sets subsequent spec items to pending" $ do
+        result <- silence . H.hspecResult $ H.beforeAll (throwIO (ErrorCall "foo")) $ do
+          H.it "foo" $ \n -> do
+            n `shouldBe` (23 :: Int)
+          H.it "bar" $ \n -> do
+            n `shouldBe` 23
+        result `shouldBe` H.Summary {H.summaryExamples = 2, H.summaryFailures = 1}
 
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
