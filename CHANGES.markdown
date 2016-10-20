@@ -1,4 +1,5 @@
 ## Changes next
+  - Include `CHANGES.markdown` in package tarball
   - Add support for `--diff`
   - Read command-line options from config files `~/.hspec` and `.hspec`
   - Rename `Fail` constructor of `Result`-type to `Failure`

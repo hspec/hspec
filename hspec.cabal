@@ -32,7 +32,7 @@ description:      Hspec is a testing framework for Haskell. It is inspired by
                   The Hspec Manual is at <http://hspec.github.io/>.
 
 extra-source-files:
-    changelog
+    CHANGES.markdown
 
 source-repository head
   type: git
