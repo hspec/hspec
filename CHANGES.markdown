@@ -1,4 +1,5 @@
 ## Changes next
+  - More graceful shutdown on ctrl-c (see #270)
   - Report exceptions in `beforeAll` operations only once
   - Include `CHANGES.markdown` in package tarball
   - Add support for `--diff`
