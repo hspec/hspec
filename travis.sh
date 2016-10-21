@@ -12,5 +12,6 @@ rm -rf hspec-example && git clone https://github.com/hspec/hspec-example
 (cd hspec-discover/example                                             && cabal configure --enable-tests --ghc-options=-Werror && cabal build && cabal test)
 (cd hspec-discover/integration-test                                    && cabal configure --enable-tests --ghc-options=-Werror && cabal build && cabal test)
 test/regression/issue-169/run.sh
+test/regression/issue-270/run.sh
 
 echo SUCCESS
