@@ -129,13 +129,13 @@ formatException err@(SomeException e) = case fromException err of
 -- occurs, the exception is returned instead.  Unlike `try` it is agnostic to
 -- asynchronous exceptions.
 safeTry :: IO a -> IO (Either SomeException a)
-safeTry action =
-  bracket (async ((action >>= evaluate)))
-          -- It is important to wait here to make sure all finalizers
-          -- in action have been run. Otherwise the main thread can
-          -- exit before they have finished and the finalizers are
-          -- only partially run.
-          (\a -> cancel a >> waitCatch a) -- We use waitCatch to hide
-                                          -- the ThreadKilled
-                                          -- exception
-          waitCatch
+safeTry action = bracket runAction cancelAction waitForAction
+  where
+    runAction = async ((action >>= evaluate))
+    waitForAction = waitCatch
+    cancelAction a = do
+      cancel a
+      -- It is important to wait here to make sure all finalizers in action have
+      -- been run. Otherwise the main thread can exit before they have finished
+      -- and the finalizers are only partially run.
+      waitCatch a -- We use waitCatch to hide the ThreadKilled exception
