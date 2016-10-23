@@ -21,7 +21,7 @@ import           GHC.IO.Exception
 import           Control.Exception
 import           Control.Concurrent.Async
 
-import           Test.Hspec.Compat (showType)
+import           Test.Hspec.Core.Compat (showType)
 
 -- |
 -- @pluralize count singular@ pluralizes the given @singular@ word unless given

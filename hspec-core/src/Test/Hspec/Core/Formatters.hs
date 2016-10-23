@@ -54,7 +54,7 @@ module Test.Hspec.Core.Formatters (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Compat hiding (First)
+import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Maybe
 import           Test.Hspec.Core.Util

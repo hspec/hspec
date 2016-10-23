@@ -1,6 +1,6 @@
 module Helper (
   module Test.Hspec.Meta
-, module Test.Hspec.Compat
+, module Test.Hspec.Core.Compat
 , module Test.QuickCheck
 , module System.IO.Silently
 , sleep
@@ -23,7 +23,7 @@ module Helper (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 import           Data.List
 import           Data.Char

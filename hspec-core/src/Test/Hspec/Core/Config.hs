@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Test.Hspec.Config (
+module Test.Hspec.Core.Config (
   Config (..)
 , ColorMode(..)
 , defaultConfig
@@ -23,8 +23,8 @@ import           System.Directory
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Options
-import           Test.Hspec.FailureReport
+import           Test.Hspec.Core.Options
+import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 

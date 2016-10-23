@@ -24,7 +24,7 @@ module Test.Hspec.Core.Runner (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 import           Control.Monad
 import           Data.Maybe
@@ -40,10 +40,10 @@ import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec
-import           Test.Hspec.Config
+import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Formatters.Internal
-import           Test.Hspec.FailureReport
+import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 
 import           Test.Hspec.Core.Runner.Eval

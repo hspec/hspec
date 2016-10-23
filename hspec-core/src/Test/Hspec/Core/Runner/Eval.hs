@@ -8,7 +8,7 @@
 module Test.Hspec.Core.Runner.Eval (runFormatter) where
 
 import           Prelude ()
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 import           Control.Monad (unless, when)
 import qualified Control.Exception as E
@@ -21,10 +21,10 @@ import           Data.Time.Clock.POSIX
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec
-import           Test.Hspec.Config
+import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Formatters.Internal
-import           Test.Hspec.Timer
+import           Test.Hspec.Core.Timer
 
 type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 

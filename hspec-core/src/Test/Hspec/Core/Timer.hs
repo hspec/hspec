@@ -1,4 +1,4 @@
-module Test.Hspec.Timer where
+module Test.Hspec.Core.Timer where
 
 import           Data.IORef
 import           Data.Time.Clock.POSIX

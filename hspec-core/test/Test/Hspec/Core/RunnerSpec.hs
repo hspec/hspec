@@ -14,7 +14,7 @@ import qualified Control.Exception as E
 import           Mock
 import           System.SetEnv
 
-import           Test.Hspec.FailureReport (FailureReport(..))
+import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Formatters as H (silent)

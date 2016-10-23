@@ -14,7 +14,7 @@ module Test.Hspec.Core.Spec.Monad (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 import           Control.Monad.Trans.Writer
 import           Control.Monad.IO.Class (liftIO)

@@ -40,7 +40,7 @@ module Test.Hspec.Core.Formatters.Internal (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
 import           System.IO (Handle)

@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module Test.Hspec.CompatSpec (main, spec) where
+module Test.Hspec.Core.CompatSpec (main, spec) where
 
 import           Helper
 import           System.SetEnv
@@ -19,7 +19,7 @@ spec = do
 
   describe "showFullType (currently unused)" $ do
     it "shows fully qualified name of type" $ do
-      showFullType SomeType `shouldBe` "Test.Hspec.CompatSpec.SomeType"
+      showFullType SomeType `shouldBe` "Test.Hspec.Core.CompatSpec.SomeType"
 
   describe "lookupEnv" $ do
     it "returns value of specified environment variable" $ do

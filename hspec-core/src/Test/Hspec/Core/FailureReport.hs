@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Test.Hspec.FailureReport (
+module Test.Hspec.Core.FailureReport (
   FailureReport (..)
 , writeFailureReport
 , readFailureReport
@@ -10,7 +10,7 @@ import           System.SetEnv
 import           Test.Hspec.Core.Util (safeTry)
 #endif
 import           System.IO
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Util (Path)
 
 data FailureReport = FailureReport {

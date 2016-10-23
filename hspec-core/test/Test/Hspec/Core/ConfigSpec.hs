@@ -1,10 +1,10 @@
-module Test.Hspec.ConfigSpec (spec) where
+module Test.Hspec.Core.ConfigSpec (spec) where
 
 import           Helper
 import           System.Directory
 import           System.FilePath
 
-import           Test.Hspec.Config
+import           Test.Hspec.Core.Config
 
 spec :: Spec
 spec = do

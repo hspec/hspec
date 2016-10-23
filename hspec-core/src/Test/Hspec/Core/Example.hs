@@ -31,7 +31,7 @@ import qualified Test.QuickCheck.Property as QCP
 
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 -- | A type class for examples
 class Example e where

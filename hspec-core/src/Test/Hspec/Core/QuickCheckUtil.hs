@@ -2,7 +2,7 @@
 module Test.Hspec.Core.QuickCheckUtil where
 
 import           Prelude ()
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 import           Data.Int
 import           Test.QuickCheck hiding (Result(..))

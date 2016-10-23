@@ -17,7 +17,7 @@ module Test.Hspec.Core.Tree (
 import           Data.CallStack
 
 import           Prelude ()
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 import           Test.Hspec.Core.Example
 

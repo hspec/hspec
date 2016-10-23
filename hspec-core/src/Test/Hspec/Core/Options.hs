@@ -1,4 +1,4 @@
-module Test.Hspec.Options (
+module Test.Hspec.Core.Options (
   Config(..)
 , ColorMode (..)
 , defaultConfig
@@ -10,7 +10,7 @@ module Test.Hspec.Options (
 
 import           Prelude ()
 import           Control.Monad
-import           Test.Hspec.Compat
+import           Test.Hspec.Core.Compat
 
 import           System.IO
 import           System.Exit

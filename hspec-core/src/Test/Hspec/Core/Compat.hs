@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Test.Hspec.Compat (
+module Test.Hspec.Core.Compat (
   getDefaultConcurrentJobs
 , showType
 , showFullType
