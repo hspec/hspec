@@ -36,9 +36,7 @@ import           Test.Hspec.Core.Compat
 -- | A type class for examples
 class Example e where
   type Arg e
-#if __GLASGOW_HASKELL__ >= 704
   type Arg e = ()
-#endif
   evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 
 data Params = Params {
