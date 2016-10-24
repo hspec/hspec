@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE CPP #-}
 module Test.Hspec.Core.SpecSpec (main, spec) where
 
@@ -41,12 +40,15 @@ spec = do
       [Leaf item] <- runSpecM (H.it "whatever" True)
       itemExample item defaultParams ($ ()) noOpProgressCallback `shouldReturn` Success
 
-#ifdef HAS_SOURCE_LOCATIONS
     it "adds source locations" $ do
       [Leaf item] <- runSpecM (H.it "foo" True)
-      let location = H.Location __FILE__ (pred $ __LINE__) 32 H.ExactLocation
-      itemLocation item `shouldBe` Just location
+      let location =
+#if MIN_VERSION_base(4,8,1)
+            Just $ H.Location __FILE__ (__LINE__ - 3) 32 H.ExactLocation
+#else
+            Nothing
 #endif
+      itemLocation item `shouldBe` location
 
     context "when no description is given" $ do
       it "uses a default description" $ do
