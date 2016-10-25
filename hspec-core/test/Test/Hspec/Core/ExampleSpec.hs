@@ -13,6 +13,9 @@ import qualified Test.Hspec.Core.Runner as H
 main :: IO ()
 main = hspec spec
 
+safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO (Either E.SomeException H.Result)
+safeEvaluateExample e = H.safeEvaluateExample e defaultParams ($ ()) noOpProgressCallback
+
 evaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO H.Result
 evaluateExample e = H.evaluateExample e defaultParams ($ ()) noOpProgressCallback
 
@@ -21,6 +24,26 @@ evaluateExampleWith action e = H.evaluateExample e defaultParams (action . ($ ()
 
 spec :: Spec
 spec = do
+  describe "safeEvaluateExample" $ do
+    context "for Expectation" $ do
+      it "returns Failure if an expectation does not hold" $ do
+        Right (H.Failure _ msg) <- safeEvaluateExample (23 `shouldBe` (42 :: Int))
+#if MIN_VERSION_HUnit(1,5,0)
+        msg `shouldBe` H.ExpectedButGot Nothing "42" "23"
+#else
+        msg `shouldBe` H.Reason "expected: 42\n but got: 23"
+#endif
+
+      context "when used with `pending`" $ do
+        it "returns Pending" $ do
+          Right result <- safeEvaluateExample (H.pending)
+          result `shouldBe` H.Pending Nothing
+
+      context "when used with `pendingWith`" $ do
+        it "includes the optional reason" $ do
+          Right result <- safeEvaluateExample (H.pendingWith "foo")
+          result `shouldBe` H.Pending (Just "foo")
+
   describe "evaluateExample" $ do
     context "for Bool" $ do
       it "returns Success on True" $ do
@@ -36,14 +59,6 @@ spec = do
       it "returns Success if all expectations hold" $ do
         evaluateExample (23 `shouldBe` (23 :: Int)) `shouldReturn` H.Success
 
-      it "returns Failure if an expectation does not hold" $ do
-        H.Failure _ msg <- evaluateExample (23 `shouldBe` (42 :: Int))
-#if MIN_VERSION_HUnit(1,5,0)
-        msg `shouldBe` H.ExpectedButGot Nothing "42" "23"
-#else
-        msg `shouldBe` H.Reason "expected: 42\n but got: 23"
-#endif
-
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
 
@@ -57,14 +72,6 @@ spec = do
               modifyIORef ref succ
         evaluateExampleWith action (modifyIORef ref succ) `shouldReturn` H.Success
         readIORef ref `shouldReturn` 2
-
-      context "when used with `pending`" $ do
-        it "returns Pending" $ do
-          evaluateExample (H.pending) `shouldReturn` H.Pending Nothing
-
-      context "when used with `pendingWith`" $ do
-        it "includes the optional reason" $ do
-          evaluateExample (H.pendingWith "foo") `shouldReturn` H.Pending (Just "foo")
 
     context "for Property" $ do
       it "returns Success if property holds" $ do

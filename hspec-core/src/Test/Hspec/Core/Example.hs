@@ -90,7 +90,12 @@ data LocationAccuracy =
   deriving (Eq, Show, Read)
 
 safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO (Either E.SomeException Result)
-safeEvaluateExample example params around progress = safeTry $ forceResult <$> evaluateExample example params around progress
+safeEvaluateExample example params around progress = do
+  r <- safeTry $ forceResult <$> evaluateExample example params around progress
+  return $ case r of
+    Left e | Just result <- E.fromException e -> Right result
+    Left e | Just hunit <- E.fromException e -> Right (hunitFailureToResult hunit)
+    _ -> r
   where
     forceResult :: Result -> Result
     forceResult r = case r of
@@ -131,10 +136,7 @@ hunitFailureToResult e = case e of
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
-  evaluateExample e _ action _ = (action e >> return Success) `E.catches` [
-      E.Handler (return . hunitFailureToResult)
-    , E.Handler (return :: Result -> IO Result)
-    ]
+  evaluateExample e _ action _ = action e >> return Success
 
 instance Example Result where
   type Arg Result = ()
