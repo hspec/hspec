@@ -22,6 +22,9 @@ evaluateExample e = H.evaluateExample e defaultParams ($ ()) noOpProgressCallbac
 evaluateExampleWith :: (H.Example e, H.Arg e ~ ()) => (IO () -> IO ()) -> e -> IO H.Result
 evaluateExampleWith action e = H.evaluateExample e defaultParams (action . ($ ())) noOpProgressCallback
 
+evaluateExampleWithArgument :: H.Example e => (ActionWith (H.Arg e) -> IO ()) -> e -> IO H.Result
+evaluateExampleWithArgument action e = H.evaluateExample e defaultParams action noOpProgressCallback
+
 spec :: Spec
 spec = do
   describe "safeEvaluateExample" $ do
@@ -45,6 +48,25 @@ spec = do
           result `shouldBe` H.Pending (Just "foo")
 
   describe "evaluateExample" $ do
+    context "for Result" $ do
+      it "runs around-action" $ do
+        ref <- newIORef (0 :: Int)
+        let action :: IO () -> IO ()
+            action e = do
+              e
+              modifyIORef ref succ
+        evaluateExampleWith action (H.Failure Nothing H.NoReason) `shouldReturn` H.Failure Nothing H.NoReason
+        readIORef ref `shouldReturn` 1
+
+      it "accepts arguments" $ do
+        ref <- newIORef (0 :: Int)
+        let action :: (Integer -> IO ()) -> IO ()
+            action e = do
+              e 42
+              modifyIORef ref succ
+        evaluateExampleWithArgument action (H.Failure Nothing . H.Reason . show) `shouldReturn` H.Failure Nothing (H.Reason "42")
+        readIORef ref `shouldReturn` 1
+
     context "for Bool" $ do
       it "returns Success on True" $ do
         evaluateExample True `shouldReturn` H.Success
@@ -55,6 +77,24 @@ spec = do
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Bool) `shouldThrow` errorCall "foobar"
 
+      it "runs around-action" $ do
+        ref <- newIORef (0 :: Int)
+        let action :: IO () -> IO ()
+            action e = do
+              e
+              modifyIORef ref succ
+        evaluateExampleWith action False `shouldReturn` H.Failure Nothing H.NoReason
+        readIORef ref `shouldReturn` 1
+
+      it "accepts arguments" $ do
+        ref <- newIORef (0 :: Int)
+        let action :: (Integer -> IO ()) -> IO ()
+            action e = do
+              e 42
+              modifyIORef ref succ
+        evaluateExampleWithArgument action (== (23 :: Integer)) `shouldReturn` H.Failure Nothing H.NoReason
+        readIORef ref `shouldReturn` 1
+
     context "for Expectation" $ do
       it "returns Success if all expectations hold" $ do
         evaluateExample (23 `shouldBe` (23 :: Int)) `shouldReturn` H.Success
@@ -62,7 +102,7 @@ spec = do
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
 
-      it "runs provided action around expectation" $ do
+      it "runs around-action" $ do
         ref <- newIORef (0 :: Int)
         let action :: IO () -> IO ()
             action e = do
@@ -89,7 +129,7 @@ spec = do
           , "1"
           ]
 
-      it "runs provided action around each single check of the property" $ do
+      it "runs around-action for each single check of the property" $ do
         ref <- newIORef (0 :: Int)
         let action :: IO () -> IO ()
             action e = do

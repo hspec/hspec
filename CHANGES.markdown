@@ -1,4 +1,5 @@
 ## Changes next
+  - Run around-hook for Bool and Result (see #252)
   - More graceful shutdown on ctrl-c (see #270)
   - Report exceptions in `beforeAll` operations only once
   - Include `CHANGES.markdown` in package tarball

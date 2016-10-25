@@ -103,9 +103,31 @@ safeEvaluateExample example params around progress = do
       Pending m -> m `deepseq` r
       Failure _ m -> m `deepseq` r
 
+instance Example Result where
+  type Arg Result = ()
+  evaluateExample e = evaluateExample (\() -> e)
+
+instance Example (a -> Result) where
+  type Arg (a -> Result) = a
+  evaluateExample example _params action _callback = do
+    ref <- newIORef Success
+    action (writeIORef ref . example)
+    readIORef ref
+
 instance Example Bool where
   type Arg Bool = ()
-  evaluateExample b _ _ _ = if b then return Success else return (Failure Nothing NoReason)
+  evaluateExample e = evaluateExample (\() -> e)
+
+instance Example (a -> Bool) where
+  type Arg (a -> Bool) = a
+  evaluateExample p _params action _callback = do
+    ref <- newIORef Success
+    action $ \a -> example a >>= writeIORef ref
+    readIORef ref
+    where
+      example a
+        | p a = return Success
+        | otherwise = return (Failure Nothing NoReason)
 
 instance Example Expectation where
   type Arg Expectation = ()
@@ -137,10 +159,6 @@ hunitFailureToResult e = case e of
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
   evaluateExample e _ action _ = action e >> return Success
-
-instance Example Result where
-  type Arg Result = ()
-  evaluateExample r _ _ _ = return r
 
 instance Example QC.Property where
   type Arg QC.Property = ()
