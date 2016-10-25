@@ -17,15 +17,27 @@ module Test.Hspec (
 , module Test.Hspec.Expectations
 
 -- * Defining a spec
-, describe
-, context
 , it
 , specify
+, describe
+, context
 , example
-, pending
-, pendingWith
 , parallel
 , runIO
+
+-- * Pending spec items
+-- |
+-- During a test run a /pending/ spec item is:
+--
+-- 1. not executed
+--
+-- 1. reported as \"pending\"
+, pending
+, pendingWith
+, xit
+, xspecify
+, xdescribe
+, xcontext
 
 -- * Hooks
 , ActionWith
@@ -65,11 +77,3 @@ import           Test.Hspec.Expectations
 -- >   putStrLn
 example :: Expectation -> Expectation
 example = id
-
--- | @context@ is an alias for `describe`.
-context :: String -> SpecWith a -> SpecWith a
-context = describe
-
--- | @specify@ is an alias for `it`.
-specify :: Example a => String -> a -> SpecWith (Arg a)
-specify = it

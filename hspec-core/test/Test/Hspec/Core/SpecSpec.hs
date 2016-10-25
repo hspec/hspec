@@ -31,6 +31,12 @@ spec = do
         [Node d _] <- runSpecM (H.describe "" (pure ()))
         d `shouldBe` "(no description given)"
 
+  describe "xdescribe" $ do
+    it "creates a tree of pending spec items" $ do
+      [Node _ [Leaf item]] <- runSpecM (H.xdescribe "" $ H.it "whatever" True)
+      Right r <- itemExample item defaultParams ($ ()) noOpProgressCallback
+      r `shouldBe` Pending Nothing
+
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
       [Leaf item] <- runSpecM (H.it "whatever" True)
@@ -55,6 +61,12 @@ spec = do
       it "uses a default description" $ do
         [Leaf item] <- runSpecM (H.it "" True)
         itemRequirement item `shouldBe` "(unspecified behavior)"
+
+  describe "xit" $ do
+    it "creates a pending spec item" $ do
+      [Leaf item] <- runSpecM (H.xit "whatever" True)
+      Right r <- itemExample item defaultParams ($ ()) noOpProgressCallback
+      r `shouldBe` Pending Nothing
 
   describe "pending" $ do
     it "specifies a pending example" $ do
