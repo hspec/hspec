@@ -15,6 +15,7 @@ module Test.Hspec.Core.Tree (
 ) where
 
 import           Data.CallStack
+import           Control.Exception
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
@@ -51,7 +52,7 @@ data Item a = Item {
   -- parallel with other spec items
 , itemIsParallelizable :: Bool
   -- | Example for behavior
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO (Either SomeException Result)
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
@@ -64,7 +65,7 @@ specGroup s = Node msg
 
 -- | The @specItem@ function creates a spec item.
 specItem :: (HasCallStack, Example a) => String -> a -> SpecTree (Arg a)
-specItem s e = Leaf $ Item requirement location False (evaluateExample e)
+specItem s e = Leaf $ Item requirement location False (safeEvaluateExample e)
   where
     requirement
       | null s = "(unspecified behavior)"

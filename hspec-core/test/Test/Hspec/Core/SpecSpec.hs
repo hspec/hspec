@@ -38,7 +38,8 @@ spec = do
 
     it "takes an example of that behavior" $ do
       [Leaf item] <- runSpecM (H.it "whatever" True)
-      itemExample item defaultParams ($ ()) noOpProgressCallback `shouldReturn` Success
+      Right r <- itemExample item defaultParams ($ ()) noOpProgressCallback
+      r `shouldBe` Success
 
     it "adds source locations" $ do
       [Leaf item] <- runSpecM (H.it "foo" True)

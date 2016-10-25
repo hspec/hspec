@@ -16,7 +16,6 @@ import           Control.Concurrent
 import           System.IO (Handle)
 
 import           Control.Monad.IO.Class (liftIO)
-import           Control.DeepSeq (deepseq)
 import           Data.Time.Clock.POSIX
 
 import           Test.Hspec.Core.Util
@@ -60,24 +59,24 @@ every seconds action = do
 
 type FormatResult = Either E.SomeException Result -> FormatM ()
 
-parallelize :: QSem -> Bool -> (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+parallelize :: QSem -> Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())
 parallelize jobsSem isParallelizable e
   | isParallelizable = runParallel jobsSem e
   | otherwise = runSequentially e
 
-runSequentially :: (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+runSequentially :: (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())
 runSequentially e reportProgress formatResult = return $ do
-  result <- liftIO $ evalExample (e reportProgress)
+  result <- liftIO $ e reportProgress
   formatResult result
 
 data Report = ReportProgress Progress | ReportResult (Either E.SomeException Result)
 
-runParallel :: QSem -> (ProgressCallback -> IO Result) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+runParallel :: QSem -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())
 runParallel jobsSem e reportProgress formatResult = do
   mvar <- newEmptyMVar
   _ <- forkIO $ E.bracket_ (waitQSem jobsSem) (signalQSem jobsSem) $ do
     let progressCallback = replaceMVar mvar . ReportProgress
-    result <- evalExample (e progressCallback)
+    result <- e progressCallback
     replaceMVar mvar (ReportResult result)
   return $ evalReport mvar
   where
@@ -92,15 +91,6 @@ runParallel jobsSem e reportProgress formatResult = do
 
     replaceMVar :: MVar a -> a -> IO ()
     replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
-
-evalExample :: IO Result -> IO (Either E.SomeException Result)
-evalExample e = safeTry $ forceResult <$> e
-  where
-    forceResult :: Result -> Result
-    forceResult r = case r of
-      Success -> r
-      Pending m -> m `deepseq` r
-      Failure _ m -> m `deepseq` r
 
 data Message = Done | Run (FormatM ())
 
@@ -138,7 +128,7 @@ run chan reportProgress_ c formatter specs = do
 
         reportProgress = reportProgress_ path
 
-        formatResult :: Either E.SomeException Result -> FormatM ()
+        formatResult :: FormatResult
         formatResult result = do
           case result of
             Right Success -> do

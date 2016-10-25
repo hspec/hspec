@@ -10,6 +10,7 @@ module Test.Hspec.Core.Example (
 , Location (..)
 , LocationAccuracy (..)
 , FailureReason (..)
+, safeEvaluateExample
 ) where
 
 import           Data.Maybe (fromMaybe)
@@ -87,6 +88,15 @@ data LocationAccuracy =
   -- wrong or inaccurate
   BestEffort
   deriving (Eq, Show, Read)
+
+safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO (Either E.SomeException Result)
+safeEvaluateExample example params around progress = safeTry $ forceResult <$> evaluateExample example params around progress
+  where
+    forceResult :: Result -> Result
+    forceResult r = case r of
+      Success -> r
+      Pending m -> m `deepseq` r
+      Failure _ m -> m `deepseq` r
 
 instance Example Bool where
   type Arg Bool = ()
