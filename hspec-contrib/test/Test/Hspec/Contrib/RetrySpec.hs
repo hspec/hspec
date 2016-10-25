@@ -9,7 +9,7 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "retry test" $ do
+  describe "retryWith" $ do
     ref <- runIO $ newIORef (0::Int)
     it "retry 11 times, then check the value" $ do
       let incr :: IO Int
