@@ -9,12 +9,18 @@ data Retry a = Retry Int a
 
 instance Example a => Example (Retry a) where
   type Arg (Retry a) = Arg a
-  evaluateExample (Retry n example) a b c = do
-    v <- evaluateExample example a b c
-    case v of
-      Success -> return v
-      _ | n > 1 -> evaluateExample (Retry (pred n) example) a b c
-      _ -> return v
+  evaluateExample (Retry n example) a b c
+    | n > 1 = do
+        r <- safeEvaluateExample example a b c
+        case r of
+          Right result -> case result of
+            Success{} -> return result
+            Pending{} -> return result
+            Failure{} -> retry
+          Left _ -> retry
+    | otherwise = evaluateExample example a b c
+    where
+      retry = evaluateExample (Retry (pred n) example) a b c
 
 -- | Retry evaluating example that may be failed until success.
 retryWith :: Int
