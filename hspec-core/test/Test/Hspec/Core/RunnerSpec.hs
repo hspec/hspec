@@ -13,6 +13,9 @@ import           Control.Concurrent
 import qualified Control.Exception as E
 import           Mock
 import           System.SetEnv
+#if MIN_VERSION_HUnit(1,5,0)
+import           System.Console.ANSI
+#endif
 
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Core.Spec as H
@@ -320,8 +323,8 @@ spec = do
           H.it "foo" $ do
             23 `shouldBe` (42 :: Int)
         r `shouldContain` unlines [
-            "       expected: \ESC[31m42\ESC[0m"
-          , "        but got: \ESC[32m23\ESC[0m"
+            red ++ "       expected: " ++ reset ++ red ++ "42" ++ reset
+          , red ++ "        but got: " ++ reset ++ green ++ "23" ++ reset
           ]
 #else
         pending
@@ -329,13 +332,17 @@ spec = do
 
     context "with --no-diff" $ do
       it "it does not show colorized diffs" $ do
+#if MIN_VERSION_HUnit(1,5,0)
         r <- capture_ . ignoreExitCode . withArgs ["--no-diff", "--color"] . H.hspec $ do
           H.it "foo" $ do
             23 `shouldBe` (42 :: Int)
         r `shouldContain` unlines [
-            "       expected: 42"
-          , "        but got: 23"
+            red ++ "       expected: " ++ reset ++ "42"
+          , red ++ "        but got: " ++ reset ++ "23"
           ]
+#else
+        pending
+#endif
 
     context "with --format" $ do
       it "uses specified formatter" $ do
@@ -476,3 +483,9 @@ spec = do
         r `shouldBe` H.Summary n 0
         high <- readIORef highRef
         high `shouldBe` j
+  where
+#if MIN_VERSION_HUnit(1,5,0)
+    green  = setSGRCode [SetColor Foreground Dull Green]
+    red    = setSGRCode [SetColor Foreground Dull Red]
+    reset  = setSGRCode [Reset]
+#endif
