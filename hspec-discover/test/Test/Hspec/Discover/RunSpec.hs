@@ -1,4 +1,4 @@
-module RunSpec (main, spec) where
+module Test.Hspec.Discover.RunSpec (main, spec) where
 
 import           Helper
 

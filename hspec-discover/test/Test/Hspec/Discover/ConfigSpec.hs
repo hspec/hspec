@@ -1,4 +1,4 @@
-module ConfigSpec (main, spec) where
+module Test.Hspec.Discover.ConfigSpec (main, spec) where
 
 import           Helper
 

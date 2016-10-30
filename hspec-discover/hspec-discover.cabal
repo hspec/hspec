@@ -64,9 +64,9 @@ test-suite spec
       test
   main-is: Spec.hs
   other-modules:
-      ConfigSpec
       Helper
-      RunSpec
+      Test.Hspec.Discover.ConfigSpec
+      Test.Hspec.Discover.RunSpec
   build-depends:
       base == 4.*
     , filepath
