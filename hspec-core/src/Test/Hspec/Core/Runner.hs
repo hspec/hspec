@@ -21,6 +21,10 @@ module Test.Hspec.Core.Runner (
 , Path
 , defaultConfig
 , configAddFilter
+
+#ifdef TEST
+, rerunAll
+#endif
 ) where
 
 import           Prelude ()
@@ -105,7 +109,10 @@ ensureSeed c = case configQuickCheckSeed c of
 hspecWith :: Config -> Spec -> IO ()
 hspecWith conf spec = do
   r <- hspecWithResult conf spec
-  unless (summaryFailures r == 0) exitFailure
+  unless (isSuccess r) exitFailure
+
+isSuccess :: Summary -> Bool
+isSuccess summary = summaryFailures summary == 0
 
 -- | Run given spec and returns a summary of the test run.
 --
@@ -121,26 +128,48 @@ hspecResult = hspecWithResult defaultConfig
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult conf spec = do
+hspecWithResult config spec = do
   prog <- getProgName
   args <- getArgs
-  c <- getConfig conf prog args >>= ensureSeed
-  withArgs [] {- do not leak command-line arguments to examples -} $ withHandle c $ \h -> do
-    let formatter = fromMaybe specdoc (configFormatter c)
-        seed = (fromJust . configQuickCheckSeed) c
-        qcArgs = configQuickCheckArgs c
+  (oldFailureReport, c_) <- getConfig config prog args
+  c <- ensureSeed c_
+  if configRerunAllOnSuccess c
+    -- With --rerun-all we may run the spec twice. For that reason GHC can not
+    -- optimize away the spec tree. That means that the whole spec tree has to
+    -- be constructed in memory and we loose constant space behavior.
+    --
+    -- By separating between rerunAllMode and normalMode here, we retain
+    -- constant space behavior in normalMode.
+    --
+    -- see: https://github.com/hspec/hspec/issues/169
+    then rerunAllMode c oldFailureReport
+    else normalMode c
+  where
+    normalMode c = runSpec c spec
+    rerunAllMode c oldFailureReport = do
+      summary <- runSpec c spec
+      if rerunAll c oldFailureReport summary
+        then hspecWithResult config spec
+        else return summary
 
-    jobsSem <- newQSem =<< case configConcurrentJobs c of
+runSpec :: Config -> Spec -> IO Summary
+runSpec config spec = do
+  withArgs [] {- do not leak command-line arguments to examples -} $ withHandle config $ \h -> do
+    let formatter = fromMaybe specdoc (configFormatter config)
+        seed = (fromJust . configQuickCheckSeed) config
+        qcArgs = configQuickCheckArgs config
+
+    jobsSem <- newQSem =<< case configConcurrentJobs config of
       Nothing -> getDefaultConcurrentJobs
       Just maxJobs -> return maxJobs
 
-    useColor <- doesUseColor h c
+    useColor <- doesUseColor h config
 
-    filteredSpec <- filterSpecs c . applyDryRun c <$> runSpecM spec
+    filteredSpec <- filterSpecs config . applyDryRun config <$> runSpecM spec
 
     withHiddenCursor useColor h $
-      runFormatM useColor (configDiff c) (configHtmlOutput c) (configPrintCpuTime c) seed h $ do
-        runFormatter jobsSem useColor h c formatter filteredSpec `finally_` do
+      runFormatM useColor (configDiff config) (configHtmlOutput config) (configPrintCpuTime config) seed h $ do
+        runFormatter jobsSem useColor h config formatter filteredSpec `finally_` do
           failedFormatter formatter
 
         footerFormatter formatter
@@ -172,6 +201,14 @@ hspecWithResult conf spec = do
     withHandle c action = case configOutputFile c of
       Left h -> action h
       Right path -> withFile path WriteMode action
+
+rerunAll :: Config -> Maybe FailureReport -> Summary -> Bool
+rerunAll _ Nothing _ = False
+rerunAll config (Just oldFailureReport) summary =
+     configRerunAllOnSuccess config
+  && configRerun config
+  && isSuccess summary
+  && (not . null) (failureReportPaths oldFailureReport)
 
 isDumb :: IO Bool
 isDumb = maybe False (== "dumb") <$> lookupEnv "TERM"

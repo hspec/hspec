@@ -483,6 +483,35 @@ spec = do
         r `shouldBe` H.Summary n 0
         high <- readIORef highRef
         high `shouldBe` j
+
+  describe "rerunAll" $ do
+    let
+      report = FailureReport 0 0 0 0 [([], "foo")]
+      config = H.defaultConfig {H.configRerun = True, H.configRerunAllOnSuccess = True}
+      summary = H.Summary 1 0
+    context "with --rerun, --rerun-all-on-success, previous failures, on success" $ do
+      it "returns True" $ do
+        H.rerunAll config (Just report) summary `shouldBe` True
+
+    context "without --rerun" $ do
+      it "returns False" $ do
+        H.rerunAll config {H.configRerun = False} (Just report) summary `shouldBe` False
+
+    context "without --rerun-all-on-success" $ do
+      it "returns False" $ do
+        H.rerunAll config {H.configRerunAllOnSuccess = False} (Just report) summary `shouldBe` False
+
+    context "without previous failures" $ do
+      it "returns False" $ do
+        H.rerunAll config (Just report {failureReportPaths = []}) summary `shouldBe` False
+
+    context "without failure report" $ do
+      it "returns False" $ do
+        H.rerunAll config Nothing summary `shouldBe` False
+
+    context "on failure" $ do
+      it "returns False" $ do
+        H.rerunAll config (Just report) summary {H.summaryFailures = 1} `shouldBe` False
   where
 #if MIN_VERSION_HUnit(1,5,0)
     green  = setSGRCode [SetColor Foreground Dull Green]

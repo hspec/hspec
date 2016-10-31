@@ -1,4 +1,5 @@
 ## Changes next
+  - Add `--rerun-all-on-success`
   - Add `xit`, `xspecify`, `xdescribe` and `xcontext` (see #252)
   - Run around-hook for Bool and Result (see #252)
   - More graceful shutdown on ctrl-c (see #270)

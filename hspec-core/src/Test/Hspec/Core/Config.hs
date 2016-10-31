@@ -78,7 +78,7 @@ configQuickCheckArgs c = qcArgs
     setSeed :: Integer -> QC.Args -> QC.Args
     setSeed n args = args {QC.replay = Just (mkGen (fromIntegral n), 0)}
 
-getConfig :: Config -> String -> [String] -> IO Config
+getConfig :: Config -> String -> [String] -> IO (Maybe FailureReport, Config)
 getConfig opts_ prog args = do
   configFiles <- do
     ignore <- ignoreConfigFile opts_ args
@@ -89,7 +89,7 @@ getConfig opts_ prog args = do
     Left (err, msg) -> exitWithMessage err msg
     Right opts -> do
       r <- if configRerun opts then readFailureReport else return Nothing
-      return (mkConfig r opts)
+      return (r, mkConfig r opts)
 
 readConfigFiles :: IO [ConfigFile]
 readConfigFiles = do

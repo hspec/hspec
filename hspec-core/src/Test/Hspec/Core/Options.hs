@@ -28,6 +28,7 @@ data Config = Config {
 , configPrintCpuTime :: Bool
 , configFastFail :: Bool
 , configRerun :: Bool
+, configRerunAllOnSuccess :: Bool
 
 -- |
 -- A predicate that is used to filter the spec before it is run.  Only examples
@@ -54,6 +55,7 @@ defaultConfig = Config {
 , configPrintCpuTime = False
 , configFastFail = False
 , configRerun = False
+, configRerunAllOnSuccess = False
 , configFilterPredicate = Nothing
 , configSkipPredicate = Nothing
 , configQuickCheckSeed = Nothing
@@ -128,7 +130,7 @@ mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name]
       Nothing -> Left (InvalidArgument name input)
 
 addLineBreaks :: String -> [String]
-addLineBreaks = lineBreaksAt 44
+addLineBreaks = lineBreaksAt 40
 
 h :: String -> String
 h = unlines . addLineBreaks
@@ -159,7 +161,8 @@ configFileOptions = [
   , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
-  , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previously test run (only works in GHCi)")
+  , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previous test run (only works in GHCi)")
+  , Option   []  ["rerun-all-on-success"] (NoArg setRerunAllOnSuccess)    (h "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)")
   , mkOption "j"  "jobs"              (Arg "N" readMaxJobs setMaxJobs)    (h "run at most N parallelizable tests simultaneously (default: number of available processors)")
   ]
   where
@@ -185,6 +188,7 @@ configFileOptions = [
     setDryRun       x = x >>= \c -> return c {configDryRun = True}
     setFastFail     x = x >>= \c -> return c {configFastFail = True}
     setRerun        x = x >>= \c -> return c {configRerun = True}
+    setRerunAllOnSuccess x = x >>= \c -> return c {configRerunAllOnSuccess = True}
     setColor        x = x >>= \c -> return c {configColorMode = ColorAlways}
     setNoColor      x = x >>= \c -> return c {configColorMode = ColorNever}
     setDiff         x = x >>= \c -> return c {configDiff = True}
