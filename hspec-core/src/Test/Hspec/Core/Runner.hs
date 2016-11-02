@@ -154,7 +154,7 @@ hspecWithResult config spec = do
 
 runSpec :: Config -> Spec -> IO Summary
 runSpec config spec = do
-  withArgs [] {- do not leak command-line arguments to examples -} $ withHandle config $ \h -> do
+  doNotLeakCommandLineArgumentsToExamples $ withHandle config $ \h -> do
     let formatter = fromMaybe specdoc (configFormatter config)
         seed = (fromJust . configQuickCheckSeed) config
         qcArgs = configQuickCheckArgs config
@@ -174,33 +174,39 @@ runSpec config spec = do
 
         footerFormatter formatter
 
-        -- dump failure report
         xs <- map failureRecordPath <$> getFailMessages
-        liftIO $ writeFailureReport FailureReport {
-            failureReportSeed = seed
-          , failureReportMaxSuccess = QC.maxSuccess qcArgs
-          , failureReportMaxSize = QC.maxSize qcArgs
-          , failureReportMaxDiscardRatio = QC.maxDiscardRatio qcArgs
-          , failureReportPaths = xs
-          }
+        liftIO $ dumpFailureReport seed qcArgs xs
 
         Summary <$> getTotalCount <*> getFailCount
-  where
-    withHiddenCursor :: Bool -> Handle -> IO a -> IO a
-    withHiddenCursor useColor h
-      | useColor  = E.bracket_ (hHideCursor h) (hShowCursor h)
-      | otherwise = id
 
-    doesUseColor :: Handle -> Config -> IO Bool
-    doesUseColor h c = case configColorMode c of
-      ColorAuto  -> (&&) <$> hIsTerminalDevice h <*> (not <$> isDumb)
-      ColorNever -> return False
-      ColorAlways -> return True
+dumpFailureReport :: Integer -> QC.Args -> [Path] -> IO ()
+dumpFailureReport seed qcArgs xs = do
+  writeFailureReport FailureReport {
+      failureReportSeed = seed
+    , failureReportMaxSuccess = QC.maxSuccess qcArgs
+    , failureReportMaxSize = QC.maxSize qcArgs
+    , failureReportMaxDiscardRatio = QC.maxDiscardRatio qcArgs
+    , failureReportPaths = xs
+    }
 
-    withHandle :: Config -> (Handle -> IO a) -> IO a
-    withHandle c action = case configOutputFile c of
-      Left h -> action h
-      Right path -> withFile path WriteMode action
+doNotLeakCommandLineArgumentsToExamples :: IO a -> IO a
+doNotLeakCommandLineArgumentsToExamples = withArgs []
+
+withHiddenCursor :: Bool -> Handle -> IO a -> IO a
+withHiddenCursor useColor h
+  | useColor  = E.bracket_ (hHideCursor h) (hShowCursor h)
+  | otherwise = id
+
+doesUseColor :: Handle -> Config -> IO Bool
+doesUseColor h c = case configColorMode c of
+  ColorAuto  -> (&&) <$> hIsTerminalDevice h <*> (not <$> isDumb)
+  ColorNever -> return False
+  ColorAlways -> return True
+
+withHandle :: Config -> (Handle -> IO a) -> IO a
+withHandle c action = case configOutputFile c of
+  Left h -> action h
+  Right path -> withFile path WriteMode action
 
 rerunAll :: Config -> Maybe FailureReport -> Summary -> Bool
 rerunAll _ Nothing _ = False
