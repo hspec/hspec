@@ -19,6 +19,7 @@ import           System.Console.GetOpt
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
+import           Data.Functor.Identity
 
 type ConfigFile = (FilePath, [String])
 
@@ -111,9 +112,9 @@ formatters = [
 formatHelp :: String
 formatHelp = unlines (addLineBreaks "use a custom formatter; this can be one of:" ++ map (("   " ++) . fst) formatters)
 
-type Result = Either NoConfig Config
+type Result m = Either InvalidArgument (m Config)
 
-data NoConfig = Help | InvalidArgument String String
+data InvalidArgument = InvalidArgument String String
 
 data Arg a = Arg {
   _argumentName   :: String
@@ -121,12 +122,11 @@ data Arg a = Arg {
 , _argumentSetter :: a -> Config -> Config
 }
 
-mkOption :: [Char] -> String -> Arg a -> String -> OptDescr (Result -> Result)
+mkOption :: Monad m => [Char] -> String -> Arg a -> String -> OptDescr (Result m -> Result m)
 mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name] (ReqArg arg argName) help
   where
-    arg :: String -> Result -> Result
     arg input x = x >>= \c -> case parser input of
-      Just n -> Right (setter n c)
+      Just n -> Right (setter n `liftM` c)
       Nothing -> Left (InvalidArgument name input)
 
 addLineBreaks :: String -> [String]
@@ -135,17 +135,17 @@ addLineBreaks = lineBreaksAt 40
 h :: String -> String
 h = unlines . addLineBreaks
 
-commandLineOptions :: [OptDescr (Result -> Result)]
+commandLineOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 commandLineOptions = [
-    Option   []  ["help"]             (NoArg (const $ Left Help))         (h "display this help and exit")
+    Option   []  ["help"]             (NoArg (const $ Right Nothing))     (h "display this help and exit")
   , Option   []  ["ignore-dot-hspec"] (NoArg setIgnoreConfigFile)         (h "do not read options from ~/.hspec and .hspec")
   , mkOption "m"  "match"             (Arg "PATTERN" return addMatch)     (h "only run examples that match given PATTERN")
   , mkOption []   "skip"              (Arg "PATTERN" return addSkip)      (h "skip examples that match given PATTERN")
   ]
   where
-    setIgnoreConfigFile x = x >>= \c -> return c {configIgnoreConfigFile = True}
+    setIgnoreConfigFile = set $ \config -> config {configIgnoreConfigFile = True}
 
-configFileOptions :: [OptDescr (Result -> Result)]
+configFileOptions :: Monad m => [OptDescr (Result m -> Result m)]
 configFileOptions = [
     Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
   , Option   []  ["no-color"]         (NoArg setNoColor)                  (h "do not colorize the output")
@@ -184,20 +184,23 @@ configFileOptions = [
     setMaxJobs :: Int -> Config -> Config
     setMaxJobs n c = c {configConcurrentJobs = Just n}
 
-    setPrintCpuTime x = x >>= \c -> return c {configPrintCpuTime = True}
-    setDryRun       x = x >>= \c -> return c {configDryRun = True}
-    setFastFail     x = x >>= \c -> return c {configFastFail = True}
-    setRerun        x = x >>= \c -> return c {configRerun = True}
-    setRerunAllOnSuccess x = x >>= \c -> return c {configRerunAllOnSuccess = True}
-    setColor        x = x >>= \c -> return c {configColorMode = ColorAlways}
-    setNoColor      x = x >>= \c -> return c {configColorMode = ColorNever}
-    setDiff         x = x >>= \c -> return c {configDiff = True}
-    setNoDiff       x = x >>= \c -> return c {configDiff = False}
+    setPrintCpuTime = set $ \config -> config {configPrintCpuTime = True}
+    setDryRun       = set $ \config -> config {configDryRun = True}
+    setFastFail     = set $ \config -> config {configFastFail = True}
+    setRerun        = set $ \config -> config {configRerun = True}
+    setRerunAllOnSuccess = set $ \config -> config {configRerunAllOnSuccess = True}
+    setColor        = set $ \config -> config {configColorMode = ColorAlways}
+    setNoColor      = set $ \config -> config {configColorMode = ColorNever}
+    setDiff         = set $ \config -> config {configDiff = True}
+    setNoDiff       = set $ \config -> config {configDiff = False}
 
-documentedOptions :: [OptDescr (Result -> Result)]
+set :: Monad m => (Config -> Config) -> Either a (m Config) -> Either a (m Config)
+set = liftM . liftM
+
+documentedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 documentedOptions = commandLineOptions ++ configFileOptions
 
-undocumentedOptions :: [OptDescr (Result -> Result)]
+undocumentedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 undocumentedOptions = [
     -- for compatibility with test-framework
     mkOption [] "maximum-generated-tests" (Arg "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
@@ -210,10 +213,10 @@ undocumentedOptions = [
   , Option "v" ["verbose"]                 (NoArg id)                         "do not suppress output to stdout when evaluating examples"
   ]
   where
-    setHtml :: Result -> Result
-    setHtml x = x >>= \c -> return c {configHtmlOutput = True}
+    setHtml :: Result Maybe -> Result Maybe
+    setHtml = set $ \config -> config {configHtmlOutput = True}
 
-recognizedOptions :: [OptDescr (Result -> Result)]
+recognizedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 recognizedOptions = documentedOptions ++ undocumentedOptions
 
 parseOptions :: Config -> String -> [ConfigFile] -> [String] -> Either (ExitCode, String) Config
@@ -230,8 +233,7 @@ parseCommandLineOptions prog args config = case parse recognizedOptions config a
 
 parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
 parseFileOptions prog config (name, args) = case parse configFileOptions config args of
-  Right Nothing -> error "this should never happen"
-  Right (Just c) -> Right c
+  Right (Identity c) -> Right c
   Left err -> failure err
   where
     failure err = Left (ExitFailure 1, prog ++ ": " ++ message)
@@ -241,12 +243,11 @@ parseFileOptions prog config (name, args) = case parse configFileOptions config 
           xs -> xs ++ [inFile]
         inFile = "in config file " ++ name
 
-parse :: [OptDescr (Result -> Result)] -> Config -> [String] -> Either String (Maybe Config)
+parse :: Monad m => [OptDescr (Result m -> Result m)] -> Config -> [String] -> Either String (m Config)
 parse options config args = case getOpt Permute options args of
-  (opts, [], []) -> case foldl' (flip id) (Right config) opts of
-    Left Help -> Right Nothing
+  (opts, [], []) -> case foldl' (flip id) (Right $ return config) opts of
     Left (InvalidArgument flag value) -> Left ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'")
-    Right x -> Right (Just x)
+    Right x -> Right x
   (_, _, err:_) -> Left (init err)
   (_, arg:_, _) -> Left ("unexpected argument `" ++ arg ++ "'")
 
