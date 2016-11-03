@@ -68,6 +68,17 @@ spec = do
       it "rejects unrecognized options" $ do
         fromLeft (parseOptions [("~/.hspec", ["--invalid"])] []) `shouldBe` (ExitFailure 1, "my-spec: unrecognized option `--invalid' in config file ~/.hspec\n")
 
+      it "rejects ambiguous options" $ do
+        fromLeft (parseOptions [("~/.hspec", ["--qc-max-s"])] []) `shouldBe` (ExitFailure 1,
+          unlines [
+            "my-spec: option `--qc-max-s' is ambiguous; could be one of:"
+          , "  -a N  --qc-max-success=N  maximum number of successful tests"
+          , "                            before a QuickCheck property succeeds"
+          , "        --qc-max-size=N     size to use for the biggest test cases"
+          , "in config file ~/.hspec"
+          ]
+          )
+
     context "when given multiple config files" $ do
       it "gives later config files precedence" $ do
         configColorMode <$> parseOptions [("~/.hspec", ["--no-color"]), (".hspec", ["--color"])] [] `shouldBe` Right ColorAlways

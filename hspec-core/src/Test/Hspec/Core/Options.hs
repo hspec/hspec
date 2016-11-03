@@ -226,7 +226,7 @@ parseCommandLineOptions prog args config = case parse recognizedOptions config a
   Right (Just c) -> Right c
   Left err -> failure err
   where
-    failure msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ "\nTry `" ++ prog ++ " --help' for more information.\n")
+    failure err = Left (ExitFailure 1, prog ++ ": " ++ err ++ "\nTry `" ++ prog ++ " --help' for more information.\n")
 
 parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
 parseFileOptions prog config (name, args) = case parse configFileOptions config args of
@@ -234,7 +234,12 @@ parseFileOptions prog config (name, args) = case parse configFileOptions config 
   Right (Just c) -> Right c
   Left err -> failure err
   where
-    failure msg = Left (ExitFailure 1, prog ++ ": " ++ msg ++ " in config file " ++ name ++ "\n")
+    failure err = Left (ExitFailure 1, prog ++ ": " ++ message)
+      where
+        message = unlines $ case lines err of
+          [x] -> [x ++ " " ++ inFile]
+          xs -> xs ++ [inFile]
+        inFile = "in config file " ++ name
 
 parse :: [OptDescr (Result -> Result)] -> Config -> [String] -> Either String (Maybe Config)
 parse options config args = case getOpt Permute options args of
