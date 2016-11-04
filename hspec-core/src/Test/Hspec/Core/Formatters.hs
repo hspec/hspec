@@ -38,7 +38,6 @@ module Test.Hspec.Core.Formatters (
 -- ** Appending to the gerenated report
 , write
 , writeLine
-, newParagraph
 
 -- ** Dealing with colors
 , withInfoColor
@@ -87,7 +86,6 @@ import Test.Hspec.Core.Formatters.Internal (
 
   , write
   , writeLine
-  , newParagraph
 
   , withInfoColor
   , withSuccessColor

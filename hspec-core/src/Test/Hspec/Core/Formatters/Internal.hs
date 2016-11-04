@@ -20,7 +20,6 @@ module Test.Hspec.Core.Formatters.Internal (
 
 , write
 , writeLine
-, newParagraph
 
 , withInfoColor
 , withSuccessColor
@@ -173,14 +172,6 @@ data Formatter = Formatter {
 -- | evaluated after `failuresFormatter`
 , footerFormatter     :: FormatM ()
 }
-
-
--- | Append an empty line to the report.
---
--- Calling this multiple times has the same effect as calling it once.
-newParagraph :: FormatM ()
-newParagraph = writeLine ""
-{-# DEPRECATED newParagraph "use @writeLine \"\"@ instead" #-}
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
