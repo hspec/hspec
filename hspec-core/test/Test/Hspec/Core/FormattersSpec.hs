@@ -81,19 +81,19 @@ spec = do
 
     describe "exampleSucceeded" $ do
       it "marks succeeding examples with ." $ do
-        interpret (H.exampleSucceeded formatter undefined) `shouldBe` simplify [
+        interpret (H.exampleSucceeded formatter undefined) `shouldBe` [
             Succeeded "."
           ]
 
     describe "exampleFailed" $ do
       it "marks failing examples with F" $ do
-        interpret (H.exampleFailed formatter undefined undefined) `shouldBe` simplify [
+        interpret (H.exampleFailed formatter undefined undefined) `shouldBe` [
             Failed "F"
           ]
 
     describe "examplePending" $ do
       it "marks pending examples with ." $ do
-        interpret (H.examplePending formatter undefined undefined) `shouldBe` simplify [
+        interpret (H.examplePending formatter undefined undefined) `shouldBe` [
             Pending "."
           ]
 
@@ -188,33 +188,33 @@ spec = do
       context "without failures" $ do
         let env = environment {environmentGetSuccessCount = return 1}
         it "shows summary in green if there are no failures" $ do
-          interpretWith env action `shouldBe` simplify [
+          interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
-            , Succeeded "1 example, 0 failures", Plain "\n"
+            , Succeeded "1 example, 0 failures\n"
             ]
 
       context "with pending examples" $ do
         let env = environment {environmentGetPendingCount = return 1}
         it "shows summary in yellow if there are pending examples" $ do
-          interpretWith env action `shouldBe` simplify [
+          interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
-            , Pending "1 example, 0 failures, 1 pending", Plain "\n"
+            , Pending "1 example, 0 failures, 1 pending\n"
             ]
 
       context "with failures" $ do
         let env = environment {environmentGetFailCount = return 1}
         it "shows summary in red" $ do
-          interpretWith env action `shouldBe` simplify [
+          interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
-            , Failed "1 example, 1 failure", Plain "\n"
+            , Failed "1 example, 1 failure\n"
             ]
 
       context "with both failures and pending examples" $ do
         let env = environment {environmentGetFailCount = return 1, environmentGetPendingCount = return 1}
         it "shows summary in red" $ do
-          interpretWith env action `shouldBe` simplify [
+          interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
-            , Failed "2 examples, 1 failure, 1 pending", Plain "\n"
+            , Failed "2 examples, 1 failure, 1 pending\n"
             ]
 
     context "same as failed_examples" $ do
@@ -223,10 +223,6 @@ spec = do
 failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do
   let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
-
-  it "summarizes the time it takes to finish" $ do
-    r <- runSpec (return ())
-    normalizeSummary r `shouldSatisfy` any (== "Finished in 0.0000 seconds")
 
   context "displays a detailed list of failures" $ do
     it "prints all requirements that are not met" $ do

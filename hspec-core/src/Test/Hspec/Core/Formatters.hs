@@ -233,19 +233,19 @@ defaultFooter :: FormatM ()
 defaultFooter = do
 
   writeLine =<< (++)
-    <$> (printf "Finished in %1.4f seconds"
-    <$> getRealTime) <*> (maybe "" (printf ", used %1.4f seconds of CPU time") <$> getCPUTime)
+    <$> (printf "Finished in %1.4f seconds" <$> getRealTime)
+    <*> (maybe "" (printf ", used %1.4f seconds of CPU time") <$> getCPUTime)
 
   fails   <- getFailCount
   pending <- getPendingCount
   total   <- getTotalCount
 
-  let c | fails /= 0   = withFailColor
-        | pending /= 0 = withPendingColor
-        | otherwise    = withSuccessColor
-  c $ do
-    write $ pluralize total   "example"
-    write (", " ++ pluralize fails "failure")
-    unless (pending == 0) $
-      write (", " ++ show pending ++ " pending")
-  writeLine ""
+  let
+    output =
+         pluralize total   "example"
+      ++ ", " ++ pluralize fails "failure"
+      ++ if pending == 0 then "" else ", " ++ show pending ++ " pending"
+    c | fails /= 0   = withFailColor
+      | pending /= 0 = withPendingColor
+      | otherwise    = withSuccessColor
+  c $ writeLine output
