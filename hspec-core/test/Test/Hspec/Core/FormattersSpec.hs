@@ -1,20 +1,68 @@
-{-# LANGUAGE CPP #-}
-module Test.Hspec.Core.FormattersSpec (main, spec) where
+{-# LANGUAGE OverloadedStrings #-}
+module Test.Hspec.Core.FormattersSpec (spec) where
 
 import           Prelude ()
 import           Helper
+import           Data.String
+import           Control.Monad.Trans.Writer
 import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Formatters as H
+import qualified Test.Hspec.Core.Formatters.Monad as H
+import           Test.Hspec.Core.Formatters.Monad hiding (interpretWith)
 
-#ifndef mingw32_HOST_OS
-import           System.Console.ANSI
-#endif
+data ColorizedText =
+    Plain String
+  | Info String
+  | Succeeded String
+  | Failed String
+  | Pending String
+  | Extra String
+  | Missing String
+  deriving (Eq, Show)
 
-main :: IO ()
-main = hspec spec
+instance IsString ColorizedText where
+  fromString = Plain
+
+simplify :: [ColorizedText] -> [ColorizedText]
+simplify input = case input of
+  Plain xs : Plain ys : zs -> simplify (Plain (xs ++ ys) : zs)
+  Extra xs : Extra ys : zs -> simplify (Extra (xs ++ ys) : zs)
+  Missing xs : Missing ys : zs -> simplify (Missing (xs ++ ys) : zs)
+  x : xs -> x : simplify xs
+  [] -> []
+
+colorize :: (String -> ColorizedText) -> [ColorizedText] -> [ColorizedText]
+colorize color input = case simplify input of
+  Plain x : xs -> color x : xs
+  xs -> xs
+
+interpret :: FormatM a -> [ColorizedText]
+interpret = interpretWith environment
+
+interpretWith :: Environment (Writer [ColorizedText]) -> FormatM a -> [ColorizedText]
+interpretWith env = simplify . execWriter . H.interpretWith env
+
+environment :: Environment (Writer [ColorizedText])
+environment = Environment {
+  environmentGetSuccessCount = return 0
+, environmentGetPendingCount = return 0
+, environmentGetFailCount = return 0
+, environmentGetFailMessages = return []
+, environmentUsedSeed = return 0
+, environmentGetCPUTime = return Nothing
+, environmentGetRealTime = return 0
+, environmentWrite = tell . return . Plain
+, environmentWithFailColor = \action -> let (a, r) = runWriter action in tell (colorize Failed r) >> return a
+, environmentWithSuccessColor = \action -> let (a, r) = runWriter action in tell (colorize Succeeded r) >> return a
+, environmentWithPendingColor = \action -> let (a, r) = runWriter action in tell (colorize Pending r) >> return a
+, environmentWithInfoColor = \action -> let (a, r) = runWriter action in tell (colorize Info r) >> return a
+, environmentExtraChunk = tell . return . Extra
+, environmentMissingChunk = tell . return . Missing
+, environmentLiftIO = undefined
+}
 
 testSpec :: H.Spec
 testSpec = do
@@ -28,26 +76,31 @@ testSpec = do
 
 spec :: Spec
 spec = do
-  describe "silent" $ do
-    let runSpec = fmap fst . capture . H.hspecWithResult H.defaultConfig {H.configFormatter = Just H.silent}
-    it "produces no output" $ do
-      runSpec testSpec `shouldReturn` ""
-
-  describe "failed_examples" $ do
-    failed_examplesSpec H.failed_examples
-
   describe "progress" $ do
-    let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just H.progress}
+    let formatter = H.progress
 
-    it "produces '..F...FF.F' style output" $ do
-      r <- runSpec testSpec
-      head r `shouldBe` ".F.FFF"
+    describe "exampleSucceeded" $ do
+      it "marks succeeding examples with ." $ do
+        interpret (H.exampleSucceeded formatter undefined) `shouldBe` simplify [
+            Succeeded "."
+          ]
 
-    context "same as failed_examples" $ do
-      failed_examplesSpec H.progress
+    describe "exampleFailed" $ do
+      it "marks failing examples with F" $ do
+        interpret (H.exampleFailed formatter undefined undefined) `shouldBe` simplify [
+            Failed "F"
+          ]
+
+    describe "examplePending" $ do
+      it "marks pending examples with ." $ do
+        interpret (H.examplePending formatter undefined undefined) `shouldBe` simplify [
+            Pending "."
+          ]
 
   describe "specdoc" $ do
-    let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just H.specdoc}
+    let
+      formatter = H.specdoc
+      runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
 
     it "displays a header for each thing being described" $ do
       _:x:_ <- runSpec testSpec
@@ -129,8 +182,43 @@ spec = do
           , "2 examples, 0 failures"
           ]
 
+    describe "footerFormatter" $ do
+      let action = H.footerFormatter formatter
+
+      context "without failures" $ do
+        let env = environment {environmentGetSuccessCount = return 1}
+        it "shows summary in green if there are no failures" $ do
+          interpretWith env action `shouldBe` simplify [
+              "Finished in 0.0000 seconds\n"
+            , Succeeded "1 example, 0 failures", Plain "\n"
+            ]
+
+      context "with pending examples" $ do
+        let env = environment {environmentGetPendingCount = return 1}
+        it "shows summary in yellow if there are pending examples" $ do
+          interpretWith env action `shouldBe` simplify [
+              "Finished in 0.0000 seconds\n"
+            , Pending "1 example, 0 failures, 1 pending", Plain "\n"
+            ]
+
+      context "with failures" $ do
+        let env = environment {environmentGetFailCount = return 1}
+        it "shows summary in red" $ do
+          interpretWith env action `shouldBe` simplify [
+              "Finished in 0.0000 seconds\n"
+            , Failed "1 example, 1 failure", Plain "\n"
+            ]
+
+      context "with both failures and pending examples" $ do
+        let env = environment {environmentGetFailCount = return 1, environmentGetPendingCount = return 1}
+        it "shows summary in red" $ do
+          interpretWith env action `shouldBe` simplify [
+              "Finished in 0.0000 seconds\n"
+            , Failed "2 examples, 1 failure, 1 pending", Plain "\n"
+            ]
+
     context "same as failed_examples" $ do
-      failed_examplesSpec H.progress
+      failed_examplesSpec formatter
 
 failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do
@@ -200,37 +288,3 @@ failed_examplesSpec formatter = do
           r <- runSpec $ H.mapSpecItem_ addLoc $ do
             H.it "foo" False
           r `shouldSatisfy` any (== bestEffortExplanation)
-
-  it "summarizes the number of examples and failures" $ do
-    r <- runSpec testSpec
-    r `shouldSatisfy` any (== "6 examples, 4 failures, 1 pending")
-
-  -- Windows has no support for ANSI escape codes.  The Console API is used for
-  -- colorized output, hence the following tests do not work on Windows.
-#ifndef mingw32_HOST_OS
-  it "shows summary in green if there are no failures" $ do
-    r <- captureLines $ H.hspecWithResult H.defaultConfig {H.configColorMode = H.ColorAlways} $ do
-      H.it "foobar" True
-    r `shouldSatisfy` any (== (green ++ "1 example, 0 failures" ++ reset))
-
-  it "shows summary in yellow if there are pending examples" $ do
-    r <- captureLines $ H.hspecWithResult H.defaultConfig {H.configColorMode = H.ColorAlways} $ do
-      H.it "foobar" H.pending
-    r `shouldSatisfy` any (== (yellow ++ "1 example, 0 failures, 1 pending" ++ reset))
-
-  it "shows summary in red if there are failures" $ do
-    r <- captureLines $ H.hspecWithResult H.defaultConfig {H.configColorMode = H.ColorAlways} $ do
-      H.it "foobar" False
-    r `shouldSatisfy` any (== (red ++ "1 example, 1 failure" ++ reset))
-
-  it "shows summary in red if there are both failures and pending examples" $ do
-    r <- captureLines $ H.hspecWithResult H.defaultConfig {H.configColorMode = H.ColorAlways} $ do
-      H.it "foo" False
-      H.it "bar" H.pending
-    r `shouldSatisfy` any (== (red ++ "2 examples, 1 failure, 1 pending" ++ reset))
-  where
-    green  = setSGRCode [SetColor Foreground Dull Green]
-    yellow = setSGRCode [SetColor Foreground Dull Yellow]
-    red    = setSGRCode [SetColor Foreground Dull Red]
-    reset  = setSGRCode [Reset]
-#endif

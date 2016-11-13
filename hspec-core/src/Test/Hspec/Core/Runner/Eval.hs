@@ -21,8 +21,9 @@ import           Data.Time.Clock.POSIX
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Config
-import           Test.Hspec.Core.Formatters
+import           Test.Hspec.Core.Formatters hiding (FormatM)
 import           Test.Hspec.Core.Formatters.Internal
+import qualified Test.Hspec.Core.Formatters.Internal as Formatter
 import           Test.Hspec.Core.Timer
 
 type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
@@ -30,7 +31,7 @@ type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: QSem -> Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
 runFormatter jobsSem useColor h c formatter specs = do
-  headerFormatter formatter
+  Formatter.interpret $ headerFormatter formatter
   chan <- liftIO newChan
   reportProgress <- liftIO mkReportProgress
   run chan reportProgress c formatter (toEvalTree specs)
@@ -111,9 +112,9 @@ run chan reportProgress_ c formatter specs = do
 
     queueSpec :: [String] -> EvalTree -> IO ()
     queueSpec rGroups (Node group xs) = do
-      defer (exampleGroupStarted formatter (reverse rGroups) group)
+      defer (Formatter.interpret $ exampleGroupStarted formatter (reverse rGroups) group)
       forM_ xs (queueSpec (group : rGroups))
-      defer (exampleGroupDone formatter)
+      defer (Formatter.interpret $ exampleGroupDone formatter)
     queueSpec rGroups (NodeWithCleanup action xs) = do
       forM_ xs (queueSpec rGroups)
       defer (runCleanup (action ()) (reverse rGroups, "afterAll-hook"))
@@ -133,17 +134,17 @@ run chan reportProgress_ c formatter specs = do
           case result of
             Right Success -> do
               increaseSuccessCount
-              exampleSucceeded formatter path
+              Formatter.interpret $ exampleSucceeded formatter path
             Right (Pending reason) -> do
               increasePendingCount
-              examplePending formatter path reason
+              Formatter.interpret $ examplePending formatter path reason
             Right (Failure loc_ err) -> failed (loc_ <|> loc) path (Right err)
             Left err         -> failed loc path (Left  err)
 
     failed loc path err = do
       increaseFailCount
       addFailMessage loc path err
-      exampleFailed formatter path err
+      Formatter.interpret $ exampleFailed formatter path err
 
 processMessages :: IO Message -> Bool -> FormatM ()
 processMessages getMessage fastFail = go
@@ -151,6 +152,6 @@ processMessages getMessage fastFail = go
     go = liftIO getMessage >>= \m -> case m of
       Run action -> do
         action
-        fails <- getFailCount
+        fails <- Formatter.interpret getFailCount
         unless (fastFail && fails /= 0) go
       Done -> return ()

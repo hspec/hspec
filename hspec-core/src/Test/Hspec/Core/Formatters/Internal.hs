@@ -1,36 +1,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Core.Formatters.Internal (
-
--- * Public API
-  Formatter (..)
-, FailureReason (..)
-, FormatM
-
-, getSuccessCount
-, getPendingCount
-, getFailCount
-, getTotalCount
-
-, FailureRecord (..)
-, getFailMessages
-, usedSeed
-
-, getCPUTime
-, getRealTime
-
-, write
-, writeLine
-
-, withInfoColor
-, withSuccessColor
-, withPendingColor
-, withFailColor
-
-, extraChunk
-, missingChunk
-
--- * Functions for internal use
+  FormatM
 , runFormatM
+, interpret
 , increaseSuccessCount
 , increasePendingCount
 , increaseFailCount
@@ -52,8 +24,30 @@ import qualified System.CPUTime as CPUTime
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
 import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Spec (Progress, Location)
+import           Test.Hspec.Core.Spec (Location)
 import           Test.Hspec.Core.Example (FailureReason(..))
+
+import qualified Test.Hspec.Core.Formatters.Monad as M
+import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWith, FailureRecord(..))
+
+interpret :: M.FormatM a -> FormatM a
+interpret = interpretWith Environment {
+  environmentGetSuccessCount = getSuccessCount
+, environmentGetPendingCount = getPendingCount
+, environmentGetFailCount = getFailCount
+, environmentGetFailMessages = getFailMessages
+, environmentUsedSeed = usedSeed
+, environmentGetCPUTime = getCPUTime
+, environmentGetRealTime = getRealTime
+, environmentWrite = write
+, environmentWithFailColor = withFailColor
+, environmentWithSuccessColor = withSuccessColor
+, environmentWithPendingColor = withPendingColor
+, environmentWithInfoColor = withInfoColor
+, environmentExtraChunk = extraChunk
+, environmentMissingChunk = missingChunk
+, environmentLiftIO = liftIO
+}
 
 -- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a
@@ -82,10 +76,6 @@ data FormatterState = FormatterState {
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer
 usedSeed = gets stateUsedSeed
-
--- | The total number of examples encountered so far.
-totalCount :: FormatterState -> Int
-totalCount s = successCount s + pendingCount s + failCount s
 
 -- NOTE: We use an IORef here, so that the state persists when UserInterrupt is
 -- thrown.
@@ -123,10 +113,6 @@ getPendingCount = gets pendingCount
 getFailCount :: FormatM Int
 getFailCount = gets failCount
 
--- | Get the total number of examples encountered so far.
-getTotalCount :: FormatM Int
-getTotalCount = gets totalCount
-
 -- | Append to the list of accumulated failure messages.
 addFailMessage :: Maybe Location -> Path -> Either SomeException FailureReason -> FormatM ()
 addFailMessage loc p m = modify $ \s -> s {failMessages = FailureRecord loc p m : failMessages s}
@@ -135,53 +121,11 @@ addFailMessage loc p m = modify $ \s -> s {failMessages = FailureRecord loc p m 
 getFailMessages :: FormatM [FailureRecord]
 getFailMessages = reverse `fmap` gets failMessages
 
-data FailureRecord = FailureRecord {
-  failureRecordLocation :: Maybe Location
-, failureRecordPath     :: Path
-, failureRecordMessage  :: Either SomeException FailureReason
-}
-
-data Formatter = Formatter {
-
-  headerFormatter :: FormatM ()
-
--- | evaluated before each test group
---
--- The given number indicates the position within the parent group.
-, exampleGroupStarted :: [String] -> String -> FormatM ()
-
-, exampleGroupDone    :: FormatM ()
-
--- | used to notify the progress of the currently evaluated example
---
--- /Note/: This is only called when interactive/color mode.
-, exampleProgress     :: Handle -> Path -> Progress -> IO ()
-
--- | evaluated after each successful example
-, exampleSucceeded    :: Path -> FormatM ()
-
--- | evaluated after each failed example
-, exampleFailed       :: Path -> Either SomeException FailureReason -> FormatM ()
-
--- | evaluated after each pending example
-, examplePending      :: Path -> Maybe String -> FormatM ()
-
--- | evaluated after a test run
-, failedFormatter     :: FormatM ()
-
--- | evaluated after `failuresFormatter`
-, footerFormatter     :: FormatM ()
-}
-
 -- | Append some output to the report.
 write :: String -> FormatM ()
 write s = do
   h <- gets stateHandle
   liftIO $ IO.hPutStr h s
-
--- | The same as `write`, but adds a newline character.
-writeLine :: String -> FormatM ()
-writeLine s = write s >> write "\n"
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.

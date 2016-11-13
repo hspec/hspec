@@ -67,7 +67,7 @@ import           System.IO (hPutStr, hFlush)
 --
 -- Everything imported here has to be re-exported, so that users can implement
 -- their own formatters.
-import Test.Hspec.Core.Formatters.Internal (
+import Test.Hspec.Core.Formatters.Monad (
     Formatter (..)
   , FailureReason (..)
   , FormatM
@@ -110,7 +110,6 @@ silent = Formatter {
 , failedFormatter     = return ()
 , footerFormatter     = return ()
 }
-
 
 specdoc :: Formatter
 specdoc = silent {

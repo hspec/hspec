@@ -47,6 +47,7 @@ import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Formatters.Internal
+import qualified Test.Hspec.Core.Formatters.Internal as Formatter
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 
@@ -170,14 +171,14 @@ runSpec config spec = do
     withHiddenCursor useColor h $
       runFormatM useColor (configDiff config) (configHtmlOutput config) (configPrintCpuTime config) seed h $ do
         runFormatter jobsSem useColor h config formatter filteredSpec `finally_` do
-          failedFormatter formatter
+          Formatter.interpret $ failedFormatter formatter
 
-        footerFormatter formatter
+        Formatter.interpret $ footerFormatter formatter
 
-        xs <- map failureRecordPath <$> getFailMessages
+        xs <- map failureRecordPath <$> Formatter.interpret getFailMessages
         liftIO $ dumpFailureReport seed qcArgs xs
 
-        Summary <$> getTotalCount <*> getFailCount
+        Summary <$> Formatter.interpret getTotalCount <*> Formatter.interpret getFailCount
 
 dumpFailureReport :: Integer -> QC.Args -> [Path] -> IO ()
 dumpFailureReport seed qcArgs xs = do
