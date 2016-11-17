@@ -1,4 +1,5 @@
 ## Changes next
+  - Add indentation when actual/expected contain newlines (see #263)
   - Add `--rerun-all-on-success`
   - Add `xit`, `xspecify`, `xdescribe` and `xcontext` (see #252)
   - Run around-hook for Bool and Result (see #252)

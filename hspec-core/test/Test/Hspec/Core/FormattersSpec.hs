@@ -26,6 +26,17 @@ data ColorizedText =
 instance IsString ColorizedText where
   fromString = Plain
 
+removeColors :: [ColorizedText] -> String
+removeColors input = case input of
+  Plain x : xs -> x ++ removeColors xs
+  Info x : xs -> x ++ removeColors xs
+  Succeeded x : xs -> x ++ removeColors xs
+  Failed x : xs -> x ++ removeColors xs
+  Pending x : xs -> x ++ removeColors xs
+  Extra x : xs -> x ++ removeColors xs
+  Missing x : xs -> x ++ removeColors xs
+  [] -> ""
+
 simplify :: [ColorizedText] -> [ColorizedText]
 simplify input = case input of
   Plain xs : Plain ys : zs -> simplify (Plain (xs ++ ys) : zs)
@@ -181,6 +192,31 @@ spec = do
           , "Finished in 0.0000 seconds"
           , "2 examples, 0 failures"
           ]
+
+    describe "failedFormatter" $ do
+      let action = H.failedFormatter formatter
+
+      context "when actual/expected contain newlines" $ do
+        let
+          env = environment {
+            environmentGetFailMessages = return [FailureRecord Nothing ([], "") (Right $ ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
+            }
+        it "adds indentation" $ do
+          removeColors (interpretWith env action) `shouldBe` unlines [
+              ""
+            , "Failures:"
+            , ""
+            , "  1) "
+            , "       expected: first"
+            , "                 second"
+            , "                 third"
+            , "        but got: first"
+            , "                 two"
+            , "                 third"
+            , ""
+            , "Randomized with seed 0"
+            , ""
+            ]
 
     describe "footerFormatter" $ do
       let action = H.footerFormatter formatter

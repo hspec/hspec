@@ -204,17 +204,21 @@ defaultFailedFormatter = do
 
           withFailColor $ write (indentation ++ "expected: ")
           forM_ chunks $ \chunk -> case chunk of
-            Both a _ -> write a
-            First a -> extraChunk a
+            Both a _ -> indented write a
+            First a -> indented extraChunk a
             Second _ -> return ()
           writeLine ""
 
           withFailColor $ write (indentation ++ " but got: ")
           forM_ chunks $ \chunk -> case chunk of
-            Both a _ -> write a
+            Both a _ -> indented write a
             First _ -> return ()
-            Second a -> missingChunk a
+            Second a -> indented missingChunk a
           writeLine ""
+          where
+            indented output text = case break (== '\n') text of
+              (xs, "") -> output xs
+              (xs, _ : ys) -> output (xs ++ "\n") >> write (indentation ++ "          ") >> indented output ys
       where
         indentation = "       "
         indent message = do
