@@ -19,7 +19,7 @@ main = hspec spec
 testSpec :: H.Spec
 testSpec = do
   H.describe "Example" $ do
-    H.it "success"    (H.Success)
+    H.it "success"    (H.Success Nothing)
     H.it "fail 1"     (H.Failure Nothing $ H.Reason "fail message")
     H.it "pending"    (H.pendingWith "pending message")
     H.it "fail 2"     (H.Failure Nothing H.NoReason)

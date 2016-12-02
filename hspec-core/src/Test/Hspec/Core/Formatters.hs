@@ -104,7 +104,7 @@ silent = Formatter {
 , exampleGroupStarted = \_ _ -> return ()
 , exampleGroupDone    = return ()
 , exampleProgress     = \_ _ _ -> return ()
-, exampleSucceeded    = \_ -> return ()
+, exampleSucceeded    = \_ _ -> return ()
 , exampleFailed       = \_ _ -> return ()
 , examplePending      = \_ _  -> return ()
 , failedFormatter     = return ()
@@ -125,8 +125,10 @@ specdoc = silent {
     hPutStr h (formatProgress p)
     hFlush h
 
-, exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
+, exampleSucceeded = \(nesting, requirement) info -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ requirement
+    forM_ (lines (fromMaybe "" info)) $ \infoLine ->
+      writeLine $ indentationFor nesting ++ infoLine
 
 , exampleFailed = \(nesting, requirement) _ -> withFailColor $ do
     n <- getFailCount
@@ -147,7 +149,7 @@ specdoc = silent {
 
 progress :: Formatter
 progress = silent {
-  exampleSucceeded = \_   -> withSuccessColor $ write "."
+  exampleSucceeded = \_ _ -> withSuccessColor $ write "."
 , exampleFailed    = \_ _ -> withFailColor    $ write "F"
 , examplePending   = \_ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter

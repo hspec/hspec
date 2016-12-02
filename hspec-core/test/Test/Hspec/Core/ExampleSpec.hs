@@ -69,7 +69,7 @@ spec = do
 
     context "for Bool" $ do
       it "returns Success on True" $ do
-        evaluateExample True `shouldReturn` H.Success
+        evaluateExample True `shouldReturn` (H.Success Nothing)
 
       it "returns Failure on False" $ do
         evaluateExample False `shouldReturn` H.Failure Nothing H.NoReason
@@ -97,7 +97,7 @@ spec = do
 
     context "for Expectation" $ do
       it "returns Success if all expectations hold" $ do
-        evaluateExample (23 `shouldBe` (23 :: Int)) `shouldReturn` H.Success
+        evaluateExample (23 `shouldBe` (23 :: Int)) `shouldReturn` (H.Success Nothing)
 
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
@@ -110,12 +110,12 @@ spec = do
               e
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
-        evaluateExampleWith action (modifyIORef ref succ) `shouldReturn` H.Success
+        evaluateExampleWith action (modifyIORef ref succ) `shouldReturn` (H.Success Nothing)
         readIORef ref `shouldReturn` 2
 
     context "for Property" $ do
       it "returns Success if property holds" $ do
-        evaluateExample (property $ \n -> n == (n :: Int)) `shouldReturn` H.Success
+        evaluateExample (property $ \n -> n == (n :: Int)) `shouldReturn` (H.Success Nothing)
 
       it "returns Failure if property does not hold" $ do
         H.Failure _ _ <- evaluateExample $ property $ \n -> n /= (n :: Int)
@@ -129,6 +129,10 @@ spec = do
           , "1"
           ]
 
+      it "shows the collected labels" $ do
+        H.Success (Just info) <- evaluateExample $ property $ \ (x :: ()) -> label (show x) $ x == x
+        info `shouldBe` "(): 100\n"
+
       it "runs around-action for each single check of the property" $ do
         ref <- newIORef (0 :: Int)
         let action :: IO () -> IO ()
@@ -137,7 +141,7 @@ spec = do
               e
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
-        H.Success <- evaluateExampleWith action (property $ \(_ :: Int) -> modifyIORef ref succ)
+        H.Success Nothing <- evaluateExampleWith action (property $ \(_ :: Int) -> modifyIORef ref succ)
         readIORef ref `shouldReturn` 2000
 
       it "pretty-prints exceptions" $ do

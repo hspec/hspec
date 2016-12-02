@@ -131,9 +131,9 @@ run chan reportProgress_ c formatter specs = do
         formatResult :: FormatResult
         formatResult result = do
           case result of
-            Right Success -> do
+            Right (Success info) -> do
               increaseSuccessCount
-              exampleSucceeded formatter path
+              exampleSucceeded formatter path info
             Right (Pending reason) -> do
               increasePendingCount
               examplePending formatter path reason

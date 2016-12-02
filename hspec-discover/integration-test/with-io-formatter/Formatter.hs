@@ -8,6 +8,6 @@ count :: IO Formatter
 count = do
   ref <- newIORef (0 :: Int)
   return silent {
-      exampleSucceeded = \_ -> liftIO (modifyIORef ref succ)
+      exampleSucceeded = \_ _ -> liftIO (modifyIORef ref succ)
     , footerFormatter = liftIO (readIORef ref) >>= writeLine . show
     }
