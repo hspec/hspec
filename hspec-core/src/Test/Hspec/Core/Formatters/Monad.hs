@@ -64,7 +64,7 @@ data Formatter = Formatter {
 , exampleProgress :: Path -> Progress -> FormatM ()
 
 -- | evaluated after each successful example
-, exampleSucceeded :: Path -> FormatM ()
+, exampleSucceeded :: Path -> Maybe String -> FormatM ()
 
 -- | evaluated after each failed example
 , exampleFailed :: Path -> Either SomeException FailureReason -> FormatM ()

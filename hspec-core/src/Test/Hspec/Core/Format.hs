@@ -14,7 +14,7 @@ data Format m = Format {
 , formatGroupStarted :: Path -> m ()
 , formatGroupDone :: Path -> m ()
 , formatProgress :: Path -> Progress -> m ()
-, formatSuccess :: Path -> m ()
+, formatSuccess :: Path -> Maybe String -> m ()
 , formatFailure :: Path -> Maybe Location -> Either SomeException FailureReason -> m ()
 , formatPending :: Path -> Maybe String -> m ()
 }

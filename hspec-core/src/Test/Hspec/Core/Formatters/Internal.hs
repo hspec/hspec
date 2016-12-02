@@ -44,10 +44,10 @@ formatterToFormat formatter config = Format {
 , formatGroupDone = \_ -> interpret (M.exampleGroupDone formatter)
 , formatProgress = \path progress -> when useColor $ do
     interpret $ M.exampleProgress formatter path progress
-, formatSuccess = \path -> do
+, formatSuccess = \ path message -> do
     clearTransientOutput
     increaseSuccessCount
-    interpret $ M.exampleSucceeded formatter path
+    interpret $ M.exampleSucceeded formatter path message
 , formatFailure = \path loc err -> do
     clearTransientOutput
     addFailMessage loc path err
