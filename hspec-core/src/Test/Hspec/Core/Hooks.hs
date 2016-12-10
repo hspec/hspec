@@ -87,7 +87,6 @@ around_ action = aroundWith $ \e a -> action (e a)
 -- | Run a custom action before and/or after every spec item.
 aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundWith action = mapSpecItem action
-  (\i@Item{itemExample =                   e}
-      -> i{itemExample = modifyItemExample e})
+  (\i -> i { itemExample = modifyItemExample $ itemExample i })
   where
   modifyItemExample e params runner = e params (runner . action)
