@@ -141,7 +141,7 @@ specdoc = silent {
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
     formatProgress (current, total)
-      | total == 0 = show current ++ "\r"
+      | total == 0 = "                                    \r"
       | otherwise  = show current ++ "/" ++ show total ++ "\r"
 
 
