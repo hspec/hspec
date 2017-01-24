@@ -1,16 +1,13 @@
-## Changes next
-  - Add indentation when actual/expected contain newlines (see #263)
-  - Add `--rerun-all-on-success`
-  - Add `xit`, `xspecify`, `xdescribe` and `xcontext` (see #252)
-  - Run around-hook for Bool and Result (see #252)
-  - More graceful shutdown on ctrl-c (see #270)
-  - Report exceptions in `beforeAll` operations only once
-  - Include `CHANGES.markdown` in package tarball
-  - Add support for `--diff`
+## Changes 2.4.0
   - Read command-line options from config files `~/.hspec` and `.hspec`
-  - Rename `Fail` constructor of `Result`-type to `Failure`
-  - Add `FailureReason` type
-  - Add `Test.Hspec.Core.Spec.safeEvaluateExample`
+  - Add support for `--diff`
+  - Add `xit`, `xspecify`, `xdescribe` and `xcontext` (see #252)
+  - Add `--rerun-all-on-success`
+  - Report exceptions in `beforeAll` operations only once
+  - Add indentation when actual/expected contain newlines (see #263)
+  - More graceful shutdown on ctrl-c (see #270)
+  - Run around-hook for Bool and Result (see #252)
+  - Include `CHANGES.markdown` in package tarball
 
 ## Changes in 2.3.2
   - Compatibility with HUnit 1.5
