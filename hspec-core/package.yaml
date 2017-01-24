@@ -6,7 +6,7 @@ description: >
   Hspec's functionality.
 license: MIT
 copyright:
-  - (c) 2011-2016 Simon Hengel
+  - (c) 2011-2017 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
   - (c) 2011 Greg Weber
 maintainer: Simon Hengel <sol@typeful.net>
