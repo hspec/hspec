@@ -1,5 +1,7 @@
 # Hspec: Behavior-Driven Development for Haskell
 
+[![Build Status](https://secure.travis-ci.org/hspec/hspec.svg?branch=master)](http://travis-ci.org/hspec/hspec)
+
 ## Getting started
 
 Install Hspec from Hackage.
