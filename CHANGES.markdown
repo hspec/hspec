@@ -9,6 +9,12 @@
   - Run around-hook for Bool and Result (see #252)
   - Include `CHANGES.markdown` in package tarball
 
+Internal changes:
+
+  - Rename `Fail` constructor of `Result`-type to `Failure`
+  - Add `FailureReason` type
+  - Add `Test.Hspec.Core.Spec.safeEvaluateExample`
+
 ## Changes in 2.3.2
   - Compatibility with HUnit 1.5
 
