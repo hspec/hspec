@@ -153,7 +153,7 @@ hunitFailureToResult e = case e of
         Just loc -> Just $ Location (HUnit.locationFile loc) (HUnit.locationLine loc) (HUnit.locationColumn loc) ExactLocation
 #endif
 #else
-  HUnit.HUnitFailure err -> Failure Nothing err
+  HUnit.HUnitFailure err -> Failure Nothing (Reason err)
 #endif
 
 instance Example (a -> Expectation) where
