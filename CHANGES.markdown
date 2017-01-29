@@ -1,3 +1,6 @@
+## Changes 2.4.1
+  - Compatibility with HUnit < 1.3
+
 ## Changes 2.4.0
   - Read command-line options from config files `~/.hspec` and `.hspec`
   - Add support for `--diff`

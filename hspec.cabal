@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:             hspec
-version:          2.4.0
+version:          2.4.1
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2017 Simon Hengel,
@@ -44,8 +44,8 @@ library
       src
   build-depends:
       base == 4.*
-    , hspec-core == 2.4.0
-    , hspec-discover == 2.4.0
+    , hspec-core == 2.4.1
+    , hspec-discover == 2.4.1
     , hspec-expectations == 0.8.2.*
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
@@ -75,8 +75,8 @@ test-suite spec
       Test.Hspec.DiscoverSpec
   build-depends:
       base == 4.*
-    , hspec-core == 2.4.0
-    , hspec-discover == 2.4.0
+    , hspec-core == 2.4.1
+    , hspec-discover == 2.4.1
     , hspec-expectations == 0.8.2.*
     , transformers >= 0.2.2.0
     , QuickCheck >= 2.5.1
