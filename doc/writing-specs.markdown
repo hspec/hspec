@@ -160,3 +160,27 @@ The report produced at the end of a test run counts passed, failed, and pending
 spec items separately, and having unresolved pending spec items does not cause
 your test suite to fail; that is, it can still exit with a status code of 0 if
 there are unresolved pending spec items.
+
+### Generating your specs dinamically
+
+You can generate your specs dinamically using the `runIO` function. For
+instance, lets say you want to generate a spec per file in a folder.
+
+This
+can be done the following way:
+
+```hspec
+main :: IO ()
+main = hspec $ do
+  describe "generate specs" $ do
+    allFiles <- runIO (getDirectoryContents ".")
+    let files = filter (`notElem` [".", ".."]) allFiles
+    forM_ files $ \file -> do
+      it ("test using the file " ++ file) $ do
+        pending
+```
+
+Note that tour runIO action is alway executed when the test tree is constructed,
+even e.g. with --dry-run. For that reason you should do as little in runIO
+actions as possible.
+
