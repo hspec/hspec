@@ -1,3 +1,6 @@
+## Unreleased
+  - Use `--diff` by default
+
 ## Changes in 2.4.1
   - Compatibility with HUnit < 1.3
 
