@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.15.0.
+-- This file has been generated from package.yaml by hpack version 0.17.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec-discover
-version:          2.4.1
+version:          2.4.2
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2012-2017 Simon Hengel
@@ -43,6 +43,8 @@ library
   exposed-modules:
       Test.Hspec.Discover.Config
       Test.Hspec.Discover.Run
+  other-modules:
+      Paths_hspec_discover
   default-language: Haskell2010
 
 executable hspec-discover

@@ -1,4 +1,4 @@
-## Unreleased
+## Changes in 2.4.2
   - Use `--diff` by default
   - Add `--failure-report` (see #266)
 
