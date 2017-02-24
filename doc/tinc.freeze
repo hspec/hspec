@@ -6,9 +6,9 @@ dependencies:
 - name: call-stack
   version: '0.1.0'
 - name: hspec-core
-  version: '2.4.0'
+  version: '2.4.1'
 - name: hspec-discover
-  version: '2.4.0'
+  version: '2.4.1'
 - name: hspec-expectations
   version: '0.8.2'
 - name: HUnit

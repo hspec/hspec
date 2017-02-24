@@ -9,9 +9,12 @@ module Test.Hspec.Core.FailureReport (
 import           System.SetEnv
 import           Test.Hspec.Core.Util (safeTry)
 #endif
+import           Control.Monad
 import           System.IO
+import           System.Directory
 import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Util (Path)
+import           Test.Hspec.Core.Options (Config(..))
 
 data FailureReport = FailureReport {
   failureReportSeed :: Integer
@@ -21,29 +24,42 @@ data FailureReport = FailureReport {
 , failureReportPaths :: [Path]
 } deriving (Eq, Show, Read)
 
-writeFailureReport :: FailureReport -> IO ()
+writeFailureReport :: Config -> FailureReport -> IO ()
+writeFailureReport config report = case configFailureReport config of
+  Just file -> writeFile file (show report)
+  Nothing -> do
 #ifdef __GHCJS__
-writeFailureReport _ = return ()
-  -- ghcjs currently does not support setting environment variables
-  -- (https://github.com/ghcjs/ghcjs/issues/263). Since writing a failure report
-  -- into the environment is a non-essential feature we just disable this to be
-  -- able to run hspec test-suites with ghcjs at all. Should be reverted once
-  -- the issue is fixed.
+    -- ghcjs currently does not support setting environment variables
+    -- (https://github.com/ghcjs/ghcjs/issues/263). Since writing a failure report
+    -- into the environment is a non-essential feature we just disable this to be
+    -- able to run hspec test-suites with ghcjs at all. Should be reverted once
+    -- the issue is fixed.
+    return ()
 #else
-writeFailureReport x = do
-  -- on Windows this can throw an exception when the input is too large, hence
-  -- we use `safeTry` here
-  safeTry (setEnv "HSPEC_FAILURES" $ show x) >>= either onError return
-  where
-    onError err = do
-      hPutStrLn stderr ("WARNING: Could not write environment variable HSPEC_FAILURES (" ++ show err ++ ")")
+    -- on Windows this can throw an exception when the input is too large, hence
+    -- we use `safeTry` here
+    safeTry (setEnv "HSPEC_FAILURES" $ show report) >>= either onError return
+    where
+      onError err = do
+        hPutStrLn stderr ("WARNING: Could not write environment variable HSPEC_FAILURES (" ++ show err ++ ")")
 #endif
 
-readFailureReport :: IO (Maybe FailureReport)
-readFailureReport = do
-  mx <- lookupEnv "HSPEC_FAILURES"
-  case mx >>= readMaybe of
-    Nothing -> do
-      hPutStrLn stderr "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!"
-      return Nothing
-    x -> return x
+readFailureReport :: Config -> IO (Maybe FailureReport)
+readFailureReport config = case configFailureReport config of
+  Just file -> do
+    exists <- doesFileExist file
+    if exists
+      then do
+        r <- readFile file
+        let report = readMaybe r
+        when (report == Nothing) $ do
+          hPutStrLn stderr ("WARNING: Could not read failure report from file " ++ show file ++ "!")
+        return report
+      else return Nothing
+  Nothing -> do
+    mx <- lookupEnv "HSPEC_FAILURES"
+    case mx >>= readMaybe of
+      Nothing -> do
+        hPutStrLn stderr "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!"
+        return Nothing
+      report -> return report

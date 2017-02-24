@@ -1,5 +1,6 @@
 ## Unreleased
   - Use `--diff` by default
+  - Add `--failure-report` (see #266)
 
 ## Changes in 2.4.1
   - Compatibility with HUnit < 1.3

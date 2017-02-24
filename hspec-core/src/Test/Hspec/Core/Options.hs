@@ -28,6 +28,7 @@ data Config = Config {
 , configDryRun :: Bool
 , configPrintCpuTime :: Bool
 , configFastFail :: Bool
+, configFailureReport :: Maybe FilePath
 , configRerun :: Bool
 , configRerunAllOnSuccess :: Bool
 
@@ -55,6 +56,7 @@ defaultConfig = Config {
 , configDryRun = False
 , configPrintCpuTime = False
 , configFastFail = False
+, configFailureReport = Nothing
 , configRerun = False
 , configRerunAllOnSuccess = False
 , configFilterPredicate = Nothing
@@ -161,7 +163,8 @@ configFileOptions = [
   , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
   , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
-  , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previous test run (only works in GHCi)")
+  , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)")
+  , mkOption []   "failure-report"    (Arg "FILE" return setFailureReport)(h "read/write a failure report for use with --rerun")
   , Option   []  ["rerun-all-on-success"] (NoArg setRerunAllOnSuccess)    (h "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)")
   , mkOption "j"  "jobs"              (Arg "N" readMaxJobs setMaxJobs)    (h "run at most N parallelizable tests simultaneously (default: number of available processors)")
   ]
@@ -180,6 +183,9 @@ configFileOptions = [
 
     setOutputFile :: String -> Config -> Config
     setOutputFile file c = c {configOutputFile = Right file}
+
+    setFailureReport :: String -> Config -> Config
+    setFailureReport file c = c {configFailureReport = Just file}
 
     setMaxJobs :: Int -> Config -> Config
     setMaxJobs n c = c {configConcurrentJobs = Just n}

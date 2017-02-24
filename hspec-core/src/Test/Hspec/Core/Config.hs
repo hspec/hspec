@@ -88,7 +88,7 @@ getConfig opts_ prog args = do
   case parseOptions opts_ prog configFiles args of
     Left (err, msg) -> exitWithMessage err msg
     Right opts -> do
-      r <- if configRerun opts then readFailureReport else return Nothing
+      r <- if configRerun opts then readFailureReport opts else return Nothing
       return (r, mkConfig r opts)
 
 readConfigFiles :: IO [ConfigFile]

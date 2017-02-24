@@ -176,13 +176,13 @@ runSpec config spec = do
         Formatter.interpret $ footerFormatter formatter
 
         xs <- map failureRecordPath <$> Formatter.interpret getFailMessages
-        liftIO $ dumpFailureReport seed qcArgs xs
+        liftIO $ dumpFailureReport config seed qcArgs xs
 
         Summary <$> Formatter.interpret getTotalCount <*> Formatter.interpret getFailCount
 
-dumpFailureReport :: Integer -> QC.Args -> [Path] -> IO ()
-dumpFailureReport seed qcArgs xs = do
-  writeFailureReport FailureReport {
+dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
+dumpFailureReport config seed qcArgs xs = do
+  writeFailureReport config FailureReport {
       failureReportSeed = seed
     , failureReportMaxSuccess = QC.maxSuccess qcArgs
     , failureReportMaxSize = QC.maxSize qcArgs
