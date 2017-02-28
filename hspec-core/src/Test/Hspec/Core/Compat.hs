@@ -51,7 +51,7 @@ import           Text.Read
 import           Data.IORef
 import           System.Environment
 
-import           Data.Typeable.Internal (tyConModule, tyConName)
+import           Data.Typeable (tyConModule, tyConName)
 import           Control.Concurrent
 
 #if !MIN_VERSION_base(4,6,0)
