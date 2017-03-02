@@ -7,7 +7,7 @@ Pygments.start(File.join(File.dirname(__FILE__), "../pygments"))
 module Hspec
   module CustomFilters
     def runhaskell(args)
-      cmd = "runhaskell -Wall -Werror -i../hspec-core/src -i../src -i../hspec-contrib/src/ -optP-include -optP../hspec-core/dist/build/autogen/cabal_macros.h #{args}"
+      cmd = "tinc exec runhaskell -Wall -Werror #{args}"
       cache  = ".cache/runhaskell"
       system "mkdir -p #{cache}"
 
@@ -85,7 +85,7 @@ module Hspec
 #{source}
 {% endhighlight %}
 <pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
-<samp>{{ "#{file} --html" | runhaskell }}</samp></pre>
+<samp>{{ "#{file} --html --ignore-dot-hspec" | runhaskell }}</samp></pre>
 HTML
     end
   end

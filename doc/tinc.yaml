@@ -3,3 +3,7 @@ dependencies:
     path: ../hspec-core
   - name: hspec-discover
     path: ../hspec-discover
+  - name: hspec
+    path: ../
+  - name: hspec-contrib
+    path: ../hspec-contrib

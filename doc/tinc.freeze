@@ -5,6 +5,10 @@ dependencies:
   version: '2.1.1'
 - name: call-stack
   version: '0.1.0'
+- name: hspec
+  version: '2.4.2'
+- name: hspec-contrib
+  version: '0.4.0'
 - name: hspec-core
   version: '2.4.2'
 - name: hspec-discover
