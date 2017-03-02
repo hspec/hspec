@@ -17,7 +17,7 @@ layout: default
 ### Step 3: Run and watch it fail
 <pre>
 $ <kbd>runhaskell MathSpec.hs</kbd>
-<samp>{{ "-i_includes/introduction/step2/ _includes/introduction/MathSpec.hs --html --ignore-dot-hspec" | runhaskell }}</samp></pre>
+<samp>{{ "-i_includes/introduction/step2/ _includes/introduction/MathSpec.hs --html --seed 921447365 --ignore-dot-hspec" | runhaskell }}</samp></pre>
 
 ### Step 4: Implement your desired behavior
 
@@ -28,4 +28,4 @@ $ <kbd>runhaskell MathSpec.hs</kbd>
 ### Step 5: Run again and see it pass
 <pre>
 $ <kbd>runhaskell MathSpec.hs</kbd>
-<samp>{{ "-i_includes/introduction/step4/ _includes/introduction/MathSpec.hs --html --ignore-dot-hspec" | runhaskell }}</samp></pre>
+<samp>{{ "-i_includes/introduction/step4/ _includes/introduction/MathSpec.hs --html --seed 921447365 --ignore-dot-hspec" | runhaskell }}</samp></pre>

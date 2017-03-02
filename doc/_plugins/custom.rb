@@ -85,7 +85,7 @@ module Hspec
 #{source}
 {% endhighlight %}
 <pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
-<samp>{{ "#{file} --html --ignore-dot-hspec" | runhaskell }}</samp></pre>
+<samp>{{ "#{file} --html --seed 921447365 --ignore-dot-hspec" | runhaskell }}</samp></pre>
 HTML
     end
   end
