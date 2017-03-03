@@ -29,7 +29,7 @@ GEM
     directory_watcher (1.5.1)
     fast-stemmer (1.0.2)
     kramdown (0.13.8)
-    less (2.3.3)
+    less (2.6.0)
       commonjs (~> 0.2.7)
     libv8 (3.16.14.17)
     liquid (2.6.3)
