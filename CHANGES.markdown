@@ -111,7 +111,7 @@ Internal changes:
   - Include `IOErrorType` when printing uncaught `IOException`s (see #204)
 
 ## Changes in 1.12.1
-  - Add `--module-name` flag to `hspec-discover` (see #168)
+  - Add `--module-name` option to `hspec-discover` (see #168)
 
 ## Changes in 1.12.0
   - Add optional source location to spec items
@@ -120,7 +120,7 @@ Internal changes:
     really needed
   - Add `mapSpecTree` to `Test.Hspec.Core`
   - Add `afterAll` (see #188)
-  - Do not return `Result` from `hspecWith` and accept command-line arguments
+  - Do not return `Result` from `hspecWith` and accept command-line options
     (the old behavior is still available as `hspecWithResult`)
   - Rename `configHandle` to `configOutputFile`
   - Omit empty `describe` groups from report

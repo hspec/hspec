@@ -48,7 +48,7 @@ run args_ = do
         hPutStrLn stderr err
         exitFailure
       Right conf -> do
-        when (configNested conf) (hPutStrLn stderr "hspec-discover: WARNING - The `--nested' flag is deprecated and will be removed in a future release!")
+        when (configNested conf) (hPutStrLn stderr "hspec-discover: WARNING - The `--nested' option is deprecated and will be removed in a future release!")
         specs <- findSpecs src
         writeFile dst (mkSpecModule src conf specs)
     _ -> do

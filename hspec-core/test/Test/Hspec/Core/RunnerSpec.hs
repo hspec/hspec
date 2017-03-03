@@ -103,9 +103,9 @@ spec = do
         r <- runPropFoo ["--seed", "42"]
         runPropFoo ["--rerun"] `shouldReturn` r
 
-      forM_ quickCheckOptions $ \(flag, accessor) -> do
-        it ("reuses same " ++ flag) $ do
-          [flag, "23"] `shouldUseArgs` ((== 23) . accessor)
+      forM_ quickCheckOptions $ \(name, accessor) -> do
+        it ("reuses same " ++ name) $ do
+          [name, "23"] `shouldUseArgs` ((== 23) . accessor)
           ["--rerun"] `shouldUseArgs` ((== 23) . accessor)
 
       context "when no examples failed previously" $ do
@@ -144,7 +144,7 @@ spec = do
           r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
 
 
-    it "does not leak command-line flags to examples" $ do
+    it "does not leak command-line options to examples" $ do
       silence . withArgs ["--verbose"] $ do
         H.hspec $ do
           H.it "foobar" $ do

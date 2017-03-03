@@ -252,7 +252,7 @@ parseFileOptions prog config (name, args) = case parse configFileOptions config 
 parse :: Monad m => [OptDescr (Result m -> Result m)] -> Config -> [String] -> Either String (m Config)
 parse options config args = case getOpt Permute options args of
   (opts, [], []) -> case foldl' (flip id) (Right $ return config) opts of
-    Left (InvalidArgument flag value) -> Left ("invalid argument `" ++ value ++ "' for `--" ++ flag ++ "'")
+    Left (InvalidArgument name value) -> Left ("invalid argument `" ++ value ++ "' for `--" ++ name ++ "'")
     Right x -> Right x
   (_, _, err:_) -> Left (init err)
   (_, arg:_, _) -> Left ("unexpected argument `" ++ arg ++ "'")

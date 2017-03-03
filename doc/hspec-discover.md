@@ -74,7 +74,7 @@ A complete example is at <https://github.com/hspec/hspec-example>.
 
 `hspec-discover` gives you a default `main` function and in many cases this is
 exactly what you want.  However, sometimes it is useful to customize the used
-main function.  This can be achieved by passing the `--module-name` flag to
+main function.  This can be achieved by passing the `--module-name` option to
 `hspec-discover`.  It tells `hspec-discover` to use a module name different
 from `Main`.  That way you can import it from your own `Main` module.
 
