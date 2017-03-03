@@ -1,7 +1,11 @@
 source 'https://rubygems.org'
 gem 'redcarpet'
 gem 'RedCloth'
-gem 'jekyll', :github => 'sol/jekyll', :branch => 'hspec-doc'
+gem 'jekyll'
+
+gem 'pygments.rb'
 
 gem "therubyracer" # required by less
-gem 'jekyll-less',  :github => 'zroger/jekyll-less'
+
+# gem 'jekyll-less',  :github => 'zroger/jekyll-less'
+gem 'jekyll-less',  :github => 'sfi0zy/jekyll-less' # use non-upstream as it includes a bug fix

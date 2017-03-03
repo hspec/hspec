@@ -2,6 +2,7 @@ require 'digest'
 require "jekyll-less"
 
 # use our custom version of pygments
+require "pygments"
 Pygments.start(File.join(File.dirname(__FILE__), "../pygments"))
 
 module Hspec

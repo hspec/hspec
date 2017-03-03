@@ -3,10 +3,10 @@ exclude:
   - Makefile
   - Gemfile
   - Gemfile.lock
-  - use.less
-  - pygments.less
-  - pygments.trac.less
+  - css/use.less
+  - css/pygments.less
+  - css/pygments.trac.less
   - tinc.yaml
   - README.markdown
-pygments: true
+highlighter: pygments
 markdown: redcarpet

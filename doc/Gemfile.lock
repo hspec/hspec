@@ -1,19 +1,6 @@
 GIT
-  remote: git://github.com/sol/jekyll.git
-  revision: 949c5c546ca4a9a18006f1145bb3968f3d59e26f
-  branch: hspec-doc
-  specs:
-    jekyll (0.12.0)
-      classifier (~> 1.3)
-      directory_watcher (~> 1.1)
-      kramdown (~> 0.13.4)
-      liquid (~> 2.3)
-      maruku (~> 0.5)
-      pygments.rb (~> 0.3.2)
-
-GIT
-  remote: git://github.com/zroger/jekyll-less.git
-  revision: 00c94a8d6042e059a909b0026de1e36ecf53ed31
+  remote: git://github.com/sfi0zy/jekyll-less.git
+  revision: ef28fd77dfa18f6b23024622abd3238ed6b1f9ad
   specs:
     jekyll-less (0.1.0)
       jekyll (>= 0.10.0)
@@ -23,35 +10,62 @@ GEM
   remote: https://rubygems.org/
   specs:
     RedCloth (4.3.2)
-    classifier (1.3.4)
-      fast-stemmer (>= 1.0.0)
+    addressable (2.5.0)
+      public_suffix (~> 2.0, >= 2.0.2)
+    colorator (1.1.0)
     commonjs (0.2.7)
-    directory_watcher (1.5.1)
-    fast-stemmer (1.0.2)
-    kramdown (0.13.8)
+    ffi (1.9.17)
+    forwardable-extended (2.6.0)
+    jekyll (3.4.1)
+      addressable (~> 2.4)
+      colorator (~> 1.0)
+      jekyll-sass-converter (~> 1.0)
+      jekyll-watch (~> 1.1)
+      kramdown (~> 1.3)
+      liquid (~> 3.0)
+      mercenary (~> 0.3.3)
+      pathutil (~> 0.9)
+      rouge (~> 1.7)
+      safe_yaml (~> 1.0)
+    jekyll-sass-converter (1.5.0)
+      sass (~> 3.4)
+    jekyll-watch (1.5.0)
+      listen (~> 3.0, < 3.1)
+    kramdown (1.13.2)
     less (2.6.0)
       commonjs (~> 0.2.7)
     libv8 (3.16.14.17)
-    liquid (2.6.3)
-    maruku (0.7.3)
-    posix-spawn (0.3.13)
-    pygments.rb (0.3.7)
-      posix-spawn (~> 0.3.6)
-      yajl-ruby (~> 1.1.0)
+    liquid (3.0.6)
+    listen (3.0.8)
+      rb-fsevent (~> 0.9, >= 0.9.4)
+      rb-inotify (~> 0.9, >= 0.9.7)
+    mercenary (0.3.6)
+    multi_json (1.12.1)
+    pathutil (0.14.0)
+      forwardable-extended (~> 2.6)
+    public_suffix (2.0.5)
+    pygments.rb (1.1.1)
+      multi_json (>= 1.0.0)
+    rb-fsevent (0.9.8)
+    rb-inotify (0.9.8)
+      ffi (>= 0.5.0)
     redcarpet (3.4.0)
     ref (2.0.0)
+    rouge (1.11.1)
+    safe_yaml (1.0.4)
+    sass (3.4.23)
     therubyracer (0.12.3)
       libv8 (~> 3.16.14.15)
       ref
-    yajl-ruby (1.1.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   RedCloth
-  jekyll!
+  jekyll
   jekyll-less!
+  pygments.rb
   redcarpet
   therubyracer
 

@@ -1,10 +1,10 @@
-jekyll=tinc exec bundle exec jekyll
+jekyll=tinc exec bundle exec jekyll build
 
 all:
 	$(jekyll)
 
 watch:
-	$(jekyll) --auto
+	$(jekyll) --watch
 
 
 # only generate css + copy js
