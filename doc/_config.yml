@@ -6,5 +6,7 @@ exclude:
   - use.less
   - pygments.less
   - pygments.trac.less
+  - tinc.yaml
+  - README.markdown
 pygments: true
 markdown: redcarpet
