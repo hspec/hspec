@@ -20,6 +20,10 @@ module Hspec
         File.read file
       else
         r = `#{cmd}`
+          .gsub(/Finished in \S+ seconds/, 'Finished in 0.0005 seconds')
+          .gsub(/_includes\/introduction\/MathSpec.hs:/, 'MathSpec.hs:')
+          .gsub(/_includes\/introduction\/step2\/Math.hs:/, 'Math.hs:')
+          .gsub(/_includes\/[a-zA-Z]+\.hs:/, 'Spec.hs:')
         File.write file, r
         puts "  created cache file #{file}"
         r
