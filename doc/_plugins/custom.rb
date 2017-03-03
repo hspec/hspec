@@ -7,7 +7,7 @@ Pygments.start(File.join(File.dirname(__FILE__), "../pygments"))
 module Hspec
   module CustomFilters
     def runhaskell(args)
-      cmd = "tinc exec runhaskell -Wall -Werror #{args}"
+      cmd = "runhaskell -Wall -Werror #{args}"
       cache  = ".cache/runhaskell"
       system "mkdir -p #{cache}"
 
