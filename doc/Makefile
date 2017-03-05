@@ -23,5 +23,5 @@ pygments:
 	git clone https://github.com/sol/pygments -b hspec-doc
 
 clean:
-	-rm -r _site
-	-rm -r .cache
+	-rm -rf _site
+	-rm -rf .cache
