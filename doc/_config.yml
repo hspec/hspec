@@ -8,5 +8,11 @@ exclude:
   - css/pygments.trac.less
   - tinc.yaml
   - README.markdown
+
 highlighter: pygments
+
 markdown: redcarpet
+
+redcarpet:
+  extensions:
+    - with_toc_data
