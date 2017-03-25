@@ -1,3 +1,6 @@
+## Changes in 2.4.3
+  - Read command-line options from environment variable `HSPEC_OPTIONS`
+
 ## Changes in 2.4.2
   - Use `--diff` by default
   - Add `--failure-report` (see #266)

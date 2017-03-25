@@ -6,6 +6,7 @@ module Test.Hspec.Core.Options (
 , parseOptions
 , ConfigFile
 , ignoreConfigFile
+, envVarName
 ) where
 
 import           Prelude ()
@@ -20,8 +21,14 @@ import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import           Data.Functor.Identity
+import           Data.Maybe
 
 type ConfigFile = (FilePath, [String])
+
+type EnvVar = [String]
+
+envVarName :: String
+envVarName = "HSPEC_OPTIONS"
 
 data Config = Config {
   configIgnoreConfigFile :: Bool
@@ -225,9 +232,11 @@ undocumentedOptions = [
 recognizedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 recognizedOptions = documentedOptions ++ undocumentedOptions
 
-parseOptions :: Config -> String -> [ConfigFile] -> [String] -> Either (ExitCode, String) Config
-parseOptions config prog configFiles args = do
-  foldM (parseFileOptions prog) config configFiles >>= parseCommandLineOptions prog args
+parseOptions :: Config -> String -> [ConfigFile] -> Maybe EnvVar -> [String] -> Either (ExitCode, String) Config
+parseOptions config prog configFiles envVar args = do
+      foldM (parseFileOptions prog) config configFiles
+  >>= parseEnvVarOptions prog envVar
+  >>= parseCommandLineOptions prog args
 
 parseCommandLineOptions :: String -> [String] -> Config -> Either (ExitCode, String) Config
 parseCommandLineOptions prog args config = case parse recognizedOptions config args of
@@ -238,16 +247,23 @@ parseCommandLineOptions prog args config = case parse recognizedOptions config a
     failure err = Left (ExitFailure 1, prog ++ ": " ++ err ++ "\nTry `" ++ prog ++ " --help' for more information.\n")
 
 parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
-parseFileOptions prog config (name, args) = case parse configFileOptions config args of
+parseFileOptions prog config (name, args) =
+  parseOtherOptions prog ("in config file " ++ name) args config
+
+parseEnvVarOptions :: String -> (Maybe EnvVar) -> Config -> Either (ExitCode, String) Config
+parseEnvVarOptions prog args =
+  parseOtherOptions prog ("from environment variable " ++ envVarName) (fromMaybe [] args)
+
+parseOtherOptions :: String -> String -> [String] -> Config -> Either (ExitCode, String) Config
+parseOtherOptions prog source args config = case parse configFileOptions config args of
   Right (Identity c) -> Right c
   Left err -> failure err
   where
     failure err = Left (ExitFailure 1, prog ++ ": " ++ message)
       where
         message = unlines $ case lines err of
-          [x] -> [x ++ " " ++ inFile]
-          xs -> xs ++ [inFile]
-        inFile = "in config file " ++ name
+          [x] -> [x ++ " " ++ source]
+          xs -> xs ++ [source]
 
 parse :: Monad m => [OptDescr (Result m -> Result m)] -> Config -> [String] -> Either String (m Config)
 parse options config args = case getOpt Permute options args of

@@ -23,6 +23,7 @@ import           System.Directory
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
+import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Options
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
@@ -85,7 +86,8 @@ getConfig opts_ prog args = do
     case ignore of
       True -> return []
       False -> readConfigFiles
-  case parseOptions opts_ prog configFiles args of
+  envVar <- fmap words <$> lookupEnv envVarName
+  case parseOptions opts_ prog configFiles envVar args of
     Left (err, msg) -> exitWithMessage err msg
     Right opts -> do
       r <- if configRerun opts then readFailureReport opts else return Nothing
