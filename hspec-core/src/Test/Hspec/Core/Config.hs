@@ -11,7 +11,8 @@ module Test.Hspec.Core.Config (
 #endif
 ) where
 
-import           Control.Applicative
+import           Prelude ()
+
 import           Control.Exception
 import           Control.Monad
 import           Data.Maybe
