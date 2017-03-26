@@ -50,7 +50,7 @@ data Item a = Item {
 , itemLocation :: Maybe Location
   -- | A flag that indicates whether it is safe to evaluate this spec item in
   -- parallel with other spec items
-, itemIsParallelizable :: Bool
+, itemIsParallelizable :: Maybe Bool
   -- | Example for behavior
 , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO (Either SomeException Result)
 }
@@ -65,7 +65,7 @@ specGroup s = Node msg
 
 -- | The @specItem@ function creates a spec item.
 specItem :: (HasCallStack, Example a) => String -> a -> SpecTree (Arg a)
-specItem s e = Leaf $ Item requirement location False (safeEvaluateExample e)
+specItem s e = Leaf $ Item requirement location Nothing (safeEvaluateExample e)
   where
     requirement
       | null s = "(unspecified behavior)"

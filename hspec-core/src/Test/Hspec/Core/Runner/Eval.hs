@@ -9,6 +9,7 @@ module Test.Hspec.Core.Runner.Eval (runFormatter) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
+import           Data.Maybe
 
 import           Control.Monad (unless, when)
 import qualified Control.Exception as E
@@ -60,9 +61,9 @@ every seconds action = do
 
 type FormatResult = Either E.SomeException Result -> FormatM ()
 
-parallelize :: QSem -> Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+parallelize :: QSem -> Maybe Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())
 parallelize jobsSem isParallelizable e
-  | isParallelizable = runParallel jobsSem e
+  | fromMaybe False isParallelizable = runParallel jobsSem e
   | otherwise = runSequentially e
 
 runSequentially :: (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())

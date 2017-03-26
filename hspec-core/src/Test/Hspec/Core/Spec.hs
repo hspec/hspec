@@ -19,6 +19,7 @@ module Test.Hspec.Core.Spec (
 , xdescribe
 , xcontext
 , parallel
+, sequential
 
 -- * The @SpecM@ monad
 , module Test.Hspec.Core.Spec.Monad
@@ -29,6 +30,9 @@ module Test.Hspec.Core.Spec (
 -- * Internal representation of a spec tree
 , module Test.Hspec.Core.Tree
 ) where
+
+import           Prelude ()
+import           Test.Hspec.Core.Compat
 
 import qualified Control.Exception as E
 import           Data.CallStack
@@ -91,7 +95,14 @@ xspecify = xit
 -- | `parallel` marks all spec items of the given spec to be safe for parallel
 -- evaluation.
 parallel :: SpecWith a -> SpecWith a
-parallel = mapSpecItem_ $ \item -> item {itemIsParallelizable = True}
+parallel = mapSpecItem_ (setParallelizable True)
+
+-- | `sequential` marks all spec items of the given spec to be evaluated sequentially.
+sequential :: SpecWith a -> SpecWith a
+sequential = mapSpecItem_ (setParallelizable False)
+
+setParallelizable :: Bool -> Item a -> Item a
+setParallelizable value item = item {itemIsParallelizable = itemIsParallelizable item <|> Just value}
 
 -- | `pending` can be used to mark a spec item as pending.
 --

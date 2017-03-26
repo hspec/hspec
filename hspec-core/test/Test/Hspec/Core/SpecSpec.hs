@@ -83,12 +83,21 @@ spec = do
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do
-      [Leaf item] <- runSpecM . H.parallel $ H.it "whatever" True
-      itemIsParallelizable item `shouldBe` True
+      [Leaf item] <- runSpecM . H.parallel $ H.it "whatever" H.pending
+      itemIsParallelizable item `shouldBe` Just True
 
     it "is applied recursively" $ do
       [Node _ [Node _ [Leaf item]]] <- runSpecM . H.parallel $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
-            H.it "baz" True
-      itemIsParallelizable item `shouldBe` True
+            H.it "baz" H.pending
+      itemIsParallelizable item `shouldBe` Just True
+
+  describe "sequential" $ do
+    it "marks examples for sequential execution" $ do
+      [Leaf item] <- runSpecM . H.sequential $ H.it "whatever" H.pending
+      itemIsParallelizable item `shouldBe` Just False
+
+    it "takes precedence over a later `parallel`" $ do
+      [Leaf item] <- runSpecM . H.parallel . H.sequential $ H.it "whatever" H.pending
+      itemIsParallelizable item `shouldBe` Just False
