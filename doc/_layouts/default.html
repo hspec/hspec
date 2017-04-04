@@ -7,7 +7,11 @@
     <!-- link href='http://fonts.googleapis.com/css?family=Arimo:700italic,700,400italic,400|Cousine:700italic,700,400italic,400' rel='stylesheet' type='text/css'-->
 
     <link rel="stylesheet" type="text/css" href="css/custom.css">
+    {% if page.title %}
+    <title>{{ page.title }} - Hspec: A Testing Framework for Haskell</title>
+    {% else %}
     <title>Hspec: A Testing Framework for Haskell</title>
+    {% endif %}
   </head>
   <body>
     <a class="header" href="index.html">
@@ -22,6 +26,9 @@
         you'll get some non-essential but convenient user interface
         enhancements.</em>
       </noscript>
+      {% if page.title %}
+      <h1>{{ page.title }}</h1>
+      {% endif %}
       {{ content }}
     </div>
 
