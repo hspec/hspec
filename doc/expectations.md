@@ -1,13 +1,14 @@
 ---
 layout: default
+title: Setting expectations
 ---
-
-## Setting expectations
 
 Hspec provides several combinators that can be used to set expectations about
 the outcome of code examples.
 
-### Expecting equality
+{{ page.content | toc }}
+
+## Expecting equality
 
 A common expectation is that two values are equal.  `shouldBe` can be used
 here:
@@ -28,7 +29,7 @@ launchMissiles >>= (`shouldBe` Left "permission error")
 launchMissiles `shouldReturn` Left "permission error"
 ```
 
-### Require that a predicate holds
+## Require that a predicate holds
 
 `shouldSatisfy` requires that some predicate holds for a given value.
 
