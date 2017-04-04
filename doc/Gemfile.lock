@@ -1,4 +1,12 @@
 GIT
+  remote: git://github.com/hspec/pygments.rb.git
+  revision: 239add1ad763a48c335d98e21adce3e53f3c4513
+  tag: v1.1.2-hspec
+  specs:
+    pygments.rb (1.1.2)
+      multi_json (>= 1.0.0)
+
+GIT
   remote: git://github.com/sfi0zy/jekyll-less.git
   revision: ef28fd77dfa18f6b23024622abd3238ed6b1f9ad
   specs:
@@ -44,8 +52,6 @@ GEM
     pathutil (0.14.0)
       forwardable-extended (~> 2.6)
     public_suffix (2.0.5)
-    pygments.rb (1.1.1)
-      multi_json (>= 1.0.0)
     rb-fsevent (0.9.8)
     rb-inotify (0.9.8)
       ffi (>= 0.5.0)
@@ -65,7 +71,7 @@ DEPENDENCIES
   RedCloth
   jekyll
   jekyll-less!
-  pygments.rb
+  pygments.rb!
   redcarpet
   therubyracer
 

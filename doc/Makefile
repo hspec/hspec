@@ -15,12 +15,9 @@ less:
 watch-less: less
 	watchr -e 'watch("(^js/.*\.js)|(^css/.*\.less)") {system "make less"};'
 
-setup: pygments
+setup:
 	bundle install
 	tinc
-
-pygments:
-	git clone https://github.com/sol/pygments -b hspec-doc
 
 clean:
 	-rm -rf _site
