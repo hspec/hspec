@@ -1,5 +1,7 @@
+liquid:
+  error_mode: strict
+
 exclude:
-  - pygments
   - Makefile
   - Gemfile
   - Gemfile.lock

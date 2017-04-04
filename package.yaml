@@ -8,7 +8,6 @@ copyright:
 maintainer:       Simon Hengel <sol@typeful.net>
 category:         Testing
 stability:        experimental
-bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
 description: |

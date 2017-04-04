@@ -1,8 +1,7 @@
 ---
 layout: default
+title: Using QuickCheck with Hspec
 ---
-
-## Using QuickCheck with Hspec
 
 You can use arbitrary QuickCheck properties with Hspec, but they must be of
 type {{'Property'|id}}.  QuickCheck's {{'property'|id}} function can be used to

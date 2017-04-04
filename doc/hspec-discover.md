@@ -1,8 +1,10 @@
 ---
 layout: default
+title: Automatic spec discovery
 ---
 
-## Automatic spec discovery
+## Generating a test driver
+
 
 It is a useful convention to have one spec file for each source file.  That way
 it is straightforward to find the corresponding spec for a given piece of code.

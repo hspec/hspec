@@ -1,10 +1,9 @@
 ---
 layout: default
+title: Writing tests with Hspec
 ---
 
-## Writing Tests with Hspec
-
-### Using \`describe\` and \`it\`
+## Using \`describe\` and \`it\`
 
 Hspec provides an EDSL to describe tests.
 
@@ -36,7 +35,7 @@ main = hspec $ do
         head [23 ..] `shouldBe` 23
 ```
 
-### Using \`context\`
+## Using \`context\`
 
 `context` is just an alias for `describe`.  Use `context` with *when* or
 *with*, e.g.:
@@ -51,7 +50,7 @@ main = hspec $ do
         parse "some invalid input" `shouldBe` Left "parse error"
 ```
 
-### Using hooks
+## Using hooks
 
 `before_` runs a custom `IO` action before every spec item. For example, if you
 have an action `flushDb` which flushes your database, you can run it before
@@ -136,7 +135,7 @@ spec = do
         getRecipe c "Cake" `shouldReturn` ingredients
 ```
 
-### Using \`pending\` and \`pendingWith\`
+## Using \`pending\` and \`pendingWith\`
 
 `pending`/`pendingWith` can be used as a kind of TODO list while you are
 writing your specs.  If you think of some behaviour that your code should

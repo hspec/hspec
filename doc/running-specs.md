@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Running Tests with Hspec
+title: Running tests with Hspec
 ---
 
 To run Hspec tests we have to define an executable, the *test driver*.
@@ -21,4 +21,4 @@ main :: IO ()
 main = hspec spec
 ```
 
-*Note:* For a real-world project [the test driver can be generated with hspec-discover](hspec-discover.html).
+***Note:*** For a real-world project [the test driver can be generated with hspec-discover](hspec-discover.html).

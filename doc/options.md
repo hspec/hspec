@@ -54,6 +54,7 @@ options right after `:main`:
 
 ## Specifying options in config files
 
+***Note:*** This section assumes that you are using `hspec-2.4.0` or later.
 
 Hspec reads options from two config files:
 
@@ -66,6 +67,8 @@ or
 <pre><kbd class="shell-input">echo --format=progress >> ~/.hspec</kbd></pre>
 
 ## Specifying options through an environment variable
+
+***Note:*** This section assumes that you are using `hspec-2.4.3` or later.
 
 Hspec reads options from the environment variabe `HSPEC_OPTIONS`:
 

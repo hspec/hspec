@@ -1,8 +1,7 @@
 ---
 layout: default
+title: Parallel spec execution
 ---
-
-# Parallel spec execution
 
 You can use `parallel` to mark specs for parallel execution.  This is useful if
 you want to speed up your tests by utilizing multiple CPUs.

@@ -1,10 +1,10 @@
 ---
 layout: default
+title: Interoperability with HUnit
 ---
 
-## Interoperability with HUnit
 
-### Using HUnit assertions
+## Using HUnit assertions
 
 Hspec's [expectation language](expectations.html) is built on top of
 [HUnit](http://hackage.haskell.org/package/HUnit), hence it is possible to use
@@ -15,7 +15,7 @@ seamlessly.
 {% example HUnit.hs %}
 
 
-### Running a HUnit test suite with Hspec
+## Running a HUnit test suite with Hspec
 
 {{'fromHUnitTest'|id}} from the
 [`hspec-contrib`](http://hackage.haskell.org/package/hspec-contrib) package can

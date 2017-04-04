@@ -20,16 +20,14 @@ An example is worth a thousand words, so here we go:
 {% inline_example Example.hs %}
 
 ## Table of contents
-
-* [Five-step introduction](getting-started.html)
-* [Writing tests with Hspec](writing-specs.html)
-* [Running tests with Hspec](running-specs.html)
-* [Passing options to Hspec](options.html)
-* [Setting expectations](expectations.html)
-* [Using QuickCheck with Hspec](quickcheck.html)
-* [Interoperability with HUnit](hunit.html)
-* [Automatic spec discovery](hspec-discover.html)
-* [Parallel spec execution](parallel-spec-execution.html)
+<ul>
+{% for name in site.data.contents %}
+  {% assign item_rel_url = name | append:".html" %}
+  {% assign item_url = item_rel_url | prepend:"/" %}
+  {% assign item = site.pages | where:"url", item_url | first %}
+  <li class="{% if item_url == page.url %}current{% endif %}"><a href="{{ item_rel_url }}">{{ item.title }}</a></li>
+{% endfor %}
+</ul>
 
 ## Extensions
 
@@ -60,7 +58,3 @@ An example is worth a thousand words, so here we go:
 * [Arion - Watcher and runner for hspec](http://github.com/karun012/arion)
 * [Guard plugin for Hspec](http://rubygems.org/gems/guard-haskell)
 * [Sublime Text snippets for Hspec](https://github.com/ayakovlenko/hspec-sublime-snippets)
-
-## Support
-
-Want to chat? `/join #hspec` on freenode!
