@@ -1,22 +1,24 @@
 ---
 layout: default
+title: Running Tests with Hspec
 ---
 
-## Running Tests with Hspec
+To run Hspec tests we have to define an executable, the *test driver*.
+By convention, in the context of a *Haskell package*, we define the test driver
+in `test/Spec.hs`.
+As we
+have already seen in previous sections of this manual, the {{'hspec'|id}}
+function can be used to do this.  In general a `spec` of type `Spec` can be
+turned into an executable with:
 
-The most common way to run a spec is with {{'hspec'|id}}, e.g.:
+```hspec
+-- file test/Spec.hs
+module Main where
 
-```
+import Tests.Hspec
+
+main :: IO ()
 main = hspec spec
 ```
 
-It is possible to customize how a spec is run by providing command-line options.
-You can get a list of supported options by passing `--help` to your test driver:
-
-<pre>
-<kbd class="shell-input">runhaskell Spec.hs --help</kbd>
-<samp>{{"_includes/Help.hs --help"|runhaskell}}</samp>
-</pre>
-
-Using {{'hspecWith'|id}} instead of `hspec` gives even more control over how a
-spec is run.
+*Note:* For a real-world project [the test driver can be generated with hspec-discover](hspec-discover.html).
