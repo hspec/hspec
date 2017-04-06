@@ -21,16 +21,38 @@
       </div>
     </a>
 
-    <div class="container">
-      <noscript>
-        <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
-        you'll get some non-essential but convenient user interface
-        enhancements.</em>
-      </noscript>
-      {% if page.title %}
-      <h1>{{ page.title }}</h1>
-      {% endif %}
-      {{ content }}
+    <div class="container flex-container">
+      <div class="flex-item toc">
+        <h1>Contents</h1>
+        <ul>
+        {% for name in site.data.contents %}
+          {% assign item_url = name | prepend: "/" | append: ".html" %}
+          {% assign item = site.pages | where: "url", item_url | first %}
+          <li>
+          {% if page.url == item.url %}
+            {{ item.title }}
+            {{ page.content | toc }}
+          {% else %}
+            <a href="{{ item.url }}">{{ item.title }}</a>
+          {% endif %}
+          </li>
+        {% endfor %}
+        </ul>
+      </div>
+
+      <div class="flex-item content">
+        <noscript>
+          <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
+          you'll get some non-essential but convenient user interface
+          enhancements.</em>
+        </noscript>
+
+        {% if page.title %}
+        <h1>{{ page.title }}</h1>
+        {% endif %}
+
+        {{ content }}
+      </div>
     </div>
 
     <div class="footer">

@@ -4,7 +4,7 @@ module Hspec
   module Toc
     def toc(content)
       renderer = Redcarpet::Render::HTML_TOC.new(nesting_level: 2)
-      "<h3>Contents:</h3>" + Redcarpet::Markdown.new(renderer).render(content)
+      Redcarpet::Markdown.new(renderer).render(content)
     end
   end
 end

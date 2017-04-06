@@ -7,9 +7,6 @@ In the last section we have seen how to [create a test driver for your tests](ru
 It is possible to customize how a spec is run by passing *options* to that test
 driver.
 
-{{ page.content | toc }}
-
-
 ## Supported options
 
 You can get a list of supported options by passing `--help` to

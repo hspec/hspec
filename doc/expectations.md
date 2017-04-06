@@ -6,8 +6,6 @@ title: Setting expectations
 Hspec provides several combinators that can be used to set expectations about
 the outcome of code examples.
 
-{{ page.content | toc }}
-
 ## Expecting equality
 
 A common expectation is that two values are equal.  `shouldBe` can be used

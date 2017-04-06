@@ -19,16 +19,6 @@ An example is worth a thousand words, so here we go:
 
 {% inline_example Example.hs %}
 
-## Table of contents
-<ul>
-{% for name in site.data.contents %}
-  {% assign item_rel_url = name | append:".html" %}
-  {% assign item_url = item_rel_url | prepend:"/" %}
-  {% assign item = site.pages | where:"url", item_url | first %}
-  <li class="{% if item_url == page.url %}current{% endif %}"><a href="{{ item_rel_url }}">{{ item.title }}</a></li>
-{% endfor %}
-</ul>
-
 ## Extensions
 
 * [hspec-expectations-lens](http://hackage.haskell.org/package/hspec-expectations-lens) — Hspec expectations for the _lens_ stuff

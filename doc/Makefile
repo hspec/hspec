@@ -1,10 +1,13 @@
-jekyll=tinc exec bundle exec jekyll build
+jekyll=tinc exec bundle exec jekyll
 
 all:
-	$(jekyll)
+	$(jekyll) build
 
 watch:
-	$(jekyll) --watch
+	$(jekyll) build --watch
+
+serve:
+	$(jekyll) serve --host=0.0.0.0
 
 
 # only generate css + copy js

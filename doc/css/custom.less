@@ -130,6 +130,10 @@ a.header {
   .padding-top(19);
   border-bottom: 1px solid @border-color;
   border-bottom: (@scaleRem) solid @border-color;
+
+  .container {
+    .padding-left(20); // to align with .flex-item
+  }
 }
 
 div.footer {
@@ -140,8 +144,28 @@ div.footer {
 
 .container {
   margin: 0 auto;
-  .padding-left(20);
-  .padding-right(20);
+  .max-width(920);
+}
+
+.flex-container {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  .padding-left(10);
+  .padding-right(10);
+}
+
+.flex-item {
+  .margin-left(10);
+  .margin-right(10);
+}
+
+.toc {
+  order: 2;
+  .width(280);
+}
+
+.content {
+  order: 1;
   .max-width(600);
 }
 
