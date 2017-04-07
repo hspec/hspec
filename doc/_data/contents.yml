@@ -6,5 +6,5 @@
 - quickcheck
 - hunit
 - hspec-discover
-- edit-compile
+- rerun
 - parallel-spec-execution
