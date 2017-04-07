@@ -65,7 +65,6 @@ h5 {
 
 h2 {
   .margin-top(39);
-  border-bottom: 1px solid @border-color;
   border-bottom: @scaleRem solid @border-color;
 }
 
@@ -85,8 +84,7 @@ p, li {
     .padding-left(5);
     .padding-right(5);
 
-    border: 1px solid @border-color;
-    border: (@scaleRem) solid @border-color;
+    border: (@scaleRem) dashed @border-color;
   }
 }
 
@@ -96,8 +94,7 @@ pre {
 
   .padding(9);
 
-  border: 1px solid @border-color;
-  border: (@scaleRem) solid @border-color;
+  border: (@scaleRem) dashed @border-color;
 }
 
 @failure-color: #CC3700;
@@ -133,7 +130,6 @@ a.header {
     .sub { color: @border-color; }
   }
   .padding-top(19);
-  border-bottom: 1px solid @border-color;
   border-bottom: (@scaleRem) solid @border-color;
 
   .container {
