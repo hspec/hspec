@@ -21,4 +21,4 @@ main :: IO ()
 main = hspec spec
 ```
 
-***Note:*** For a real-world project [the test driver can be generated with hspec-discover](hspec-discover.html).
+{% note For a real-world project [the test driver can be generated with hspec-discover](hspec-discover.html). %}

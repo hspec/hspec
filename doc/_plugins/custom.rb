@@ -63,6 +63,30 @@ end
 Liquid::Template.register_filter(Hspec::CustomFilters)
 
 module Hspec
+  class NoteTag < Liquid::Tag
+    def initialize(tag_name, note, tokens)
+      super
+      @note = note.strip
+    end
+
+    def render(context)
+      renderer = Redcarpet::Render::HTML.new
+      note = Redcarpet::Markdown.new(renderer).render("**Note:** " + @note)
+      "<div class=\"note\">#{note}</div>"
+    end
+  end
+
+  class RequireTag < NoteTag
+    def initialize(tag_name, version, tokens)
+      super(tag_name, "This section assumes that you are using `hspec-#{version.strip}` or later.", tokens)
+    end
+  end
+end
+
+Liquid::Template.register_tag('require', Hspec::RequireTag)
+Liquid::Template.register_tag('note', Hspec::NoteTag)
+
+module Hspec
   class ExampleTag < Liquid::Tag
     def initialize(tag_name, file, tokens)
       super

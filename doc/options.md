@@ -30,8 +30,7 @@ to Hspec:
 
 <pre><kbd class="shell-input">cabal test --show-details=direct --test-option=--format=progress</kbd></pre>
 
-***Note:*** When running Hspec tests via Cabal, it is recommended to always specify `--show-details=direct`.
-
+{% note When running Hspec tests via Cabal, it is recommended to always specify `--show-details=direct`. %}
 
 ### Stack
 
@@ -51,7 +50,7 @@ options right after `:main`:
 
 ## Specifying options in config files
 
-***Note:*** This section assumes that you are using `hspec-2.4.0` or later.
+{% require 2.4.0 %}
 
 Hspec reads options from two config files:
 
@@ -65,7 +64,7 @@ or
 
 ## Specifying options through an environment variable
 
-***Note:*** This section assumes that you are using `hspec-2.4.3` or later.
+{% require 2.4.3 %}
 
 Hspec reads options from the environment variabe `HSPEC_OPTIONS`:
 
