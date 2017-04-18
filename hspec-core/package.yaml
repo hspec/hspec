@@ -40,6 +40,8 @@ dependencies:
   - directory
   - filepath
 
+  - haskell-lexer
+
   - stm >= 2.2 # for asyc
   - array # for Diff
 

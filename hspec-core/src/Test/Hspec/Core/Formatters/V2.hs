@@ -131,6 +131,7 @@ import Test.Hspec.Core.Formatters.Internal (
   )
 
 import           Test.Hspec.Core.Formatters.Diff
+import           Test.Hspec.Core.Formatters.Pretty
 
 silent :: Formatter
 silent = Formatter {
@@ -287,7 +288,7 @@ defaultFailedFormatter = do
           let threshold = 2 :: Seconds
 
           mchunks <- liftIO $ if b
-            then timeout threshold (evaluate $ diff expected actual)
+            then timeout threshold (evaluate $ uncurry diff $ pretty2 expected actual)
             else return Nothing
 
           case mchunks of

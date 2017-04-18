@@ -10,6 +10,8 @@ import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Formatters.V2
 
+import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (User(..))
+
 testSpec :: H.Spec
 testSpec = do
   H.describe "Example" $ do
@@ -237,6 +239,37 @@ spec = do
             , "        but got: first"
             , "                 two"
             , "                 third"
+            , ""
+            , "  To rerun use: --match \"//\""
+            , ""
+            , "Randomized with seed 0"
+            , ""
+            , "Finished in 0.0000 seconds"
+            , "1 example, 1 failure"
+            ]
+
+      context "when actual/expected are Haskell expressions" $ do
+        it "pretty-prints" $ do
+          let
+            actual = show $ User "Joe" "Doe" 23
+            expected = show $ User "John" "Doe" 23
+          formatter <- formatterToFormat progress formatConfig
+          _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Failure Nothing $ ExpectedButGot Nothing expected actual
+          (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
+              ""
+            , "Failures:"
+            , ""
+            , "  1) "
+            , "       expected: User {"
+            , "                   firstName = \"John\","
+            , "                   lastName = \"Doe\","
+            , "                   age = 23"
+            , "                 }"
+            , "        but got: User {"
+            , "                   firstName = \"Joe\","
+            , "                   lastName = \"Doe\","
+            , "                   age = 23"
+            , "                 }"
             , ""
             , "  To rerun use: --match \"//\""
             , ""
