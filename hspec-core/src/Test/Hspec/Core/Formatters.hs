@@ -62,6 +62,8 @@ import           Text.Printf
 import           Control.Monad (when, unless)
 import           System.IO (hPutStr, hFlush)
 
+import           Test.Hspec.Core.Formatters.Pretty
+
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
 --
@@ -200,7 +202,7 @@ defaultFailedFormatter = do
         Right (ExpectedButGot preface expected actual) -> do
           mapM_ indent preface
 
-          let chunks = diff expected actual
+          let chunks = uncurry diff (pretty2 expected actual)
 
           withFailColor $ write (indentation ++ "expected: ")
           forM_ chunks $ \chunk -> case chunk of

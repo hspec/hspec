@@ -13,6 +13,8 @@ import qualified Test.Hspec.Core.Formatters as H
 import qualified Test.Hspec.Core.Formatters.Monad as H
 import           Test.Hspec.Core.Formatters.Monad hiding (interpretWith)
 
+import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (User(..))
+
 data ColorizedText =
     Plain String
   | Info String
@@ -213,6 +215,34 @@ spec = do
             , "        but got: first"
             , "                 two"
             , "                 third"
+            , ""
+            , "Randomized with seed 0"
+            , ""
+            ]
+
+      context "when actual/expected are Haskell expressions" $ do
+        let
+          actual = show $ User "Joe" "Doe" 23
+          expected = show $ User "John" "Doe" 23
+          env = environment {
+            environmentGetFailMessages = return [FailureRecord Nothing ([], "") (Right $ ExpectedButGot Nothing expected actual)]
+            }
+        it "pretty-prints" $ do
+          removeColors (interpretWith env action) `shouldBe` unlines [
+              ""
+            , "Failures:"
+            , ""
+            , "  1) "
+            , "       expected: User {"
+            , "                   firstName = \"John\","
+            , "                   lastName = \"Doe\","
+            , "                   age = 23"
+            , "                 }"
+            , "        but got: User {"
+            , "                   firstName = \"Joe\","
+            , "                   lastName = \"Doe\","
+            , "                   age = 23"
+            , "                 }"
             , ""
             , "Randomized with seed 0"
             , ""

@@ -46,6 +46,7 @@ library
     , call-stack
     , directory
     , filepath
+    , haskell-lexer
     , array
   exposed-modules:
       Test.Hspec.Core.Spec
@@ -63,6 +64,8 @@ library
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
+      Test.Hspec.Core.Formatters.Pretty
+      Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Options
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
@@ -99,6 +102,7 @@ test-suite spec
     , call-stack
     , directory
     , filepath
+    , haskell-lexer
     , array
     , hspec-meta >= 2.3.2
     , silently >= 1.2.4
@@ -114,6 +118,8 @@ test-suite spec
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
+      Test.Hspec.Core.Formatters.Pretty
+      Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.Options
       Test.Hspec.Core.QuickCheck
@@ -134,6 +140,8 @@ test-suite spec
       Test.Hspec.Core.ExampleSpec
       Test.Hspec.Core.FailureReportSpec
       Test.Hspec.Core.Formatters.DiffSpec
+      Test.Hspec.Core.Formatters.Pretty.ParserSpec
+      Test.Hspec.Core.Formatters.PrettySpec
       Test.Hspec.Core.FormattersSpec
       Test.Hspec.Core.HooksSpec
       Test.Hspec.Core.OptionsSpec

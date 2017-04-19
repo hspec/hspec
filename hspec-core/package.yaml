@@ -36,6 +36,7 @@ dependencies:
   - directory
   - filepath
 
+  - haskell-lexer
   - array # for Diff
 
 source-dirs:

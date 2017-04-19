@@ -1,5 +1,8 @@
 ## next
   - Add `sequential` (see #311)
+  - Colorize whitespaces with background color instead of foreground color with
+    `--diff`
+  - Add pretty-printing for simple records and lists
 
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`

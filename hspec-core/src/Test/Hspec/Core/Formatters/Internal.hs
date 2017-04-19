@@ -20,6 +20,7 @@ import           Control.Exception (SomeException, AsyncException(..), bracket_,
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (gets, modify)
 import           Control.Monad.IO.Class
+import           Data.Char
 import qualified System.CPUTime as CPUTime
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
@@ -178,16 +179,30 @@ extraChunk :: String -> FormatM ()
 extraChunk s = do
   useDiff <- gets stateUseDiff
   case useDiff of
-    True -> withFailColor $ write s
+    True -> extra s
     False -> write s
+  where
+    extra :: String -> FormatM ()
+    extra = diffColorize Red "hspec-failure"
 
 -- | Output given chunk in green.
 missingChunk :: String -> FormatM ()
 missingChunk s = do
   useDiff <- gets stateUseDiff
   case useDiff of
-    True -> withSuccessColor $ write s
+    True -> missing s
     False -> write s
+  where
+    missing :: String-> FormatM ()
+    missing = diffColorize Green "hspec-success"
+
+diffColorize :: Color -> String -> String-> FormatM ()
+diffColorize color cls s = withColor (SetColor layer Dull color) cls $ do
+  write s
+  where
+    layer
+      | any isSpace s = Background
+      | otherwise = Foreground
 
 -- |
 -- @finally_ actionA actionB@ runs @actionA@ and then @actionB@.  @actionB@ is
