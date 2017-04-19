@@ -213,7 +213,7 @@ set = liftM . liftM
 documentedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 documentedOptions = commandLineOptions ++ configFileOptions
 
-undocumentedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
+undocumentedOptions :: Monad m => [OptDescr (Result m -> Result m)]
 undocumentedOptions = [
     -- for compatibility with test-framework
     mkOption [] "maximum-generated-tests" (Arg "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
@@ -226,7 +226,6 @@ undocumentedOptions = [
   , Option "v" ["verbose"]                 (NoArg id)                         "do not suppress output to stdout when evaluating examples"
   ]
   where
-    setHtml :: Result Maybe -> Result Maybe
     setHtml = set $ \config -> config {configHtmlOutput = True}
 
 recognizedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
