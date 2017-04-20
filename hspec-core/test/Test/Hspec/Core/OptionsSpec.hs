@@ -1,7 +1,9 @@
 module Test.Hspec.Core.OptionsSpec (spec) where
 
-import           Control.Monad
+import           Prelude ()
 import           Helper
+
+import           Control.Monad
 import           System.Exit
 
 import qualified Test.Hspec.Core.Options as Options
@@ -69,12 +71,11 @@ spec = do
         fromLeft (parseOptions [("~/.hspec", ["--invalid"])] Nothing []) `shouldBe` (ExitFailure 1, "my-spec: unrecognized option `--invalid' in config file ~/.hspec\n")
 
       it "rejects ambiguous options" $ do
-        fromLeft (parseOptions [("~/.hspec", ["--qc-max-s"])] Nothing []) `shouldBe` (ExitFailure 1,
+        fromLeft (parseOptions [("~/.hspec", ["--fail"])] Nothing []) `shouldBe` (ExitFailure 1,
           unlines [
-            "my-spec: option `--qc-max-s' is ambiguous; could be one of:"
-          , "  -a N  --qc-max-success=N  maximum number of successful tests"
-          , "                            before a QuickCheck property succeeds"
-          , "        --qc-max-size=N     size to use for the biggest test cases"
+            "my-spec: option `--fail' is ambiguous; could be one of:"
+          , "    --fail-fast            abort on first failure"
+          , "    --failure-report=FILE  read/write a failure report for use with --rerun"
           , "in config file ~/.hspec"
           ]
           )
@@ -106,3 +107,10 @@ spec = do
       it "returns True" $ do
         withEnvironment [("IGNORE_DOT_HSPEC", "yes")] $ do
           ignoreConfigFile defaultConfig [] `shouldReturn` True
+
+  describe "formatOrList" $ do
+    it "" $ do
+      formatOrList ["foo", "bar", "baz"] `shouldBe` "foo, bar or baz"
+
+    it "" $ do
+      formatOrList ["foo"] `shouldBe` "foo"

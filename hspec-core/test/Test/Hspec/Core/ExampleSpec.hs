@@ -3,7 +3,6 @@ module Test.Hspec.Core.ExampleSpec (main, spec) where
 
 import           Helper
 import           Mock
-import           Data.List
 import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Example as H

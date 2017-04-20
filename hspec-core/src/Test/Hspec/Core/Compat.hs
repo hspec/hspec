@@ -12,6 +12,7 @@ module Test.Hspec.Core.Compat (
 , module Data.Foldable
 , module Data.Traversable
 , module Data.Monoid
+, module Data.List
 
 #if !MIN_VERSION_base(4,6,0)
 , modifyIORef'
@@ -22,6 +23,7 @@ import           Control.Applicative
 import           Data.Foldable
 import           Data.Traversable
 import           Data.Monoid
+import           Data.List (intercalate)
 
 import           Prelude hiding (
     all

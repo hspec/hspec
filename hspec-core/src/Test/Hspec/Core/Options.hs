@@ -7,6 +7,7 @@ module Test.Hspec.Core.Options (
 , ConfigFile
 , ignoreConfigFile
 , envVarName
+, formatOrList
 ) where
 
 import           Prelude ()
@@ -110,17 +111,6 @@ setSeed n c = c {configQuickCheckSeed = Just n}
 data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
 
-formatters :: [(String, Formatter)]
-formatters = [
-    ("specdoc", specdoc)
-  , ("progress", progress)
-  , ("failed-examples", failed_examples)
-  , ("silent", silent)
-  ]
-
-formatHelp :: String
-formatHelp = unlines (addLineBreaks "use a custom formatter; this can be one of:" ++ map (("   " ++) . fst) formatters)
-
 type Result m = Either InvalidArgument (m Config)
 
 data InvalidArgument = InvalidArgument String String
@@ -138,12 +128,6 @@ mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name]
       Just n -> Right (setter n `liftM` c)
       Nothing -> Left (InvalidArgument name input)
 
-addLineBreaks :: String -> [String]
-addLineBreaks = lineBreaksAt 40
-
-h :: String -> String
-h = unlines . addLineBreaks
-
 commandLineOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 commandLineOptions = [
     Option   []  ["help"]             (NoArg (const $ Right Nothing))     (h "display this help and exit")
@@ -152,22 +136,71 @@ commandLineOptions = [
   , mkOption []   "skip"              (Arg "PATTERN" return addSkip)      (h "skip examples that match given PATTERN")
   ]
   where
+    h :: String -> String
+    h = id
+
     setIgnoreConfigFile = set $ \config -> config {configIgnoreConfigFile = True}
 
-configFileOptions :: Monad m => [OptDescr (Result m -> Result m)]
-configFileOptions = [
-    Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
+formatterOptions :: Monad m => [OptDescr (Result m -> Result m)]
+formatterOptions = [
+    mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
+  , Option   []  ["color"]            (NoArg setColor)                    (h "colorize the output")
   , Option   []  ["no-color"]         (NoArg setNoColor)                  (h "do not colorize the output")
   , Option   []  ["diff"]             (NoArg setDiff)                     (h "show colorized diffs")
   , Option   []  ["no-diff"]          (NoArg setNoDiff)                   (h "do not show colorized diffs")
-  , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
-  , mkOption []   "depth"             (Arg "N" readMaybe setDepth)        (h "maximum depth of generated test values for SmallCheck properties")
-  , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
+  , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
+  ]
+  where
+    h :: String -> String
+    h = unlines . lineBreaksAt 50
+
+    formatters :: [(String, Formatter)]
+    formatters = [
+        ("specdoc", specdoc)
+      , ("progress", progress)
+      , ("failed-examples", failed_examples)
+      , ("silent", silent)
+      ]
+
+    formatHelp :: String
+    formatHelp = h ("use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatters))
+
+    readFormatter :: String -> Maybe Formatter
+    readFormatter = (`lookup` formatters)
+
+    setFormatter :: Formatter -> Config -> Config
+    setFormatter f c = c {configFormatter = Just f}
+
+    setColor        = set $ \config -> config {configColorMode = ColorAlways}
+    setNoColor      = set $ \config -> config {configColorMode = ColorNever}
+
+    setDiff         = set $ \config -> config {configDiff = True}
+    setNoDiff       = set $ \config -> config {configDiff = False}
+
+    setPrintCpuTime = set $ \config -> config {configPrintCpuTime = True}
+
+smallCheckOptions :: Monad m => [OptDescr (Result m -> Result m)]
+smallCheckOptions = [
+    mkOption []   "depth"             (Arg "N" readMaybe setDepth)        (h "maximum depth of generated test values for SmallCheck properties")
+  ]
+  where
+    h :: String -> String
+    h = id
+
+quickCheckOptions :: Monad m => [OptDescr (Result m -> Result m)]
+quickCheckOptions = [
+    mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
   , mkOption ""   "qc-max-size"       (Arg "N" readMaybe setMaxSize)      (h "size to use for the biggest test cases")
   , mkOption ""   "qc-max-discard"    (Arg "N" readMaybe setMaxDiscardRatio) (h "maximum number of discarded tests per successful test before giving up")
   , mkOption []   "seed"              (Arg "N" readMaybe setSeed)         (h "used seed for QuickCheck properties")
-  , Option   []  ["print-cpu-time"]   (NoArg setPrintCpuTime)             (h "include used CPU time in summary")
-  , Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
+  ]
+  where
+    h :: String -> String
+    h = unlines . lineBreaksAt 52
+
+runnerOptions :: Monad m => [OptDescr (Result m -> Result m)]
+runnerOptions = [
+    Option   []  ["dry-run"]          (NoArg setDryRun)                   (h "pretend that everything passed; don't verify anything")
   , Option   []  ["fail-fast"]        (NoArg setFastFail)                 (h "abort on first failure")
   , Option   "r" ["rerun"]            (NoArg  setRerun)                   (h "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)")
   , mkOption []   "failure-report"    (Arg "FILE" return setFailureReport)(h "read/write a failure report for use with --rerun")
@@ -175,8 +208,8 @@ configFileOptions = [
   , mkOption "j"  "jobs"              (Arg "N" readMaxJobs setMaxJobs)    (h "run at most N parallelizable tests simultaneously (default: number of available processors)")
   ]
   where
-    readFormatter :: String -> Maybe Formatter
-    readFormatter = (`lookup` formatters)
+    h :: String -> String
+    h = unlines . lineBreaksAt 48
 
     readMaxJobs :: String -> Maybe Int
     readMaxJobs s = do
@@ -184,30 +217,41 @@ configFileOptions = [
       guard $ n > 0
       return n
 
-    setFormatter :: Formatter -> Config -> Config
-    setFormatter f c = c {configFormatter = Just f}
-
     setFailureReport :: String -> Config -> Config
     setFailureReport file c = c {configFailureReport = Just file}
 
     setMaxJobs :: Int -> Config -> Config
     setMaxJobs n c = c {configConcurrentJobs = Just n}
 
-    setPrintCpuTime = set $ \config -> config {configPrintCpuTime = True}
     setDryRun       = set $ \config -> config {configDryRun = True}
     setFastFail     = set $ \config -> config {configFastFail = True}
     setRerun        = set $ \config -> config {configRerun = True}
     setRerunAllOnSuccess = set $ \config -> config {configRerunAllOnSuccess = True}
-    setColor        = set $ \config -> config {configColorMode = ColorAlways}
-    setNoColor      = set $ \config -> config {configColorMode = ColorNever}
-    setDiff         = set $ \config -> config {configDiff = True}
-    setNoDiff       = set $ \config -> config {configDiff = False}
+
+formatOrList :: [String] -> String
+formatOrList xs = case xs of
+  [] -> ""
+  x : ys -> (case ys of
+    [] -> x
+    _ : [] -> x ++ " or "
+    _ : _ : _ -> x ++ ", ") ++ formatOrList ys
+
+documentedConfigFileOptions :: Monad m => [(String, [OptDescr (Result m -> Result m)])]
+documentedConfigFileOptions = [
+    ("RUNNER OPTIONS", runnerOptions)
+  , ("FORMATTER OPTIONS", formatterOptions)
+  , ("OPTIONS FOR QUICKCHECK", quickCheckOptions)
+  , ("OPTIONS FOR SMALLCHECK", smallCheckOptions)
+  ]
+
+documentedOptions :: [(String, [OptDescr (Result Maybe -> Result Maybe)])]
+documentedOptions = ("OPTIONS", commandLineOptions) : documentedConfigFileOptions
+
+configFileOptions :: Monad m => [OptDescr (Result m -> Result m)]
+configFileOptions = (concat . map snd) documentedConfigFileOptions
 
 set :: Monad m => (Config -> Config) -> Either a (m Config) -> Either a (m Config)
 set = liftM . liftM
-
-documentedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
-documentedOptions = commandLineOptions ++ configFileOptions
 
 undocumentedOptions :: Monad m => [OptDescr (Result m -> Result m)]
 undocumentedOptions = [
@@ -229,9 +273,8 @@ undocumentedOptions = [
     setOutputFile :: String -> Config -> Config
     setOutputFile file c = c {configOutputFile = Right file}
 
-
 recognizedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
-recognizedOptions = documentedOptions ++ undocumentedOptions
+recognizedOptions = commandLineOptions ++ configFileOptions ++ undocumentedOptions
 
 parseOptions :: Config -> String -> [ConfigFile] -> Maybe EnvVar -> [String] -> Either (ExitCode, String) Config
 parseOptions config prog configFiles envVar args = do
@@ -241,11 +284,15 @@ parseOptions config prog configFiles envVar args = do
 
 parseCommandLineOptions :: String -> [String] -> Config -> Either (ExitCode, String) Config
 parseCommandLineOptions prog args config = case parse recognizedOptions config args of
-  Right Nothing -> Left (ExitSuccess, usageInfo ("Usage: " ++ prog ++ " [OPTION]...\n\nOPTIONS") documentedOptions)
+  Right Nothing -> Left (ExitSuccess, usage)
   Right (Just c) -> Right c
   Left err -> failure err
   where
     failure err = Left (ExitFailure 1, prog ++ ": " ++ err ++ "\nTry `" ++ prog ++ " --help' for more information.\n")
+
+    usage :: String
+    usage = "Usage: " ++ prog ++ " [OPTION]...\n\n"
+      ++ (intercalate "\n" $ map (uncurry usageInfo) documentedOptions)
 
 parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
 parseFileOptions prog config (name, args) =
