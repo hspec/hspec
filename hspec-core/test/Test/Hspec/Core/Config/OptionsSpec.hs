@@ -107,10 +107,3 @@ spec = do
       it "returns True" $ do
         withEnvironment [("IGNORE_DOT_HSPEC", "yes")] $ do
           ignoreConfigFile defaultConfig [] `shouldReturn` True
-
-  describe "formatOrList" $ do
-    it "" $ do
-      formatOrList ["foo", "bar", "baz"] `shouldBe` "foo, bar or baz"
-
-    it "" $ do
-      formatOrList ["foo"] `shouldBe` "foo"

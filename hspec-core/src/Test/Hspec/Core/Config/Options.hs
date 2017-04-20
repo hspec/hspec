@@ -7,7 +7,6 @@ module Test.Hspec.Core.Config.Options (
 , ConfigFile
 , ignoreConfigFile
 , envVarName
-, formatOrList
 ) where
 
 import           Prelude ()
@@ -19,6 +18,7 @@ import           System.Exit
 import           System.Console.GetOpt
 
 import           Test.Hspec.Core.Formatters
+import           Test.Hspec.Core.Config.Util
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import           Data.Functor.Identity
@@ -227,14 +227,6 @@ runnerOptions = [
     setFastFail     = set $ \config -> config {configFastFail = True}
     setRerun        = set $ \config -> config {configRerun = True}
     setRerunAllOnSuccess = set $ \config -> config {configRerunAllOnSuccess = True}
-
-formatOrList :: [String] -> String
-formatOrList xs = case xs of
-  [] -> ""
-  x : ys -> (case ys of
-    [] -> x
-    _ : [] -> x ++ " or "
-    _ : _ : _ -> x ++ ", ") ++ formatOrList ys
 
 documentedConfigFileOptions :: Monad m => [(String, [OptDescr (Result m -> Result m)])]
 documentedConfigFileOptions = [
