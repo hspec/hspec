@@ -57,13 +57,13 @@ library
   other-modules:
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
+      Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Example
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
-      Test.Hspec.Core.Options
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Spec.Monad
@@ -107,6 +107,7 @@ test-suite spec
   other-modules:
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
+      Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Example
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Formatters
@@ -115,7 +116,6 @@ test-suite spec
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
       Test.Hspec.Core.Hooks
-      Test.Hspec.Core.Options
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner
@@ -130,13 +130,13 @@ test-suite spec
       Helper
       Mock
       Test.Hspec.Core.CompatSpec
+      Test.Hspec.Core.Config.OptionsSpec
       Test.Hspec.Core.ConfigSpec
       Test.Hspec.Core.ExampleSpec
       Test.Hspec.Core.FailureReportSpec
       Test.Hspec.Core.Formatters.DiffSpec
       Test.Hspec.Core.FormattersSpec
       Test.Hspec.Core.HooksSpec
-      Test.Hspec.Core.OptionsSpec
       Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.RunnerSpec
       Test.Hspec.Core.SpecSpec

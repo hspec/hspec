@@ -1,4 +1,4 @@
-module Test.Hspec.Core.Options (
+module Test.Hspec.Core.Config.Options (
   Config(..)
 , ColorMode (..)
 , defaultConfig

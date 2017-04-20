@@ -1,4 +1,4 @@
-module Test.Hspec.Core.OptionsSpec (spec) where
+module Test.Hspec.Core.Config.OptionsSpec (spec) where
 
 import           Prelude ()
 import           Helper
@@ -6,8 +6,8 @@ import           Helper
 import           Control.Monad
 import           System.Exit
 
-import qualified Test.Hspec.Core.Options as Options
-import           Test.Hspec.Core.Options hiding (parseOptions)
+import qualified Test.Hspec.Core.Config.Options as Options
+import           Test.Hspec.Core.Config.Options hiding (parseOptions)
 
 fromLeft :: Either a b -> a
 fromLeft (Left a) = a

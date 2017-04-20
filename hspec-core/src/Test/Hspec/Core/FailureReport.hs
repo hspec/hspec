@@ -14,7 +14,7 @@ import           System.IO
 import           System.Directory
 import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Options (Config(..))
+import           Test.Hspec.Core.Config.Options (Config(..))
 
 data FailureReport = FailureReport {
   failureReportSeed :: Integer
