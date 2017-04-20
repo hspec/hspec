@@ -2,13 +2,23 @@ module Test.Hspec.Core.Config.UtilSpec (spec) where
 
 import           Helper
 
+import           System.Console.GetOpt
+
 import           Test.Hspec.Core.Config.Util
 
 spec :: Spec
 spec = do
-  describe "formatOrList" $ do
-    it "" $ do
-      formatOrList ["foo", "bar", "baz"] `shouldBe` "foo, bar or baz"
+  describe "condenseNoOptions" $ do
+    it "condenses help for --no-options" $ do
+      let options = [
+              Option "" ["color"] (NoArg ()) "some help"
+            , Option "" ["no-color"] (NoArg ()) "some other help"
+            ]
+      usageInfo "" (condenseNoOptions options) `shouldBe` unlines [
+          ""
+        , "    --[no-]color  some help"
+        ]
 
-    it "" $ do
-      formatOrList ["foo"] `shouldBe` "foo"
+  describe "formatOrList" $ do
+    it "formats a list of or-options" $ do
+      formatOrList ["foo", "bar", "baz"] `shouldBe` "foo, bar or baz"

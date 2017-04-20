@@ -191,18 +191,6 @@ spec = do
         throwTo threadId E.UserInterrupt
         takeMVar mvar `shouldReturn` E.UserInterrupt
 
-    context "with --help" $ do
-      let printHelp = withProgName "spec" . withArgs ["--help"] . H.hspec $ pure ()
-      it "prints help" $ do
-        r <- (captureLines . ignoreExitCode) printHelp
-        r `shouldStartWith` ["Usage: spec [OPTION]..."]
-        silence printHelp `shouldThrow` (== ExitSuccess)
-
-      it "constrains lines to 80 characters" $ do
-        r <- (captureLines . ignoreExitCode) printHelp
-        r `shouldSatisfy` all ((<= 80) . length)
-        r `shouldSatisfy` any ((78 <=) . length)
-
     context "with --dry-run" $ do
       let withDryRun = captureLines . withArgs ["--dry-run"] . H.hspec
       it "produces a report" $ do

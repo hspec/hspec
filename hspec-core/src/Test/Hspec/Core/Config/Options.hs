@@ -284,7 +284,9 @@ parseCommandLineOptions prog args config = case parse recognizedOptions config a
 
     usage :: String
     usage = "Usage: " ++ prog ++ " [OPTION]...\n\n"
-      ++ (intercalate "\n" $ map (uncurry usageInfo) documentedOptions)
+      ++ (intercalate "\n" $ map (uncurry mkUsageInfo) documentedOptions)
+
+    mkUsageInfo title options = usageInfo title (condenseNoOptions options)
 
 parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
 parseFileOptions prog config (name, args) =

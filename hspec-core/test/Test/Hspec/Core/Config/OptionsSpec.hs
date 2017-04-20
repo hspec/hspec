@@ -28,6 +28,22 @@ spec = do
     it "sets configColorMode to ColorAuto" $ do
       configColorMode <$> parseOptions [] Nothing [] `shouldBe` Right ColorAuto
 
+    context "with --help" $ do
+      let Left (code, output) = parseOptions [] Nothing ["--help"]
+          help = lines output
+
+      it "returns ExitSuccess" $ do
+        code `shouldBe` ExitSuccess
+
+      it "prints help" $ do
+        help `shouldStartWith` ["Usage: my-spec [OPTION]..."]
+
+      it "constrains lines to 80 characters" $ do
+        help `shouldSatisfy` all ((<= 80) . length)
+
+      it "requires one line >= 78 characters" $ do
+        help `shouldSatisfy` any ((78 <=) . length)
+
     context "with --no-color" $ do
       it "sets configColorMode to ColorNever" $ do
         configColorMode <$> parseOptions [] Nothing ["--no-color"] `shouldBe` Right ColorNever
