@@ -161,7 +161,6 @@ configFileOptions = [
   , Option   []  ["diff"]             (NoArg setDiff)                     (h "show colorized diffs")
   , Option   []  ["no-diff"]          (NoArg setNoDiff)                   (h "do not show colorized diffs")
   , mkOption "f"  "format"            (Arg "FORMATTER" readFormatter setFormatter) formatHelp
-  , mkOption "o"  "out"               (Arg "FILE" return setOutputFile)   (h "write output to a file instead of STDOUT")
   , mkOption []   "depth"             (Arg "N" readMaybe setDepth)        (h "maximum depth of generated test values for SmallCheck properties")
   , mkOption "a"  "qc-max-success"    (Arg "N" readMaybe setMaxSuccess)   (h "maximum number of successful tests before a QuickCheck property succeeds")
   , mkOption ""   "qc-max-size"       (Arg "N" readMaybe setMaxSize)      (h "size to use for the biggest test cases")
@@ -187,9 +186,6 @@ configFileOptions = [
 
     setFormatter :: Formatter -> Config -> Config
     setFormatter f c = c {configFormatter = Just f}
-
-    setOutputFile :: String -> Config -> Config
-    setOutputFile file c = c {configOutputFile = Right file}
 
     setFailureReport :: String -> Config -> Config
     setFailureReport file c = c {configFailureReport = Just file}
@@ -222,11 +218,17 @@ undocumentedOptions = [
     -- standalone HTML report in the future
   , Option []  ["html"]                    (NoArg setHtml)                    "produce HTML output"
 
+  , mkOption "o"  "out"                    (Arg "FILE" return setOutputFile)  "write output to a file instead of STDOUT"
+
     -- now a noop
   , Option "v" ["verbose"]                 (NoArg id)                         "do not suppress output to stdout when evaluating examples"
   ]
   where
     setHtml = set $ \config -> config {configHtmlOutput = True}
+
+    setOutputFile :: String -> Config -> Config
+    setOutputFile file c = c {configOutputFile = Right file}
+
 
 recognizedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 recognizedOptions = documentedOptions ++ undocumentedOptions
