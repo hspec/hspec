@@ -34,20 +34,12 @@ spec = do
           rec (value ++ " bar")
       retrieve `shouldReturn` ["before", "value foo", "before", "value bar"]
 
-    context "when used multiple times" $ do
-      it "is evaluated outside in" $ do
-        pending
-
     context "when used with a QuickCheck property" $ do
       it "runs action before every check of the property" $ do
         (rec, retrieve) <- mkAppend
         runSilent $ H.before (rec "before" >> return "value") $ do
           H.it "foo" $ \value -> property $ \(_ :: Int) -> rec value
         retrieve `shouldReturn` (take 200 . cycle) ["before", "value"]
-
-      context "when used multiple times" $ do
-        it "is evaluated outside in" $ do
-          pending
 
   describe "before_" $ do
     it "runs an action before every spec item" $ do
@@ -137,10 +129,6 @@ spec = do
           return ()
         retrieve `shouldReturn` []
 
-    context "when used multiple times" $ do
-      it "is evaluated outside in" $ do
-        pending
-
   describe "beforeAll_" $ do
     it "runs an action before the first spec item" $ do
       (rec, retrieve) <- mkAppend
@@ -194,10 +182,6 @@ spec = do
           ioError $ userError "foo" :: IO ()
           rec "foo"
       retrieve `shouldReturn` ["before", "from before"]
-
-    context "when used multiple times" $ do
-      it "is evaluated inside out" $ do
-        pending
 
   describe "after_" $ do
     it "runs an action after every spec item" $ do
@@ -322,10 +306,6 @@ spec = do
         , "bar from around"
         , "after"
         ]
-
-    context "when used multiple times" $ do
-      it "is evaluated outside in" $ do
-        pending
 
   describe "around_" $ do
     it "wraps every spec item with an action" $ do
