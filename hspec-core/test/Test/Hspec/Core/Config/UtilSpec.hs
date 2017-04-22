@@ -8,13 +8,23 @@ import           Test.Hspec.Core.Config.Util
 
 spec :: Spec
 spec = do
-  describe "condenseNoOptions" $ do
+  describe "mkUsageInfo" $ do
+    it "restricts output size to 80 characters" $ do
+      let options = [
+              Option "" ["color"] (NoArg ()) (unwords $ replicate 3 "some very long and verbose help text")
+            ]
+      mkUsageInfo "" options `shouldBe` unlines [
+          ""
+        , "    --color  some very long and verbose help text some very long and verbose"
+        , "             help text some very long and verbose help text"
+        ]
+
     it "condenses help for --no-options" $ do
       let options = [
               Option "" ["color"] (NoArg ()) "some help"
             , Option "" ["no-color"] (NoArg ()) "some other help"
             ]
-      usageInfo "" (condenseNoOptions options) `shouldBe` unlines [
+      mkUsageInfo "" options `shouldBe` unlines [
           ""
         , "    --[no-]color  some help"
         ]

@@ -38,12 +38,6 @@ spec = do
       it "prints help" $ do
         help `shouldStartWith` ["Usage: my-spec [OPTION]..."]
 
-      it "constrains lines to 80 characters" $ do
-        help `shouldSatisfy` all ((<= 80) . length)
-
-      it "requires one line >= 78 characters" $ do
-        help `shouldSatisfy` any ((78 <=) . length)
-
     context "with --no-color" $ do
       it "sets configColorMode to ColorNever" $ do
         configColorMode <$> parseOptions [] Nothing ["--no-color"] `shouldBe` Right ColorNever
@@ -51,6 +45,14 @@ spec = do
     context "with --color" $ do
       it "sets configColorMode to ColorAlways" $ do
         configColorMode <$> parseOptions [] Nothing ["--color"] `shouldBe` Right ColorAlways
+
+    context "with --diff" $ do
+      it "sets configDiff to True" $ do
+        configDiff <$> parseOptions [] Nothing ["--diff"] `shouldBe` Right True
+
+    context "with --no-diff" $ do
+      it "sets configDiff to False" $ do
+        configDiff <$> parseOptions [] Nothing ["--no-diff"] `shouldBe` Right False
 
     context "with --out" $ do
       it "sets configOutputFile" $ do
