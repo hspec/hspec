@@ -24,7 +24,7 @@ import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Formatters hiding (FormatM)
 import           Test.Hspec.Core.Formatters.Internal
-import qualified Test.Hspec.Core.Formatters.Internal as Formatter
+import qualified Test.Hspec.Core.Formatters.Internal as Formatter (interpret)
 import           Test.Hspec.Core.Timer
 
 type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))

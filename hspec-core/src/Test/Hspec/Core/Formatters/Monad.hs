@@ -54,8 +54,6 @@ data Formatter = Formatter {
   headerFormatter :: FormatM ()
 
 -- | evaluated before each test group
---
--- The given number indicates the position within the parent group.
 , exampleGroupStarted :: [String] -> String -> FormatM ()
 
 , exampleGroupDone    :: FormatM ()
