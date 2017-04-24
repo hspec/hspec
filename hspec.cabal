@@ -56,7 +56,6 @@ library
       Test.Hspec.Core
       Test.Hspec.Discover
       Test.Hspec.Formatters
-      Test.Hspec.HUnit
       Test.Hspec.QuickCheck
       Test.Hspec.Runner
   other-modules:

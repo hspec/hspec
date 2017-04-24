@@ -3,6 +3,8 @@
   - Colorize whitespaces with background color instead of foreground color with
     `--diff`
   - Deprecate `--out`
+  - Removed deprecated module `Test.Hspec.HUnit`, use
+    `Test.Hspec.Contrib.HUnit`
 
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`
