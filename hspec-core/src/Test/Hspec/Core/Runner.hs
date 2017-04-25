@@ -168,7 +168,7 @@ runSpec config spec = do
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
-        c = FormatConfig {
+        formatConfig = FormatConfig {
           formatConfigHandle = h
         , formatConfigUseColor = useColor
         , formatConfigUseDiff = configDiff config
@@ -176,7 +176,13 @@ runSpec config spec = do
         , formatConfigPrintCpuTime = configPrintCpuTime config
         , formatConfigUsedSeed =  seed
         }
-      runFormatM c $ runFormatter jobsSem useColor h config formatter filteredSpec
+        evalConfig = EvalConfig {
+          evalConfigFormat = formatter
+        , evalConfigFormatConfig = formatConfig
+        , evalConfigParams = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+        , evalConfigFastFail = configFastFail config
+        }
+      runFormatM formatConfig $ runFormatter evalConfig jobsSem filteredSpec
 
     dumpFailureReport config seed qcArgs failures
     return (Summary total (length failures))

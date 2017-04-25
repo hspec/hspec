@@ -5,7 +5,7 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 #endif
 
-module Test.Hspec.Core.Runner.Eval (runFormatter) where
+module Test.Hspec.Core.Runner.Eval (EvalConfig(..), runFormatter) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
@@ -14,38 +14,49 @@ import           Data.Maybe
 import           Control.Monad (unless, when)
 import qualified Control.Exception as E
 import           Control.Concurrent
-import           System.IO (Handle)
 
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Time.Clock.POSIX
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec
-import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Formatters hiding (FormatM)
 import           Test.Hspec.Core.Formatters.Internal
 import qualified Test.Hspec.Core.Formatters.Internal as Formatter (interpret)
 import           Test.Hspec.Core.Timer
 
+data EvalConfig = EvalConfig {
+  evalConfigFormat :: Formatter
+, evalConfigFormatConfig :: FormatConfig
+, evalConfigParams :: Params
+, evalConfigFastFail :: Bool
+}
+
 type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: QSem -> Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM (Int, [Path])
-runFormatter jobsSem useColor h c formatter specs = do
-  runFormatter_ jobsSem useColor h c formatter specs `finally_` do
+runFormatter :: EvalConfig -> QSem -> [SpecTree ()] -> FormatM (Int, [Path])
+runFormatter config jobsSem specs = do
+  runFormatter_ config jobsSem specs `finally_` do
     Formatter.interpret $ failedFormatter formatter
   Formatter.interpret $ footerFormatter formatter
   total <- Formatter.interpret getTotalCount
   failures <- map failureRecordPath <$> Formatter.interpret getFailMessages
   return (total, failures)
+  where
+    formatter = evalConfigFormat config
 
-runFormatter_ :: QSem -> Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
-runFormatter_ jobsSem useColor h c formatter specs = do
+runFormatter_ :: EvalConfig -> QSem -> [SpecTree ()] -> FormatM ()
+runFormatter_ config jobsSem specs = do
   Formatter.interpret $ headerFormatter formatter
   chan <- liftIO newChan
   reportProgress <- liftIO mkReportProgress
-  run chan reportProgress c formatter (toEvalTree specs)
+  run chan reportProgress (evalConfigFastFail config) formatter (toEvalTree specs)
   where
+    formatter = evalConfigFormat config
+    useColor = (formatConfigUseColor . evalConfigFormatConfig) config
+    h = (formatConfigHandle . evalConfigFormatConfig) config
+
     mkReportProgress :: IO (Path -> Progress -> IO ())
     mkReportProgress
       | useColor = every 0.05 $ exampleProgress formatter h
@@ -58,7 +69,7 @@ runFormatter_ jobsSem useColor h c formatter specs = do
         f (Item requirement loc isParallelizable e) = (requirement, loc, parallelize jobsSem isParallelizable $ e params ($ ()))
 
     params :: Params
-    params = Params (configQuickCheckArgs c) (configSmallCheckDepth c)
+    params = evalConfigParams config
 
 -- | Execute given action at most every specified number of seconds.
 every :: POSIXTime -> (a -> b -> IO ()) -> IO (a -> b -> IO ())
@@ -105,12 +116,12 @@ runParallel jobsSem e reportProgress formatResult = do
 
 data Message = Done | Run (FormatM ())
 
-run :: Chan Message -> (Path -> ProgressCallback) -> Config -> Formatter -> [EvalTree] -> FormatM ()
-run chan reportProgress_ c formatter specs = do
+run :: Chan Message -> (Path -> ProgressCallback) -> Bool -> Formatter -> [EvalTree] -> FormatM ()
+run chan reportProgress_ fastFail formatter specs = do
   liftIO $ do
     forM_ specs (queueSpec [])
     writeChan chan Done
-  processMessages (readChan chan) (configFastFail c)
+  processMessages (readChan chan) fastFail
   where
     defer :: FormatM () -> IO ()
     defer = writeChan chan . Run
