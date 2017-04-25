@@ -28,6 +28,7 @@ import           Test.Hspec.Core.Timer
 data EvalConfig = EvalConfig {
   evalConfigFormat :: Formatter
 , evalConfigFormatConfig :: FormatConfig
+, evalConfigConcurrentJobs :: Int
 , evalConfigParams :: Params
 , evalConfigFastFail :: Bool
 }
@@ -35,14 +36,16 @@ data EvalConfig = EvalConfig {
 type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: EvalConfig -> QSem -> [SpecTree ()] -> FormatM (Int, [Path])
-runFormatter config jobsSem specs = do
-  runFormatter_ config jobsSem specs `finally_` do
-    Formatter.interpret $ failedFormatter formatter
-  Formatter.interpret $ footerFormatter formatter
-  total <- Formatter.interpret getTotalCount
-  failures <- map failureRecordPath <$> Formatter.interpret getFailMessages
-  return (total, failures)
+runFormatter :: EvalConfig -> [SpecTree ()] -> IO (Int, [Path])
+runFormatter config specs = do
+  jobsSem <- newQSem (evalConfigConcurrentJobs config)
+  runFormatM (evalConfigFormatConfig config) $ do
+    runFormatter_ config jobsSem specs `finally_` do
+      Formatter.interpret $ failedFormatter formatter
+    Formatter.interpret $ footerFormatter formatter
+    total <- Formatter.interpret getTotalCount
+    failures <- map failureRecordPath <$> Formatter.interpret getFailMessages
+    return (total, failures)
   where
     formatter = evalConfigFormat config
 
