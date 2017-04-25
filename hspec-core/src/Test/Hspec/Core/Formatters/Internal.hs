@@ -208,16 +208,18 @@ diffColorize color cls s = withColor (SetColor layer Dull color) cls $ do
 -- |
 -- @finally_ actionA actionB@ runs @actionA@ and then @actionB@.  @actionB@ is
 -- run even when a `UserInterrupt` occurs during @actionA@.
-finally_ :: FormatM () -> FormatM () -> FormatM ()
+finally_ :: FormatM a -> FormatM () -> FormatM a
 finally_ (FormatM actionA) (FormatM actionB) = FormatM . StateT $ \st -> do
-  r <- try (execStateT actionA st)
+  r <- try (runStateT actionA st)
   case r of
     Left e -> do
       when (e == UserInterrupt) $
         runStateT actionB st >> return ()
       throwIO e
-    Right st_ -> do
-      runStateT actionB st_
+    Right (a, st_) -> do
+      runStateT actionB st_ >>= return . replaceValue a
+  where
+    replaceValue a (_, st) = (a, st)
 
 -- | Get the used CPU time since the test run has been started.
 getCPUTime :: FormatM (Maybe Double)

@@ -18,11 +18,15 @@ import           Control.Concurrent
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Time.Clock.POSIX
 
+import           Control.Monad.Trans.State hiding (State, state)
+import           Control.Monad.Trans.Class
+
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Formatters hiding (FormatM)
-import           Test.Hspec.Core.Formatters.Internal
-import qualified Test.Hspec.Core.Formatters.Internal as Formatter (interpret)
+import qualified Test.Hspec.Core.Formatters as Formatters (FormatM)
+import           Test.Hspec.Core.Formatters.Internal (FormatConfig(..), FormatM, finally_)
+import qualified Test.Hspec.Core.Formatters.Internal as Formatter
 import           Test.Hspec.Core.Timer
 
 data EvalConfig = EvalConfig {
@@ -33,28 +37,89 @@ data EvalConfig = EvalConfig {
 , evalConfigFastFail :: Bool
 }
 
-type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
+data State = State {
+  stateFormatter :: Formatter
+, stateSuccessCount :: Int
+, statePendingCount :: Int
+, stateFailures :: [Path]
+}
+
+type EvalM = StateT State FormatM
+
+increaseSuccessCount :: EvalM ()
+increaseSuccessCount = modify $ \state -> state {stateSuccessCount = stateSuccessCount state + 1}
+
+increasePendingCount :: EvalM ()
+increasePendingCount = modify $ \state -> state {statePendingCount = statePendingCount state + 1}
+
+addFailure :: Path -> EvalM ()
+addFailure path = modify $ \state -> state {stateFailures = path : stateFailures state}
+
+interpret :: Formatters.FormatM a -> EvalM a
+interpret = lift . Formatter.interpret
+
+reportSuccess :: Path -> EvalM ()
+reportSuccess path = do
+  increaseSuccessCount
+  lift Formatter.increaseSuccessCount
+  format <- gets (exampleSucceeded . stateFormatter)
+  interpret (format path)
+
+reportPending :: Path -> Maybe String -> EvalM ()
+reportPending path reason = do
+  increasePendingCount
+  lift $ Formatter.increasePendingCount
+  format <- gets (examplePending . stateFormatter)
+  interpret (format path reason)
+
+reportFailure :: Maybe Location -> Path -> Either E.SomeException FailureReason -> EvalM ()
+reportFailure loc path err = do
+  addFailure path
+  lift $ Formatter.addFailMessage loc path err
+  format <- gets (exampleFailed . stateFormatter)
+  interpret $ format path err
+
+groupStarted :: [String] -> String -> EvalM ()
+groupStarted nesting name = do
+  format <- gets (exampleGroupStarted . stateFormatter)
+  interpret $ format nesting name
+
+groupDone :: EvalM ()
+groupDone = do
+  format <- gets (exampleGroupDone . stateFormatter)
+  interpret format
+
+type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (EvalM ()))
+
+runEvalM :: Formatter -> EvalM () -> FormatM State
+runEvalM formatter action = execStateT action (State formatter 0 0 [])
+
+runFormatM :: Formatter -> FormatConfig -> FormatM a -> IO a
+runFormatM formatter config action = do
+  Formatter.runFormatM config $ do
+    Formatter.interpret (headerFormatter formatter)
+    a <- action `finally_` Formatter.interpret (failedFormatter formatter)
+    Formatter.interpret (footerFormatter formatter)
+    return a
 
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: EvalConfig -> [SpecTree ()] -> IO (Int, [Path])
 runFormatter config specs = do
   jobsSem <- newQSem (evalConfigConcurrentJobs config)
-  runFormatM (evalConfigFormatConfig config) $ do
-    runFormatter_ config jobsSem specs `finally_` do
-      Formatter.interpret $ failedFormatter formatter
-    Formatter.interpret $ footerFormatter formatter
-    total <- Formatter.interpret getTotalCount
-    failures <- map failureRecordPath <$> Formatter.interpret getFailMessages
-    return (total, failures)
+  state <- runFormatM formatter (evalConfigFormatConfig config) $ do
+    runEvalM formatter (runFormatter_ config jobsSem specs)
+  let
+    failures = stateFailures state
+    total = stateSuccessCount state + statePendingCount state + length failures
+  return (total, reverse failures)
   where
     formatter = evalConfigFormat config
 
-runFormatter_ :: EvalConfig -> QSem -> [SpecTree ()] -> FormatM ()
+runFormatter_ :: EvalConfig -> QSem -> [SpecTree ()] -> EvalM ()
 runFormatter_ config jobsSem specs = do
-  Formatter.interpret $ headerFormatter formatter
   chan <- liftIO newChan
   reportProgress <- liftIO mkReportProgress
-  run chan reportProgress (evalConfigFastFail config) formatter (toEvalTree specs)
+  run chan reportProgress (evalConfigFastFail config) (toEvalTree specs)
   where
     formatter = evalConfigFormat config
     useColor = (formatConfigUseColor . evalConfigFormatConfig) config
@@ -68,7 +133,7 @@ runFormatter_ config jobsSem specs = do
     toEvalTree :: [SpecTree ()] -> [EvalTree]
     toEvalTree = map (fmap f)
       where
-        f :: Item () -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
+        f :: Item () -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (EvalM ()))
         f (Item requirement loc isParallelizable e) = (requirement, loc, parallelize jobsSem isParallelizable $ e params ($ ()))
 
     params :: Params
@@ -82,21 +147,21 @@ every seconds action = do
     r <- timer
     when r (action a b)
 
-type FormatResult = Either E.SomeException Result -> FormatM ()
+type FormatResult = Either E.SomeException Result -> EvalM ()
 
-parallelize :: QSem -> Maybe Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+parallelize :: QSem -> Maybe Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (EvalM ())
 parallelize jobsSem isParallelizable e
   | fromMaybe False isParallelizable = runParallel jobsSem e
   | otherwise = runSequentially e
 
-runSequentially :: (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+runSequentially :: (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (EvalM ())
 runSequentially e reportProgress formatResult = return $ do
   result <- liftIO $ e reportProgress
   formatResult result
 
 data Report = ReportProgress Progress | ReportResult (Either E.SomeException Result)
 
-runParallel :: QSem -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (FormatM ())
+runParallel :: QSem -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (EvalM ())
 runParallel jobsSem e reportProgress formatResult = do
   mvar <- newEmptyMVar
   _ <- forkIO $ E.bracket_ (waitQSem jobsSem) (signalQSem jobsSem) $ do
@@ -105,7 +170,7 @@ runParallel jobsSem e reportProgress formatResult = do
     replaceMVar mvar (ReportResult result)
   return $ evalReport mvar
   where
-    evalReport :: MVar Report -> FormatM ()
+    evalReport :: MVar Report -> EvalM ()
     evalReport mvar = do
       r <- liftIO (takeMVar mvar)
       case r of
@@ -117,65 +182,57 @@ runParallel jobsSem e reportProgress formatResult = do
     replaceMVar :: MVar a -> a -> IO ()
     replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
-data Message = Done | Run (FormatM ())
+data Message = Done | Run (EvalM ())
 
-run :: Chan Message -> (Path -> ProgressCallback) -> Bool -> Formatter -> [EvalTree] -> FormatM ()
-run chan reportProgress_ fastFail formatter specs = do
+run :: Chan Message -> (Path -> ProgressCallback) -> Bool -> [EvalTree] -> EvalM ()
+run chan reportProgress_ fastFail specs = do
   liftIO $ do
     forM_ specs (queueSpec [])
     writeChan chan Done
   processMessages (readChan chan) fastFail
   where
-    defer :: FormatM () -> IO ()
+    defer :: EvalM () -> IO ()
     defer = writeChan chan . Run
 
-    runCleanup :: IO () -> Path -> FormatM ()
+    runCleanup :: IO () -> Path -> EvalM ()
     runCleanup action path = do
       r <- liftIO $ safeTry action
-      either (failed Nothing path . Left) return r
+      either (reportFailure Nothing path . Left) return r
 
     queueSpec :: [String] -> EvalTree -> IO ()
     queueSpec rGroups (Node group xs) = do
-      defer (Formatter.interpret $ exampleGroupStarted formatter (reverse rGroups) group)
+      defer (groupStarted (reverse rGroups) group)
       forM_ xs (queueSpec (group : rGroups))
-      defer (Formatter.interpret $ exampleGroupDone formatter)
+      defer groupDone
     queueSpec rGroups (NodeWithCleanup action xs) = do
       forM_ xs (queueSpec rGroups)
       defer (runCleanup (action ()) (reverse rGroups, "afterAll-hook"))
     queueSpec rGroups (Leaf e) =
       queueExample (reverse rGroups) e
 
-    queueExample :: [String] -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ())) -> IO ()
-    queueExample groups (requirement, loc, e) = e reportProgress formatResult >>= defer
+    queueExample :: [String] -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (EvalM ())) -> IO ()
+    queueExample groups (requirement, loc, e) = e reportProgress reportResult >>= defer
       where
         path :: Path
         path = (groups, requirement)
 
         reportProgress = reportProgress_ path
 
-        formatResult :: FormatResult
-        formatResult result = do
+        reportResult :: FormatResult
+        reportResult result = do
           case result of
-            Right Success -> do
-              increaseSuccessCount
-              Formatter.interpret $ exampleSucceeded formatter path
-            Right (Pending reason) -> do
-              increasePendingCount
-              Formatter.interpret $ examplePending formatter path reason
-            Right (Failure loc_ err) -> failed (loc_ <|> loc) path (Right err)
-            Left err         -> failed loc path (Left  err)
+            Right Success -> reportSuccess path
+            Right (Pending reason) -> reportPending path reason
+            Right (Failure loc_ err) -> reportFailure (loc_ <|> loc) path (Right err)
+            Left err -> reportFailure loc path (Left  err)
 
-    failed loc path err = do
-      addFailMessage loc path err
-      Formatter.interpret $ exampleFailed formatter path err
-
-processMessages :: IO Message -> Bool -> FormatM ()
+processMessages :: IO Message -> Bool -> EvalM ()
 processMessages getMessage fastFail = go
   where
     go = liftIO getMessage >>= \m -> case m of
       Run action -> do
         action
-        hasFailures <- (not . null) <$> Formatter.interpret getFailMessages
+        hasFailures <- (not . null) <$> gets stateFailures
         let stopNow = fastFail && hasFailures
         unless stopNow go
       Done -> return ()
