@@ -5,7 +5,6 @@ module Test.Hspec.Core.Formatters.Internal (
 , interpret
 , increaseSuccessCount
 , increasePendingCount
-, increaseFailCount
 , addFailMessage
 , finally_
 ) where
@@ -35,7 +34,6 @@ interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {
   environmentGetSuccessCount = getSuccessCount
 , environmentGetPendingCount = getPendingCount
-, environmentGetFailCount = getFailCount
 , environmentGetFailMessages = getFailMessages
 , environmentUsedSeed = usedSeed
 , environmentGetCPUTime = getCPUTime
@@ -67,7 +65,6 @@ data FormatterState = FormatterState {
 , produceHTML     :: Bool
 , successCount    :: Int
 , pendingCount    :: Int
-, failCount       :: Int
 , failMessages    :: [FailureRecord]
 , stateUsedSeed   :: Integer
 , cpuStartTime    :: Maybe Integer
@@ -87,7 +84,7 @@ runFormatM :: Bool -> Bool -> Bool -> Bool -> Integer -> Handle -> FormatM a -> 
 runFormatM useColor useDiff produceHTML_ printCpuTime seed handle (FormatM action) = do
   time <- getPOSIXTime
   cpuTime <- if printCpuTime then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState handle useColor useDiff produceHTML_ 0 0 0 [] seed cpuTime time)
+  st <- newIORef (FormatterState handle useColor useDiff produceHTML_ 0 0 [] seed cpuTime time)
   evalStateT action st
 
 -- | Increase the counter for successful examples
@@ -98,10 +95,6 @@ increaseSuccessCount = modify $ \s -> s {successCount = succ $ successCount s}
 increasePendingCount :: FormatM ()
 increasePendingCount = modify $ \s -> s {pendingCount = succ $ pendingCount s}
 
--- | Increase the counter for failed examples
-increaseFailCount :: FormatM ()
-increaseFailCount = modify $ \s -> s {failCount = succ $ failCount s}
-
 -- | Get the number of successful examples encountered so far.
 getSuccessCount :: FormatM Int
 getSuccessCount = gets successCount
@@ -109,10 +102,6 @@ getSuccessCount = gets successCount
 -- | Get the number of pending examples encountered so far.
 getPendingCount :: FormatM Int
 getPendingCount = gets pendingCount
-
--- | Get the number of failed examples encountered so far.
-getFailCount :: FormatM Int
-getFailCount = gets failCount
 
 -- | Append to the list of accumulated failure messages.
 addFailMessage :: Maybe Location -> Path -> Either SomeException FailureReason -> FormatM ()

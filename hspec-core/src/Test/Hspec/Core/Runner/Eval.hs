@@ -143,7 +143,6 @@ run chan reportProgress_ c formatter specs = do
             Left err         -> failed loc path (Left  err)
 
     failed loc path err = do
-      increaseFailCount
       addFailMessage loc path err
       Formatter.interpret $ exampleFailed formatter path err
 
@@ -153,6 +152,7 @@ processMessages getMessage fastFail = go
     go = liftIO getMessage >>= \m -> case m of
       Run action -> do
         action
-        fails <- Formatter.interpret getFailCount
-        unless (fastFail && fails /= 0) go
+        hasFailures <- (not . null) <$> Formatter.interpret getFailMessages
+        let stopNow = fastFail && hasFailures
+        unless stopNow go
       Done -> return ()

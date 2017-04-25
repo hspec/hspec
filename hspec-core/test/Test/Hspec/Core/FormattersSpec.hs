@@ -60,7 +60,6 @@ environment :: Environment (Writer [ColorizedText])
 environment = Environment {
   environmentGetSuccessCount = return 0
 , environmentGetPendingCount = return 0
-, environmentGetFailCount = return 0
 , environmentGetFailMessages = return []
 , environmentUsedSeed = return 0
 , environmentGetCPUTime = return Nothing
@@ -238,7 +237,7 @@ spec = do
             ]
 
       context "with failures" $ do
-        let env = environment {environmentGetFailCount = return 1}
+        let env = environment {environmentGetFailMessages = return [undefined]}
         it "shows summary in red" $ do
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
@@ -246,7 +245,7 @@ spec = do
             ]
 
       context "with both failures and pending examples" $ do
-        let env = environment {environmentGetFailCount = return 1, environmentGetPendingCount = return 1}
+        let env = environment {environmentGetFailMessages = return [undefined], environmentGetPendingCount = return 1}
         it "shows summary in red" $ do
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"

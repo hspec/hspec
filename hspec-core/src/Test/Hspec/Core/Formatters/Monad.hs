@@ -88,7 +88,6 @@ data FailureRecord = FailureRecord {
 data FormatF next =
     GetSuccessCount (Int -> next)
   | GetPendingCount (Int -> next)
-  | GetFailCount (Int -> next)
   | GetFailMessages ([FailureRecord] -> next)
   | UsedSeed (Integer -> next)
   | GetCPUTime (Maybe Double -> next)
@@ -106,7 +105,6 @@ instance Functor FormatF where -- deriving this instance would require GHC >= 7.
   fmap f x = case x of
     GetSuccessCount next -> GetSuccessCount (fmap f next)
     GetPendingCount next -> GetPendingCount (fmap f next)
-    GetFailCount next -> GetFailCount (fmap f next)
     GetFailMessages next -> GetFailMessages (fmap f next)
     UsedSeed next -> UsedSeed (fmap f next)
     GetCPUTime next -> GetCPUTime (fmap f next)
@@ -128,7 +126,6 @@ instance MonadIO FormatM where
 data Environment m = Environment {
   environmentGetSuccessCount :: m Int
 , environmentGetPendingCount :: m Int
-, environmentGetFailCount :: m Int
 , environmentGetFailMessages :: m [FailureRecord]
 , environmentUsedSeed :: m Integer
 , environmentGetCPUTime :: m (Maybe Double)
@@ -152,7 +149,6 @@ interpretWith Environment{..} = go
       Free action -> case action of
         GetSuccessCount next -> environmentGetSuccessCount >>= go . next
         GetPendingCount next -> environmentGetPendingCount >>= go . next
-        GetFailCount next -> environmentGetFailCount >>= go . next
         GetFailMessages next -> environmentGetFailMessages >>= go . next
         UsedSeed next -> environmentUsedSeed >>= go . next
         GetCPUTime next -> environmentGetCPUTime >>= go . next
@@ -176,7 +172,7 @@ getPendingCount = liftF (GetPendingCount id)
 
 -- | Get the number of failed examples encountered so far.
 getFailCount :: FormatM Int
-getFailCount = liftF (GetFailCount id)
+getFailCount = length <$> getFailMessages
 
 -- | Get the total number of examples encountered so far.
 getTotalCount :: FormatM Int
