@@ -40,14 +40,12 @@ import           Control.Concurrent
 
 import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
-import           Control.Monad.IO.Class (liftIO)
 
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Formatters.Internal
-import qualified Test.Hspec.Core.Formatters.Internal as Formatter
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 
@@ -168,17 +166,12 @@ runSpec config spec = do
 
     filteredSpec <- filterSpecs config . applyDryRun config <$> runSpecM spec
 
-    withHiddenCursor useColor h $
+    (total, failures) <- withHiddenCursor useColor h $ do
       runFormatM useColor (configDiff config) (configHtmlOutput config) (configPrintCpuTime config) seed h $ do
-        runFormatter jobsSem useColor h config formatter filteredSpec `finally_` do
-          Formatter.interpret $ failedFormatter formatter
+        runFormatter jobsSem useColor h config formatter filteredSpec
 
-        Formatter.interpret $ footerFormatter formatter
-
-        xs <- map failureRecordPath <$> Formatter.interpret getFailMessages
-        liftIO $ dumpFailureReport config seed qcArgs xs
-
-        Summary <$> Formatter.interpret getTotalCount <*> Formatter.interpret getFailCount
+    dumpFailureReport config seed qcArgs failures
+    return (Summary total (length failures))
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
 dumpFailureReport config seed qcArgs xs = do

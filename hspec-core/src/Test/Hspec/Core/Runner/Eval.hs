@@ -30,8 +30,17 @@ import           Test.Hspec.Core.Timer
 type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (FormatM ()))
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: QSem -> Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
+runFormatter :: QSem -> Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM (Int, [Path])
 runFormatter jobsSem useColor h c formatter specs = do
+  runFormatter_ jobsSem useColor h c formatter specs `finally_` do
+    Formatter.interpret $ failedFormatter formatter
+  Formatter.interpret $ footerFormatter formatter
+  total <- Formatter.interpret getTotalCount
+  failures <- map failureRecordPath <$> Formatter.interpret getFailMessages
+  return (total, failures)
+
+runFormatter_ :: QSem -> Bool -> Handle -> Config -> Formatter -> [SpecTree ()] -> FormatM ()
+runFormatter_ jobsSem useColor h c formatter specs = do
   Formatter.interpret $ headerFormatter formatter
   chan <- liftIO newChan
   reportProgress <- liftIO mkReportProgress
