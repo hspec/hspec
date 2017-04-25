@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Core.Formatters.Internal (
   FormatM
+, FormatConfig(..)
 , runFormatM
 , interpret
 , increaseSuccessCount
@@ -58,63 +59,74 @@ modify :: (FormatterState -> FormatterState) -> FormatM ()
 modify f = FormatM $ do
   get >>= liftIO . (`modifyIORef'` f)
 
+data FormatConfig = FormatConfig {
+  formatConfigHandle :: Handle
+, formatConfigUseColor :: Bool
+, formatConfigUseDiff :: Bool
+, formatConfigHtmlOutput :: Bool
+, formatConfigPrintCpuTime :: Bool
+, formatConfigUsedSeed :: Integer
+} deriving (Eq, Show)
+
 data FormatterState = FormatterState {
-  stateHandle     :: Handle
-, stateUseColor   :: Bool
-, stateUseDiff    :: Bool
-, produceHTML     :: Bool
-, successCount    :: Int
-, pendingCount    :: Int
-, failMessages    :: [FailureRecord]
-, stateUsedSeed   :: Integer
-, cpuStartTime    :: Maybe Integer
-, startTime       :: POSIXTime
+  stateSuccessCount    :: Int
+, statePendingCount    :: Int
+, stateFailMessages    :: [FailureRecord]
+, stateCpuStartTime    :: Maybe Integer
+, stateStartTime       :: POSIXTime
+, stateConfig :: FormatConfig
 }
+
+getConfig :: (FormatConfig -> a) -> FormatM a
+getConfig f = gets (f . stateConfig)
+
+getHandle :: FormatM Handle
+getHandle = getConfig formatConfigHandle
 
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer
-usedSeed = gets stateUsedSeed
+usedSeed = getConfig formatConfigUsedSeed
 
 -- NOTE: We use an IORef here, so that the state persists when UserInterrupt is
 -- thrown.
 newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
-runFormatM :: Bool -> Bool -> Bool -> Bool -> Integer -> Handle -> FormatM a -> IO a
-runFormatM useColor useDiff produceHTML_ printCpuTime seed handle (FormatM action) = do
+runFormatM :: FormatConfig -> FormatM a -> IO a
+runFormatM config (FormatM action) = do
   time <- getPOSIXTime
-  cpuTime <- if printCpuTime then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState handle useColor useDiff produceHTML_ 0 0 [] seed cpuTime time)
+  cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
+  st <- newIORef (FormatterState 0 0 [] cpuTime time config)
   evalStateT action st
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()
-increaseSuccessCount = modify $ \s -> s {successCount = succ $ successCount s}
+increaseSuccessCount = modify $ \s -> s {stateSuccessCount = succ $ stateSuccessCount s}
 
 -- | Increase the counter for pending examples
 increasePendingCount :: FormatM ()
-increasePendingCount = modify $ \s -> s {pendingCount = succ $ pendingCount s}
+increasePendingCount = modify $ \s -> s {statePendingCount = succ $ statePendingCount s}
 
 -- | Get the number of successful examples encountered so far.
 getSuccessCount :: FormatM Int
-getSuccessCount = gets successCount
+getSuccessCount = gets stateSuccessCount
 
 -- | Get the number of pending examples encountered so far.
 getPendingCount :: FormatM Int
-getPendingCount = gets pendingCount
+getPendingCount = gets statePendingCount
 
 -- | Append to the list of accumulated failure messages.
 addFailMessage :: Maybe Location -> Path -> Either SomeException FailureReason -> FormatM ()
-addFailMessage loc p m = modify $ \s -> s {failMessages = FailureRecord loc p m : failMessages s}
+addFailMessage loc p m = modify $ \s -> s {stateFailMessages = FailureRecord loc p m : stateFailMessages s}
 
 -- | Get the list of accumulated failure messages.
 getFailMessages :: FormatM [FailureRecord]
-getFailMessages = reverse `fmap` gets failMessages
+getFailMessages = reverse `fmap` gets stateFailMessages
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
 write s = do
-  h <- gets stateHandle
+  h <- getHandle
   liftIO $ IO.hPutStr h s
 
 -- | Set output color to red, run given action, and finally restore the default
@@ -140,16 +152,16 @@ withInfoColor = withColor (SetColor Foreground Dull Cyan) "hspec-info"
 -- | Set a color, run an action, and finally reset colors.
 withColor :: SGR -> String -> FormatM a -> FormatM a
 withColor color cls action = do
-  r <- gets produceHTML
-  (if r then htmlSpan cls else withColor_ color) action
+  produceHTML <- getConfig formatConfigHtmlOutput
+  (if produceHTML then htmlSpan cls else withColor_ color) action
 
 htmlSpan :: String -> FormatM a -> FormatM a
 htmlSpan cls action = write ("<span class=\"" ++ cls ++ "\">") *> action <* write "</span>"
 
 withColor_ :: SGR -> FormatM a -> FormatM a
 withColor_ color (FormatM action) = do
-  useColor <- gets stateUseColor
-  h        <- gets stateHandle
+  useColor <- getConfig formatConfigUseColor
+  h <- getHandle
 
   FormatM . StateT $ \st -> do
     bracket_
@@ -166,7 +178,7 @@ withColor_ color (FormatM action) = do
 -- | Output given chunk in red.
 extraChunk :: String -> FormatM ()
 extraChunk s = do
-  useDiff <- gets stateUseDiff
+  useDiff <- getConfig formatConfigUseDiff
   case useDiff of
     True -> extra s
     False -> write s
@@ -177,7 +189,7 @@ extraChunk s = do
 -- | Output given chunk in green.
 missingChunk :: String -> FormatM ()
 missingChunk s = do
-  useDiff <- gets stateUseDiff
+  useDiff <- getConfig formatConfigUseDiff
   case useDiff of
     True -> missing s
     False -> write s
@@ -211,7 +223,7 @@ finally_ (FormatM actionA) (FormatM actionB) = FormatM . StateT $ \st -> do
 getCPUTime :: FormatM (Maybe Double)
 getCPUTime = do
   t1  <- liftIO CPUTime.getCPUTime
-  mt0 <- gets cpuStartTime
+  mt0 <- gets stateCpuStartTime
   return $ toSeconds <$> ((-) <$> pure t1 <*> mt0)
   where
     toSeconds x = fromIntegral x / (10.0 ^ (12 :: Integer))
@@ -220,5 +232,5 @@ getCPUTime = do
 getRealTime :: FormatM Double
 getRealTime = do
   t1 <- liftIO getPOSIXTime
-  t0 <- gets startTime
+  t0 <- gets stateStartTime
   return (realToFrac $ t1 - t0)

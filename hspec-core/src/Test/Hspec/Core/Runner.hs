@@ -167,8 +167,16 @@ runSpec config spec = do
     filteredSpec <- filterSpecs config . applyDryRun config <$> runSpecM spec
 
     (total, failures) <- withHiddenCursor useColor h $ do
-      runFormatM useColor (configDiff config) (configHtmlOutput config) (configPrintCpuTime config) seed h $ do
-        runFormatter jobsSem useColor h config formatter filteredSpec
+      let
+        c = FormatConfig {
+          formatConfigHandle = h
+        , formatConfigUseColor = useColor
+        , formatConfigUseDiff = configDiff config
+        , formatConfigHtmlOutput = configHtmlOutput config
+        , formatConfigPrintCpuTime = configPrintCpuTime config
+        , formatConfigUsedSeed =  seed
+        }
+      runFormatM c $ runFormatter jobsSem useColor h config formatter filteredSpec
 
     dumpFailureReport config seed qcArgs failures
     return (Summary total (length failures))
