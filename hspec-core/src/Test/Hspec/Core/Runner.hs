@@ -158,7 +158,9 @@ runSpec config spec = do
 
     useColor <- doesUseColor h config
 
-    filteredSpec <- filterSpecs config . applyDryRun config <$> runSpecM spec
+    let params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+
+    filteredSpec <- map (toEvalTree params) . filterSpecs config . applyDryRun config <$> runSpecM spec
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
@@ -173,13 +175,20 @@ runSpec config spec = do
         evalConfig = EvalConfig {
           evalConfigFormat = formatterToFormat formatter formatConfig
         , evalConfigConcurrentJobs = concurrentJobs
-        , evalConfigParams = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
         , evalConfigFastFail = configFastFail config
         }
       runFormatter evalConfig filteredSpec
 
     dumpFailureReport config seed qcArgs failures
     return (Summary total (length failures))
+
+toEvalTree :: Params -> SpecTree () -> EvalTree
+toEvalTree params = go
+  where
+    go t = case t of
+      Node s xs -> Node s (map go xs)
+      NodeWithCleanup c xs -> NodeWithCleanup (c ()) (map go xs)
+      Leaf (Item requirement loc isParallelizable e)  -> Leaf (EvalItem requirement loc (fromMaybe False isParallelizable) (e params $ ($ ())))
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
 dumpFailureReport config seed qcArgs xs = do

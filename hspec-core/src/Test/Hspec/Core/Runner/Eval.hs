@@ -10,13 +10,14 @@
 
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
+, EvalTree
+, EvalItem(..)
 , runFormatter
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (Monad)
 import qualified Test.Hspec.Core.Compat as M
-import           Data.Maybe
 
 import           Control.Monad (unless, when)
 import qualified Control.Exception as E
@@ -29,7 +30,7 @@ import           Control.Monad.Trans.State hiding (State, state)
 import           Control.Monad.Trans.Class
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Spec
+import           Test.Hspec.Core.Spec (Tree(..), Location, Progress, FailureReason, Result(..), ProgressCallback)
 import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format
 
@@ -42,7 +43,6 @@ instance (Monad m, M.MonadIO m) => MonadIO m
 data EvalConfig m = EvalConfig {
   evalConfigFormat :: Format m
 , evalConfigConcurrentJobs :: Int
-, evalConfigParams :: Params
 , evalConfigFastFail :: Bool
 }
 
@@ -93,13 +93,22 @@ groupStarted nesting name = do
 groupDone :: Monad m => EvalM m ()
 groupDone = getFormat formatGroupDone >>= lift
 
-type EvalTree m = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ()))
+data EvalItem = EvalItem {
+  evalItemDescription :: String
+, evalItemLocation :: Maybe Location
+, evalItemParallelize :: Bool
+, evalItemAction :: ProgressCallback -> IO (Either E.SomeException Result)
+}
+
+type EvalTree = Tree (IO ()) EvalItem
+
+type EvalMTree m = Tree (IO ()) (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ()))
 
 runEvalM :: Monad m => EvalConfig m -> EvalM m () -> m (State m)
 runEvalM config action = execStateT action (State config 0 0 [])
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: MonadIO m => EvalConfig m -> [SpecTree ()] -> IO (Int, [Path])
+runFormatter :: MonadIO m => EvalConfig m -> [EvalTree] -> IO (Int, [Path])
 runFormatter config specs = do
   withTimer 0.05 $ \timer -> do
     jobsSem <- newQSem (evalConfigConcurrentJobs config)
@@ -112,10 +121,10 @@ runFormatter config specs = do
   where
     format = evalConfigFormat config
 
-runFormatter_ :: forall m. MonadIO m => (IO Bool) -> EvalConfig m -> QSem -> [SpecTree ()] -> EvalM m ()
+runFormatter_ :: forall m. MonadIO m => (IO Bool) -> EvalConfig m -> QSem -> [EvalTree] -> EvalM m ()
 runFormatter_ timer config jobsSem specs = do
   chan <- liftIO newChan
-  run chan reportProgress (toEvalTree specs)
+  run chan reportProgress (toEvalMTree specs)
   where
     reportProgress :: Path -> Progress -> IO ()
     reportProgress path progress = do
@@ -124,20 +133,17 @@ runFormatter_ timer config jobsSem specs = do
 
     format = evalConfigFormat config
 
-    toEvalTree :: [SpecTree ()] -> [EvalTree m]
-    toEvalTree = map (fmap f)
+    toEvalMTree :: [EvalTree] -> [EvalMTree m]
+    toEvalMTree = map (fmap f)
       where
-        f :: Item () -> (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ()))
-        f (Item requirement loc isParallelizable e) = (requirement, loc, parallelize jobsSem isParallelizable $ e params ($ ()))
-
-    params :: Params
-    params = evalConfigParams config
+        f :: EvalItem -> (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ()))
+        f (EvalItem requirement loc isParallelizable e) = (requirement, loc, parallelize jobsSem isParallelizable e)
 
 type FormatResult m = Either E.SomeException Result -> EvalM m ()
 
-parallelize :: MonadIO m => QSem -> Maybe Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
+parallelize :: MonadIO m => QSem -> Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
 parallelize jobsSem isParallelizable e
-  | fromMaybe False isParallelizable = runParallel jobsSem e
+  | isParallelizable = runParallel jobsSem e
   | otherwise = runSequentially e
 
 runSequentially :: MonadIO m => (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
@@ -170,7 +176,7 @@ runParallel jobsSem e reportProgress formatResult = do
 
 data Message m = Done | Run (EvalM m ())
 
-run :: forall m. MonadIO m => Chan (Message m) -> (Path -> ProgressCallback) -> [EvalTree m] -> EvalM m ()
+run :: forall m. MonadIO m => Chan (Message m) -> (Path -> ProgressCallback) -> [EvalMTree m] -> EvalM m ()
 run chan reportProgress_ specs = do
   liftIO $ do
     forM_ specs (queueSpec [])
@@ -185,14 +191,14 @@ run chan reportProgress_ specs = do
       r <- liftIO $ safeTry action
       either (reportFailure Nothing path . Left) return r
 
-    queueSpec :: [String] -> EvalTree m -> IO ()
+    queueSpec :: [String] -> EvalMTree m -> IO ()
     queueSpec rGroups (Node group xs) = do
       defer (groupStarted (reverse rGroups) group)
       forM_ xs (queueSpec (group : rGroups))
       defer groupDone
     queueSpec rGroups (NodeWithCleanup action xs) = do
       forM_ xs (queueSpec rGroups)
-      defer (runCleanup (action ()) (reverse rGroups, "afterAll-hook"))
+      defer (runCleanup action (reverse rGroups, "afterAll-hook"))
     queueSpec rGroups (Leaf e) =
       queueExample (reverse rGroups) e
 
