@@ -9,21 +9,23 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "timer action returned by newTimer" $ do
+  describe "timer action provided by withTimer" $ do
 
-    let dt = 0.01
+    let
+      dt = 0.01
+      wait = sleep (dt * 1.1)
 
     it "returns False" $ do
-      timer <- newTimer dt
-      timer `shouldReturn` False
+      withTimer dt $ \timer -> do
+        timer `shouldReturn` False
 
     context "after specified time" $ do
       it "returns True" $ do
-        timer <- newTimer dt
-        sleep dt
-        timer `shouldReturn` True
-        timer `shouldReturn` False
-        sleep dt
-        sleep dt
-        timer `shouldReturn` True
-        timer `shouldReturn` False
+        withTimer dt $ \timer -> do
+          wait
+          timer `shouldReturn` True
+          timer `shouldReturn` False
+          wait
+          wait
+          timer `shouldReturn` True
+          timer `shouldReturn` False

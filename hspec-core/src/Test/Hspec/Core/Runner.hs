@@ -171,8 +171,7 @@ runSpec config spec = do
         , formatConfigUsedSeed =  seed
         }
         evalConfig = EvalConfig {
-          evalConfigFormat = formatter
-        , evalConfigFormatConfig = formatConfig
+          evalConfigFormat = formatterToFormat formatter formatConfig
         , evalConfigConcurrentJobs = concurrentJobs
         , evalConfigParams = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
         , evalConfigFastFail = configFastFail config

@@ -1,14 +1,21 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 #if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
 -- Control.Concurrent.QSem is deprecated in base-4.6.0.*
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 #endif
 
-module Test.Hspec.Core.Runner.Eval (EvalConfig(..), runFormatter) where
+module Test.Hspec.Core.Runner.Eval (
+  EvalConfig(..)
+, runFormatter
+) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat
+import           Test.Hspec.Core.Compat hiding (Monad)
+import qualified Test.Hspec.Core.Compat as M
 import           Data.Maybe
 
 import           Control.Monad (unless, when)
@@ -16,152 +23,131 @@ import qualified Control.Exception as E
 import           Control.Concurrent
 
 import           Control.Monad.IO.Class (liftIO)
-import           Data.Time.Clock.POSIX
+import qualified Control.Monad.IO.Class as M
 
 import           Control.Monad.Trans.State hiding (State, state)
 import           Control.Monad.Trans.Class
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec
-import           Test.Hspec.Core.Formatters hiding (FormatM)
-import qualified Test.Hspec.Core.Formatters as Formatters (FormatM)
-import           Test.Hspec.Core.Formatters.Internal (FormatConfig(..), FormatM, finally_)
-import qualified Test.Hspec.Core.Formatters.Internal as Formatter
 import           Test.Hspec.Core.Timer
+import           Test.Hspec.Core.Format
 
-data EvalConfig = EvalConfig {
-  evalConfigFormat :: Formatter
-, evalConfigFormatConfig :: FormatConfig
+-- for compatibility with GHC < 7.10.1
+class (Functor m, Applicative m, M.Monad m) => Monad m
+instance (Functor m, Applicative m, M.Monad m) => Monad m
+class (Monad m, M.MonadIO m) => MonadIO m
+instance (Monad m, M.MonadIO m) => MonadIO m
+
+data EvalConfig m = EvalConfig {
+  evalConfigFormat :: Format m
 , evalConfigConcurrentJobs :: Int
 , evalConfigParams :: Params
 , evalConfigFastFail :: Bool
 }
 
-data State = State {
-  stateFormatter :: Formatter
+data State m = State {
+  stateConfig :: EvalConfig m
 , stateSuccessCount :: Int
 , statePendingCount :: Int
 , stateFailures :: [Path]
 }
 
-type EvalM = StateT State FormatM
+type EvalM m a = StateT (State m) m a
 
-increaseSuccessCount :: EvalM ()
+increaseSuccessCount :: Monad m => EvalM m ()
 increaseSuccessCount = modify $ \state -> state {stateSuccessCount = stateSuccessCount state + 1}
 
-increasePendingCount :: EvalM ()
+increasePendingCount :: Monad m => EvalM m ()
 increasePendingCount = modify $ \state -> state {statePendingCount = statePendingCount state + 1}
 
-addFailure :: Path -> EvalM ()
+addFailure :: Monad m => Path -> EvalM m ()
 addFailure path = modify $ \state -> state {stateFailures = path : stateFailures state}
 
-interpret :: Formatters.FormatM a -> EvalM a
-interpret = lift . Formatter.interpret
+getFormat :: Monad m => (Format m -> a) -> EvalM m a
+getFormat format = gets (format . evalConfigFormat . stateConfig)
 
-reportSuccess :: Path -> EvalM ()
+reportSuccess :: Monad m => Path -> EvalM m ()
 reportSuccess path = do
   increaseSuccessCount
-  lift Formatter.increaseSuccessCount
-  format <- gets (exampleSucceeded . stateFormatter)
-  interpret (format path)
+  format <- getFormat formatSuccess
+  lift (format path)
 
-reportPending :: Path -> Maybe String -> EvalM ()
+reportPending :: Monad m => Path -> Maybe String -> EvalM m ()
 reportPending path reason = do
   increasePendingCount
-  lift $ Formatter.increasePendingCount
-  format <- gets (examplePending . stateFormatter)
-  interpret (format path reason)
+  format <- getFormat formatPending
+  lift (format path reason)
 
-reportFailure :: Maybe Location -> Path -> Either E.SomeException FailureReason -> EvalM ()
+reportFailure :: Monad m => Maybe Location -> Path -> Either E.SomeException FailureReason -> EvalM m ()
 reportFailure loc path err = do
   addFailure path
-  lift $ Formatter.addFailMessage loc path err
-  format <- gets (exampleFailed . stateFormatter)
-  interpret $ format path err
+  format <- getFormat formatFailure
+  lift $ format path loc err
 
-groupStarted :: [String] -> String -> EvalM ()
+groupStarted :: Monad m => [String] -> String -> EvalM m ()
 groupStarted nesting name = do
-  format <- gets (exampleGroupStarted . stateFormatter)
-  interpret $ format nesting name
+  format <- getFormat formatGroupStarted
+  lift $ format nesting name
 
-groupDone :: EvalM ()
-groupDone = do
-  format <- gets (exampleGroupDone . stateFormatter)
-  interpret format
+groupDone :: Monad m => EvalM m ()
+groupDone = getFormat formatGroupDone >>= lift
 
-type EvalTree = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult -> IO (EvalM ()))
+type EvalTree m = Tree (ActionWith ()) (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ()))
 
-runEvalM :: Formatter -> EvalM () -> FormatM State
-runEvalM formatter action = execStateT action (State formatter 0 0 [])
-
-runFormatM :: Formatter -> FormatConfig -> FormatM a -> IO a
-runFormatM formatter config action = do
-  Formatter.runFormatM config $ do
-    Formatter.interpret (headerFormatter formatter)
-    a <- action `finally_` Formatter.interpret (failedFormatter formatter)
-    Formatter.interpret (footerFormatter formatter)
-    return a
+runEvalM :: Monad m => EvalConfig m -> EvalM m () -> m (State m)
+runEvalM config action = execStateT action (State config 0 0 [])
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: EvalConfig -> [SpecTree ()] -> IO (Int, [Path])
+runFormatter :: MonadIO m => EvalConfig m -> [SpecTree ()] -> IO (Int, [Path])
 runFormatter config specs = do
-  jobsSem <- newQSem (evalConfigConcurrentJobs config)
-  state <- runFormatM formatter (evalConfigFormatConfig config) $ do
-    runEvalM formatter (runFormatter_ config jobsSem specs)
-  let
-    failures = stateFailures state
-    total = stateSuccessCount state + statePendingCount state + length failures
-  return (total, reverse failures)
+  withTimer 0.05 $ \timer -> do
+    jobsSem <- newQSem (evalConfigConcurrentJobs config)
+    state <- formatRun format $ do
+      runEvalM config (runFormatter_ timer config jobsSem specs)
+    let
+      failures = stateFailures state
+      total = stateSuccessCount state + statePendingCount state + length failures
+    return (total, reverse failures)
   where
-    formatter = evalConfigFormat config
+    format = evalConfigFormat config
 
-runFormatter_ :: EvalConfig -> QSem -> [SpecTree ()] -> EvalM ()
-runFormatter_ config jobsSem specs = do
+runFormatter_ :: forall m. MonadIO m => (IO Bool) -> EvalConfig m -> QSem -> [SpecTree ()] -> EvalM m ()
+runFormatter_ timer config jobsSem specs = do
   chan <- liftIO newChan
-  reportProgress <- liftIO mkReportProgress
-  run chan reportProgress (evalConfigFastFail config) (toEvalTree specs)
+  run chan reportProgress (toEvalTree specs)
   where
-    formatter = evalConfigFormat config
-    useColor = (formatConfigUseColor . evalConfigFormatConfig) config
-    h = (formatConfigHandle . evalConfigFormatConfig) config
+    reportProgress :: Path -> Progress -> IO ()
+    reportProgress path progress = do
+      r <- timer
+      when r (formatProgress format path progress)
 
-    mkReportProgress :: IO (Path -> Progress -> IO ())
-    mkReportProgress
-      | useColor = every 0.05 $ exampleProgress formatter h
-      | otherwise = return $ \_ _ -> return ()
+    format = evalConfigFormat config
 
-    toEvalTree :: [SpecTree ()] -> [EvalTree]
+    toEvalTree :: [SpecTree ()] -> [EvalTree m]
     toEvalTree = map (fmap f)
       where
-        f :: Item () -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (EvalM ()))
+        f :: Item () -> (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ()))
         f (Item requirement loc isParallelizable e) = (requirement, loc, parallelize jobsSem isParallelizable $ e params ($ ()))
 
     params :: Params
     params = evalConfigParams config
 
--- | Execute given action at most every specified number of seconds.
-every :: POSIXTime -> (a -> b -> IO ()) -> IO (a -> b -> IO ())
-every seconds action = do
-  timer <- newTimer seconds
-  return $ \a b -> do
-    r <- timer
-    when r (action a b)
+type FormatResult m = Either E.SomeException Result -> EvalM m ()
 
-type FormatResult = Either E.SomeException Result -> EvalM ()
-
-parallelize :: QSem -> Maybe Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (EvalM ())
+parallelize :: MonadIO m => QSem -> Maybe Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
 parallelize jobsSem isParallelizable e
   | fromMaybe False isParallelizable = runParallel jobsSem e
   | otherwise = runSequentially e
 
-runSequentially :: (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (EvalM ())
+runSequentially :: MonadIO m => (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
 runSequentially e reportProgress formatResult = return $ do
   result <- liftIO $ e reportProgress
   formatResult result
 
 data Report = ReportProgress Progress | ReportResult (Either E.SomeException Result)
 
-runParallel :: QSem -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult -> IO (EvalM ())
+runParallel :: forall m. MonadIO m => QSem -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
 runParallel jobsSem e reportProgress formatResult = do
   mvar <- newEmptyMVar
   _ <- forkIO $ E.bracket_ (waitQSem jobsSem) (signalQSem jobsSem) $ do
@@ -170,7 +156,7 @@ runParallel jobsSem e reportProgress formatResult = do
     replaceMVar mvar (ReportResult result)
   return $ evalReport mvar
   where
-    evalReport :: MVar Report -> EvalM ()
+    evalReport :: MVar Report -> EvalM m ()
     evalReport mvar = do
       r <- liftIO (takeMVar mvar)
       case r of
@@ -182,24 +168,24 @@ runParallel jobsSem e reportProgress formatResult = do
     replaceMVar :: MVar a -> a -> IO ()
     replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
-data Message = Done | Run (EvalM ())
+data Message m = Done | Run (EvalM m ())
 
-run :: Chan Message -> (Path -> ProgressCallback) -> Bool -> [EvalTree] -> EvalM ()
-run chan reportProgress_ fastFail specs = do
+run :: forall m. MonadIO m => Chan (Message m) -> (Path -> ProgressCallback) -> [EvalTree m] -> EvalM m ()
+run chan reportProgress_ specs = do
   liftIO $ do
     forM_ specs (queueSpec [])
     writeChan chan Done
-  processMessages (readChan chan) fastFail
+  processMessages (readChan chan)
   where
-    defer :: EvalM () -> IO ()
+    defer :: EvalM m () -> IO ()
     defer = writeChan chan . Run
 
-    runCleanup :: IO () -> Path -> EvalM ()
+    runCleanup :: IO () -> Path -> EvalM m ()
     runCleanup action path = do
       r <- liftIO $ safeTry action
       either (reportFailure Nothing path . Left) return r
 
-    queueSpec :: [String] -> EvalTree -> IO ()
+    queueSpec :: [String] -> EvalTree m -> IO ()
     queueSpec rGroups (Node group xs) = do
       defer (groupStarted (reverse rGroups) group)
       forM_ xs (queueSpec (group : rGroups))
@@ -210,7 +196,7 @@ run chan reportProgress_ fastFail specs = do
     queueSpec rGroups (Leaf e) =
       queueExample (reverse rGroups) e
 
-    queueExample :: [String] -> (String, Maybe Location, ProgressCallback -> FormatResult -> IO (EvalM ())) -> IO ()
+    queueExample :: [String] -> (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ())) -> IO ()
     queueExample groups (requirement, loc, e) = e reportProgress reportResult >>= defer
       where
         path :: Path
@@ -218,7 +204,7 @@ run chan reportProgress_ fastFail specs = do
 
         reportProgress = reportProgress_ path
 
-        reportResult :: FormatResult
+        reportResult :: FormatResult m
         reportResult result = do
           case result of
             Right Success -> reportSuccess path
@@ -226,13 +212,17 @@ run chan reportProgress_ fastFail specs = do
             Right (Failure loc_ err) -> reportFailure (loc_ <|> loc) path (Right err)
             Left err -> reportFailure loc path (Left  err)
 
-processMessages :: IO Message -> Bool -> EvalM ()
-processMessages getMessage fastFail = go
+processMessages :: MonadIO m => IO (Message m) -> EvalM m ()
+processMessages getMessage = do
+  fastFail <- gets (evalConfigFastFail . stateConfig)
+  start fastFail
   where
-    go = liftIO getMessage >>= \m -> case m of
-      Run action -> do
-        action
-        hasFailures <- (not . null) <$> gets stateFailures
-        let stopNow = fastFail && hasFailures
-        unless stopNow go
-      Done -> return ()
+    start fastFail = go
+      where
+        go = liftIO getMessage >>= \m -> case m of
+          Run action -> do
+            action
+            hasFailures <- (not . null) <$> gets stateFailures
+            let stopNow = fastFail && hasFailures
+            unless stopNow go
+          Done -> return ()

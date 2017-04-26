@@ -1,14 +1,24 @@
-module Test.Hspec.Core.Timer where
+module Test.Hspec.Core.Timer (withTimer) where
 
 import           Data.IORef
 import           Data.Time.Clock.POSIX
+import           Control.Concurrent
+import           Control.Exception
+import           Control.Monad
 
-newTimer :: POSIXTime -> IO (IO Bool)
-newTimer delay = do
-  ref <- getPOSIXTime >>= newIORef
-  return $ do
-    t0 <- readIORef ref
-    t1 <- getPOSIXTime
-    if delay < t1 - t0
-      then writeIORef ref t1 >> return True
-      else return False
+import           Control.Concurrent.Async
+
+withTimer :: POSIXTime -> (IO Bool -> IO a) -> IO a
+withTimer delay action = do
+  ref <- newIORef False
+  bracket (async $ worker delay ref) cancel $ \_ -> do
+    action $ atomicModifyIORef ref (\a -> (False, a))
+
+sleep :: POSIXTime -> IO ()
+sleep = threadDelay . floor . (* 1000000)
+
+worker :: POSIXTime -> IORef Bool -> IO ()
+worker delay ref = do
+  forever $ do
+    sleep delay
+    writeIORef ref True

@@ -61,6 +61,7 @@ library
       Test.Hspec.Core.Config.Util
       Test.Hspec.Core.Example
       Test.Hspec.Core.FailureReport
+      Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
@@ -112,6 +113,7 @@ test-suite spec
       Test.Hspec.Core.Config.Util
       Test.Hspec.Core.Example
       Test.Hspec.Core.FailureReport
+      Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Free

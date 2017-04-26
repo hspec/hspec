@@ -8,6 +8,7 @@ module Test.Hspec.Core.Formatters.Internal (
 , increasePendingCount
 , addFailMessage
 , finally_
+, formatterToFormat
 ) where
 
 import           Prelude ()
@@ -20,7 +21,7 @@ import           Control.Exception (SomeException, AsyncException(..), bracket_,
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (gets, modify)
 import           Control.Monad.IO.Class
-import           Data.Char
+import           Data.Char (isSpace)
 import qualified System.CPUTime as CPUTime
 import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 
@@ -30,6 +31,31 @@ import           Test.Hspec.Core.Example (FailureReason(..))
 
 import qualified Test.Hspec.Core.Formatters.Monad as M
 import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWith, FailureRecord(..))
+import           Test.Hspec.Core.Format
+
+formatterToFormat :: M.Formatter -> FormatConfig -> Format FormatM
+formatterToFormat formatter config = Format {
+  formatRun = \action -> runFormatM config $ do
+    interpret (M.headerFormatter formatter)
+    a <- action `finally_` interpret (M.failedFormatter formatter)
+    interpret (M.footerFormatter formatter)
+    return a
+, formatGroupStarted = fmap interpret . M.exampleGroupStarted formatter
+, formatGroupDone = interpret (M.exampleGroupDone formatter)
+, formatProgress = \path progress -> when useColor $ do
+    M.exampleProgress formatter handle path progress
+, formatSuccess = \path -> do
+    increaseSuccessCount
+    interpret $ M.exampleSucceeded formatter path
+, formatFailure = \path loc err -> do
+    addFailMessage loc path err
+    interpret $ M.exampleFailed formatter path err
+, formatPending = \path reason -> do
+    increasePendingCount
+    interpret $ M.examplePending formatter path reason
+} where
+    useColor = formatConfigUseColor config
+    handle = formatConfigHandle config
 
 interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {
