@@ -43,7 +43,7 @@ formatterToFormat formatter config = Format {
 , formatGroupStarted = fmap interpret . M.exampleGroupStarted formatter
 , formatGroupDone = interpret (M.exampleGroupDone formatter)
 , formatProgress = \path progress -> when useColor $ do
-    M.exampleProgress formatter handle path progress
+    liftIO $ M.exampleProgress formatter handle path progress
 , formatSuccess = \path -> do
     increaseSuccessCount
     interpret $ M.exampleSucceeded formatter path

@@ -19,7 +19,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (Monad)
 import qualified Test.Hspec.Core.Compat as M
 
-import           Control.Monad (unless, when)
+import           Control.Monad (join, unless, when)
 import qualified Control.Exception as E
 import           Control.Concurrent
 
@@ -124,29 +124,29 @@ runFormatter_ timer config jobsSem specs = do
   chan <- liftIO newChan
   run jobsSem reportProgress chan specs
   where
-    reportProgress :: Path -> ProgressCallback
+    reportProgress :: Path -> Progress -> m ()
     reportProgress path progress = do
-      r <- timer
+      r <- liftIO timer
       when r (formatProgress format path progress)
     format = evalConfigFormat config
 
 type ItemResult = Either E.SomeException Result
 
-parallelize :: MonadIO m => QSem -> Bool -> (ProgressCallback -> IO a) -> ProgressCallback -> IO (m a)
-parallelize jobsSem isParallelizable e
-  | isParallelizable = runParallel jobsSem e
-  | otherwise = runSequentially e
+parallelize :: MonadIO m => QSem -> Bool -> (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
+parallelize jobsSem isParallelizable
+  | isParallelizable = runParallel (waitQSem jobsSem) (signalQSem jobsSem)
+  | otherwise = runSequentially
 
-runSequentially :: MonadIO m => (ProgressCallback -> IO a) -> ProgressCallback -> IO (m a)
+runSequentially :: MonadIO m => (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
 runSequentially e reportProgress = return $ do
-  liftIO (e reportProgress)
+  join $ liftIO $ runParallel (return ()) (return ()) e reportProgress
 
 data Parallel a = ReportProgress Progress | Return a
 
-runParallel :: forall m a. MonadIO m => QSem -> (ProgressCallback -> IO a) -> ProgressCallback -> IO (m a)
-runParallel jobsSem e reportProgress = do
+runParallel :: forall m a. MonadIO m => IO () -> IO () -> (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
+runParallel wait signal e reportProgress = do
   mvar <- newEmptyMVar
-  _ <- forkIO $ E.bracket_ (waitQSem jobsSem) (signalQSem jobsSem) $ do
+  _ <- forkIO $ E.bracket_ wait signal $ do
     let progressCallback = replaceMVar mvar . ReportProgress
     result <- e progressCallback
     replaceMVar mvar (Return result)
@@ -157,7 +157,7 @@ runParallel jobsSem e reportProgress = do
       r <- liftIO (takeMVar mvar)
       case r of
         ReportProgress p -> do
-          liftIO $ reportProgress p
+          reportProgress p
           evalReport mvar
         Return result -> return result
 
@@ -166,7 +166,7 @@ replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
 data Message m = Done | Run (EvalM m ())
 
-run :: forall m. MonadIO m => QSem -> (Path -> ProgressCallback) -> Chan (Message m) -> [EvalTree] -> EvalM m ()
+run :: forall m. MonadIO m => QSem -> (Path -> Progress -> m ()) -> Chan (Message m) -> [EvalTree] -> EvalM m ()
 run jobsSem reportProgress chan specs = do
   liftIO $ do
     forM_ specs (queueSpec [])
