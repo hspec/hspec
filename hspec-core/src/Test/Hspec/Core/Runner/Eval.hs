@@ -102,8 +102,6 @@ data EvalItem = EvalItem {
 
 type EvalTree = Tree (IO ()) EvalItem
 
-type EvalMTree m = Tree (IO ()) (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ()))
-
 runEvalM :: Monad m => EvalConfig m -> EvalM m () -> m (State m)
 runEvalM config action = execStateT action (State config 0 0 [])
 
@@ -124,60 +122,52 @@ runFormatter config specs = do
 runFormatter_ :: forall m. MonadIO m => (IO Bool) -> EvalConfig m -> QSem -> [EvalTree] -> EvalM m ()
 runFormatter_ timer config jobsSem specs = do
   chan <- liftIO newChan
-  run chan reportProgress (toEvalMTree specs)
+  run jobsSem reportProgress chan specs
   where
-    reportProgress :: Path -> Progress -> IO ()
+    reportProgress :: Path -> ProgressCallback
     reportProgress path progress = do
       r <- timer
       when r (formatProgress format path progress)
-
     format = evalConfigFormat config
 
-    toEvalMTree :: [EvalTree] -> [EvalMTree m]
-    toEvalMTree = map (fmap f)
-      where
-        f :: EvalItem -> (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ()))
-        f (EvalItem requirement loc isParallelizable e) = (requirement, loc, parallelize jobsSem isParallelizable e)
+type ItemResult = Either E.SomeException Result
 
-type FormatResult m = Either E.SomeException Result -> EvalM m ()
-
-parallelize :: MonadIO m => QSem -> Bool -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
+parallelize :: MonadIO m => QSem -> Bool -> (ProgressCallback -> IO a) -> ProgressCallback -> IO (m a)
 parallelize jobsSem isParallelizable e
   | isParallelizable = runParallel jobsSem e
   | otherwise = runSequentially e
 
-runSequentially :: MonadIO m => (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
-runSequentially e reportProgress formatResult = return $ do
-  result <- liftIO $ e reportProgress
-  formatResult result
+runSequentially :: MonadIO m => (ProgressCallback -> IO a) -> ProgressCallback -> IO (m a)
+runSequentially e reportProgress = return $ do
+  liftIO (e reportProgress)
 
-data Report = ReportProgress Progress | ReportResult (Either E.SomeException Result)
+data Parallel a = ReportProgress Progress | Return a
 
-runParallel :: forall m. MonadIO m => QSem -> (ProgressCallback -> IO (Either E.SomeException Result)) -> ProgressCallback -> FormatResult m -> IO (EvalM m ())
-runParallel jobsSem e reportProgress formatResult = do
+runParallel :: forall m a. MonadIO m => QSem -> (ProgressCallback -> IO a) -> ProgressCallback -> IO (m a)
+runParallel jobsSem e reportProgress = do
   mvar <- newEmptyMVar
   _ <- forkIO $ E.bracket_ (waitQSem jobsSem) (signalQSem jobsSem) $ do
     let progressCallback = replaceMVar mvar . ReportProgress
     result <- e progressCallback
-    replaceMVar mvar (ReportResult result)
+    replaceMVar mvar (Return result)
   return $ evalReport mvar
   where
-    evalReport :: MVar Report -> EvalM m ()
+    evalReport :: MVar (Parallel a) -> m a
     evalReport mvar = do
       r <- liftIO (takeMVar mvar)
       case r of
         ReportProgress p -> do
           liftIO $ reportProgress p
           evalReport mvar
-        ReportResult result -> formatResult result
+        Return result -> return result
 
-    replaceMVar :: MVar a -> a -> IO ()
-    replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
+replaceMVar :: MVar a -> a -> IO ()
+replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
 data Message m = Done | Run (EvalM m ())
 
-run :: forall m. MonadIO m => Chan (Message m) -> (Path -> ProgressCallback) -> [EvalMTree m] -> EvalM m ()
-run chan reportProgress_ specs = do
+run :: forall m. MonadIO m => QSem -> (Path -> ProgressCallback) -> Chan (Message m) -> [EvalTree] -> EvalM m ()
+run jobsSem reportProgress chan specs = do
   liftIO $ do
     forM_ specs (queueSpec [])
     writeChan chan Done
@@ -191,7 +181,7 @@ run chan reportProgress_ specs = do
       r <- liftIO $ safeTry action
       either (reportFailure Nothing path . Left) return r
 
-    queueSpec :: [String] -> EvalMTree m -> IO ()
+    queueSpec :: [String] -> EvalTree -> IO ()
     queueSpec rGroups (Node group xs) = do
       defer (groupStarted (reverse rGroups) group)
       forM_ xs (queueSpec (group : rGroups))
@@ -202,15 +192,15 @@ run chan reportProgress_ specs = do
     queueSpec rGroups (Leaf e) =
       queueExample (reverse rGroups) e
 
-    queueExample :: [String] -> (String, Maybe Location, ProgressCallback -> FormatResult m -> IO (EvalM m ())) -> IO ()
-    queueExample groups (requirement, loc, e) = e reportProgress reportResult >>= defer
+    queueExample :: [String] -> EvalItem -> IO ()
+    queueExample groups (EvalItem requirement loc isParallelizable e) = do
+      action <- parallelize jobsSem isParallelizable e (reportProgress path)
+      defer $ lift action >>= reportResult
       where
         path :: Path
         path = (groups, requirement)
 
-        reportProgress = reportProgress_ path
-
-        reportResult :: FormatResult m
+        reportResult :: ItemResult -> EvalM m ()
         reportResult result = do
           case result of
             Right Success -> reportSuccess path
