@@ -135,31 +135,38 @@ runFormatter_ timer config jobsSem specs = do
 
 parallelize :: MonadIO m => QSem -> Bool -> (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
 parallelize jobsSem isParallelizable
-  | isParallelizable = runParallel (waitQSem jobsSem) (signalQSem jobsSem)
+  | isParallelizable = runParallel (Semaphore (waitQSem jobsSem) (signalQSem jobsSem))
   | otherwise = runSequentially
 
 runSequentially :: MonadIO m => (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
 runSequentially e reportProgress = return $ do
-  join $ liftIO $ runParallel (return ()) (return ()) e reportProgress
+  join $ liftIO $ runParallel (Semaphore (return ()) (return ())) e reportProgress
 
-data Parallel a = ReportProgress Progress | Return a
+data Semaphore = Semaphore {
+  semaphoreWait :: IO ()
+, semaphoreSignal :: IO ()
+}
 
-runParallel :: forall m a. MonadIO m => IO () -> IO () -> (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
-runParallel wait signal e reportProgress = do
+data Parallel p a = Partial p | Return a
+
+runParallel :: forall m p a. MonadIO m => Semaphore -> ((p -> IO ()) -> IO a) -> (p -> m ()) -> IO (m a)
+runParallel Semaphore{..} action notifyPartial = do
   mvar <- newEmptyMVar
-  _ <- forkIO $ E.bracket_ wait signal $ do
-    let progressCallback = replaceMVar mvar . ReportProgress
-    result <- e progressCallback
-    replaceMVar mvar (Return result)
-  return $ evalReport mvar
+  _ <- forkIO $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
+  return $ eval mvar
   where
-    evalReport :: MVar (Parallel a) -> m a
-    evalReport mvar = do
+    worker mvar = do
+      let partialCallback = replaceMVar mvar . Partial
+      result <- action partialCallback
+      replaceMVar mvar (Return result)
+
+    eval :: MVar (Parallel p a) -> m a
+    eval mvar = do
       r <- liftIO (takeMVar mvar)
       case r of
-        ReportProgress p -> do
-          reportProgress p
-          evalReport mvar
+        Partial p -> do
+          notifyPartial p
+          eval mvar
         Return result -> return result
 
 replaceMVar :: MVar a -> a -> IO ()
