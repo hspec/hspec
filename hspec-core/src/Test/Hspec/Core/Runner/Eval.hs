@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE RecordWildCards #-}
 
 #if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
 -- Control.Concurrent.QSem is deprecated in base-4.6.0.*
@@ -85,13 +86,15 @@ reportFailure loc path err = do
   format <- getFormat formatFailure
   lift $ format path loc err
 
-groupStarted :: Monad m => [String] -> String -> EvalM m ()
-groupStarted nesting name = do
+groupStarted :: Monad m => Path -> EvalM m ()
+groupStarted path = do
   format <- getFormat formatGroupStarted
-  lift $ format nesting name
+  lift $ format path
 
-groupDone :: Monad m => EvalM m ()
-groupDone = getFormat formatGroupDone >>= lift
+groupDone :: Monad m => Path -> EvalM m ()
+groupDone path = do
+  format <- getFormat formatGroupDone
+  lift $ format path
 
 data EvalItem = EvalItem {
   evalItemDescription :: String
@@ -130,8 +133,6 @@ runFormatter_ timer config jobsSem specs = do
       when r (formatProgress format path progress)
     format = evalConfigFormat config
 
-type ItemResult = Either E.SomeException Result
-
 parallelize :: MonadIO m => QSem -> Bool -> (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
 parallelize jobsSem isParallelizable
   | isParallelizable = runParallel (waitQSem jobsSem) (signalQSem jobsSem)
@@ -169,44 +170,71 @@ data Message m = Done | Run (EvalM m ())
 run :: forall m. MonadIO m => QSem -> (Path -> Progress -> m ()) -> Chan (Message m) -> [EvalTree] -> EvalM m ()
 run jobsSem reportProgress chan specs = do
   liftIO $ do
-    forM_ specs (queueSpec [])
+    forM_ specs queueSpec
     writeChan chan Done
   processMessages (readChan chan)
   where
-    defer :: EvalM m () -> IO ()
-    defer = writeChan chan . Run
+    queueSpec ::Tree (IO ()) EvalItem -> IO ()
+    queueSpec = foldTree FoldTree {
+      onGroupStarted = queueGroupStarted
+    , onGroupDone = queueGroupDone
+    , onCleanup = queueCleanup
+    , onLeafe = queueExample
+    }
 
-    runCleanup :: IO () -> Path -> EvalM m ()
-    runCleanup action path = do
+    queue :: EvalM m () -> IO ()
+    queue = writeChan chan . Run
+
+    runCleanup :: Path -> IO () -> EvalM m ()
+    runCleanup path action = do
       r <- liftIO $ safeTry action
       either (reportFailure Nothing path . Left) return r
 
-    queueSpec :: [String] -> EvalTree -> IO ()
-    queueSpec rGroups (Node group xs) = do
-      defer (groupStarted (reverse rGroups) group)
-      forM_ xs (queueSpec (group : rGroups))
-      defer groupDone
-    queueSpec rGroups (NodeWithCleanup action xs) = do
-      forM_ xs (queueSpec rGroups)
-      defer (runCleanup action (reverse rGroups, "afterAll-hook"))
-    queueSpec rGroups (Leaf e) =
-      queueExample (reverse rGroups) e
+    queueCleanup :: [String] -> IO () -> IO ()
+    queueCleanup groups = queue . runCleanup (groups, "afterAll-hook")
 
     queueExample :: [String] -> EvalItem -> IO ()
     queueExample groups (EvalItem requirement loc isParallelizable e) = do
       action <- parallelize jobsSem isParallelizable e (reportProgress path)
-      defer $ lift action >>= reportResult
+      queue $ lift action >>= reportResult
       where
         path :: Path
         path = (groups, requirement)
 
-        reportResult :: ItemResult -> EvalM m ()
+        reportResult :: Either E.SomeException Result -> EvalM m ()
         reportResult result = do
           case result of
             Right Success -> reportSuccess path
             Right (Pending reason) -> reportPending path reason
             Right (Failure loc_ err) -> reportFailure (loc_ <|> loc) path (Right err)
             Left err -> reportFailure loc path (Left  err)
+
+    queueGroupStarted :: Path -> IO ()
+    queueGroupStarted = queue . groupStarted
+
+    queueGroupDone :: Path -> IO ()
+    queueGroupDone = queue . groupDone
+
+data FoldTree m c a = FoldTree {
+  onGroupStarted :: Path -> m ()
+, onGroupDone :: Path -> m ()
+, onCleanup :: [String] -> c -> m ()
+, onLeafe :: [String] -> a -> m ()
+}
+
+foldTree :: Monad m => FoldTree m c a -> Tree c a -> m ()
+foldTree FoldTree{..} = go []
+  where
+    go rGroups (Node group xs) = do
+      let path = (reverse rGroups, group)
+      onGroupStarted path
+      forM_ xs (go (group : rGroups))
+      onGroupDone path
+    go rGroups (NodeWithCleanup action xs) = do
+      forM_ xs (go rGroups)
+      onCleanup (reverse rGroups) action
+    go rGroups (Leaf e) =
+      onLeafe (reverse rGroups) e
 
 processMessages :: MonadIO m => IO (Message m) -> EvalM m ()
 processMessages getMessage = do

@@ -40,8 +40,8 @@ formatterToFormat formatter config = Format {
     a <- action `finally_` interpret (M.failedFormatter formatter)
     interpret (M.footerFormatter formatter)
     return a
-, formatGroupStarted = fmap interpret . M.exampleGroupStarted formatter
-, formatGroupDone = interpret (M.exampleGroupDone formatter)
+, formatGroupStarted = \(nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
+, formatGroupDone = \_ -> interpret (M.exampleGroupDone formatter)
 , formatProgress = \path progress -> when useColor $ do
     liftIO $ M.exampleProgress formatter handle path progress
 , formatSuccess = \path -> do
