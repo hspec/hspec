@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -20,7 +21,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (Monad)
 import qualified Test.Hspec.Core.Compat as M
 
-import           Control.Monad (join, unless, when)
+import           Control.Monad (unless, when)
 import qualified Control.Exception as E
 import           Control.Concurrent
 
@@ -54,7 +55,7 @@ data State m = State {
 , stateFailures :: [Path]
 }
 
-type EvalM m a = StateT (State m) m a
+type EvalM m = StateT (State m) m
 
 increaseSuccessCount :: Monad m => EvalM m ()
 increaseSuccessCount = modify $ \state -> state {stateSuccessCount = stateSuccessCount state + 1}
@@ -86,6 +87,14 @@ reportFailure loc path err = do
   format <- getFormat formatFailure
   lift $ format path loc err
 
+reportResult :: Monad m => Path -> Maybe Location -> Either E.SomeException Result -> EvalM m ()
+reportResult path loc result = do
+  case result of
+    Right Success -> reportSuccess path
+    Right (Pending reason) -> reportPending path reason
+    Right (Failure loc_ err) -> reportFailure (loc_ <|> loc) path (Right err)
+    Left err -> reportFailure loc path (Left  err)
+
 groupStarted :: Monad m => Path -> EvalM m ()
 groupStarted path = do
   format <- getFormat formatGroupStarted
@@ -109,12 +118,13 @@ runEvalM :: Monad m => EvalConfig m -> EvalM m () -> m (State m)
 runEvalM config action = execStateT action (State config 0 0 [])
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: MonadIO m => EvalConfig m -> [EvalTree] -> IO (Int, [Path])
+runFormatter :: forall m. MonadIO m => EvalConfig m -> [EvalTree] -> IO (Int, [Path])
 runFormatter config specs = do
+  runningSpecs <- parallelizeTree (evalConfigConcurrentJobs config) specs
   withTimer 0.05 $ \timer -> do
-    jobsSem <- newQSem (evalConfigConcurrentJobs config)
     state <- formatRun format $ do
-      runEvalM config (runFormatter_ timer config jobsSem specs)
+      runEvalM config $
+        run $ map (fmap $ fmap (. reportProgress timer)) runningSpecs
     let
       failures = stateFailures state
       total = stateSuccessCount state + statePendingCount state + length failures
@@ -122,35 +132,54 @@ runFormatter config specs = do
   where
     format = evalConfigFormat config
 
-runFormatter_ :: forall m. MonadIO m => (IO Bool) -> EvalConfig m -> QSem -> [EvalTree] -> EvalM m ()
-runFormatter_ timer config jobsSem specs = do
-  chan <- liftIO newChan
-  run jobsSem reportProgress chan specs
-  where
-    reportProgress :: Path -> Progress -> m ()
-    reportProgress path progress = do
+    reportProgress :: IO Bool -> Path -> Progress -> m ()
+    reportProgress timer path progress = do
       r <- liftIO timer
       when r (formatProgress format path progress)
-    format = evalConfigFormat config
 
-parallelize :: MonadIO m => QSem -> Bool -> (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
-parallelize jobsSem isParallelizable
-  | isParallelizable = runParallel (Semaphore (waitQSem jobsSem) (signalQSem jobsSem))
-  | otherwise = runSequentially
+data Item a = Item {
+  _itemDescription :: String
+, _itemLocation :: Maybe Location
+, _itemAction :: a
+} deriving Functor
 
-runSequentially :: MonadIO m => (ProgressCallback -> IO a) -> (Progress -> m ()) -> IO (m a)
-runSequentially e reportProgress = return $ do
-  join $ liftIO $ runParallel (Semaphore (return ()) (return ())) e reportProgress
+type Job m p a = (p -> m ()) -> m a
+
+type RunningItem m = Item (Path -> m (Either E.SomeException Result))
+type RunningTree m = Tree (IO ()) (RunningItem m)
+
+type RunningItem_ m = Item (Job m Progress (Either E.SomeException Result))
+type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
 
 data Semaphore = Semaphore {
   semaphoreWait :: IO ()
 , semaphoreSignal :: IO ()
 }
 
+parallelizeTree :: MonadIO m => Int -> [EvalTree] -> IO [RunningTree_ m]
+parallelizeTree n specs = do
+  sem <- newQSem n
+  mapM (traverse $ parallelizeItem sem) specs
+
+parallelizeItem :: MonadIO m => QSem -> EvalItem -> IO (RunningItem_ m)
+parallelizeItem sem EvalItem{..} = do
+  action <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize evalItemAction
+  return (Item evalItemDescription evalItemLocation action)
+
+parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Job m p a)
+parallelize sem isParallelizable
+  | isParallelizable = runParallel sem
+  | otherwise = runSequentially
+
+runSequentially :: MonadIO m => Job IO p a -> IO (Job m p a)
+runSequentially e = return $ \notifyPartial -> do
+  action <- liftIO $ runParallel (Semaphore (return ()) (return ())) e
+  action notifyPartial
+
 data Parallel p a = Partial p | Return a
 
-runParallel :: forall m p a. MonadIO m => Semaphore -> ((p -> IO ()) -> IO a) -> (p -> m ()) -> IO (m a)
-runParallel Semaphore{..} action notifyPartial = do
+runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Job m p a)
+runParallel Semaphore{..} action = do
   mvar <- newEmptyMVar
   _ <- forkIO $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
   return $ eval mvar
@@ -160,100 +189,73 @@ runParallel Semaphore{..} action notifyPartial = do
       result <- action partialCallback
       replaceMVar mvar (Return result)
 
-    eval :: MVar (Parallel p a) -> m a
-    eval mvar = do
+    eval :: MVar (Parallel p a) -> (p -> m ()) -> m a
+    eval mvar notifyPartial = do
       r <- liftIO (takeMVar mvar)
       case r of
         Partial p -> do
           notifyPartial p
-          eval mvar
+          eval mvar notifyPartial
         Return result -> return result
 
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
-data Message m = Done | Run (EvalM m ())
-
-run :: forall m. MonadIO m => QSem -> (Path -> Progress -> m ()) -> Chan (Message m) -> [EvalTree] -> EvalM m ()
-run jobsSem reportProgress chan specs = do
-  liftIO $ do
-    forM_ specs queueSpec
-    writeChan chan Done
-  processMessages (readChan chan)
+run :: forall m. MonadIO m => [RunningTree m] -> EvalM m ()
+run specs = do
+  fastFail <- gets (evalConfigFastFail . stateConfig)
+  sequenceActions fastFail (concatMap foldSpec specs)
   where
-    queueSpec ::Tree (IO ()) EvalItem -> IO ()
-    queueSpec = foldTree FoldTree {
-      onGroupStarted = queueGroupStarted
-    , onGroupDone = queueGroupDone
-    , onCleanup = queueCleanup
-    , onLeafe = queueExample
+    foldSpec :: RunningTree m -> [EvalM m ()]
+    foldSpec = foldTree FoldTree {
+      onGroupStarted = groupStarted
+    , onGroupDone = groupDone
+    , onCleanup = runCleanup
+    , onLeafe = evalItem
     }
 
-    queue :: EvalM m () -> IO ()
-    queue = writeChan chan . Run
-
-    runCleanup :: Path -> IO () -> EvalM m ()
-    runCleanup path action = do
+    runCleanup :: [String] -> IO () -> EvalM m ()
+    runCleanup groups action = do
       r <- liftIO $ safeTry action
       either (reportFailure Nothing path . Left) return r
+      where
+        path = (groups, "afterAll-hook")
 
-    queueCleanup :: [String] -> IO () -> IO ()
-    queueCleanup groups = queue . runCleanup (groups, "afterAll-hook")
-
-    queueExample :: [String] -> EvalItem -> IO ()
-    queueExample groups (EvalItem requirement loc isParallelizable e) = do
-      action <- parallelize jobsSem isParallelizable e (reportProgress path)
-      queue $ lift action >>= reportResult
+    evalItem :: [String] -> RunningItem m -> EvalM m ()
+    evalItem groups (Item requirement loc action) = do
+      lift (action path) >>= reportResult path loc
       where
         path :: Path
         path = (groups, requirement)
 
-        reportResult :: Either E.SomeException Result -> EvalM m ()
-        reportResult result = do
-          case result of
-            Right Success -> reportSuccess path
-            Right (Pending reason) -> reportPending path reason
-            Right (Failure loc_ err) -> reportFailure (loc_ <|> loc) path (Right err)
-            Left err -> reportFailure loc path (Left  err)
-
-    queueGroupStarted :: Path -> IO ()
-    queueGroupStarted = queue . groupStarted
-
-    queueGroupDone :: Path -> IO ()
-    queueGroupDone = queue . groupDone
-
-data FoldTree m c a = FoldTree {
-  onGroupStarted :: Path -> m ()
-, onGroupDone :: Path -> m ()
-, onCleanup :: [String] -> c -> m ()
-, onLeafe :: [String] -> a -> m ()
+data FoldTree c a r = FoldTree {
+  onGroupStarted :: Path -> r
+, onGroupDone :: Path -> r
+, onCleanup :: [String] -> c -> r
+, onLeafe :: [String] -> a -> r
 }
 
-foldTree :: Monad m => FoldTree m c a -> Tree c a -> m ()
+foldTree :: FoldTree c a r -> Tree c a -> [r]
 foldTree FoldTree{..} = go []
   where
-    go rGroups (Node group xs) = do
-      let path = (reverse rGroups, group)
-      onGroupStarted path
-      forM_ xs (go (group : rGroups))
-      onGroupDone path
-    go rGroups (NodeWithCleanup action xs) = do
-      forM_ xs (go rGroups)
-      onCleanup (reverse rGroups) action
-    go rGroups (Leaf e) =
-      onLeafe (reverse rGroups) e
-
-processMessages :: MonadIO m => IO (Message m) -> EvalM m ()
-processMessages getMessage = do
-  fastFail <- gets (evalConfigFastFail . stateConfig)
-  start fastFail
-  where
-    start fastFail = go
+    go rGroups (Node group xs) = start : children ++ [done]
       where
-        go = liftIO getMessage >>= \m -> case m of
-          Run action -> do
-            action
-            hasFailures <- (not . null) <$> gets stateFailures
-            let stopNow = fastFail && hasFailures
-            unless stopNow go
-          Done -> return ()
+        path = (reverse rGroups, group)
+        start = onGroupStarted path
+        children = concatMap (go (group : rGroups)) xs
+        done =  onGroupDone path
+    go rGroups (NodeWithCleanup action xs) = children ++ [cleanup]
+      where
+        children = concatMap (go rGroups) xs
+        cleanup = onCleanup (reverse rGroups) action
+    go rGroups (Leaf a) = [onLeafe (reverse rGroups) a]
+
+sequenceActions :: Monad m => Bool -> [EvalM m ()] -> EvalM m ()
+sequenceActions fastFail = go
+  where
+    go [] = return ()
+    go (action : actions) = do
+      () <- action
+      hasFailures <- (not . null) <$> gets stateFailures
+      let stopNow = fastFail && hasFailures
+      unless stopNow (go actions)
