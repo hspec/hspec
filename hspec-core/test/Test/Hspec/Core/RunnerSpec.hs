@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 module Test.Hspec.Core.RunnerSpec (main, spec) where
 
 import           Prelude ()
@@ -11,6 +12,7 @@ import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import           Control.Concurrent
 import qualified Control.Exception as E
+import           Control.Concurrent.Async
 import           Mock
 import           System.SetEnv
 #if MIN_VERSION_HUnit(1,5,0)
@@ -41,6 +43,17 @@ runPropFoo args = unlines . normalizeSummary . lines <$> do
 spec :: Spec
 spec = do
   describe "hspec" $ do
+    it "runs finalizers" $ do
+      mvar <- newEmptyMVar
+      ref <- newIORef "did not run finalizer"
+      a <- async $ withArgs ["--format", "silent"] . H.hspec $ do
+          H.it "foo" $ do
+            (putMVar mvar () >> threadDelay 10000000) `E.finally`
+              writeIORef ref "ran finalizer"
+      takeMVar mvar
+      cancel a
+      readIORef ref `shouldReturn` "ran finalizer"
+
     it "runs a spec" $ do
       silence . H.hspec $ do
         H.it "foobar" True

@@ -15,6 +15,9 @@ module Test.Hspec.Core.Runner.Eval (
 , EvalTree
 , EvalItem(..)
 , runFormatter
+#ifdef TEST
+, runSequentially
+#endif
 ) where
 
 import           Prelude ()
@@ -24,6 +27,7 @@ import qualified Test.Hspec.Core.Compat as M
 import           Control.Monad (unless, when)
 import qualified Control.Exception as E
 import           Control.Concurrent
+import           Control.Concurrent.Async hiding (cancel)
 
 import           Control.Monad.IO.Class (liftIO)
 import qualified Control.Monad.IO.Class as M
@@ -120,15 +124,18 @@ runEvalM config action = execStateT action (State config 0 0 [])
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: forall m. MonadIO m => EvalConfig m -> [EvalTree] -> IO (Int, [Path])
 runFormatter config specs = do
-  runningSpecs <- parallelizeTree (evalConfigConcurrentJobs config) specs
-  withTimer 0.05 $ \timer -> do
-    state <- formatRun format $ do
-      runEvalM config $
-        run $ map (fmap $ fmap (. reportProgress timer)) runningSpecs
-    let
-      failures = stateFailures state
-      total = stateSuccessCount state + statePendingCount state + length failures
-    return (total, reverse failures)
+  let
+    start = parallelizeTree (evalConfigConcurrentJobs config) specs
+    cancel = cancelMany . concatMap toList . map (fmap fst)
+  E.bracketOnError start cancel $ \ runningSpecs -> do
+    withTimer 0.05 $ \ timer -> do
+      state <- formatRun format $ do
+        runEvalM config $
+          run $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs
+      let
+        failures = stateFailures state
+        total = stateSuccessCount state + statePendingCount state + length failures
+      return (total, reverse failures)
   where
     format = evalConfigFormat config
 
@@ -136,6 +143,11 @@ runFormatter config specs = do
     reportProgress timer path progress = do
       r <- liftIO timer
       when r (formatProgress format path progress)
+
+cancelMany :: [Async a] -> IO ()
+cancelMany asyncs = do
+  mapM_ (killThread . asyncThreadId) asyncs
+  mapM_ waitCatch asyncs
 
 data Item a = Item {
   _itemDescription :: String
@@ -148,7 +160,7 @@ type Job m p a = (p -> m ()) -> m a
 type RunningItem m = Item (Path -> m (Either E.SomeException Result))
 type RunningTree m = Tree (IO ()) (RunningItem m)
 
-type RunningItem_ m = Item (Job m Progress (Either E.SomeException Result))
+type RunningItem_ m = (Async (), Item (Job m Progress (Either E.SomeException Result)))
 type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
 
 data Semaphore = Semaphore {
@@ -163,26 +175,27 @@ parallelizeTree n specs = do
 
 parallelizeItem :: MonadIO m => QSem -> EvalItem -> IO (RunningItem_ m)
 parallelizeItem sem EvalItem{..} = do
-  action <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize evalItemAction
-  return (Item evalItemDescription evalItemLocation action)
+  (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize evalItemAction
+  return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
 
-parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Job m p a)
+parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Async (), Job m p a)
 parallelize sem isParallelizable
   | isParallelizable = runParallel sem
   | otherwise = runSequentially
 
-runSequentially :: MonadIO m => Job IO p a -> IO (Job m p a)
-runSequentially e = return $ \notifyPartial -> do
-  action <- liftIO $ runParallel (Semaphore (return ()) (return ())) e
-  action notifyPartial
+runSequentially :: MonadIO m => Job IO p a -> IO (Async (), Job m p a)
+runSequentially action = do
+  mvar <- newEmptyMVar
+  (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) (return ())) action
+  return (asyncAction, \ notifyPartial -> liftIO (putMVar mvar ()) >> evalAction notifyPartial)
 
 data Parallel p a = Partial p | Return a
 
-runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Job m p a)
+runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Async (), Job m p a)
 runParallel Semaphore{..} action = do
   mvar <- newEmptyMVar
-  _ <- forkIO $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
-  return $ eval mvar
+  asyncAction <- async $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
+  return (asyncAction, eval mvar)
   where
     worker mvar = do
       let partialCallback = replaceMVar mvar . Partial
