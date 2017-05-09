@@ -4,7 +4,7 @@
     `--diff`
   - Deprecate `--out`
   - Removed deprecated module `Test.Hspec.HUnit`, use
-    `Test.Hspec.Contrib.HUnit`
+    `Test.Hspec.Contrib.HUnit` instead
 
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`
