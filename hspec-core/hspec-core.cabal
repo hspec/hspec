@@ -143,6 +143,7 @@ test-suite spec
       Test.Hspec.Core.FormattersSpec
       Test.Hspec.Core.HooksSpec
       Test.Hspec.Core.QuickCheckUtilSpec
+      Test.Hspec.Core.Runner.EvalSpec
       Test.Hspec.Core.RunnerSpec
       Test.Hspec.Core.SpecSpec
       Test.Hspec.Core.TimerSpec
