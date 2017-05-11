@@ -13,7 +13,7 @@ spec = do
 
     let
       dt = 0.01
-      wait = sleep (dt * 1.1)
+      wait = sleep (dt * 1.2)
 
     it "returns False" $ do
       withTimer dt $ \timer -> do
