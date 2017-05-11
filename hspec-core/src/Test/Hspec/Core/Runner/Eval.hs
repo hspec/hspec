@@ -127,7 +127,7 @@ runFormatter config specs = do
   let
     start = parallelizeTree (evalConfigConcurrentJobs config) specs
     cancel = cancelMany . concatMap toList . map (fmap fst)
-  E.bracketOnError start cancel $ \ runningSpecs -> do
+  E.bracket start cancel $ \ runningSpecs -> do
     withTimer 0.05 $ \ timer -> do
       state <- formatRun format $ do
         runEvalM config $

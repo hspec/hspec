@@ -1,6 +1,12 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+
+#if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
+-- Control.Concurrent.QSem is deprecated in base-4.6.0.*
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
+#endif
+
 module Test.Hspec.Core.RunnerSpec (main, spec) where
 
 import           Prelude ()
@@ -253,6 +259,24 @@ spec = do
           , "Finished in 0.0000 seconds"
           , "2 examples, 1 failure"
           ]
+
+      it "cancels running parallel spec items on failure" $ do
+        child1 <- newQSem 0
+        child2 <- newQSem 0
+        parent <- newQSem 0
+        ref <- newIORef ""
+        ignoreExitCode . withArgs ["--fail-fast", "--format=silent", "-j", "2"] . H.hspec $ do
+          H.parallel $ do
+            H.it "foo" $ do
+              waitQSem child1
+              "foo" `shouldBe` "bar"
+            H.it "bar" $ do
+              -- NOTE: waitQSem should never return here, as we want to
+              -- guarantee that the thread is killed before hspec returns
+              (signalQSem child1 >> waitQSem child2 >> writeIORef ref "foo") `E.finally` signalQSem parent
+        signalQSem child2
+        waitQSem parent
+        readIORef ref `shouldReturn` ""
 
       it "works for nested specs" $ do
         r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec . removeLocations $ do
