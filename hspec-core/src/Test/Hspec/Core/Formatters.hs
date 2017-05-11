@@ -35,9 +35,10 @@ module Test.Hspec.Core.Formatters (
 , getCPUTime
 , getRealTime
 
--- ** Appending to the gerenated report
+-- ** Appending to the generated report
 , write
 , writeLine
+, writeTransient
 
 -- ** Dealing with colors
 , withInfoColor
@@ -60,7 +61,6 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Location(..), LocationAccuracy(..))
 import           Text.Printf
 import           Control.Monad (when, unless)
-import           System.IO (hPutStr, hFlush)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -86,6 +86,7 @@ import Test.Hspec.Core.Formatters.Monad (
 
   , write
   , writeLine
+  , writeTransient
 
   , withInfoColor
   , withSuccessColor
@@ -103,7 +104,7 @@ silent = Formatter {
   headerFormatter     = return ()
 , exampleGroupStarted = \_ _ -> return ()
 , exampleGroupDone    = return ()
-, exampleProgress     = \_ _ _ -> return ()
+, exampleProgress     = \_ _ -> return ()
 , exampleSucceeded    = \_ -> return ()
 , exampleFailed       = \_ _ -> return ()
 , examplePending      = \_ _  -> return ()
@@ -120,9 +121,8 @@ specdoc = silent {
 , exampleGroupStarted = \nesting name -> do
     writeLine (indentationFor nesting ++ name)
 
-, exampleProgress = \h _ p -> do
-    hPutStr h (formatProgress p)
-    hFlush h
+, exampleProgress = \_ p -> do
+    writeTransient (formatProgress p)
 
 , exampleSucceeded = \(nesting, requirement) -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ requirement
@@ -140,8 +140,8 @@ specdoc = silent {
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
     formatProgress (current, total)
-      | total == 0 = show current ++ "\r"
-      | otherwise  = show current ++ "/" ++ show total ++ "\r"
+      | total == 0 = show current
+      | otherwise  = show current ++ "/" ++ show total
 
 
 progress :: Formatter

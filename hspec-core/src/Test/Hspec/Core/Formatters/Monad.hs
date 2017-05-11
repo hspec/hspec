@@ -23,6 +23,7 @@ module Test.Hspec.Core.Formatters.Monad (
 
 , write
 , writeLine
+, writeTransient
 
 , withInfoColor
 , withSuccessColor
@@ -39,7 +40,6 @@ module Test.Hspec.Core.Formatters.Monad (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           System.IO (Handle)
 import           Control.Exception
 import           Control.Monad.IO.Class
 
@@ -56,27 +56,27 @@ data Formatter = Formatter {
 -- | evaluated before each test group
 , exampleGroupStarted :: [String] -> String -> FormatM ()
 
-, exampleGroupDone    :: FormatM ()
+, exampleGroupDone :: FormatM ()
 
 -- | used to notify the progress of the currently evaluated example
 --
 -- /Note/: This is only called when interactive/color mode.
-, exampleProgress     :: Handle -> Path -> Progress -> IO ()
+, exampleProgress :: Path -> Progress -> FormatM ()
 
 -- | evaluated after each successful example
-, exampleSucceeded    :: Path -> FormatM ()
+, exampleSucceeded :: Path -> FormatM ()
 
 -- | evaluated after each failed example
-, exampleFailed       :: Path -> Either SomeException FailureReason -> FormatM ()
+, exampleFailed :: Path -> Either SomeException FailureReason -> FormatM ()
 
 -- | evaluated after each pending example
-, examplePending      :: Path -> Maybe String -> FormatM ()
+, examplePending :: Path -> Maybe String -> FormatM ()
 
 -- | evaluated after a test run
-, failedFormatter     :: FormatM ()
+, failedFormatter :: FormatM ()
 
 -- | evaluated after `failuresFormatter`
-, footerFormatter     :: FormatM ()
+, footerFormatter :: FormatM ()
 }
 
 data FailureRecord = FailureRecord {
@@ -93,6 +93,7 @@ data FormatF next =
   | GetCPUTime (Maybe Double -> next)
   | GetRealTime (Double -> next)
   | Write String next
+  | WriteTransient String next
   | forall a. WithFailColor (FormatM a) (a -> next)
   | forall a. WithSuccessColor (FormatM a) (a -> next)
   | forall a. WithPendingColor (FormatM a) (a -> next)
@@ -110,6 +111,7 @@ instance Functor FormatF where -- deriving this instance would require GHC >= 7.
     GetCPUTime next -> GetCPUTime (fmap f next)
     GetRealTime next -> GetRealTime (fmap f next)
     Write s next -> Write s (f next)
+    WriteTransient s next -> WriteTransient s (f next)
     WithFailColor action next -> WithFailColor action (fmap f next)
     WithSuccessColor action next -> WithSuccessColor action (fmap f next)
     WithPendingColor action next -> WithPendingColor action (fmap f next)
@@ -131,6 +133,7 @@ data Environment m = Environment {
 , environmentGetCPUTime :: m (Maybe Double)
 , environmentGetRealTime :: m Double
 , environmentWrite :: String -> m ()
+, environmentWriteTransient :: String -> m ()
 , environmentWithFailColor :: forall a. m a -> m a
 , environmentWithSuccessColor :: forall a. m a -> m a
 , environmentWithPendingColor :: forall a. m a -> m a
@@ -154,6 +157,7 @@ interpretWith Environment{..} = go
         GetCPUTime next -> environmentGetCPUTime >>= go . next
         GetRealTime next -> environmentGetRealTime >>= go . next
         Write s next -> environmentWrite s >> go next
+        WriteTransient s next -> environmentWriteTransient s >> go next
         WithFailColor inner next -> environmentWithFailColor (go inner) >>= go . next
         WithSuccessColor inner next -> environmentWithSuccessColor (go inner) >>= go . next
         WithPendingColor inner next -> environmentWithPendingColor (go inner) >>= go . next
@@ -201,6 +205,9 @@ write s = liftF (Write s ())
 -- | The same as `write`, but adds a newline character.
 writeLine :: String -> FormatM ()
 writeLine s = write s >> write "\n"
+
+writeTransient :: String -> FormatM ()
+writeTransient s = liftF (WriteTransient s ())
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.

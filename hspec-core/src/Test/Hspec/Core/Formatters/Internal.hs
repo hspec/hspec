@@ -19,7 +19,7 @@ import           System.IO (Handle)
 import           Control.Monad
 import           Control.Exception (SomeException, AsyncException(..), bracket_, try, throwIO)
 import           System.Console.ANSI
-import           Control.Monad.Trans.State hiding (gets, modify)
+import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
 import qualified System.CPUTime as CPUTime
@@ -43,19 +43,21 @@ formatterToFormat formatter config = Format {
 , formatGroupStarted = \(nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
 , formatGroupDone = \_ -> interpret (M.exampleGroupDone formatter)
 , formatProgress = \path progress -> when useColor $ do
-    liftIO $ M.exampleProgress formatter handle path progress
+    interpret $ M.exampleProgress formatter path progress
 , formatSuccess = \path -> do
+    clearTransientOutput
     increaseSuccessCount
     interpret $ M.exampleSucceeded formatter path
 , formatFailure = \path loc err -> do
+    clearTransientOutput
     addFailMessage loc path err
     interpret $ M.exampleFailed formatter path err
 , formatPending = \path reason -> do
+    clearTransientOutput
     increasePendingCount
     interpret $ M.examplePending formatter path reason
 } where
     useColor = formatConfigUseColor config
-    handle = formatConfigHandle config
 
 interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {
@@ -66,6 +68,7 @@ interpret = interpretWith Environment {
 , environmentGetCPUTime = getCPUTime
 , environmentGetRealTime = getRealTime
 , environmentWrite = write
+, environmentWriteTransient = writeTransient
 , environmentWithFailColor = withFailColor
 , environmentWithSuccessColor = withSuccessColor
 , environmentWithPendingColor = withPendingColor
@@ -100,6 +103,7 @@ data FormatterState = FormatterState {
 , stateFailMessages    :: [FailureRecord]
 , stateCpuStartTime    :: Maybe Integer
 , stateStartTime       :: POSIXTime
+, stateTransientOutput :: String
 , stateConfig :: FormatConfig
 }
 
@@ -122,7 +126,7 @@ runFormatM :: FormatConfig -> FormatM a -> IO a
 runFormatM config (FormatM action) = do
   time <- getPOSIXTime
   cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState 0 0 [] cpuTime time config)
+  st <- newIORef (FormatterState 0 0 [] cpuTime time "" config)
   evalStateT action st
 
 -- | Increase the counter for successful examples
@@ -148,6 +152,20 @@ addFailMessage loc p m = modify $ \s -> s {stateFailMessages = FailureRecord loc
 -- | Get the list of accumulated failure messages.
 getFailMessages :: FormatM [FailureRecord]
 getFailMessages = reverse `fmap` gets stateFailMessages
+
+writeTransient :: String -> FormatM ()
+writeTransient s = do
+  write ("\r" ++ s)
+  modify $ \ state -> state {stateTransientOutput = s}
+  h <- getHandle
+  liftIO $ IO.hFlush h
+
+clearTransientOutput :: FormatM ()
+clearTransientOutput = do
+  n <- length <$> gets stateTransientOutput
+  unless (n == 0) $ do
+    write ("\r" ++ replicate n ' ' ++ "\r")
+    modify $ \ state -> state {stateTransientOutput = ""}
 
 -- | Append some output to the report.
 write :: String -> FormatM ()

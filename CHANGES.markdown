@@ -5,6 +5,8 @@
   - Deprecate `--out`
   - Removed deprecated module `Test.Hspec.HUnit`, use
     `Test.Hspec.Contrib.HUnit` instead
+  - Run `Test.Hspec.Core.Formatters.exampleProgress` in `FormatM` instead of
+    `IO`
 
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`

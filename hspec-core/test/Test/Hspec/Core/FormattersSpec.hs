@@ -15,6 +15,7 @@ import           Test.Hspec.Core.Formatters.Monad hiding (interpretWith)
 
 data ColorizedText =
     Plain String
+  | Transient String
   | Info String
   | Succeeded String
   | Failed String
@@ -29,6 +30,7 @@ instance IsString ColorizedText where
 removeColors :: [ColorizedText] -> String
 removeColors input = case input of
   Plain x : xs -> x ++ removeColors xs
+  Transient _ : xs -> removeColors xs
   Info x : xs -> x ++ removeColors xs
   Succeeded x : xs -> x ++ removeColors xs
   Failed x : xs -> x ++ removeColors xs
@@ -65,6 +67,7 @@ environment = Environment {
 , environmentGetCPUTime = return Nothing
 , environmentGetRealTime = return 0
 , environmentWrite = tell . return . Plain
+, environmentWriteTransient = tell . return . Transient
 , environmentWithFailColor = \action -> let (a, r) = runWriter action in tell (colorize Failed r) >> return a
 , environmentWithSuccessColor = \action -> let (a, r) = runWriter action in tell (colorize Succeeded r) >> return a
 , environmentWithPendingColor = \action -> let (a, r) = runWriter action in tell (colorize Pending r) >> return a
