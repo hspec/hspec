@@ -124,10 +124,10 @@ specdoc = silent {
 , exampleProgress = \_ p -> do
     writeTransient (formatProgress p)
 
-, exampleSucceeded = \(nesting, requirement) info -> withSuccessColor $ do
+, exampleSucceeded = \(nesting, requirement) details -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ requirement
-    forM_ (lines (fromMaybe "" info)) $ \infoLine ->
-      writeLine $ indentationFor nesting ++ infoLine
+    forM_ (lines details) $ \ s ->
+      writeLine $ indentationFor ("" : nesting) ++ s
 
 , exampleFailed = \(nesting, requirement) _ -> withFailColor $ do
     n <- getFailCount

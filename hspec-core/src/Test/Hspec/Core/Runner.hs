@@ -75,7 +75,7 @@ applyDryRun c
   | otherwise = id
   where
     markSuccess :: Item () -> Item ()
-    markSuccess item = item {itemExample = safeEvaluateExample (Success Nothing)}
+    markSuccess item = item {itemExample = safeEvaluateExample (Success "")}
 
     removeCleanup :: SpecTree () -> SpecTree ()
     removeCleanup spec = case spec of

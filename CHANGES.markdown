@@ -7,6 +7,7 @@
     `Test.Hspec.Contrib.HUnit` instead
   - Run `Test.Hspec.Core.Formatters.exampleProgress` in `FormatM` instead of
     `IO`
+  - Print QuickCheck labels on success (see #297)
 
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`

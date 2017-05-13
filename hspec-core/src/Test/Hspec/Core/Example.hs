@@ -58,7 +58,7 @@ type ProgressCallback = Progress -> IO ()
 type ActionWith a = a -> IO ()
 
 -- | The result of running an example
-data Result = Success (Maybe String) | Pending (Maybe String) | Failure (Maybe Location) FailureReason
+data Result = Success String | Pending (Maybe String) | Failure (Maybe Location) FailureReason
   deriving (Eq, Show, Read, Typeable)
 
 data FailureReason = NoReason | Reason String | ExpectedButGot (Maybe String) String String
@@ -110,7 +110,7 @@ instance Example Result where
 instance Example (a -> Result) where
   type Arg (a -> Result) = a
   evaluateExample example _params action _callback = do
-    ref <- newIORef (Success Nothing)
+    ref <- newIORef (Success "")
     action (writeIORef ref . example)
     readIORef ref
 
@@ -121,12 +121,12 @@ instance Example Bool where
 instance Example (a -> Bool) where
   type Arg (a -> Bool) = a
   evaluateExample p _params action _callback = do
-    ref <- newIORef (Success Nothing)
+    ref <- newIORef (Success "")
     action $ \a -> example a >>= writeIORef ref
     readIORef ref
     where
       example a
-        | p a = return (Success Nothing)
+        | p a = return (Success "")
         | otherwise = return (Failure Nothing NoReason)
 
 instance Example Expectation where
@@ -158,7 +158,7 @@ hunitFailureToResult e = case e of
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
-  evaluateExample e _ action _ = action e >> return (Success Nothing)
+  evaluateExample e _ action _ = action e >> return (Success "")
 
 instance Example QC.Property where
   type Arg QC.Property = ()
@@ -170,7 +170,7 @@ instance Example (a -> QC.Property) where
     r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
     return $
       case r of
-        QC.Success {QC.labels = m}  -> Success $ addQCLabels m
+        QC.Success {QC.labels = m}  -> Success (formatLabels m)
         QC.Failure {QC.output = m}  -> fromMaybe (Failure Nothing . Reason $ sanitizeFailureMessage r) (parsePending m)
         QC.GaveUp {QC.numTests = n} -> Failure Nothing (Reason $ "Gave up after " ++ pluralize n "test" )
         QC.NoExpectedFailure {}     -> Failure Nothing (Reason $ "No expected failure")
@@ -181,9 +181,10 @@ instance Example (a -> QC.Property) where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
         \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
 
-      addQCLabels :: [(String, Int)] -> Maybe String
-      addQCLabels [] = Nothing
-      addQCLabels ls = Just . unlines $ map (\(label, noOfCases) -> label ++ ": " ++ show noOfCases) ls
+      formatLabels :: [(String, Int)] -> String
+      formatLabels = unlines . map (\ (label, n) -> showPercent n ++ label)
+        where
+          showPercent n = show n ++ "% " ++ if n < 10 then " " else ""
 
       sanitizeFailureMessage :: QC.Result -> String
       sanitizeFailureMessage r = let m = QC.output r in strip $
