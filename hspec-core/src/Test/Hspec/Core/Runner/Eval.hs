@@ -73,17 +73,17 @@ addFailure path = modify $ \state -> state {stateFailures = path : stateFailures
 getFormat :: Monad m => (Format m -> a) -> EvalM m a
 getFormat format = gets (format . evalConfigFormat . stateConfig)
 
-reportSuccess :: Monad m => Path -> String -> EvalM m ()
-reportSuccess path details = do
+reportSuccess :: Monad m => Maybe Location -> Path -> String -> EvalM m ()
+reportSuccess loc path details = do
   increaseSuccessCount
   format <- getFormat formatSuccess
-  lift (format path details)
+  lift (format path loc details)
 
-reportPending :: Monad m => Path -> Maybe String -> EvalM m ()
-reportPending path reason = do
+reportPending :: Monad m => Maybe Location -> Path -> Maybe String -> EvalM m ()
+reportPending loc path reason = do
   increasePendingCount
   format <- getFormat formatPending
-  lift (format path reason)
+  lift (format path loc reason)
 
 reportFailure :: Monad m => Maybe Location -> Path -> Either E.SomeException FailureReason -> EvalM m ()
 reportFailure loc path err = do
@@ -94,8 +94,8 @@ reportFailure loc path err = do
 reportResult :: Monad m => Path -> Maybe Location -> Either E.SomeException Result -> EvalM m ()
 reportResult path loc result = do
   case result of
-    Right (Success details) -> reportSuccess path details
-    Right (Pending reason) -> reportPending path reason
+    Right (Success details) -> reportSuccess loc path details
+    Right (Pending loc_ reason) -> reportPending (loc_ <|> loc) path reason
     Right (Failure loc_ err) -> reportFailure (loc_ <|> loc) path (Right err)
     Left err -> reportFailure loc path (Left  err)
 

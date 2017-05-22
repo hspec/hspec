@@ -57,7 +57,7 @@ context = describe
 --
 -- This can be used to temporarily disable spec items.
 xdescribe :: String -> SpecWith a -> SpecWith a
-xdescribe label spec = before_ pending $ describe label spec
+xdescribe label spec = before_ pending_ $ describe label spec
 
 -- | @xcontext@ is an alias for `xdescribe`.
 xcontext :: String -> SpecWith a -> SpecWith a
@@ -86,7 +86,7 @@ specify = it
 --
 -- This can be used to temporarily disable a spec item.
 xit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
-xit label action = before_ pending $ it label action
+xit label action = before_ pending_ $ it label action
 
 -- | @xspecify@ is an alias for `xit`.
 xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
@@ -112,11 +112,14 @@ setParallelizable value item = item {itemIsParallelizable = itemIsParallelizable
 -- > describe "fancyFormatter" $ do
 -- >   it "can format text in a way that everyone likes" $
 -- >     pending
-pending :: Expectation
-pending = E.throwIO (Pending Nothing)
+pending :: HasCallStack => Expectation
+pending = E.throwIO (Pending location Nothing)
+
+pending_ :: Expectation
+pending_ = (E.throwIO (Pending Nothing Nothing))
 
 -- |
 -- `pendingWith` is similar to `pending`, but it takes an additional string
 -- argument that can be used to specify the reason for why the spec item is pending.
-pendingWith :: String -> Expectation
-pendingWith = E.throwIO . Pending . Just
+pendingWith :: HasCallStack => String -> Expectation
+pendingWith = E.throwIO . Pending location . Just

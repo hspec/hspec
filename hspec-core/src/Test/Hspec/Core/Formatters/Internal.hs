@@ -40,19 +40,19 @@ formatterToFormat formatter config = Format {
     a <- action `finally_` interpret (M.failedFormatter formatter)
     interpret (M.footerFormatter formatter)
     return a
-, formatGroupStarted = \(nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
-, formatGroupDone = \_ -> interpret (M.exampleGroupDone formatter)
-, formatProgress = \path progress -> when useColor $ do
+, formatGroupStarted = \ (nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
+, formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
+, formatProgress = \ path progress -> when useColor $ do
     interpret $ M.exampleProgress formatter path progress
-, formatSuccess = \ path details -> do
+, formatSuccess = \ path _ details -> do
     clearTransientOutput
     increaseSuccessCount
     interpret $ M.exampleSucceeded formatter path details
-, formatFailure = \path loc err -> do
+, formatFailure = \ path loc err -> do
     clearTransientOutput
     addFailMessage loc path err
     interpret $ M.exampleFailed formatter path err
-, formatPending = \path reason -> do
+, formatPending = \ path _ reason -> do
     clearTransientOutput
     increasePendingCount
     interpret $ M.examplePending formatter path reason

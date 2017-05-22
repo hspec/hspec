@@ -58,7 +58,10 @@ type ProgressCallback = Progress -> IO ()
 type ActionWith a = a -> IO ()
 
 -- | The result of running an example
-data Result = Success String | Pending (Maybe String) | Failure (Maybe Location) FailureReason
+data Result =
+    Success String
+  | Pending (Maybe Location) (Maybe String)
+  | Failure (Maybe Location) FailureReason
   deriving (Eq, Show, Read, Typeable)
 
 data FailureReason = NoReason | Reason String | ExpectedButGot (Maybe String) String String
@@ -100,7 +103,7 @@ safeEvaluateExample example params around progress = do
     forceResult :: Result -> Result
     forceResult r = case r of
       Success s -> s `deepseq` r
-      Pending m -> m `deepseq` r
+      Pending _ m -> m `deepseq` r
       Failure _ m -> m `deepseq` r
 
 instance Example Result where

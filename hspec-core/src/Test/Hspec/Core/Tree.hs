@@ -12,6 +12,7 @@ module Test.Hspec.Core.Tree (
 , Item (..)
 , specGroup
 , specItem
+, location
 ) where
 
 import           Data.CallStack
@@ -71,7 +72,7 @@ specItem s e = Leaf $ Item requirement location Nothing (safeEvaluateExample e)
       | null s = "(unspecified behavior)"
       | otherwise = s
 
-    location :: Maybe Location
-    location = case reverse callStack of
-      (_, loc) : _ -> Just (Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc) ExactLocation)
-      _ -> Nothing
+location :: HasCallStack => Maybe Location
+location = case reverse callStack of
+  (_, loc) : _ -> Just (Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc) ExactLocation)
+  _ -> Nothing

@@ -35,7 +35,7 @@ spec = do
     it "creates a tree of pending spec items" $ do
       [Node _ [Leaf item]] <- runSpecM (H.xdescribe "" $ H.it "whatever" True)
       Right r <- itemExample item defaultParams ($ ()) noOpProgressCallback
-      r `shouldBe` Pending Nothing
+      r `shouldBe` Pending Nothing Nothing
 
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
@@ -66,7 +66,7 @@ spec = do
     it "creates a pending spec item" $ do
       [Leaf item] <- runSpecM (H.xit "whatever" True)
       Right r <- itemExample item defaultParams ($ ()) noOpProgressCallback
-      r `shouldBe` Pending Nothing
+      r `shouldBe` Pending Nothing Nothing
 
   describe "pending" $ do
     it "specifies a pending example" $ do

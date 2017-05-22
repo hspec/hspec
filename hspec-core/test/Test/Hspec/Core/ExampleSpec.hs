@@ -39,12 +39,24 @@ spec = do
       context "when used with `pending`" $ do
         it "returns Pending" $ do
           Right result <- safeEvaluateExample (H.pending)
-          result `shouldBe` H.Pending Nothing
+          let location =
+#if MIN_VERSION_base(4,8,1)
+                Just $ H.Location __FILE__ (__LINE__ - 3) 48 H.ExactLocation
+#else
+                Nothing
+#endif
+          result `shouldBe` H.Pending location Nothing
 
       context "when used with `pendingWith`" $ do
         it "includes the optional reason" $ do
           Right result <- safeEvaluateExample (H.pendingWith "foo")
-          result `shouldBe` H.Pending (Just "foo")
+          let location =
+#if MIN_VERSION_base(4,8,1)
+                Just $ H.Location __FILE__ (__LINE__ - 3) 48 H.ExactLocation
+#else
+                Nothing
+#endif
+          result `shouldBe` H.Pending location (Just "foo")
 
   describe "evaluateExample" $ do
     context "for Result" $ do
@@ -167,11 +179,23 @@ spec = do
 
       context "when used with `pending`" $ do
         it "returns Pending" $ do
-          evaluateExample (property H.pending) `shouldReturn` H.Pending Nothing
+          let location =
+#if MIN_VERSION_base(4,8,1)
+                Just $ H.Location __FILE__ (__LINE__ + 4) 37 H.ExactLocation
+#else
+                Nothing
+#endif
+          evaluateExample (property H.pending) `shouldReturn` H.Pending location Nothing
 
       context "when used with `pendingWith`" $ do
         it "includes the optional reason" $ do
-          evaluateExample (property $ H.pendingWith "foo") `shouldReturn` H.Pending (Just "foo")
+          let location =
+#if MIN_VERSION_base(4,8,1)
+                Just $ H.Location __FILE__ (__LINE__ + 4) 39 H.ExactLocation
+#else
+                Nothing
+#endif
+          evaluateExample (property $ H.pendingWith "foo") `shouldReturn` H.Pending location (Just "foo")
 
   describe "Expectation" $ do
     context "as a QuickCheck property" $ do
