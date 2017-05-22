@@ -16,6 +16,7 @@ module Test.Hspec.Core.Compat (
 
 #if !MIN_VERSION_base(4,6,0)
 , modifyIORef'
+, atomicWriteIORef
 #endif
 ) where
 
@@ -65,6 +66,11 @@ modifyIORef' ref f = do
     x <- readIORef ref
     let x' = f x
     x' `seq` writeIORef ref x'
+
+atomicWriteIORef :: IORef a -> a -> IO ()
+atomicWriteIORef ref a = do
+    x <- atomicModifyIORef ref (\_ -> (a, ()))
+    x `seq` return ()
 
 -- | Parse a string using the 'Read' instance.
 -- Succeeds if there is exactly one valid result.

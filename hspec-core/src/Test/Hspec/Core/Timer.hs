@@ -1,12 +1,12 @@
 module Test.Hspec.Core.Timer (withTimer) where
 
-import           Data.IORef
 import           Data.Time.Clock.POSIX
 import           Control.Concurrent
 import           Control.Exception
 import           Control.Monad
-
 import           Control.Concurrent.Async
+
+import           Test.Hspec.Core.Compat
 
 withTimer :: POSIXTime -> (IO Bool -> IO a) -> IO a
 withTimer delay action = do
@@ -21,4 +21,4 @@ worker :: POSIXTime -> IORef Bool -> IO ()
 worker delay ref = do
   forever $ do
     sleep delay
-    writeIORef ref True
+    atomicWriteIORef ref True
