@@ -30,11 +30,9 @@ import           Data.Char
 import           Control.Monad (guard)
 import           System.Environment (withArgs, getEnvironment)
 import           System.Exit
-import           Control.Concurrent
 import qualified Control.Exception as E
 import           Control.Exception (bracket)
 import qualified System.Timeout as System
-import           Data.Time.Clock.POSIX
 import           System.IO.Silently
 import           System.SetEnv
 import           System.Directory
@@ -46,6 +44,7 @@ import           Test.QuickCheck hiding (Result(..))
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
+import           Test.Hspec.Core.Timer
 
 throwException :: IO ()
 throwException = E.throwIO (E.ErrorCall "foobar")
@@ -74,11 +73,8 @@ defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just
 noOpProgressCallback :: H.ProgressCallback
 noOpProgressCallback _ = return ()
 
-sleep :: POSIXTime -> IO ()
-sleep = threadDelay . floor . (* 1000000)
-
-timeout :: POSIXTime -> IO a -> IO (Maybe a)
-timeout = System.timeout . floor . (* 1000000)
+timeout :: Seconds -> IO a -> IO (Maybe a)
+timeout = System.timeout . toMicroseconds
 
 shouldUseArgs :: [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do

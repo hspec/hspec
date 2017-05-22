@@ -23,7 +23,7 @@ import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
 import qualified System.CPUTime as CPUTime
-import           Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
+import           System.Clock
 
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec (Location)
@@ -102,7 +102,7 @@ data FormatterState = FormatterState {
 , statePendingCount    :: Int
 , stateFailMessages    :: [FailureRecord]
 , stateCpuStartTime    :: Maybe Integer
-, stateStartTime       :: POSIXTime
+, stateStartTime       :: TimeSpec
 , stateTransientOutput :: String
 , stateConfig :: FormatConfig
 }
@@ -124,7 +124,7 @@ newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
 
 runFormatM :: FormatConfig -> FormatM a -> IO a
 runFormatM config (FormatM action) = do
-  time <- getPOSIXTime
+  time <- getTime Monotonic
   cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
   st <- newIORef (FormatterState 0 0 [] cpuTime time "" config)
   evalStateT action st
@@ -277,6 +277,6 @@ getCPUTime = do
 -- | Get the passed real time since the test run has been started.
 getRealTime :: FormatM Double
 getRealTime = do
-  t1 <- liftIO getPOSIXTime
+  t1 <- liftIO (getTime Monotonic)
   t0 <- gets stateStartTime
-  return (realToFrac $ t1 - t0)
+  return ((fromIntegral . toNanoSecs $ t1 - t0) / 1000000000)

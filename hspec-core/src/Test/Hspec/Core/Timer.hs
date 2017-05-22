@@ -1,6 +1,6 @@
-module Test.Hspec.Core.Timer (withTimer) where
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+module Test.Hspec.Core.Timer (Seconds, toMicroseconds, sleep, withTimer) where
 
-import           Data.Time.Clock.POSIX
 import           Control.Concurrent
 import           Control.Exception
 import           Control.Monad
@@ -8,16 +8,22 @@ import           Control.Concurrent.Async
 
 import           Test.Hspec.Core.Compat
 
-withTimer :: POSIXTime -> (IO Bool -> IO a) -> IO a
+newtype Seconds = Seconds Double
+  deriving (Num, Fractional)
+
+toMicroseconds :: Seconds -> Int
+toMicroseconds (Seconds s) = floor (s * 1000000)
+
+withTimer :: Seconds -> (IO Bool -> IO a) -> IO a
 withTimer delay action = do
   ref <- newIORef False
   bracket (async $ worker delay ref) cancel $ \_ -> do
     action $ atomicModifyIORef ref (\a -> (False, a))
 
-sleep :: POSIXTime -> IO ()
-sleep = threadDelay . floor . (* 1000000)
+sleep :: Seconds -> IO ()
+sleep = threadDelay . toMicroseconds
 
-worker :: POSIXTime -> IORef Bool -> IO ()
+worker :: Seconds -> IORef Bool -> IO ()
 worker delay ref = do
   forever $ do
     sleep delay

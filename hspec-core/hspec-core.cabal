@@ -35,7 +35,7 @@ library
     , tf-random
     , setenv
     , ansi-terminal >= 0.5
-    , time
+    , clock
     , transformers >= 0.2.2.0
     , deepseq
     , HUnit >= 1.2.5
@@ -90,7 +90,7 @@ test-suite spec
     , tf-random
     , setenv
     , ansi-terminal >= 0.5
-    , time
+    , clock
     , transformers >= 0.2.2.0
     , deepseq
     , HUnit >= 1.2.5
