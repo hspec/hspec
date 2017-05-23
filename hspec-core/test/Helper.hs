@@ -44,7 +44,7 @@ import           Test.QuickCheck hiding (Result(..))
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
-import           Test.Hspec.Core.Timer
+import           Test.Hspec.Core.Clock
 
 throwException :: IO ()
 throwException = E.throwIO (E.ErrorCall "foobar")

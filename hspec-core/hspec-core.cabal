@@ -55,6 +55,7 @@ library
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
   other-modules:
+      Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
       Test.Hspec.Core.Config.Options
@@ -107,6 +108,7 @@ test-suite spec
     , process
     , temporary
   other-modules:
+      Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
       Test.Hspec.Core.Config.Options
@@ -133,6 +135,7 @@ test-suite spec
       All
       Helper
       Mock
+      Test.Hspec.Core.ClockSpec
       Test.Hspec.Core.CompatSpec
       Test.Hspec.Core.Config.OptionsSpec
       Test.Hspec.Core.Config.UtilSpec

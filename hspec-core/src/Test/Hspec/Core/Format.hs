@@ -4,6 +4,7 @@ module Test.Hspec.Core.Format (
 , Progress
 , Path
 , Location(..)
+, Seconds(..)
 , Item(..)
 , Result(..)
 , FailureReason(..)
@@ -14,9 +15,11 @@ import           Control.Exception
 import           Test.Hspec.Core.Spec (Progress, Location(..))
 import           Test.Hspec.Core.Example (FailureReason(..))
 import           Test.Hspec.Core.Util (Path)
+import           Test.Hspec.Core.Clock
 
 data Item = Item {
   itemLocation :: Maybe Location
+, itemDuration :: Seconds
 , itemResult :: Result
 }
 

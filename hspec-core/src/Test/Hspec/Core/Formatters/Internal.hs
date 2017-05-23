@@ -23,15 +23,11 @@ import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
 import qualified System.CPUTime as CPUTime
-import           System.Clock
-
-import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Spec (Location)
-import           Test.Hspec.Core.Example (FailureReason(..))
 
 import qualified Test.Hspec.Core.Formatters.Monad as M
 import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWith, FailureRecord(..))
 import           Test.Hspec.Core.Format
+import           Test.Hspec.Core.Clock
 
 formatterToFormat :: M.Formatter -> FormatConfig -> Format FormatM
 formatterToFormat formatter config = Format {
@@ -44,7 +40,7 @@ formatterToFormat formatter config = Format {
 , formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
 , formatProgress = \ path progress -> when useColor $ do
     interpret $ M.exampleProgress formatter path progress
-, formatItem = \ path (Item loc result) -> do
+, formatItem = \ path (Item loc _duration result) -> do
     clearTransientOutput
     case result of
       Success details -> do
@@ -102,7 +98,7 @@ data FormatterState = FormatterState {
 , statePendingCount    :: Int
 , stateFailMessages    :: [FailureRecord]
 , stateCpuStartTime    :: Maybe Integer
-, stateStartTime       :: TimeSpec
+, stateStartTime       :: Seconds
 , stateTransientOutput :: String
 , stateConfig :: FormatConfig
 }
@@ -124,7 +120,7 @@ newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
 
 runFormatM :: FormatConfig -> FormatM a -> IO a
 runFormatM config (FormatM action) = do
-  time <- getTime Monotonic
+  time <- getMonotonicTime
   cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
   st <- newIORef (FormatterState 0 0 [] cpuTime time "" config)
   evalStateT action st
@@ -266,17 +262,17 @@ finally_ (FormatM actionA) (FormatM actionB) = FormatM . StateT $ \st -> do
     replaceValue a (_, st) = (a, st)
 
 -- | Get the used CPU time since the test run has been started.
-getCPUTime :: FormatM (Maybe Double)
+getCPUTime :: FormatM (Maybe Seconds)
 getCPUTime = do
   t1  <- liftIO CPUTime.getCPUTime
   mt0 <- gets stateCpuStartTime
   return $ toSeconds <$> ((-) <$> pure t1 <*> mt0)
   where
-    toSeconds x = fromIntegral x / (10.0 ^ (12 :: Integer))
+    toSeconds x = Seconds (fromIntegral x / (10.0 ^ (12 :: Integer)))
 
 -- | Get the passed real time since the test run has been started.
-getRealTime :: FormatM Double
+getRealTime :: FormatM Seconds
 getRealTime = do
-  t1 <- liftIO (getTime Monotonic)
+  t1 <- liftIO getMonotonicTime
   t0 <- gets stateStartTime
-  return ((fromIntegral . toNanoSecs $ t1 - t0) / 1000000000)
+  return (t1 - t0)

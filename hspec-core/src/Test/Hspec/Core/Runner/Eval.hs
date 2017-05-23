@@ -40,6 +40,7 @@ import           Test.Hspec.Core.Spec (Tree(..), Location, Progress, FailureReas
 import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format (Format(..))
 import qualified Test.Hspec.Core.Format as Format
+import           Test.Hspec.Core.Clock
 
 -- for compatibility with GHC < 7.10.1
 class (Functor m, Applicative m, M.Monad m) => Monad m
@@ -74,31 +75,25 @@ addFailure path = modify $ \state -> state {stateFailures = path : stateFailures
 getFormat :: Monad m => (Format m -> a) -> EvalM m a
 getFormat format = gets (format . evalConfigFormat . stateConfig)
 
-reportSuccess :: Monad m => Maybe Location -> Path -> String -> EvalM m ()
-reportSuccess loc path details = do
-  increaseSuccessCount
+reportItem :: Monad m => Path -> Format.Item -> EvalM m ()
+reportItem path item = do
+  case Format.itemResult item of
+    Format.Success {} -> increaseSuccessCount
+    Format.Pending {} -> increasePendingCount
+    Format.Failure {} -> addFailure path
   format <- getFormat formatItem
-  lift (format path $ Format.Item loc $ Format.Success details)
+  lift (format path item)
 
-reportPending :: Monad m => Maybe Location -> Path -> Maybe String -> EvalM m ()
-reportPending loc path reason = do
-  increasePendingCount
-  format <- getFormat formatItem
-  lift (format path $ Format.Item loc $ Format.Pending reason)
+failureItem :: Maybe Location -> Seconds -> Either E.SomeException FailureReason -> Format.Item
+failureItem loc duration err = Format.Item loc duration (Format.Failure err)
 
-reportFailure :: Monad m => Maybe Location -> Path -> Either E.SomeException FailureReason -> EvalM m ()
-reportFailure loc path err = do
-  addFailure path
-  format <- getFormat formatItem
-  lift (format path $ Format.Item loc $ Format.Failure err)
-
-reportResult :: Monad m => Path -> Maybe Location -> Either E.SomeException Result -> EvalM m ()
-reportResult path loc result = do
+reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Either E.SomeException Result) -> EvalM m ()
+reportResult path loc (duration, result) = do
   case result of
-    Right (Success details) -> reportSuccess loc path details
-    Right (Pending loc_ reason) -> reportPending (loc_ <|> loc) path reason
-    Right (Failure loc_ err) -> reportFailure (loc_ <|> loc) path (Right err)
-    Left err -> reportFailure loc path (Left  err)
+    Right (Success details) -> reportItem path (Format.Item loc duration $ Format.Success details)
+    Right (Pending loc_ reason) -> reportItem path (Format.Item (loc_ <|> loc) duration $ Format.Pending reason)
+    Right (Failure loc_ err) -> reportItem path (failureItem (loc_ <|> loc) duration $ Right err)
+    Left err -> reportItem path (failureItem loc duration $ Left  err)
 
 groupStarted :: Monad m => Path -> EvalM m ()
 groupStarted path = do
@@ -158,10 +153,10 @@ data Item a = Item {
 
 type Job m p a = (p -> m ()) -> m a
 
-type RunningItem m = Item (Path -> m (Either E.SomeException Result))
+type RunningItem m = Item (Path -> m (Seconds, Either E.SomeException Result))
 type RunningTree m = Tree (IO ()) (RunningItem m)
 
-type RunningItem_ m = (Async (), Item (Job m Progress (Either E.SomeException Result)))
+type RunningItem_ m = (Async (), Item (Job m Progress (Seconds, Either E.SomeException Result)))
 type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
 
 data Semaphore = Semaphore {
@@ -179,12 +174,12 @@ parallelizeItem sem EvalItem{..} = do
   (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize evalItemAction
   return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
 
-parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Async (), Job m p a)
+parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
 parallelize sem isParallelizable
   | isParallelizable = runParallel sem
   | otherwise = runSequentially
 
-runSequentially :: MonadIO m => Job IO p a -> IO (Async (), Job m p a)
+runSequentially :: MonadIO m => Job IO p a -> IO (Async (), Job m p (Seconds, a))
 runSequentially action = do
   mvar <- newEmptyMVar
   (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) (return ())) action
@@ -192,7 +187,7 @@ runSequentially action = do
 
 data Parallel p a = Partial p | Return a
 
-runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Async (), Job m p a)
+runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
 runParallel Semaphore{..} action = do
   mvar <- newEmptyMVar
   asyncAction <- async $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
@@ -200,10 +195,10 @@ runParallel Semaphore{..} action = do
   where
     worker mvar = do
       let partialCallback = replaceMVar mvar . Partial
-      result <- action partialCallback
+      result <- measure $ action partialCallback
       replaceMVar mvar (Return result)
 
-    eval :: MVar (Parallel p a) -> (p -> m ()) -> m a
+    eval :: MVar (Parallel p (Seconds, a)) -> (p -> m ()) -> m (Seconds, a)
     eval mvar notifyPartial = do
       r <- liftIO (takeMVar mvar)
       case r of
@@ -230,8 +225,8 @@ run specs = do
 
     runCleanup :: [String] -> IO () -> EvalM m ()
     runCleanup groups action = do
-      r <- liftIO $ safeTry action
-      either (reportFailure Nothing path . Left) return r
+      (dt, r) <- liftIO $ measure $ safeTry action
+      either (reportItem path . failureItem Nothing dt . Left) return r
       where
         path = (groups, "afterAll-hook")
 

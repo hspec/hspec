@@ -48,6 +48,7 @@ import           Test.Hspec.Core.Formatters.Free
 import           Test.Hspec.Core.Example (FailureReason(..))
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec (Progress, Location)
+import           Test.Hspec.Core.Clock
 
 data Formatter = Formatter {
 
@@ -90,8 +91,8 @@ data FormatF next =
   | GetPendingCount (Int -> next)
   | GetFailMessages ([FailureRecord] -> next)
   | UsedSeed (Integer -> next)
-  | GetCPUTime (Maybe Double -> next)
-  | GetRealTime (Double -> next)
+  | GetCPUTime (Maybe Seconds -> next)
+  | GetRealTime (Seconds -> next)
   | Write String next
   | WriteTransient String next
   | forall a. WithFailColor (FormatM a) (a -> next)
@@ -130,8 +131,8 @@ data Environment m = Environment {
 , environmentGetPendingCount :: m Int
 , environmentGetFailMessages :: m [FailureRecord]
 , environmentUsedSeed :: m Integer
-, environmentGetCPUTime :: m (Maybe Double)
-, environmentGetRealTime :: m Double
+, environmentGetCPUTime :: m (Maybe Seconds)
+, environmentGetRealTime :: m Seconds
 , environmentWrite :: String -> m ()
 , environmentWriteTransient :: String -> m ()
 , environmentWithFailColor :: forall a. m a -> m a
@@ -191,11 +192,11 @@ usedSeed :: FormatM Integer
 usedSeed = liftF (UsedSeed id)
 
 -- | Get the used CPU time since the test run has been started.
-getCPUTime :: FormatM (Maybe Double)
+getCPUTime :: FormatM (Maybe Seconds)
 getCPUTime = liftF (GetCPUTime id)
 
 -- | Get the passed real time since the test run has been started.
-getRealTime :: FormatM Double
+getRealTime :: FormatM Seconds
 getRealTime = liftF (GetRealTime id)
 
 -- | Append some output to the report.
