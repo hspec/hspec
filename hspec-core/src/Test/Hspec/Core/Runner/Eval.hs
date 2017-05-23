@@ -38,7 +38,8 @@ import           Control.Monad.Trans.Class
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Tree(..), Location, Progress, FailureReason, Result(..), ProgressCallback)
 import           Test.Hspec.Core.Timer
-import           Test.Hspec.Core.Format
+import           Test.Hspec.Core.Format (Format(..))
+import qualified Test.Hspec.Core.Format as Format
 
 -- for compatibility with GHC < 7.10.1
 class (Functor m, Applicative m, M.Monad m) => Monad m
@@ -76,20 +77,20 @@ getFormat format = gets (format . evalConfigFormat . stateConfig)
 reportSuccess :: Monad m => Maybe Location -> Path -> String -> EvalM m ()
 reportSuccess loc path details = do
   increaseSuccessCount
-  format <- getFormat formatSuccess
-  lift (format path loc details)
+  format <- getFormat formatItem
+  lift (format path $ Format.Item loc $ Format.Success details)
 
 reportPending :: Monad m => Maybe Location -> Path -> Maybe String -> EvalM m ()
 reportPending loc path reason = do
   increasePendingCount
-  format <- getFormat formatPending
-  lift (format path loc reason)
+  format <- getFormat formatItem
+  lift (format path $ Format.Item loc $ Format.Pending reason)
 
 reportFailure :: Monad m => Maybe Location -> Path -> Either E.SomeException FailureReason -> EvalM m ()
 reportFailure loc path err = do
   addFailure path
-  format <- getFormat formatFailure
-  lift $ format path loc err
+  format <- getFormat formatItem
+  lift (format path $ Format.Item loc $ Format.Failure err)
 
 reportResult :: Monad m => Path -> Maybe Location -> Either E.SomeException Result -> EvalM m ()
 reportResult path loc result = do
