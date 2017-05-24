@@ -284,41 +284,9 @@ failed_examplesSpec formatter = do
 
 
     context "when a failed example has a source location" $ do
-      let bestEffortExplanation = "Source locations marked with \"best-effort\" are calculated heuristically and may be incorrect."
-
-      it "includes the source locations above the error messages" $ do
-        let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
+      it "includes that source location above the error message" $ do
+        let loc = H.Location "test/FooSpec.hs" 23 0
             addLoc e = e {H.itemLocation = Just loc}
         r <- runSpec $ H.mapSpecItem_ addLoc $ do
           H.it "foo" False
         r `shouldContain` ["  test/FooSpec.hs:23: ", "  1) foo"]
-
-      context "when source location is exact" $ do
-        it "includes that source locations" $ do
-          let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
-              addLoc e = e {H.itemLocation = Just loc}
-          r <- runSpec $ H.mapSpecItem_ addLoc $ do
-            H.it "foo" False
-          r `shouldSatisfy` any (== "  test/FooSpec.hs:23: ")
-
-        it "does not include 'best-effort' explanation" $ do
-          let loc = H.Location "test/FooSpec.hs" 23 0 H.ExactLocation
-              addLoc e = e {H.itemLocation = Just loc}
-          r <- runSpec $ H.mapSpecItem_ addLoc $ do
-            H.it "foo" False
-          r `shouldSatisfy` all (/= bestEffortExplanation)
-
-      context "when source location is best-effort" $ do
-        it "marks that source location as 'best-effort'" $ do
-          let loc = H.Location "test/FooSpec.hs" 23 0 H.BestEffort
-              addLoc e = e {H.itemLocation = Just loc}
-          r <- runSpec $ H.mapSpecItem_ addLoc $ do
-            H.it "foo" False
-          r `shouldSatisfy` any (== "  test/FooSpec.hs:23: (best-effort)")
-
-        it "includes 'best-effort' explanation" $ do
-          let loc = H.Location "test/FooSpec.hs" 23 0 H.BestEffort
-              addLoc e = e {H.itemLocation = Just loc}
-          r <- runSpec $ H.mapSpecItem_ addLoc $ do
-            H.it "foo" False
-          r `shouldSatisfy` any (== bestEffortExplanation)

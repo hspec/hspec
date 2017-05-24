@@ -8,7 +8,6 @@ module Test.Hspec.Core.Example (
 , ProgressCallback
 , Result (..)
 , Location (..)
-, LocationAccuracy (..)
 , FailureReason (..)
 , safeEvaluateExample
 ) where
@@ -80,17 +79,7 @@ data Location = Location {
   locationFile :: FilePath
 , locationLine :: Int
 , locationColumn :: Int
-, locationAccuracy :: LocationAccuracy
 } deriving (Eq, Show, Read)
-
--- | A marker for source locations
-data LocationAccuracy =
-  -- | The source location is accurate
-  ExactLocation |
-  -- | The source location was determined on a best-effort basis and my be
-  -- wrong or inaccurate
-  BestEffort
-  deriving (Eq, Show, Read)
 
 safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO (Either E.SomeException Result)
 safeEvaluateExample example params around progress = do
@@ -151,9 +140,9 @@ hunitFailureToResult e = case e of
       location = case mLoc of
         Nothing -> Nothing
 #if MIN_VERSION_HUnit(1,4,0)
-        Just loc -> Just $ Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc) ExactLocation
+        Just loc -> Just $ Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
 #else
-        Just loc -> Just $ Location (HUnit.locationFile loc) (HUnit.locationLine loc) (HUnit.locationColumn loc) ExactLocation
+        Just loc -> Just $ Location (HUnit.locationFile loc) (HUnit.locationLine loc) (HUnit.locationColumn loc)
 #endif
 #else
   HUnit.HUnitFailure err -> Failure Nothing (Reason err)

@@ -74,5 +74,5 @@ specItem s e = Leaf $ Item requirement location Nothing (safeEvaluateExample e)
 
 location :: HasCallStack => Maybe Location
 location = case reverse callStack of
-  (_, loc) : _ -> Just (Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc) ExactLocation)
+  (_, loc) : _ -> Just (Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc))
   _ -> Nothing

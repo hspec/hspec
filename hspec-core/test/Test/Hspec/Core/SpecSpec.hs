@@ -51,7 +51,7 @@ spec = do
       [Leaf item] <- runSpecM (H.it "foo" True)
       let location =
 #if MIN_VERSION_base(4,8,1)
-            Just $ H.Location __FILE__ (__LINE__ - 3) 32 H.ExactLocation
+            Just $ H.Location __FILE__ (__LINE__ - 3) 32
 #else
             Nothing
 #endif

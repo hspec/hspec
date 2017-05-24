@@ -41,7 +41,7 @@ spec = do
           Right result <- safeEvaluateExample (H.pending)
           let location =
 #if MIN_VERSION_base(4,8,1)
-                Just $ H.Location __FILE__ (__LINE__ - 3) 48 H.ExactLocation
+                Just $ H.Location __FILE__ (__LINE__ - 3) 48
 #else
                 Nothing
 #endif
@@ -52,7 +52,7 @@ spec = do
           Right result <- safeEvaluateExample (H.pendingWith "foo")
           let location =
 #if MIN_VERSION_base(4,8,1)
-                Just $ H.Location __FILE__ (__LINE__ - 3) 48 H.ExactLocation
+                Just $ H.Location __FILE__ (__LINE__ - 3) 48
 #else
                 Nothing
 #endif
@@ -181,7 +181,7 @@ spec = do
         it "returns Pending" $ do
           let location =
 #if MIN_VERSION_base(4,8,1)
-                Just $ H.Location __FILE__ (__LINE__ + 4) 37 H.ExactLocation
+                Just $ H.Location __FILE__ (__LINE__ + 4) 37
 #else
                 Nothing
 #endif
@@ -191,7 +191,7 @@ spec = do
         it "includes the optional reason" $ do
           let location =
 #if MIN_VERSION_base(4,8,1)
-                Just $ H.Location __FILE__ (__LINE__ + 4) 39 H.ExactLocation
+                Just $ H.Location __FILE__ (__LINE__ + 4) 39
 #else
                 Nothing
 #endif

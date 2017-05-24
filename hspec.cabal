@@ -68,10 +68,6 @@ test-suite spec
   hs-source-dirs:
       test
   main-is: Spec.hs
-  other-modules:
-      Helper
-      HelperSpec
-      Test.Hspec.DiscoverSpec
   build-depends:
       base == 4.*
     , hspec-core == 2.4.3

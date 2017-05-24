@@ -58,9 +58,9 @@ import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Maybe
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Spec (Location(..), LocationAccuracy(..))
+import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
-import           Control.Monad (when, unless)
+import           Control.Monad (unless)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -176,19 +176,9 @@ defaultFailedFormatter = do
       formatFailure x
       writeLine ""
 
-    when (hasBestEffortLocations failures) $ do
-      withInfoColor $ writeLine "Source locations marked with \"best-effort\" are calculated heuristically and may be incorrect."
-      writeLine ""
-
     write "Randomized with seed " >> usedSeed >>= writeLine . show
     writeLine ""
   where
-    hasBestEffortLocations :: [FailureRecord] -> Bool
-    hasBestEffortLocations = any p
-      where
-        p :: FailureRecord -> Bool
-        p failure = (locationAccuracy <$> failureRecordLocation failure) == Just BestEffort
-
     formatFailure :: (Int, FailureRecord) -> FormatM ()
     formatFailure (n, FailureRecord mLoc path reason) = do
       forM_ mLoc $ \loc -> do
@@ -226,14 +216,7 @@ defaultFailedFormatter = do
         indent message = do
           forM_ (lines message) $ \line -> do
             writeLine (indentation ++ line)
-        formatLoc (Location file line _column accuracy) = "  " ++ file ++ ":" ++ show line ++ ":" ++ message
-          where
-            message = case accuracy of
-              ExactLocation -> " " -- NOTE: Vim's default 'errorformat'
-                                   -- requires a non-empty message.  This is
-                                   -- why we use a single space as message
-                                   -- here.
-              BestEffort -> " (best-effort)"
+        formatLoc (Location file line _column) = "  " ++ file ++ ":" ++ show line ++ ": "
 
 defaultFooter :: FormatM ()
 defaultFooter = do
