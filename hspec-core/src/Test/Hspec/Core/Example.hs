@@ -16,7 +16,6 @@ module Test.Hspec.Core.Example (
 , safeEvaluateExample
 ) where
 
-import           Data.Maybe (fromMaybe)
 import           Data.List (isPrefixOf, stripPrefix)
 import qualified Test.HUnit.Lang as HUnit
 
@@ -24,7 +23,7 @@ import qualified Test.HUnit.Lang as HUnit
 import           Data.CallStack
 #endif
 
-import qualified Control.Exception as E
+import           Control.Exception
 import           Control.DeepSeq
 import           Data.Typeable (Typeable)
 import qualified Test.QuickCheck as QC
@@ -67,8 +66,11 @@ data Result =
   | Failure (Maybe Location) FailureReason
   deriving (Eq, Show, Read, Typeable)
 
-data FailureReason = NoReason | Reason String | ExpectedButGot (Maybe String) String String
-    deriving (Eq, Show, Read, Typeable)
+data FailureReason =
+    NoReason
+  | Reason String
+  | ExpectedButGot (Maybe String) String String
+  deriving (Eq, Show, Read, Typeable)
 
 instance NFData FailureReason where
   rnf reason = case reason of
@@ -76,7 +78,7 @@ instance NFData FailureReason where
     Reason r -> r `deepseq` ()
     ExpectedButGot p e a  -> p `deepseq` e `deepseq` a `deepseq` ()
 
-instance E.Exception Result
+instance Exception Result
 
 -- | @Location@ is used to represent source locations.
 data Location = Location {
@@ -85,12 +87,12 @@ data Location = Location {
 , locationColumn :: Int
 } deriving (Eq, Show, Read)
 
-safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO (Either E.SomeException Result)
+safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO (Either SomeException Result)
 safeEvaluateExample example params around progress = do
   r <- safeTry $ forceResult <$> evaluateExample example params around progress
   return $ case r of
-    Left e | Just result <- E.fromException e -> Right result
-    Left e | Just hunit <- E.fromException e -> Right (hunitFailureToResult hunit)
+    Left e | Just result <- fromException e -> Right result
+    Left e | Just hunit <- fromException e -> Right (hunitFailureToResult hunit)
     _ -> r
   where
     forceResult :: Result -> Result
@@ -164,49 +166,47 @@ instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = a
   evaluateExample p c action progressCallback = do
     r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
-    return $
-      case r of
-        QC.Success {QC.labels = m}  -> Success (formatLabels m)
-        QC.Failure {QC.output = m}  -> fromMaybe (Failure Nothing . Reason $ sanitizeFailureMessage r) (parsePending m)
-        QC.GaveUp {QC.numTests = n} -> Failure Nothing (Reason $ "Gave up after " ++ pluralize n "test" )
-        QC.NoExpectedFailure {}     -> Failure Nothing (Reason $ "No expected failure")
-#if MIN_VERSION_QuickCheck(2,8,0)
-        QC.InsufficientCoverage {}  -> Failure Nothing (Reason $ "Insufficient coverage")
-#endif
+    return $ fromQuickCheckResult r
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
         \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
 
-      formatLabels :: [(String, Int)] -> String
-      formatLabels = unlines . map (\ (label, n) -> showPercent n ++ label)
-        where
-          showPercent n = show n ++ "% " ++ if n < 10 then " " else ""
 
-      sanitizeFailureMessage :: QC.Result -> String
-      sanitizeFailureMessage r = let m = QC.output r in strip $
-        case QC.theException r of
-          Just e -> let numbers = formatNumbers r in
-            "uncaught exception: " ++ formatException e ++ "\n" ++ numbers ++ "\n" ++ case lines m of
-              x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ": ") -> unlines xs
-              _ -> m
-          Nothing ->
-            (addFalsifiable . stripFailed) m
+fromQuickCheckResult :: QC.Result -> Result
+fromQuickCheckResult r = case r of
+  QC.Success {QC.labels = m} -> Success (formatLabels m)
+  QC.Failure {} -> case QC.theException r of
+    Just e | Just result <- fromException e -> result
+    _ -> Failure Nothing . Reason $ sanitizeFailureMessage r
+  QC.GaveUp {QC.numTests = n} -> Failure Nothing (Reason $ "Gave up after " ++ pluralize n "test" )
+  QC.NoExpectedFailure {} -> Failure Nothing (Reason $ "No expected failure")
+#if MIN_VERSION_QuickCheck(2,8,0)
+  QC.InsufficientCoverage {} -> Failure Nothing (Reason $ "Insufficient coverage")
+#endif
+  where
+    formatLabels :: [(String, Int)] -> String
+    formatLabels = unlines . map (\ (label, n) -> showPercent n ++ label)
+      where
+        showPercent n = show n ++ "% " ++ if n < 10 then " " else ""
 
-      addFalsifiable :: String -> String
-      addFalsifiable m
-        | "(after " `isPrefixOf` m = "Falsifiable " ++ m
-        | otherwise = m
+    sanitizeFailureMessage :: QC.Result -> String
+    sanitizeFailureMessage result = let m = QC.output result in strip $
+      case QC.theException result of
+        Just e -> let numbers = formatNumbers result in
+          "uncaught exception: " ++ formatException e ++ "\n" ++ numbers ++ "\n" ++ case lines m of
+            x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ": ") -> unlines xs
+            _ -> m
+        Nothing ->
+          (addFalsifiable . stripFailed) m
 
-      stripFailed :: String -> String
-      stripFailed m = case stripPrefix "*** Failed! " m of
-        Just xs -> xs
-        Nothing -> m
+    addFalsifiable :: String -> String
+    addFalsifiable m
+      | "(after " `isPrefixOf` m = "Falsifiable " ++ m
+      | otherwise = m
 
-      parsePending :: String -> Maybe Result
-      parsePending m
-        | exceptionPrefix `isPrefixOf` m = (readMaybe . takeWhile (/= '\'') . drop n) m
-        | otherwise = Nothing
-        where
-          n = length exceptionPrefix
+    stripFailed :: String -> String
+    stripFailed m = case stripPrefix "*** Failed! " m of
+      Just xs -> xs
+      Nothing -> m
 
-      exceptionPrefix = "*** Failed! Exception: '"
+    exceptionPrefix = "*** Failed! Exception: '"

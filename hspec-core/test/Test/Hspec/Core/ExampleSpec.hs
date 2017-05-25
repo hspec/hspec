@@ -3,7 +3,7 @@ module Test.Hspec.Core.ExampleSpec (main, spec) where
 
 import           Helper
 import           Mock
-import qualified Control.Exception as E
+import           Control.Exception
 
 import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
@@ -12,7 +12,7 @@ import qualified Test.Hspec.Core.Runner as H
 main :: IO ()
 main = hspec spec
 
-safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO (Either E.SomeException H.Result)
+safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO (Either SomeException H.Result)
 safeEvaluateExample e = H.safeEvaluateExample e defaultParams ($ ()) noOpProgressCallback
 
 evaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO H.Result
@@ -156,7 +156,7 @@ spec = do
         readIORef ref `shouldReturn` 2000
 
       it "pretty-prints exceptions" $ do
-        H.Failure _ r <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (E.throw (E.ErrorCall "foobar") :: Bool))
+        H.Failure _ r <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (throw (ErrorCall "foobar") :: Bool))
         r `shouldBe` (H.Reason . intercalate "\n") [
             "uncaught exception: ErrorCall"
           , "foobar"
