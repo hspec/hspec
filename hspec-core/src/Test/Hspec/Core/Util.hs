@@ -100,8 +100,8 @@ filterPredicate pattern path@(groups, requirement) =
 -- For `IOException`s the `IOErrorType` is included, as well.
 formatException :: SomeException -> String
 formatException err@(SomeException e) = case fromException err of
-  Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ " (" ++ show ioe ++ ")"
-  Nothing  -> showType e ++ " (" ++ show e ++ ")"
+  Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ "\n" ++ show ioe
+  Nothing  -> showType e ++ "\n" ++ show e
   where
     showIOErrorType :: IOException -> String
     showIOErrorType ioe = case ioe_type ioe of

@@ -272,7 +272,8 @@ failed_examplesSpec formatter = do
         H.it "foobar" (E.throw (E.ErrorCall "baz") :: Bool)
       r `shouldContain` [
           "  1) foobar"
-        , "       uncaught exception: ErrorCall (baz)"
+        , "       uncaught exception: ErrorCall"
+        , "       baz"
         ]
 
     it "prints all descriptions when a nested requirement fails" $ do

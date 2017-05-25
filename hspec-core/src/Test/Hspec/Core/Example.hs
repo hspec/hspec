@@ -1,4 +1,8 @@
-{-# LANGUAGE CPP, TypeFamilies, FlexibleInstances, TypeSynonymInstances, DeriveDataTypeable #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 module Test.Hspec.Core.Example (
   Example (..)
 , Params (..)
@@ -13,7 +17,7 @@ module Test.Hspec.Core.Example (
 ) where
 
 import           Data.Maybe (fromMaybe)
-import           Data.List (isPrefixOf)
+import           Data.List (isPrefixOf, stripPrefix)
 import qualified Test.HUnit.Lang as HUnit
 
 #if MIN_VERSION_HUnit(1,4,0)
@@ -183,7 +187,7 @@ instance Example (a -> QC.Property) where
 #if MIN_VERSION_QuickCheck(2,7,0)
         case QC.theException r of
           Just e -> let numbers = formatNumbers r in
-            "uncaught exception: " ++ formatException e ++ " " ++ numbers ++ "\n" ++ case lines m of
+            "uncaught exception: " ++ formatException e ++ "\n" ++ numbers ++ "\n" ++ case lines m of
               x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ": ") -> unlines xs
               _ -> m
           Nothing ->
@@ -196,12 +200,9 @@ instance Example (a -> QC.Property) where
         | otherwise = m
 
       stripFailed :: String -> String
-      stripFailed m
-        | prefix `isPrefixOf` m = drop n m
-        | otherwise = m
-        where
-          prefix = "*** Failed! "
-          n = length prefix
+      stripFailed m = case stripPrefix "*** Failed! " m of
+        Just xs -> xs
+        Nothing -> m
 
       parsePending :: String -> Maybe Result
       parsePending m

@@ -23,12 +23,15 @@ spec = do
 
   describe "formatException" $ do
     it "converts exception to string" $ do
-      formatException (E.toException E.DivideByZero) `shouldBe` "ArithException (divide by zero)"
+      formatException (E.toException E.DivideByZero) `shouldBe` "ArithException\ndivide by zero"
 
     context "when used with an IOException" $ do
       it "includes the IOErrorType" $ do
         Left e <- E.try (readFile "foo")
-        formatException e `shouldBe` "IOException of type NoSuchThing (foo: openFile: does not exist (No such file or directory))"
+        formatException e `shouldBe` intercalate "\n" [
+            "IOException of type NoSuchThing"
+          , "foo: openFile: does not exist (No such file or directory)"
+          ]
 
   describe "lineBreaksAt" $ do
     it "inserts line breaks at word boundaries" $ do
