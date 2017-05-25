@@ -41,6 +41,7 @@ import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format (Format(..))
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
+import           Test.Hspec.Core.Runner.Util
 
 -- for compatibility with GHC < 7.10.1
 class (Functor m, Applicative m, M.Monad m) => Monad m
@@ -93,7 +94,7 @@ reportResult path loc (duration, result) = do
     Right (Success details) -> reportItem path (Format.Item loc duration $ Format.Success details)
     Right (Pending loc_ reason) -> reportItem path (Format.Item (loc_ <|> loc) duration $ Format.Pending reason)
     Right (Failure loc_ err) -> reportItem path (failureItem (loc_ <|> loc) duration $ Right err)
-    Left err -> reportItem path (failureItem loc duration $ Left  err)
+    Left err -> reportItem path (failureItem (extractLocation err <|> loc) duration $ Left  err)
 
 groupStarted :: Monad m => Path -> EvalM m ()
 groupStarted path = do
