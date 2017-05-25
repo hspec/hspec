@@ -39,7 +39,7 @@ library
     , transformers >= 0.2.2.0
     , deepseq
     , HUnit >= 1.2.5
-    , QuickCheck >= 2.5.1
+    , QuickCheck >= 2.7
     , quickcheck-io
     , hspec-expectations == 0.8.2.*
     , async >= 2
@@ -96,7 +96,7 @@ test-suite spec
     , transformers >= 0.2.2.0
     , deepseq
     , HUnit >= 1.2.5
-    , QuickCheck >= 2.5.1
+    , QuickCheck >= 2.7
     , quickcheck-io
     , hspec-expectations == 0.8.2.*
     , async >= 2

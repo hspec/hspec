@@ -158,13 +158,9 @@ spec = do
       it "pretty-prints exceptions" $ do
         H.Failure _ r <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (E.throw (E.ErrorCall "foobar") :: Bool))
         r `shouldBe` (H.Reason . intercalate "\n") [
-#if MIN_VERSION_QuickCheck(2,7,0)
             "uncaught exception: ErrorCall"
           , "foobar"
           , "(after 1 test)"
-#else
-            "Exception: 'foobar' (after 1 test): "
-#endif
           , "0"
           ]
 
