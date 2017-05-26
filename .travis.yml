@@ -2,8 +2,8 @@ sudo: required
 language: c
 
 env:
-  - CABALVER=1.24 GHCVER=8.0.2 QC=QuickCheck-2.7.6
-  - CABALVER=1.24 GHCVER=8.0.2 QC=QuickCheck-2.8.2
+  # - CABALVER=1.24 GHCVER=8.0.2 QC=QuickCheck-2.7.6
+  # - CABALVER=1.24 GHCVER=8.0.2 QC=QuickCheck-2.8.2
 
   - CABALVER=1.18 GHCVER=7.8.4 HU=HUnit-1.2.5.2
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -16,8 +17,8 @@ module Test.Hspec.Core.Example (
 , safeEvaluateExample
 ) where
 
-import           Data.List (isPrefixOf, stripPrefix)
 import qualified Test.HUnit.Lang as HUnit
+import           Test.HUnit.Lang (HUnitFailure)
 
 #if MIN_VERSION_HUnit(1,4,0)
 import           Data.CallStack
@@ -171,47 +172,36 @@ instance Example (a -> QC.Property) where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
         \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
 
-
 fromQuickCheckResult :: QC.Result -> Result
-fromQuickCheckResult r = case r of
-  QC.Success {QC.labels = m}  -> Success (formatLabels $
-#if MIN_VERSION_QuickCheck(2,10,0)
-    map (fmap round)
-#endif
-    m
-    )
-  QC.Failure {} -> case QC.theException r of
+fromQuickCheckResult r = case parseQuickCheckResult r of
+  QuickCheckResult _ (QuickCheckOtherFailure err) -> Failure Nothing (Reason err)
+  QuickCheckResult _ (QuickCheckSuccess s) -> Success s
+  QuickCheckResult n (QuickCheckFailure QCFailure{..}) -> case quickCheckFailureException of
     Just e | Just result <- fromException e -> result
-    _ -> Failure Nothing . Reason $ sanitizeFailureMessage r
-  QC.GaveUp {QC.numTests = n} -> Failure Nothing (Reason $ "Gave up after " ++ pluralize n "test" )
-  QC.NoExpectedFailure {} -> Failure Nothing (Reason $ "No expected failure")
-#if MIN_VERSION_QuickCheck(2,8,0)
-  QC.InsufficientCoverage {} -> Failure Nothing (Reason $ "Insufficient coverage")
-#endif
-  where
-    formatLabels :: [(String, Int)] -> String
-    formatLabels = unlines . map (\ (label, n) -> showPercent n ++ label)
-      where
-        showPercent n = show n ++ "% " ++ if n < 10 then " " else ""
+    Just e | Just _ <- (fromException e :: Maybe HUnitFailure) -> failure hunitAssertion
+    Just e -> failure (uncaughtException e)
+    Nothing -> failure falsifiable
+    where
+      failure = Failure Nothing . Reason
 
-    sanitizeFailureMessage :: QC.Result -> String
-    sanitizeFailureMessage result = let m = QC.output result in strip $
-      case QC.theException result of
-        Just e -> let numbers = formatNumbers result in
-          "uncaught exception: " ++ formatException e ++ "\n" ++ numbers ++ "\n" ++ case lines m of
-            x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ": ") -> unlines xs
-            _ -> m
-        Nothing ->
-          (addFalsifiable . stripFailed) m
+      numbers = formatNumbers n quickCheckFailureNumShrinks
 
-    addFalsifiable :: String -> String
-    addFalsifiable m
-      | "(after " `isPrefixOf` m = "Falsifiable " ++ m
-      | otherwise = m
+      hunitAssertion = intercalate "\n" [
+          "Falsifiable " ++ numbers ++ ":"
+        , indent quickCheckFailureCounterexample
+        , quickCheckFailureReason
+        ]
 
-    stripFailed :: String -> String
-    stripFailed m = case stripPrefix "*** Failed! " m of
-      Just xs -> xs
-      Nothing -> m
+      uncaughtException e = intercalate "\n" [
+          "uncaught exception: " ++ formatException e
+        , numbers
+        , indent quickCheckFailureCounterexample
+        ]
 
-    exceptionPrefix = "*** Failed! Exception: '"
+      falsifiable = intercalate "\n" [
+          quickCheckFailureReason ++ " " ++ numbers ++ ":"
+        , indent quickCheckFailureCounterexample
+        ]
+
+indent :: String -> String
+indent = intercalate "\n" . map ("  " ++) . lines

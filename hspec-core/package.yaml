@@ -29,7 +29,7 @@ dependencies:
   - deepseq
   - HUnit >= 1.2.5
   - QuickCheck >= 2.7
-  - quickcheck-io
+  - quickcheck-io >= 0.2.0
   - hspec-expectations == 0.8.2.*
   - async >= 2
   - call-stack

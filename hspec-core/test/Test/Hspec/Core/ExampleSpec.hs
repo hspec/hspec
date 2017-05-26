@@ -130,7 +130,11 @@ spec = do
 
       it "shows the collected labels" $ do
         H.Success details <- evaluateExample $ property $ \ () -> label "unit" True
+#if MIN_VERSION_QuickCheck(2,10,0)
+        details `shouldBe` "100.0% unit\n"
+#else
         details `shouldBe` "100% unit\n"
+#endif
 
       it "returns Failure if property does not hold" $ do
         H.Failure _ _ <- evaluateExample $ property $ \n -> n /= (n :: Int)
@@ -139,9 +143,9 @@ spec = do
       it "shows what falsified it" $ do
         H.Failure _ r <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> False
         r `shouldBe` (H.Reason . intercalate "\n")  [
-            "Falsifiable (after 1 test): "
-          , "0"
-          , "1"
+            "Falsifiable (after 1 test):"
+          , "  0"
+          , "  1"
           ]
 
       it "runs around-action for each single check of the property" $ do
@@ -161,18 +165,18 @@ spec = do
             "uncaught exception: ErrorCall"
           , "foobar"
           , "(after 1 test)"
-          , "0"
+          , "  0"
           ]
 
       context "when used with shouldBe" $ do
         it "shows what falsified it" $ do
           H.Failure _ (H.Reason r) <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> 23 `shouldBe` (42 :: Int)
-          r `shouldStartWith` "Falsifiable (after 1 test): \n"
-          r `shouldEndWith` intercalate "\n" [
-              "expected: 42"
+          r `shouldBe` intercalate "\n" [
+              "Falsifiable (after 1 test):"
+            , "  0"
+            , "  1"
+            , "expected: 42"
             , " but got: 23"
-            , "0"
-            , "1"
             ]
 
       context "when used with `pending`" $ do
