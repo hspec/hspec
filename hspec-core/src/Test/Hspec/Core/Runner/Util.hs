@@ -15,25 +15,38 @@ import           Control.Exception
 import           Data.List
 import           Data.Char
 import           Data.Maybe
+import           GHC.IO.Exception
 
 import           Test.Hspec.Core.Example
 
 extractLocation :: SomeException -> Maybe Location
-extractLocation e = locationFromErrorCall e <|> locationFromPatternMatchFail e
+extractLocation e = locationFromErrorCall e <|> locationFromPatternMatchFail e <|> locationFromIOException e
 
 locationFromErrorCall :: SomeException -> Maybe Location
 locationFromErrorCall e = case fromException e of
 #if MIN_VERSION_base(4,9,0)
-  Just (ErrorCallWithLocation _ loc) -> parseCallStack loc
+  Just (ErrorCallWithLocation err loc) ->
+    parseCallStack loc <|>
 #else
-  Just (ErrorCall _) -> Nothing
+  Just (ErrorCall err) ->
 #endif
+    fromPatternMatchFailureInDoExpression err
   Nothing -> Nothing
 
 locationFromPatternMatchFail :: SomeException -> Maybe Location
 locationFromPatternMatchFail e = case fromException e of
   Just (PatternMatchFail s) -> listToMaybe (words s) >>= parseSourceSpan
   Nothing -> Nothing
+
+locationFromIOException :: SomeException -> Maybe Location
+locationFromIOException e = case fromException e of
+  Just (IOError {ioe_type = UserError, ioe_description = xs}) -> fromPatternMatchFailureInDoExpression xs
+  Just _ -> Nothing
+  Nothing -> Nothing
+
+fromPatternMatchFailureInDoExpression :: String -> Maybe Location
+fromPatternMatchFailureInDoExpression input =
+  stripPrefix "Pattern match failure in do expression at " input >>= parseSourceSpan
 
 parseCallStack :: String -> Maybe Location
 parseCallStack input = case reverse (lines input) of

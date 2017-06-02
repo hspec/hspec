@@ -11,6 +11,26 @@ import           Test.Hspec.Core.Runner.Util
 spec :: Spec
 spec = do
   describe "extractLocation" $ do
+    context "with pattern match failure in do expression" $ do
+      context "in IO" $ do
+        it "extracts Location" $ do
+          let location = Just $ Location __FILE__ (__LINE__ + 2) 13
+          Left e <- try $ do
+            Just n <- return Nothing
+            return (n :: Int)
+          extractLocation e `shouldBe` location
+
+      context "in Either" $ do
+        it "extracts Location" $ do
+          let location = Just $ Location __FILE__ (__LINE__ + 4) 15
+          let
+            foo :: Either () ()
+            foo = do
+              23 <- Right (42 :: Int)
+              return ()
+          Left e <- try (evaluate foo)
+          extractLocation e `shouldBe` location
+
     context "with ErrorCall" $ do
       it "extracts Location" $ do
         let
