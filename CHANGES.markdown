@@ -14,6 +14,7 @@
   - Include duration for each spec item in new formatter API (see #315)
   - Add location information to `pending`
   - Make sure that progress output is always cleared (fixes #301)
+  - Parse source locations from pattern match failures
 
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`
