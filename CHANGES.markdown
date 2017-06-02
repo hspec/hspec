@@ -8,6 +8,12 @@
   - Run `Test.Hspec.Core.Formatters.exampleProgress` in `FormatM` instead of
     `IO`
   - Print QuickCheck labels on success (see #297)
+  - Include column when formatting source locations
+  - Extract source location from error / undefined (close #316)
+  - Remove BestEffort source locations
+  - Include duration for each spec item in new formatter API (see #315)
+  - Add location information to `pending`
+  - Make sure that progress output is always cleared (fixes #301)
 
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`
