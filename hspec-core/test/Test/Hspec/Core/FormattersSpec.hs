@@ -286,8 +286,8 @@ failed_examplesSpec formatter = do
 
     context "when a failed example has a source location" $ do
       it "includes that source location above the error message" $ do
-        let loc = H.Location "test/FooSpec.hs" 23 0
+        let loc = H.Location "test/FooSpec.hs" 23 4
             addLoc e = e {H.itemLocation = Just loc}
         r <- runSpec $ H.mapSpecItem_ addLoc $ do
           H.it "foo" False
-        r `shouldContain` ["  test/FooSpec.hs:23: ", "  1) foo"]
+        r `shouldContain` ["  test/FooSpec.hs:23:4: ", "  1) foo"]

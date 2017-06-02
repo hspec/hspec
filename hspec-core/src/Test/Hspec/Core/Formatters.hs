@@ -216,7 +216,7 @@ defaultFailedFormatter = do
         indent message = do
           forM_ (lines message) $ \line -> do
             writeLine (indentation ++ line)
-        formatLoc (Location file line _column) = "  " ++ file ++ ":" ++ show line ++ ": "
+        formatLoc (Location file line column) = "  " ++ file ++ ":" ++ show line ++ ":" ++ show column ++ ": "
 
 defaultFooter :: FormatM ()
 defaultFooter = do
