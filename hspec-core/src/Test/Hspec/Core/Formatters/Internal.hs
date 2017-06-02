@@ -242,7 +242,7 @@ diffColorize color cls s = withColor (SetColor layer Dull color) cls $ do
   write s
   where
     layer
-      | any isSpace s = Background
+      | all isSpace s = Background
       | otherwise = Foreground
 
 -- |
