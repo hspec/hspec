@@ -16,6 +16,7 @@ module Test.Hspec.Core.Spec.Monad (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import           Control.Monad.Catch (MonadCatch, MonadThrow)
 import           Control.Monad.Trans.Writer
 import           Control.Monad.IO.Class (liftIO)
 
@@ -28,7 +29,7 @@ type SpecWith a = SpecM a ()
 
 -- | A writer monad for `SpecTree` forests
 newtype SpecM a r = SpecM (WriterT [SpecTree a] IO r)
-  deriving (Functor, Applicative, Monad)
+  deriving (Functor, Applicative, Monad, MonadCatch, MonadThrow)
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
 runSpecM :: SpecWith a -> IO [SpecTree a]

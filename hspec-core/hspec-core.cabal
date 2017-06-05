@@ -40,6 +40,7 @@ library
     , clock
     , deepseq
     , directory
+    , exceptions >=0.8
     , filepath
     , hspec-expectations ==0.8.2.*
     , quickcheck-io >=0.2.0
@@ -97,6 +98,7 @@ test-suite spec
     , clock
     , deepseq
     , directory
+    , exceptions >=0.8
     , filepath
     , hspec-expectations ==0.8.2.*
     , hspec-meta >=2.3.2
