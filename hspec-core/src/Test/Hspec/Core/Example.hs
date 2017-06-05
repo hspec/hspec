@@ -174,7 +174,12 @@ instance Example (a -> QC.Property) where
 
 fromQuickCheckResult :: QC.Result -> Result
 fromQuickCheckResult r = case r of
-  QC.Success {QC.labels = m} -> Success (formatLabels m)
+  QC.Success {QC.labels = m}  -> Success (formatLabels $
+#if MIN_VERSION_QuickCheck(2,10,0)
+    map (fmap round)
+#endif
+    m
+    )
   QC.Failure {} -> case QC.theException r of
     Just e | Just result <- fromException e -> result
     _ -> Failure Nothing . Reason $ sanitizeFailureMessage r
