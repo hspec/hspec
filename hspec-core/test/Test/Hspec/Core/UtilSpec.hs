@@ -27,11 +27,12 @@ spec = do
 
     context "when used with an IOException" $ do
       it "includes the IOErrorType" $ do
-        Left e <- E.try (readFile "foo")
-        formatException e `shouldBe` intercalate "\n" [
-            "IOException of type NoSuchThing"
-          , "foo: openFile: does not exist (No such file or directory)"
-          ]
+        inTempDirectory $ do
+          Left e <- E.try (readFile "foo")
+          formatException e `shouldBe` intercalate "\n" [
+              "IOException of type NoSuchThing"
+            , "foo: openFile: does not exist (No such file or directory)"
+            ]
 
   describe "lineBreaksAt" $ do
     it "inserts line breaks at word boundaries" $ do
