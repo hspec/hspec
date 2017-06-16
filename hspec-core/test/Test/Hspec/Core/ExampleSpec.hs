@@ -4,6 +4,7 @@ module Test.Hspec.Core.ExampleSpec (main, spec) where
 import           Helper
 import           Mock
 import           Control.Exception
+import           Test.HUnit
 
 import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
@@ -168,16 +169,30 @@ spec = do
           , "  0"
           ]
 
-      context "when used with shouldBe" $ do
-        it "shows what falsified it" $ do
-          H.Failure _ (H.Reason r) <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> 23 `shouldBe` (42 :: Int)
-          r `shouldBe` intercalate "\n" [
-              "Falsifiable (after 1 test):"
-            , "  0"
-            , "  1"
-            , "expected: 42"
-            , " but got: 23"
-            ]
+      context "when used with Expectation" $ do
+        let prop p = property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> p
+        context "when used with shouldBe" $ do
+          it "shows what falsified it" $ do
+            H.Failure _ err <- evaluateExample $ prop $ 23 `shouldBe` (42 :: Int)
+#if MIN_VERSION_HUnit(1,5,0)
+            err `shouldBe` H.ExpectedButGot (Just "Falsifiable (after 1 test):\n  0\n  1") "42" "23"
+#else
+            err `shouldBe` H.Reason "Falsifiable (after 1 test):\n  0\n  1\nexpected: 42\n but got: 23"
+#endif
+
+        context "when used with assertEqual" $ do
+          it "includes prefix" $ do
+            H.Failure _ err <- evaluateExample $ prop $ assertEqual "foobar" (42 :: Int) 23
+#if MIN_VERSION_HUnit(1,5,0)
+            err `shouldBe` H.ExpectedButGot (Just "Falsifiable (after 1 test):\n  0\n  1\nfoobar") "42" "23"
+#else
+            err `shouldBe` H.Reason "Falsifiable (after 1 test):\n  0\n  1\nfoobar\nexpected: 42\n but got: 23"
+#endif
+
+        context "when used with assertFailure" $ do
+          it "includes reason" $ do
+            H.Failure _ err <- evaluateExample $ prop (assertFailure "foobar" :: IO ())
+            err `shouldBe` H.Reason "Falsifiable (after 1 test):\n  0\n  1\nfoobar"
 
       context "when used with `pending`" $ do
         it "returns Pending" $ do

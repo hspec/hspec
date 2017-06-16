@@ -1,4 +1,7 @@
 ## next
+  - Add support for `--diff` when `shouldBe` is uesd with
+    `QuickCheck`-properties
+  - Add source locations when `shouldBe` is uesd with `QuickCheck`-properties
   - Add `sequential` (see #311)
   - Colorize whitespaces with background color instead of foreground color with
     `--diff`

@@ -18,7 +18,6 @@ module Test.Hspec.Core.Example (
 ) where
 
 import qualified Test.HUnit.Lang as HUnit
-import           Test.HUnit.Lang (HUnitFailure)
 
 #if MIN_VERSION_HUnit(1,4,0)
 import           Data.CallStack
@@ -93,7 +92,7 @@ safeEvaluateExample example params around progress = do
   r <- safeTry $ forceResult <$> evaluateExample example params around progress
   return $ case r of
     Left e | Just result <- fromException e -> Right result
-    Left e | Just hunit <- fromException e -> Right (hunitFailureToResult hunit)
+    Left e | Just hunit <- fromException e -> Right (hunitFailureToResult Nothing hunit)
     _ -> r
   where
     forceResult :: Result -> Result
@@ -132,16 +131,21 @@ instance Example Expectation where
   type Arg Expectation = ()
   evaluateExample e = evaluateExample (\() -> e)
 
-hunitFailureToResult :: HUnit.HUnitFailure -> Result
-hunitFailureToResult e = case e of
+hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> Result
+hunitFailureToResult pre e = case e of
 #if MIN_VERSION_HUnit(1,3,0)
   HUnit.HUnitFailure mLoc err ->
 #if MIN_VERSION_HUnit(1,5,0)
       case err of
-        HUnit.Reason reason -> Failure location (Reason reason)
-        HUnit.ExpectedButGot preface expected actual -> Failure location (ExpectedButGot preface expected actual)
+        HUnit.Reason reason -> Failure location (Reason $ addPre reason)
+        HUnit.ExpectedButGot preface expected actual -> Failure location (ExpectedButGot (addPreMaybe preface) expected actual)
+          where
+            addPreMaybe :: Maybe String -> Maybe String
+            addPreMaybe xs = case (pre, xs) of
+              (Just x, Just y) -> Just (x ++ "\n" ++ y)
+              _ -> pre <|> xs
 #else
-      Failure location (Reason err)
+      Failure location (Reason $ addPre err)
 #endif
     where
       location = case mLoc of
@@ -152,8 +156,13 @@ hunitFailureToResult e = case e of
         Just loc -> Just $ Location (HUnit.locationFile loc) (HUnit.locationLine loc) (HUnit.locationColumn loc)
 #endif
 #else
-  HUnit.HUnitFailure err -> Failure Nothing (Reason err)
+  HUnit.HUnitFailure err -> Failure Nothing (Reason $ addPre err)
 #endif
+  where
+    addPre :: String -> String
+    addPre xs = case pre of
+      Just x -> x ++ "\n" ++ xs
+      Nothing -> xs
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
@@ -178,7 +187,7 @@ fromQuickCheckResult r = case parseQuickCheckResult r of
   QuickCheckResult _ (QuickCheckSuccess s) -> Success s
   QuickCheckResult n (QuickCheckFailure QCFailure{..}) -> case quickCheckFailureException of
     Just e | Just result <- fromException e -> result
-    Just e | Just _ <- (fromException e :: Maybe HUnitFailure) -> failure hunitAssertion
+    Just e | Just hunit <- fromException e -> hunitFailureToResult (Just hunitAssertion) hunit
     Just e -> failure (uncaughtException e)
     Nothing -> failure falsifiable
     where
@@ -186,10 +195,10 @@ fromQuickCheckResult r = case parseQuickCheckResult r of
 
       numbers = formatNumbers n quickCheckFailureNumShrinks
 
+      hunitAssertion :: String
       hunitAssertion = intercalate "\n" [
           "Falsifiable " ++ numbers ++ ":"
         , indent quickCheckFailureCounterexample
-        , quickCheckFailureReason
         ]
 
       uncaughtException e = intercalate "\n" [
