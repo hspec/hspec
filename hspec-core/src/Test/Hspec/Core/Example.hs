@@ -185,10 +185,12 @@ instance Example (a -> QC.Property) where
       sanitizeFailureMessage r = let m = QC.output r in strip $
 #if MIN_VERSION_QuickCheck(2,7,0)
         case QC.theException r of
-          Just e -> let numbers = formatNumbers r in
-            "uncaught exception: " ++ formatException e ++ " " ++ numbers ++ "\n" ++ case lines m of
-              x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ": ") -> unlines xs
-              _ -> m
+          Just e -> case E.fromException e :: Maybe (HUnit.HUnitFailure) of
+            Just _ -> (addFalsifiable . stripFailed) m
+            Nothing -> let numbers = formatNumbers r in
+              "uncaught exception: " ++ formatException e ++ " " ++ numbers ++ "\n" ++ case lines m of
+                x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ": ") -> unlines xs
+                _ -> m
           Nothing ->
 #endif
             (addFalsifiable . stripFailed) m
