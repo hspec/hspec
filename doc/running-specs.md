@@ -15,7 +15,7 @@ turned into an executable with:
 -- file test/Spec.hs
 module Main where
 
-import Tests.Hspec
+import Test.Hspec
 
 main :: IO ()
 main = hspec spec
