@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Test.Hspec.Core.SpecSpec (main, spec) where
+module Test.Hspec.Core.SpecSpec (spec) where
 
 import           Prelude ()
 import           Helper
@@ -9,9 +9,6 @@ import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.Spec (Tree(..), runSpecM)
 
 import qualified Test.Hspec.Core.Spec as H
-
-main :: IO ()
-main = hspec spec
 
 runSpec :: H.Spec -> IO [String]
 runSpec = captureLines . H.hspecResult

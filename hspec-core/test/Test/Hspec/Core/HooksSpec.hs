@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Test.Hspec.Core.HooksSpec (main, spec) where
+module Test.Hspec.Core.HooksSpec (spec) where
 
 import           Control.Exception
 import           Helper
@@ -9,9 +9,6 @@ import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Spec as H
 
 import qualified Test.Hspec.Core.Hooks as H
-
-main :: IO ()
-main = hspec spec
 
 runSilent :: H.Spec -> IO ()
 runSilent = silence . H.hspec

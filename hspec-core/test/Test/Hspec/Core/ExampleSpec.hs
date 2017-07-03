@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, ScopedTypeVariables, TypeFamilies #-}
-module Test.Hspec.Core.ExampleSpec (main, spec) where
+module Test.Hspec.Core.ExampleSpec (spec) where
 
 import           Helper
 import           Mock
@@ -9,9 +9,6 @@ import           Test.HUnit
 import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
-
-main :: IO ()
-main = hspec spec
 
 safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO (Either SomeException H.Result)
 safeEvaluateExample e = H.safeEvaluateExample e defaultParams ($ ()) noOpProgressCallback

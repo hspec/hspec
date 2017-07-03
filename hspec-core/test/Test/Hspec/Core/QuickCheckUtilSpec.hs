@@ -1,15 +1,12 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-module Test.Hspec.Core.QuickCheckUtilSpec (main, spec) where
+module Test.Hspec.Core.QuickCheckUtilSpec (spec) where
 
 import           Helper
 
 import           Control.Exception
 
 import           Test.Hspec.Core.QuickCheckUtil
-
-main :: IO ()
-main = hspec spec
 
 spec :: Spec
 spec = do

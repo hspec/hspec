@@ -7,7 +7,7 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 #endif
 
-module Test.Hspec.Core.RunnerSpec (main, spec) where
+module Test.Hspec.Core.RunnerSpec (spec) where
 
 import           Prelude ()
 import           Helper
@@ -33,9 +33,6 @@ import qualified Test.Hspec.Core.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
 import qualified Test.Hspec.Core.Hooks as H
-
-main :: IO ()
-main = hspec spec
 
 quickCheckOptions :: [([Char], Args -> Int)]
 quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]

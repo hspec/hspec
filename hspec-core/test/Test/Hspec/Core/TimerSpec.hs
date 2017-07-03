@@ -1,11 +1,8 @@
-module Test.Hspec.Core.TimerSpec (main, spec) where
+module Test.Hspec.Core.TimerSpec (spec) where
 
 import           Helper
 
 import           Test.Hspec.Core.Timer
-
-main :: IO ()
-main = hspec spec
 
 spec :: Spec
 spec = do

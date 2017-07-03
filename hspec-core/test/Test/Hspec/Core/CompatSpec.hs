@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module Test.Hspec.Core.CompatSpec (main, spec) where
+module Test.Hspec.Core.CompatSpec (spec) where
 
 import           Helper
 import           System.SetEnv
@@ -7,9 +7,6 @@ import           Data.Typeable
 
 data SomeType = SomeType
   deriving Typeable
-
-main :: IO ()
-main = hspec spec
 
 spec :: Spec
 spec = do

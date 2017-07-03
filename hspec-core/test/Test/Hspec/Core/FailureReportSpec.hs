@@ -1,4 +1,4 @@
-module Test.Hspec.Core.FailureReportSpec (main, spec) where
+module Test.Hspec.Core.FailureReportSpec (spec) where
 
 import           Helper
 
@@ -6,9 +6,6 @@ import           System.IO
 import qualified Control.Exception as E
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.Config
-
-main :: IO ()
-main = hspec spec
 
 spec :: Spec
 spec = do
