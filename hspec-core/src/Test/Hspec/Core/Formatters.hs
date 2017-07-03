@@ -186,10 +186,9 @@ defaultFailedFormatter = do
       write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
       case reason of
-        Left e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
-        Right NoReason -> return ()
-        Right (Reason err) -> withFailColor $ indent err
-        Right (ExpectedButGot preface expected actual) -> do
+        NoReason -> return ()
+        Reason err -> withFailColor $ indent err
+        ExpectedButGot preface expected actual -> do
           mapM_ indent preface
 
           let chunks = diff expected actual
@@ -211,6 +210,7 @@ defaultFailedFormatter = do
             indented output text = case break (== '\n') text of
               (xs, "") -> output xs
               (xs, _ : ys) -> output (xs ++ "\n") >> write (indentation ++ "          ") >> indented output ys
+        Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
       where
         indentation = "       "
         indent message = do

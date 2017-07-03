@@ -201,7 +201,7 @@ spec = do
       context "when actual/expected contain newlines" $ do
         let
           env = environment {
-            environmentGetFailMessages = return [FailureRecord Nothing ([], "") (Right $ ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
+            environmentGetFailMessages = return [FailureRecord Nothing ([], "") (ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
             }
         it "adds indentation" $ do
           removeColors (interpretWith env action) `shouldBe` unlines [

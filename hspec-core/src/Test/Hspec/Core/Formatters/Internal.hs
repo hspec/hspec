@@ -17,7 +17,7 @@ import           Test.Hspec.Core.Compat
 import qualified System.IO as IO
 import           System.IO (Handle)
 import           Control.Monad
-import           Control.Exception (SomeException, AsyncException(..), bracket_, try, throwIO)
+import           Control.Exception (AsyncException(..), bracket_, try, throwIO)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
@@ -142,7 +142,7 @@ getPendingCount :: FormatM Int
 getPendingCount = gets statePendingCount
 
 -- | Append to the list of accumulated failure messages.
-addFailMessage :: Maybe Location -> Path -> Either SomeException FailureReason -> FormatM ()
+addFailMessage :: Maybe Location -> Path -> FailureReason -> FormatM ()
 addFailMessage loc p m = modify $ \s -> s {stateFailMessages = FailureRecord loc p m : stateFailMessages s}
 
 -- | Get the list of accumulated failure messages.

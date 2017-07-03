@@ -15,11 +15,10 @@ module Test.Hspec.Core.Tree (
 , location
 ) where
 
-import           Data.CallStack
-import           Control.Exception
-
 import           Prelude ()
 import           Test.Hspec.Core.Compat
+
+import           Data.CallStack
 
 import           Test.Hspec.Core.Example
 
@@ -53,7 +52,7 @@ data Item a = Item {
   -- parallel with other spec items
 , itemIsParallelizable :: Maybe Bool
   -- | Example for behavior
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO (Either SomeException Result)
+, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.

@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
-module Test.Hspec.Core.Runner.Util (
-  extractLocation
+module Test.Hspec.Core.Example.Location (
+  Location(..)
+, extractLocation
 
 -- for testing
 , parseCallStack
@@ -17,7 +18,12 @@ import           Data.Char
 import           Data.Maybe
 import           GHC.IO.Exception
 
-import           Test.Hspec.Core.Example
+-- | @Location@ is used to represent source locations.
+data Location = Location {
+  locationFile :: FilePath
+, locationLine :: Int
+, locationColumn :: Int
+} deriving (Eq, Show, Read)
 
 extractLocation :: SomeException -> Maybe Location
 extractLocation e = locationFromErrorCall e <|> locationFromPatternMatchFail e <|> locationFromIOException e

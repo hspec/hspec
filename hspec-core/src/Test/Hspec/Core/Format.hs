@@ -10,8 +10,6 @@ module Test.Hspec.Core.Format (
 , FailureReason(..)
 ) where
 
-import           Control.Exception
-
 import           Test.Hspec.Core.Spec (Progress, Location(..))
 import           Test.Hspec.Core.Example (FailureReason(..))
 import           Test.Hspec.Core.Util (Path)
@@ -26,7 +24,7 @@ data Item = Item {
 data Result =
     Success String
   | Pending (Maybe String)
-  | Failure (Either SomeException FailureReason)
+  | Failure FailureReason
 
 data Format m = Format {
   formatRun :: forall a. m a -> IO a

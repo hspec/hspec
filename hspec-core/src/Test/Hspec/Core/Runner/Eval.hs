@@ -36,12 +36,12 @@ import           Control.Monad.Trans.State hiding (State, state)
 import           Control.Monad.Trans.Class
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Spec (Tree(..), Location, Progress, FailureReason, Result(..), ProgressCallback)
+import           Test.Hspec.Core.Spec (Tree(..), Location, Progress, FailureReason(..), Result(..), ProgressCallback)
 import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format (Format(..))
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
-import           Test.Hspec.Core.Runner.Util
+import           Test.Hspec.Core.Example.Location
 
 -- for compatibility with GHC < 7.10.1
 class (Functor m, Applicative m, M.Monad m) => Monad m
@@ -85,16 +85,16 @@ reportItem path item = do
   format <- getFormat formatItem
   lift (format path item)
 
-failureItem :: Maybe Location -> Seconds -> Either E.SomeException FailureReason -> Format.Item
+failureItem :: Maybe Location -> Seconds -> FailureReason -> Format.Item
 failureItem loc duration err = Format.Item loc duration (Format.Failure err)
 
-reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Either E.SomeException Result) -> EvalM m ()
+reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Result) -> EvalM m ()
 reportResult path loc (duration, result) = do
   case result of
-    Right (Success details) -> reportItem path (Format.Item loc duration $ Format.Success details)
-    Right (Pending loc_ reason) -> reportItem path (Format.Item (loc_ <|> loc) duration $ Format.Pending reason)
-    Right (Failure loc_ err) -> reportItem path (failureItem (loc_ <|> loc) duration $ Right err)
-    Left err -> reportItem path (failureItem (extractLocation err <|> loc) duration $ Left  err)
+    Success details -> reportItem path (Format.Item loc duration $ Format.Success details)
+    Pending loc_ reason -> reportItem path (Format.Item (loc_ <|> loc) duration $ Format.Pending reason)
+    Failure loc_ err@(Error _ e) -> reportItem path (failureItem (loc_ <|> extractLocation e <|> loc) duration err)
+    Failure loc_ err -> reportItem path (failureItem (loc_ <|> loc) duration err)
 
 groupStarted :: Monad m => Path -> EvalM m ()
 groupStarted path = do
@@ -110,7 +110,7 @@ data EvalItem = EvalItem {
   evalItemDescription :: String
 , evalItemLocation :: Maybe Location
 , evalItemParallelize :: Bool
-, evalItemAction :: ProgressCallback -> IO (Either E.SomeException Result)
+, evalItemAction :: ProgressCallback -> IO Result
 }
 
 type EvalTree = Tree (IO ()) EvalItem
@@ -154,10 +154,10 @@ data Item a = Item {
 
 type Job m p a = (p -> m ()) -> m a
 
-type RunningItem m = Item (Path -> m (Seconds, Either E.SomeException Result))
+type RunningItem m = Item (Path -> m (Seconds, Result))
 type RunningTree m = Tree (IO ()) (RunningItem m)
 
-type RunningItem_ m = (Async (), Item (Job m Progress (Seconds, Either E.SomeException Result)))
+type RunningItem_ m = (Async (), Item (Job m Progress (Seconds, Result)))
 type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
 
 data Semaphore = Semaphore {
@@ -227,7 +227,7 @@ run specs = do
     runCleanup :: [String] -> IO () -> EvalM m ()
     runCleanup groups action = do
       (dt, r) <- liftIO $ measure $ safeTry action
-      either (reportItem path . failureItem Nothing dt . Left) return r
+      either (\ e -> reportItem path . failureItem (extractLocation e) dt . Error Nothing $ e) return r
       where
         path = (groups, "afterAll-hook")
 

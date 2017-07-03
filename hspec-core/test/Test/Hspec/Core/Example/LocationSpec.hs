@@ -1,12 +1,12 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-module Test.Hspec.Core.Runner.UtilSpec (spec) where
+module Test.Hspec.Core.Example.LocationSpec (spec) where
 
 import           Helper
 import           Control.Exception
 
 import           Test.Hspec.Core.Example
-import           Test.Hspec.Core.Runner.Util
+import           Test.Hspec.Core.Example.Location
 
 spec :: Spec
 spec = do

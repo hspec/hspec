@@ -61,6 +61,7 @@ library
       Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Config.Util
       Test.Hspec.Core.Example
+      Test.Hspec.Core.Example.Location
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters.Diff
@@ -69,7 +70,6 @@ library
       Test.Hspec.Core.Formatters.Monad
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
-      Test.Hspec.Core.Runner.Util
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
@@ -115,6 +115,7 @@ test-suite spec
       Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Config.Util
       Test.Hspec.Core.Example
+      Test.Hspec.Core.Example.Location
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters
@@ -127,7 +128,6 @@ test-suite spec
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Runner.Eval
-      Test.Hspec.Core.Runner.Util
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
@@ -142,6 +142,7 @@ test-suite spec
       Test.Hspec.Core.Config.OptionsSpec
       Test.Hspec.Core.Config.UtilSpec
       Test.Hspec.Core.ConfigSpec
+      Test.Hspec.Core.Example.LocationSpec
       Test.Hspec.Core.ExampleSpec
       Test.Hspec.Core.FailureReportSpec
       Test.Hspec.Core.Formatters.DiffSpec
@@ -149,7 +150,6 @@ test-suite spec
       Test.Hspec.Core.HooksSpec
       Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.Runner.EvalSpec
-      Test.Hspec.Core.Runner.UtilSpec
       Test.Hspec.Core.RunnerSpec
       Test.Hspec.Core.SpecSpec
       Test.Hspec.Core.TimerSpec

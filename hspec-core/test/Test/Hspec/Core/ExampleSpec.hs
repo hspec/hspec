@@ -13,7 +13,7 @@ import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 
-safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO (Either SomeException Result)
+safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO Result
 safeEvaluateExample e = H.safeEvaluateExample e defaultParams ($ ()) noOpProgressCallback
 
 evaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO Result
@@ -30,7 +30,7 @@ spec = do
   describe "safeEvaluateExample" $ do
     context "for Expectation" $ do
       it "returns Failure if an expectation does not hold" $ do
-        Right (Failure _ msg) <- safeEvaluateExample (23 `shouldBe` (42 :: Int))
+        Failure _ msg <- safeEvaluateExample (23 `shouldBe` (42 :: Int))
 #if MIN_VERSION_HUnit(1,5,0)
         msg `shouldBe` ExpectedButGot Nothing "42" "23"
 #else
@@ -39,10 +39,10 @@ spec = do
 
       context "when used with `pending`" $ do
         it "returns Pending" $ do
-          Right result <- safeEvaluateExample (H.pending)
+          result <- safeEvaluateExample (H.pending)
           let location =
 #if MIN_VERSION_base(4,8,1)
-                Just $ Location __FILE__ (__LINE__ - 3) 48
+                Just $ Location __FILE__ (__LINE__ - 3) 42
 #else
                 Nothing
 #endif
@@ -50,10 +50,10 @@ spec = do
 
       context "when used with `pendingWith`" $ do
         it "includes the optional reason" $ do
-          Right result <- safeEvaluateExample (H.pendingWith "foo")
+          result <- safeEvaluateExample (H.pendingWith "foo")
           let location =
 #if MIN_VERSION_base(4,8,1)
-                Just $ Location __FILE__ (__LINE__ - 3) 48
+                Just $ Location __FILE__ (__LINE__ - 3) 42
 #else
                 Nothing
 #endif

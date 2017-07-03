@@ -35,6 +35,7 @@ import qualified Test.QuickCheck.Property as QCP
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Compat
+import           Test.Hspec.Core.Example.Location
 
 -- | A type class for examples
 class Example e where
@@ -64,36 +65,32 @@ data Result =
     Success String
   | Pending (Maybe Location) (Maybe String)
   | Failure (Maybe Location) FailureReason
-  deriving (Eq, Show, Read, Typeable)
+  deriving (Show, Typeable)
 
 data FailureReason =
     NoReason
   | Reason String
   | ExpectedButGot (Maybe String) String String
-  deriving (Eq, Show, Read, Typeable)
+  | Error (Maybe String) SomeException
+  deriving (Show, Typeable)
 
 instance NFData FailureReason where
   rnf reason = case reason of
     NoReason -> ()
     Reason r -> r `deepseq` ()
     ExpectedButGot p e a  -> p `deepseq` e `deepseq` a `deepseq` ()
+    Error m e -> m `deepseq` e `seq` ()
 
 instance Exception Result
 
--- | @Location@ is used to represent source locations.
-data Location = Location {
-  locationFile :: FilePath
-, locationLine :: Int
-, locationColumn :: Int
-} deriving (Eq, Show, Read)
-
-safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO (Either SomeException Result)
+safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 safeEvaluateExample example params around progress = do
   r <- safeTry $ forceResult <$> evaluateExample example params around progress
   return $ case r of
-    Left e | Just result <- fromException e -> Right result
-    Left e | Just hunit <- fromException e -> Right (hunitFailureToResult Nothing hunit)
-    _ -> r
+    Left e | Just result <- fromException e -> result
+    Left e | Just hunit <- fromException e -> hunitFailureToResult Nothing hunit
+    Left e -> Failure Nothing $ Error Nothing e
+    Right result -> result
   where
     forceResult :: Result -> Result
     forceResult r = case r of

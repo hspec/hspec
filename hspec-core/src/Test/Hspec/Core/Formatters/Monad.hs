@@ -40,11 +40,9 @@ module Test.Hspec.Core.Formatters.Monad (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Exception
 import           Control.Monad.IO.Class
 
 import           Test.Hspec.Core.Formatters.Free
-
 import           Test.Hspec.Core.Example (FailureReason(..))
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec (Progress, Location)
@@ -68,7 +66,7 @@ data Formatter = Formatter {
 , exampleSucceeded :: Path -> String -> FormatM ()
 
 -- | evaluated after each failed example
-, exampleFailed :: Path -> Either SomeException FailureReason -> FormatM ()
+, exampleFailed :: Path -> FailureReason -> FormatM ()
 
 -- | evaluated after each pending example
 , examplePending :: Path -> Maybe String -> FormatM ()
@@ -83,7 +81,7 @@ data Formatter = Formatter {
 data FailureRecord = FailureRecord {
   failureRecordLocation :: Maybe Location
 , failureRecordPath     :: Path
-, failureRecordMessage  :: Either SomeException FailureReason
+, failureRecordMessage  :: FailureReason
 }
 
 data FormatF next =

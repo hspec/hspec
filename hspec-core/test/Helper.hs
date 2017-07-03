@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Helper (
   module Test.Hspec.Meta
 , module Test.Hspec.Core.Compat
@@ -45,6 +47,29 @@ import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Clock
+import           Test.Hspec.Core.Example(Result(..), FailureReason(..))
+
+instance Eq FailureReason where
+  a == b = case a of
+    NoReason -> case b of
+      NoReason -> True
+      _ -> False
+    Reason ma -> case b of
+      Reason mb -> ma == mb
+      _ -> False
+    ExpectedButGot la ea aa -> case b of
+      ExpectedButGot lb eb ab -> la == lb && ea == eb && aa == ab
+      _ -> False
+    Error la ea -> case b of
+      Error lb eb -> la == lb && ea `exceptionEq` eb
+      _ -> False
+
+exceptionEq :: E.SomeException -> E.SomeException -> Bool
+exceptionEq a b
+  | Just ea <- E.fromException a, Just eb <- E.fromException b = ea == (eb :: E.ErrorCall)
+  | otherwise = undefined
+
+deriving instance Eq Result
 
 throwException :: IO ()
 throwException = E.throwIO (E.ErrorCall "foobar")
