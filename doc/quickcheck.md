@@ -15,3 +15,16 @@ describe "read" $ do
 ```
 
 {% example QuickCheck.hs %}
+
+It's also possible to modify some of the arguments passed to the Quickcheck
+driver, namely: the maximum number of successes before succeeding, the maximum
+number of discarded tests per successful test before giving up and size of
+the test case:
+
+```hspec
+import Test.Hspec.Core.QuickCheck (modifyMaxSize)
+
+describe "read" $ do
+  modifyMaxSize (const 1000) $ it "is inverse to show" $ property $
+    \x -> (read . show) x == (x :: Int)
+```
