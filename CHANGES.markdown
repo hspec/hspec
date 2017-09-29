@@ -19,6 +19,9 @@
   - Make sure that progress output is always cleared (fixes #301)
   - Parse source locations from pattern match failures
 
+## Changes in 2.4.4
+  - Require quickcheck-io >= 0.2.0
+
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`
 
