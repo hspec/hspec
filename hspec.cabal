@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.17.0.
+-- This file has been generated from package.yaml by hpack version 0.19.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec
-version:          2.4.3
+version:          2.5.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2017 Simon Hengel,
@@ -43,14 +43,14 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base == 4.*
-    , hspec-core == 2.4.3
-    , hspec-discover == 2.4.3
-    , hspec-expectations == 0.8.2.*
-    , transformers >= 0.2.2.0
-    , QuickCheck >= 2.5.1
-    , HUnit >= 1.2.5
+      HUnit >=1.2.5
+    , QuickCheck >=2.5.1
+    , base ==4.*
     , call-stack
+    , hspec-core ==2.5.0
+    , hspec-discover ==2.5.0
+    , hspec-expectations ==0.8.2.*
+    , transformers >=0.2.2.0
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
@@ -69,16 +69,18 @@ test-suite spec
       test
   main-is: Spec.hs
   build-depends:
-      base == 4.*
-    , hspec-core == 2.4.3
-    , hspec-discover == 2.4.3
-    , hspec-expectations == 0.8.2.*
-    , transformers >= 0.2.2.0
-    , QuickCheck >= 2.5.1
-    , HUnit >= 1.2.5
+      HUnit >=1.2.5
+    , QuickCheck >=2.5.1
+    , base ==4.*
     , call-stack
-    , hspec
     , directory
+    , hspec
+    , hspec-core ==2.5.0
+    , hspec-discover ==2.5.0
+    , hspec-expectations ==0.8.2.*
+    , hspec-meta >=2.3.2
     , stringbuilder
-    , hspec-meta >= 2.3.2
+    , transformers >=0.2.2.0
+  other-modules:
+      Paths_hspec
   default-language: Haskell2010

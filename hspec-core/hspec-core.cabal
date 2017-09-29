@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.18.0.
+-- This file has been generated from package.yaml by hpack version 0.19.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.4.3
+version:          2.5.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2017 Simon Hengel,
@@ -30,23 +30,23 @@ library
       vendor
   ghc-options: -Wall
   build-depends:
-      base >= 4.5.0.0 && < 5
-    , random
-    , tf-random
-    , setenv
-    , ansi-terminal >= 0.5
-    , clock
-    , transformers >= 0.2.2.0
-    , deepseq
-    , HUnit >= 1.2.5
-    , QuickCheck >= 2.7
-    , quickcheck-io >= 0.2.0
-    , hspec-expectations == 0.8.2.*
-    , async >= 2
+      HUnit >=1.2.5
+    , QuickCheck >=2.7
+    , ansi-terminal >=0.5
+    , array
+    , async >=2
+    , base >=4.5.0.0 && <5
     , call-stack
+    , clock
+    , deepseq
     , directory
     , filepath
-    , array
+    , hspec-expectations ==0.8.2.*
+    , quickcheck-io >=0.2.0
+    , random
+    , setenv
+    , tf-random
+    , transformers >=0.2.2.0
   exposed-modules:
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
@@ -87,27 +87,27 @@ test-suite spec
   ghc-options: -Wall
   cpp-options: -DTEST
   build-depends:
-      base >= 4.5.0.0 && < 5
-    , random
-    , tf-random
-    , setenv
-    , ansi-terminal >= 0.5
-    , clock
-    , transformers >= 0.2.2.0
-    , deepseq
-    , HUnit >= 1.2.5
-    , QuickCheck >= 2.7
-    , quickcheck-io >= 0.2.0
-    , hspec-expectations == 0.8.2.*
-    , async >= 2
+      HUnit >=1.2.5
+    , QuickCheck >=2.7
+    , ansi-terminal >=0.5
+    , array
+    , async >=2
+    , base >=4.5.0.0 && <5
     , call-stack
+    , clock
+    , deepseq
     , directory
     , filepath
-    , array
-    , hspec-meta >= 2.3.2
-    , silently >= 1.2.4
+    , hspec-expectations ==0.8.2.*
+    , hspec-meta >=2.3.2
     , process
+    , quickcheck-io >=0.2.0
+    , random
+    , setenv
+    , silently >=1.2.4
     , temporary
+    , tf-random
+    , transformers >=0.2.2.0
   other-modules:
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
@@ -154,4 +154,5 @@ test-suite spec
       Test.Hspec.Core.SpecSpec
       Test.Hspec.Core.TimerSpec
       Test.Hspec.Core.UtilSpec
+      Paths_hspec_core
   default-language: Haskell2010
