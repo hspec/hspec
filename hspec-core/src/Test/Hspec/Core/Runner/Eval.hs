@@ -36,7 +36,7 @@ import           Control.Monad.Trans.State hiding (State, state)
 import           Control.Monad.Trans.Class
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Spec (Tree(..), Location, Progress, FailureReason(..), Result(..), ProgressCallback)
+import           Test.Hspec.Core.Spec (Tree(..), Progress, FailureReason(..), Result(..), ProgressCallback)
 import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format (Format(..))
 import qualified Test.Hspec.Core.Format as Format

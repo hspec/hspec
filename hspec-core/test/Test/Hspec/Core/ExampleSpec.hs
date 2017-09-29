@@ -8,7 +8,11 @@ import           Mock
 import           Control.Exception
 import           Test.HUnit
 
-import           Test.Hspec.Core.Example (Result(..), Location(..), FailureReason(..))
+import           Test.Hspec.Core.Example (Result(..)
+#if MIN_VERSION_base(4,8,1)
+  , Location(..)
+#endif
+  , FailureReason(..))
 import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
