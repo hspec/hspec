@@ -11,13 +11,11 @@ instance Example a => Example (Retry a) where
   type Arg (Retry a) = Arg a
   evaluateExample (Retry n example) a b c
     | n > 1 = do
-        r <- safeEvaluateExample example a b c
-        case r of
-          Right result -> case result of
-            Success{} -> return result
-            Pending{} -> return result
-            Failure{} -> retry
-          Left _ -> retry
+        result <- safeEvaluateExample example a b c
+        case result of
+          Success{} -> return result
+          Pending{} -> return result
+          Failure{} -> retry
     | otherwise = evaluateExample example a b c
     where
       retry = evaluateExample (Retry (pred n) example) a b c

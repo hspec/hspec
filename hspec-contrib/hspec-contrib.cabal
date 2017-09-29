@@ -27,7 +27,7 @@ library
       src
   build-depends:
       base == 4.*
-    , hspec-core >= 2.4.0
+    , hspec-core >= 2.5.0
     , HUnit
   exposed-modules:
       Test.Hspec.Contrib.Retry
