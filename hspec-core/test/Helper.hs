@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Helper (
@@ -33,7 +34,7 @@ import           Control.Monad (guard)
 import           System.Environment (withArgs, getEnvironment)
 import           System.Exit
 import qualified Control.Exception as E
-import           Control.Exception (bracket)
+import           Control.Exception
 import qualified System.Timeout as System
 import           System.IO.Silently
 import           System.SetEnv
@@ -48,6 +49,10 @@ import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example(Result(..), FailureReason(..))
+
+#if !MIN_VERSION_base(4,7,0)
+deriving instance Eq ErrorCall
+#endif
 
 instance Eq FailureReason where
   a == b = case a of

@@ -6,7 +6,7 @@ module Test.Hspec.Core.ExampleSpec (spec) where
 import           Helper
 import           Mock
 import           Control.Exception
-import           Test.HUnit
+import           Test.HUnit (assertFailure, assertEqual)
 
 import           Test.Hspec.Core.Example (Result(..)
 #if MIN_VERSION_base(4,8,1)
