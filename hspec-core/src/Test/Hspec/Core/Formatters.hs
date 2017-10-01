@@ -106,8 +106,8 @@ silent = Formatter {
 , exampleGroupDone    = return ()
 , exampleProgress     = \_ _ -> return ()
 , exampleSucceeded    = \ _ _ -> return ()
-, exampleFailed       = \_ _ -> return ()
-, examplePending      = \_ _  -> return ()
+, exampleFailed       = \_ _ _ -> return ()
+, examplePending      = \_ _ _ -> return ()
 , failedFormatter     = return ()
 , footerFormatter     = return ()
 }
@@ -124,17 +124,21 @@ specdoc = silent {
 , exampleProgress = \_ p -> do
     writeTransient (formatProgress p)
 
-, exampleSucceeded = \(nesting, requirement) details -> withSuccessColor $ do
+, exampleSucceeded = \(nesting, requirement) info -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ requirement
-    forM_ (lines details) $ \ s ->
+    forM_ (lines info) $ \ s ->
       writeLine $ indentationFor ("" : nesting) ++ s
 
-, exampleFailed = \(nesting, requirement) _ -> withFailColor $ do
+, exampleFailed = \(nesting, requirement) info _ -> withFailColor $ do
     n <- getFailCount
     writeLine $ indentationFor nesting ++ requirement ++ " FAILED [" ++ show n ++ "]"
+    forM_ (lines info) $ \ s ->
+      writeLine $ indentationFor ("" : nesting) ++ s
 
-, examplePending = \(nesting, requirement) reason -> withPendingColor $ do
+, examplePending = \(nesting, requirement) info reason -> withPendingColor $ do
     writeLine $ indentationFor nesting ++ requirement ++ "\n     # PENDING: " ++ fromMaybe "No reason given" reason
+    forM_ (lines info) $ \ s ->
+      writeLine $ indentationFor ("" : nesting) ++ s
 
 , failedFormatter = defaultFailedFormatter
 
@@ -149,8 +153,8 @@ specdoc = silent {
 progress :: Formatter
 progress = silent {
   exampleSucceeded = \_ _ -> withSuccessColor $ write "."
-, exampleFailed    = \_ _ -> withFailColor    $ write "F"
-, examplePending   = \_ _ -> withPendingColor $ write "."
+, exampleFailed    = \_ _ _ -> withFailColor    $ write "F"
+, examplePending   = \_ _ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter
 , footerFormatter  = defaultFooter
 }

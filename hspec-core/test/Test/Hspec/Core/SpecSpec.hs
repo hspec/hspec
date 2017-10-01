@@ -4,7 +4,7 @@ module Test.Hspec.Core.SpecSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           Test.Hspec.Core.Spec (Item(..), Result(..))
+import           Test.Hspec.Core.Spec (Item(..), Result(..), ResultStatus(..))
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.Spec (Tree(..), runSpecM)
 
@@ -32,7 +32,7 @@ spec = do
     it "creates a tree of pending spec items" $ do
       [Node _ [Leaf item]] <- runSpecM (H.xdescribe "" $ H.it "whatever" True)
       r <- itemExample item defaultParams ($ ()) noOpProgressCallback
-      r `shouldBe` Pending Nothing Nothing
+      r `shouldBe` Result "" (Pending Nothing Nothing)
 
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
@@ -42,7 +42,7 @@ spec = do
     it "takes an example of that behavior" $ do
       [Leaf item] <- runSpecM (H.it "whatever" True)
       r <- itemExample item defaultParams ($ ()) noOpProgressCallback
-      r `shouldBe` Success ""
+      r `shouldBe` Result "" Success
 
     it "adds source locations" $ do
       [Leaf item] <- runSpecM (H.it "foo" True)
@@ -63,7 +63,7 @@ spec = do
     it "creates a pending spec item" $ do
       [Leaf item] <- runSpecM (H.xit "whatever" True)
       r <- itemExample item defaultParams ($ ()) noOpProgressCallback
-      r `shouldBe` Pending Nothing Nothing
+      r `shouldBe` Result "" (Pending Nothing Nothing)
 
   describe "pending" $ do
     it "specifies a pending example" $ do

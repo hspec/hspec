@@ -13,9 +13,9 @@ instance Example a => Example (Retry a) where
     | n > 1 = do
         result <- safeEvaluateExample example a b c
         case result of
-          Success{} -> return result
-          Pending{} -> return result
-          Failure{} -> retry
+          Result _ Success{} -> return result
+          Result _ Pending{} -> return result
+          Result _ Failure{} -> retry
     | otherwise = evaluateExample example a b c
     where
       retry = evaluateExample (Retry (pred n) example) a b c

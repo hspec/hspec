@@ -475,7 +475,7 @@ spec = do
 
     it "does not let escape error thunks from failure messages" $ do
       r <- silence . H.hspecResult $ do
-        H.it "some example" (H.Failure Nothing . H.Reason $ "foobar" ++ undefined)
+        H.it "some example" (H.Result "" $ H.Failure Nothing . H.Reason $ "foobar" ++ undefined)
       r `shouldBe` H.Summary 1 1
 
     it "runs specs in parallel" $ do

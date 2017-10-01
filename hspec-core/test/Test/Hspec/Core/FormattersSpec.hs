@@ -80,12 +80,12 @@ environment = Environment {
 testSpec :: H.Spec
 testSpec = do
   H.describe "Example" $ do
-    H.it "success"    (H.Success "")
-    H.it "fail 1"     (H.Failure Nothing $ H.Reason "fail message")
+    H.it "success"    (H.Result "" H.Success)
+    H.it "fail 1"     (H.Result "" $ H.Failure Nothing $ H.Reason "fail message")
     H.it "pending"    (H.pendingWith "pending message")
-    H.it "fail 2"     (H.Failure Nothing H.NoReason)
+    H.it "fail 2"     (H.Result "" $ H.Failure Nothing H.NoReason)
     H.it "exceptions" (undefined :: H.Result)
-    H.it "fail 3"     (H.Failure Nothing H.NoReason)
+    H.it "fail 3"     (H.Result "" $ H.Failure Nothing H.NoReason)
 
 spec :: Spec
 spec = do
@@ -100,13 +100,13 @@ spec = do
 
     describe "exampleFailed" $ do
       it "marks failing examples with F" $ do
-        interpret (H.exampleFailed formatter undefined undefined) `shouldBe` [
+        interpret (H.exampleFailed formatter undefined undefined undefined) `shouldBe` [
             Failed "F"
           ]
 
     describe "examplePending" $ do
       it "marks pending examples with ." $ do
-        interpret (H.examplePending formatter undefined undefined) `shouldBe` [
+        interpret (H.examplePending formatter undefined undefined undefined) `shouldBe` [
             Pending "."
           ]
 

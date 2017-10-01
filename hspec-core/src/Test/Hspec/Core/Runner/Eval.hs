@@ -35,7 +35,7 @@ import           Control.Monad.Trans.State hiding (State, state)
 import           Control.Monad.Trans.Class
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Spec (Tree(..), Progress, FailureReason(..), Result(..), ProgressCallback)
+import           Test.Hspec.Core.Spec (Tree(..), Progress, FailureReason(..), Result(..), ResultStatus(..), ProgressCallback)
 import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format (Format(..))
 import qualified Test.Hspec.Core.Format as Format
@@ -82,16 +82,17 @@ reportItem path item = do
   format <- getFormat formatItem
   lift (format path item)
 
-failureItem :: Maybe Location -> Seconds -> FailureReason -> Format.Item
-failureItem loc duration err = Format.Item loc duration (Format.Failure err)
+failureItem :: Maybe Location -> Seconds -> String -> FailureReason -> Format.Item
+failureItem loc duration info err = Format.Item loc duration info (Format.Failure err)
 
 reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Result) -> EvalM m ()
 reportResult path loc (duration, result) = do
   case result of
-    Success details -> reportItem path (Format.Item loc duration $ Format.Success details)
-    Pending loc_ reason -> reportItem path (Format.Item (loc_ <|> loc) duration $ Format.Pending reason)
-    Failure loc_ err@(Error _ e) -> reportItem path (failureItem (loc_ <|> extractLocation e <|> loc) duration err)
-    Failure loc_ err -> reportItem path (failureItem (loc_ <|> loc) duration err)
+    Result info status -> case status of
+      Success -> reportItem path (Format.Item loc duration info Format.Success)
+      Pending loc_ reason -> reportItem path (Format.Item (loc_ <|> loc) duration info $ Format.Pending reason)
+      Failure loc_ err@(Error _ e) -> reportItem path (failureItem (loc_ <|> extractLocation e <|> loc) duration info err)
+      Failure loc_ err -> reportItem path (failureItem (loc_ <|> loc) duration info err)
 
 groupStarted :: Monad m => Path -> EvalM m ()
 groupStarted path = do
@@ -224,7 +225,7 @@ run specs = do
     runCleanup :: [String] -> IO () -> EvalM m ()
     runCleanup groups action = do
       (dt, r) <- liftIO $ measure $ safeTry action
-      either (\ e -> reportItem path . failureItem (extractLocation e) dt . Error Nothing $ e) return r
+      either (\ e -> reportItem path . failureItem (extractLocation e) dt "" . Error Nothing $ e) return r
       where
         path = (groups, "afterAll-hook")
 

@@ -66,10 +66,10 @@ data Formatter = Formatter {
 , exampleSucceeded :: Path -> String -> FormatM ()
 
 -- | evaluated after each failed example
-, exampleFailed :: Path -> FailureReason -> FormatM ()
+, exampleFailed :: Path -> String -> FailureReason -> FormatM ()
 
 -- | evaluated after each pending example
-, examplePending :: Path -> Maybe String -> FormatM ()
+, examplePending :: Path -> String -> Maybe String -> FormatM ()
 
 -- | evaluated after a test run
 , failedFormatter :: FormatM ()

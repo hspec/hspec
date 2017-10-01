@@ -11,7 +11,8 @@ module Test.Hspec.Core.Example (
 , ActionWith
 , Progress
 , ProgressCallback
-, Result (..)
+, Result(..)
+, ResultStatus (..)
 , Location (..)
 , FailureReason (..)
 , safeEvaluateExample
@@ -59,8 +60,13 @@ type ProgressCallback = Progress -> IO ()
 type ActionWith a = a -> IO ()
 
 -- | The result of running an example
-data Result =
-    Success String
+data Result = Result {
+  resultInfo :: String
+, resultStatus :: ResultStatus
+} deriving (Show, Typeable)
+
+data ResultStatus =
+    Success
   | Pending (Maybe Location) (Maybe String)
   | Failure (Maybe Location) FailureReason
   deriving (Show, Typeable)
@@ -87,12 +93,15 @@ safeEvaluateExample example params around progress = do
   return $ case r of
     Left e | Just result <- fromException e -> result
     Left e | Just hunit <- fromException e -> hunitFailureToResult Nothing hunit
-    Left e -> Failure Nothing $ Error Nothing e
+    Left e -> Result "" $ Failure Nothing $ Error Nothing e
     Right result -> result
   where
     forceResult :: Result -> Result
-    forceResult r = case r of
-      Success s -> s `deepseq` r
+    forceResult r@(Result info status) = info `deepseq` (forceResultStatus status) `seq` r
+
+    forceResultStatus :: ResultStatus -> ResultStatus
+    forceResultStatus r = case r of
+      Success -> r
       Pending _ m -> m `deepseq` r
       Failure _ m -> m `deepseq` r
 
@@ -103,7 +112,7 @@ instance Example Result where
 instance Example (a -> Result) where
   type Arg (a -> Result) = a
   evaluateExample example _params action _callback = do
-    ref <- newIORef (Success "")
+    ref <- newIORef (Result "" Success)
     action (writeIORef ref . example)
     readIORef ref
 
@@ -114,13 +123,13 @@ instance Example Bool where
 instance Example (a -> Bool) where
   type Arg (a -> Bool) = a
   evaluateExample p _params action _callback = do
-    ref <- newIORef (Success "")
+    ref <- newIORef (Result "" Success)
     action $ \a -> example a >>= writeIORef ref
     readIORef ref
     where
       example a
-        | p a = return (Success "")
-        | otherwise = return (Failure Nothing NoReason)
+        | p a = return (Result "" Success)
+        | otherwise = return (Result "" $ Failure Nothing NoReason)
 
 instance Example Expectation where
   type Arg Expectation = ()
@@ -130,8 +139,8 @@ hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> Result
 hunitFailureToResult pre e = case e of
   HUnit.HUnitFailure mLoc err ->
       case err of
-        HUnit.Reason reason -> Failure location (Reason $ addPre reason)
-        HUnit.ExpectedButGot preface expected actual -> Failure location (ExpectedButGot (addPreMaybe preface) expected actual)
+        HUnit.Reason reason -> Result "" $ Failure location (Reason $ addPre reason)
+        HUnit.ExpectedButGot preface expected actual -> Result "" $ Failure location (ExpectedButGot (addPreMaybe preface) expected actual)
           where
             addPreMaybe :: Maybe String -> Maybe String
             addPreMaybe xs = case (pre, xs) of
@@ -149,7 +158,7 @@ hunitFailureToResult pre e = case e of
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
-  evaluateExample e _ action _ = action e >> return (Success "")
+  evaluateExample e _ action _ = action e >> return (Result "" Success)
 
 instance Example QC.Property where
   type Arg QC.Property = ()
@@ -166,33 +175,33 @@ instance Example (a -> QC.Property) where
 
 fromQuickCheckResult :: QC.Result -> Result
 fromQuickCheckResult r = case parseQuickCheckResult r of
-  QuickCheckResult _ (QuickCheckOtherFailure err) -> Failure Nothing (Reason err)
-  QuickCheckResult _ (QuickCheckSuccess s) -> Success s
-  QuickCheckResult n (QuickCheckFailure QCFailure{..}) -> case quickCheckFailureException of
+  QuickCheckResult _ info (QuickCheckOtherFailure err) -> Result info $ Failure Nothing (Reason err)
+  QuickCheckResult _ info QuickCheckSuccess -> Result info Success
+  QuickCheckResult n info (QuickCheckFailure QCFailure{..}) -> case quickCheckFailureException of
     Just e | Just result <- fromException e -> result
     Just e | Just hunit <- fromException e -> hunitFailureToResult (Just hunitAssertion) hunit
     Just e -> failure (uncaughtException e)
     Nothing -> failure falsifiable
     where
-      failure = Failure Nothing . Reason
+      failure = Result info . Failure Nothing . Reason
 
       numbers = formatNumbers n quickCheckFailureNumShrinks
 
       hunitAssertion :: String
       hunitAssertion = intercalate "\n" [
           "Falsifiable " ++ numbers ++ ":"
-        , indent quickCheckFailureCounterexample
+        , indent (unlines quickCheckFailureCounterexample)
         ]
 
       uncaughtException e = intercalate "\n" [
           "uncaught exception: " ++ formatException e
         , numbers
-        , indent quickCheckFailureCounterexample
+        , indent (unlines quickCheckFailureCounterexample)
         ]
 
       falsifiable = intercalate "\n" [
           quickCheckFailureReason ++ " " ++ numbers ++ ":"
-        , indent quickCheckFailureCounterexample
+        , indent (unlines quickCheckFailureCounterexample)
         ]
 
 indent :: String -> String

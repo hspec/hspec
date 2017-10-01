@@ -40,18 +40,18 @@ formatterToFormat formatter config = Format {
 , formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
 , formatProgress = \ path progress -> when useColor $ do
     interpret $ M.exampleProgress formatter path progress
-, formatItem = \ path (Item loc _duration result) -> do
+, formatItem = \ path (Item loc _duration info result) -> do
     clearTransientOutput
     case result of
-      Success details -> do
+      Success -> do
         increaseSuccessCount
-        interpret $ M.exampleSucceeded formatter path details
+        interpret $ M.exampleSucceeded formatter path info
       Pending reason -> do
         increasePendingCount
-        interpret $ M.examplePending formatter path reason
+        interpret $ M.examplePending formatter path info reason
       Failure err -> do
         addFailMessage loc path err
-        interpret $ M.exampleFailed formatter path err
+        interpret $ M.exampleFailed formatter path info err
 } where
     useColor = formatConfigUseColor config
 

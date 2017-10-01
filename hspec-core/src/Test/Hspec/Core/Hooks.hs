@@ -57,7 +57,7 @@ memoize mvar action = do
       a <- try action
       return (either Failed Memoized a, a)
     Memoized a -> return (ma, Right a)
-    Failed _ -> throwIO (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
+    Failed _ -> throwIO (Result "" $ Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
   either throwIO return result
 
 -- | Run a custom action after every spec item.

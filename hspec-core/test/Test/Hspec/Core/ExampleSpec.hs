@@ -8,7 +8,7 @@ import           Mock
 import           Control.Exception
 import           Test.HUnit (assertFailure, assertEqual)
 
-import           Test.Hspec.Core.Example (Result(..)
+import           Test.Hspec.Core.Example (Result(..), ResultStatus(..)
 #if MIN_VERSION_base(4,8,1)
   , Location(..)
 #endif
@@ -34,7 +34,7 @@ spec = do
   describe "safeEvaluateExample" $ do
     context "for Expectation" $ do
       it "returns Failure if an expectation does not hold" $ do
-        Failure _ msg <- safeEvaluateExample (23 `shouldBe` (42 :: Int))
+        Result "" (Failure _ msg) <- safeEvaluateExample (23 `shouldBe` (42 :: Int))
         msg `shouldBe` ExpectedButGot Nothing "42" "23"
 
       context "when used with `pending`" $ do
@@ -46,7 +46,7 @@ spec = do
 #else
                 Nothing
 #endif
-          result `shouldBe` Pending location Nothing
+          result `shouldBe` Result "" (Pending location Nothing)
 
       context "when used with `pendingWith`" $ do
         it "includes the optional reason" $ do
@@ -57,7 +57,7 @@ spec = do
 #else
                 Nothing
 #endif
-          result `shouldBe` Pending location (Just "foo")
+          result `shouldBe` Result "" (Pending location $ Just "foo")
 
   describe "evaluateExample" $ do
     context "for Result" $ do
@@ -67,7 +67,9 @@ spec = do
             action e = do
               e
               modifyIORef ref succ
-        evaluateExampleWith action (Failure Nothing NoReason) `shouldReturn` Failure Nothing NoReason
+
+            result = Result "" (Failure Nothing NoReason)
+        evaluateExampleWith action result `shouldReturn` result
         readIORef ref `shouldReturn` 1
 
       it "accepts arguments" $ do
@@ -76,15 +78,15 @@ spec = do
             action e = do
               e 42
               modifyIORef ref succ
-        evaluateExampleWithArgument action (Failure Nothing . Reason . show) `shouldReturn` Failure Nothing (Reason "42")
+        evaluateExampleWithArgument action (Result "" . Failure Nothing . Reason . show) `shouldReturn` Result "" (Failure Nothing $ Reason "42")
         readIORef ref `shouldReturn` 1
 
     context "for Bool" $ do
       it "returns Success on True" $ do
-        evaluateExample True `shouldReturn` (Success "")
+        evaluateExample True `shouldReturn` Result "" Success
 
       it "returns Failure on False" $ do
-        evaluateExample False `shouldReturn` Failure Nothing NoReason
+        evaluateExample False `shouldReturn` Result "" (Failure Nothing NoReason)
 
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Bool) `shouldThrow` errorCall "foobar"
@@ -95,7 +97,7 @@ spec = do
             action e = do
               e
               modifyIORef ref succ
-        evaluateExampleWith action False `shouldReturn` Failure Nothing NoReason
+        evaluateExampleWith action False `shouldReturn` Result "" (Failure Nothing NoReason)
         readIORef ref `shouldReturn` 1
 
       it "accepts arguments" $ do
@@ -104,12 +106,12 @@ spec = do
             action e = do
               e 42
               modifyIORef ref succ
-        evaluateExampleWithArgument action (== (23 :: Integer)) `shouldReturn` Failure Nothing NoReason
+        evaluateExampleWithArgument action (== (23 :: Integer)) `shouldReturn` Result "" (Failure Nothing NoReason)
         readIORef ref `shouldReturn` 1
 
     context "for Expectation" $ do
       it "returns Success if all expectations hold" $ do
-        evaluateExample (23 `shouldBe` (23 :: Int)) `shouldReturn` (Success "")
+        evaluateExample (23 `shouldBe` (23 :: Int)) `shouldReturn` Result "" Success
 
       it "propagates exceptions" $ do
         evaluateExample (error "foobar" :: Expectation) `shouldThrow` errorCall "foobar"
@@ -122,23 +124,23 @@ spec = do
               e
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
-        evaluateExampleWith action (modifyIORef ref succ) `shouldReturn` (Success "")
+        evaluateExampleWith action (modifyIORef ref succ) `shouldReturn` Result "" Success
         readIORef ref `shouldReturn` 2
 
     context "for Property" $ do
       it "returns Success if property holds" $ do
-        evaluateExample (property $ \n -> n == (n :: Int)) `shouldReturn` (Success "")
+        evaluateExample (property $ \n -> n == (n :: Int)) `shouldReturn` Result "+++ OK, passed 1000 tests." Success
 
       it "shows the collected labels" $ do
-        Success details <- evaluateExample $ property $ \ () -> label "unit" True
-        details `shouldBe` "100.0% unit\n"
+        Result info Success <- evaluateExample $ property $ \ () -> label "unit" True
+        info `shouldBe` "+++ OK, passed 1000 tests (100.0% unit)."
 
       it "returns Failure if property does not hold" $ do
-        Failure _ _ <- evaluateExample $ property $ \n -> n /= (n :: Int)
+        Result "" (Failure _ _) <- evaluateExample $ property $ \n -> n /= (n :: Int)
         return ()
 
       it "shows what falsified it" $ do
-        Failure _ r <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> False
+        Result "" (Failure _ r) <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> False
         r `shouldBe` (Reason . intercalate "\n")  [
             "Falsifiable (after 1 test):"
           , "  0"
@@ -153,11 +155,11 @@ spec = do
               e
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
-        Success "" <- evaluateExampleWith action (property $ \(_ :: Int) -> modifyIORef ref succ)
+        Result _ Success <- evaluateExampleWith action (property $ \(_ :: Int) -> modifyIORef ref succ)
         readIORef ref `shouldReturn` 2000
 
       it "pretty-prints exceptions" $ do
-        Failure _ r <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (throw (ErrorCall "foobar") :: Bool))
+        Result "" (Failure _ r) <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (throw (ErrorCall "foobar") :: Bool))
         r `shouldBe` (Reason . intercalate "\n") [
             "uncaught exception: ErrorCall"
           , "foobar"
@@ -169,17 +171,17 @@ spec = do
         let prop p = property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> p
         context "when used with shouldBe" $ do
           it "shows what falsified it" $ do
-            Failure _ err <- evaluateExample $ prop $ 23 `shouldBe` (42 :: Int)
+            Result "" (Failure _ err) <- evaluateExample $ prop $ 23 `shouldBe` (42 :: Int)
             err `shouldBe` ExpectedButGot (Just "Falsifiable (after 1 test):\n  0\n  1") "42" "23"
 
         context "when used with assertEqual" $ do
           it "includes prefix" $ do
-            Failure _ err <- evaluateExample $ prop $ assertEqual "foobar" (42 :: Int) 23
+            Result "" (Failure _ err) <- evaluateExample $ prop $ assertEqual "foobar" (42 :: Int) 23
             err `shouldBe` ExpectedButGot (Just "Falsifiable (after 1 test):\n  0\n  1\nfoobar") "42" "23"
 
         context "when used with assertFailure" $ do
           it "includes reason" $ do
-            Failure _ err <- evaluateExample $ prop (assertFailure "foobar" :: IO ())
+            Result "" (Failure _ err) <- evaluateExample $ prop (assertFailure "foobar" :: IO ())
             err `shouldBe` Reason "Falsifiable (after 1 test):\n  0\n  1\nfoobar"
 
       context "when used with `pending`" $ do
@@ -190,7 +192,7 @@ spec = do
 #else
                 Nothing
 #endif
-          evaluateExample (property H.pending) `shouldReturn` Pending location Nothing
+          evaluateExample (property H.pending) `shouldReturn` Result "" (Pending location Nothing)
 
       context "when used with `pendingWith`" $ do
         it "includes the optional reason" $ do
@@ -200,7 +202,7 @@ spec = do
 #else
                 Nothing
 #endif
-          evaluateExample (property $ H.pendingWith "foo") `shouldReturn` Pending location (Just "foo")
+          evaluateExample (property $ H.pendingWith "foo") `shouldReturn` Result "" (Pending location $ Just "foo")
 
   describe "Expectation" $ do
     context "as a QuickCheck property" $ do

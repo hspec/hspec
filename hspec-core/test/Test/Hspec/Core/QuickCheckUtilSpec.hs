@@ -1,12 +1,19 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Test.Hspec.Core.QuickCheckUtilSpec (spec) where
 
 import           Helper
 
-import           Control.Exception
+import qualified Test.QuickCheck.Property as QCP
 
 import           Test.Hspec.Core.QuickCheckUtil
+
+deriving instance Eq QuickCheckResult
+deriving instance Eq Status
+deriving instance Eq QuickCheckFailure
 
 spec :: Spec
 spec = do
@@ -23,82 +30,151 @@ spec = do
     it "pluralizes number of shrinks" $ do
       formatNumbers 3 3 `shouldBe` "(after 3 tests and 3 shrinks)"
 
+  describe "stripSuffix" $ do
+    it "drops the given suffix from a list" $ do
+      stripSuffix "bar" "foobar" `shouldBe` Just "foo"
+
+  describe "splitBy" $ do
+    it "splits a string by a given infix" $ do
+      splitBy "bar" "foo bar baz" `shouldBe` Just ("foo ", " baz")
+
   describe "parseQuickCheckResult" $ do
-    let qc = quickCheckWithResult stdArgs {chatty = False, replay = Just (mkGen 0, 0)}
+    let
+      args = stdArgs {chatty = False, replay = Just (mkGen 0, 0)}
+      qc = quickCheckWithResult args
 
     context "with Success" $ do
-      let p :: Int -> Property
-          p n = (label "unit" $ n == n)
+      let p :: Int -> Bool
+          p n = n == n
 
-      it "includes test count" $ do
-        result <- qc p
-        let QuickCheckResult n (QuickCheckSuccess _) = parseQuickCheckResult result
-        n `shouldBe` 100
+      it "parses result" $ do
+        parseQuickCheckResult <$> qc p `shouldReturn`
+          QuickCheckResult 100 "+++ OK, passed 100 tests." QuickCheckSuccess
 
       it "includes labels" $ do
-        result <- qc p
-        let QuickCheckResult _ (QuickCheckSuccess s) = parseQuickCheckResult result
-        s `shouldBe` "100% unit\n"
+        parseQuickCheckResult <$> qc (label "unit" p) `shouldReturn`
+          QuickCheckResult 100 "+++ OK, passed 100 tests (100% unit)." QuickCheckSuccess
 
     context "with GaveUp" $ do
       let p :: Int -> Property
-          p n = (n == 23) ==> True
+          p n = (n == 1234) ==> True
 
-      it "includes reason" $ do
-        result <- qc p
-        let QuickCheckResult _ (QuickCheckOtherFailure r) = parseQuickCheckResult result
-        r `shouldBe` "Gave up after 3 tests"
+          qc = quickCheckWithResult args {maxSuccess = 2, maxDiscardRatio = 1}
+          result = QuickCheckResult 0 "" (QuickCheckOtherFailure "Gave up after 0 tests!")
+
+      it "parses result" $ do
+        parseQuickCheckResult <$> qc p `shouldReturn` result
+
+      it "includes verbose output" $ do
+        let
+          info = intercalate "\n" [
+              "Skipped (precondition false):"
+            , "0"
+            , ""
+            , "Skipped (precondition false):"
+            , "0"
+            ]
+        parseQuickCheckResult <$> qc (verbose p) `shouldReturn` result {quickCheckResultInfo = info}
 
     context "with NoExpectedFailure" $ do
-      let p :: Int -> Property
-          p _ = expectFailure True
+      let
+        p :: Int -> Property
+        p _ = expectFailure True
 
-      it "includes reason" $ do
-        result <- qc p
-        let QuickCheckResult _ (QuickCheckOtherFailure r) = parseQuickCheckResult result
-        r `shouldBe` "Passed 100 tests (expected failure)"
+      it "parses result" $ do
+        parseQuickCheckResult <$> qc p `shouldReturn`
+          QuickCheckResult 100 "" (QuickCheckOtherFailure "Passed 100 tests (expected failure).")
+
+      it "includes verbose output" $ do
+        let
+          info = intercalate "\n" [
+              "Passed:"
+            , "0"
+            , ""
+            , "Passed:"
+            , "-39"
+            ]
+        parseQuickCheckResult <$> quickCheckWithResult args {maxSuccess = 2} (verbose p) `shouldReturn`
+          QuickCheckResult 2 info (QuickCheckOtherFailure "Passed 2 tests (expected failure).")
 
     context "with InsufficientCoverage" $ do
-      let p :: Int -> Property
-          p n = cover (n == 23) 10 "is 23" True
+      let
+        p :: Int -> Property
+        p n = cover (n == 23) 10 "is 23" True
 
-      it "includes reason" $ do
-        result <- qc p
-        let QuickCheckResult _ (QuickCheckOtherFailure r) = parseQuickCheckResult result
-        r `shouldBe` "Insufficient coverage after 100 tests (only 0% is 23, not 10%)."
+      it "parses result" $ do
+        parseQuickCheckResult <$> qc p `shouldReturn`
+          QuickCheckResult 100 "" (QuickCheckOtherFailure "Insufficient coverage after 100 tests (only 0% is 23, not 10%).")
+
+      it "includes verbose output" $ do
+        let
+          info = intercalate "\n" [
+              "Passed:"
+            , "0"
+            , ""
+            , "Passed:"
+            , "-39"
+            ]
+        parseQuickCheckResult <$> quickCheckWithResult args {maxSuccess = 2} (verbose p) `shouldReturn`
+          QuickCheckResult 2 info (QuickCheckOtherFailure "Insufficient coverage after 2 tests (only 0% is 23, not 10%).")
 
     context "with Failure" $ do
       context "with single-line failure reason" $ do
-        let p :: Int -> Int -> Bool
-            p _ _ = False
+        let
+          p :: Int -> Bool
+          p = (/= 1)
 
-        it "includes counterexample" $ do
-          result <- qc p
-          let QuickCheckResult _ (QuickCheckFailure r) = parseQuickCheckResult result
-          quickCheckFailureCounterexample r `shouldBe` "0\n0"
+          err = "Falsifiable"
+          result = QuickCheckResult 2 "" (QuickCheckFailure $ QCFailure 0 Nothing err ["1"])
 
-        it "includes reason" $ do
-          result <- qc p
-          let QuickCheckResult _ (QuickCheckFailure r) = parseQuickCheckResult result
-          quickCheckFailureReason r `shouldBe` "Falsifiable"
+        it "parses result" $ do
+          parseQuickCheckResult <$> qc p `shouldReturn` result
+
+        it "includes verbose output" $ do
+          let info = intercalate "\n" [
+                  "Passed:"
+                , "0"
+                , ""
+                , "Failed:"
+                , "1"
+                , ""
+#if MIN_VERSION_QuickCheck(2,11,0)
+                , "Passed:"
+#else
+                , "*** Failed! Passed:"
+#endif
+                , "0"
+                ]
+
+          parseQuickCheckResult <$> qc (verbose p) `shouldReturn` result {quickCheckResultInfo = info}
 
       context "with multi-line failure reason" $ do
-        let p :: Int -> Int -> IO ()
-            p _ _ = throwIO (ErrorCall "foo\nbar")
+        let
+          p :: Int -> QCP.Result
+          p n = if n /= 1 then QCP.succeeded else QCP.failed {QCP.reason = err}
 
-        it "includes counterexample" $ do
-          result <- qc p
-          let QuickCheckResult _ (QuickCheckFailure r) = parseQuickCheckResult result
-          quickCheckFailureCounterexample r `shouldBe` "0\n0"
+          err = "foo\nbar"
+          result = QuickCheckResult 2 "" (QuickCheckFailure $ QCFailure 0 Nothing err ["1"])
 
-        it "includes reason" $ do
-          result <- qc p
-          let QuickCheckResult _ (QuickCheckFailure r) = parseQuickCheckResult result
-          (take 3 . lines . quickCheckFailureReason) r `shouldBe` [
-              "Exception:"
-            , "  foo"
-            , "  bar"
-            ]
+        it "parses result" $ do
+          parseQuickCheckResult <$> qc p `shouldReturn` result
+
+        it "includes verbose output" $ do
+          let info = intercalate "\n" [
+                  "Passed:"
+                , "0"
+                , ""
+                , "Failed:"
+                , "1"
+                , ""
+#if MIN_VERSION_QuickCheck(2,11,0)
+                , "Passed:"
+#else
+                , "*** Failed! Passed:"
+#endif
+                , "0"
+                ]
+          parseQuickCheckResult <$> qc (verbose p) `shouldReturn` result {quickCheckResultInfo = info}
 
       context "with HUnit assertion" $ do
         let p :: Int -> Int -> Expectation
@@ -107,5 +183,5 @@ spec = do
 
         it "includes counterexample" $ do
           result <- qc p
-          let QuickCheckResult _ (QuickCheckFailure r) = parseQuickCheckResult result
-          quickCheckFailureCounterexample r `shouldBe` "0\n1"
+          let QuickCheckResult _ _ (QuickCheckFailure r) = parseQuickCheckResult result
+          quickCheckFailureCounterexample r `shouldBe` ["0", "1"]

@@ -18,11 +18,12 @@ import           Test.Hspec.Core.Clock
 data Item = Item {
   itemLocation :: Maybe Location
 , itemDuration :: Seconds
+, itemInfo :: String
 , itemResult :: Result
 }
 
 data Result =
-    Success String
+    Success
   | Pending (Maybe String)
   | Failure FailureReason
 
