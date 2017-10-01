@@ -1,9 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 #if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
 -- Control.Concurrent.QSem is deprecated in base-4.6.0.*
@@ -44,10 +43,8 @@ import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
 
 -- for compatibility with GHC < 7.10.1
-class (Functor m, Applicative m, M.Monad m) => Monad m
-instance (Functor m, Applicative m, M.Monad m) => Monad m
-class (Monad m, M.MonadIO m) => MonadIO m
-instance (Monad m, M.MonadIO m) => MonadIO m
+type Monad m = (Functor m, Applicative m, M.Monad m)
+type MonadIO m = (Monad m, M.MonadIO m)
 
 data EvalConfig m = EvalConfig {
   evalConfigFormat :: Format m
