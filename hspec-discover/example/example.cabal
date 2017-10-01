@@ -12,6 +12,10 @@ test-suite spec
       -Wall
   main-is:
       Spec.hs
+  other-modules:
+      FooSpec
+      Foo.BarSpec
+      BazSpec
   build-depends:
       base    == 4.*
     , hspec
