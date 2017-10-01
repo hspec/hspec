@@ -35,11 +35,7 @@ spec = do
     context "for Expectation" $ do
       it "returns Failure if an expectation does not hold" $ do
         Failure _ msg <- safeEvaluateExample (23 `shouldBe` (42 :: Int))
-#if MIN_VERSION_HUnit(1,5,0)
         msg `shouldBe` ExpectedButGot Nothing "42" "23"
-#else
-        msg `shouldBe` Reason "expected: 42\n but got: 23"
-#endif
 
       context "when used with `pending`" $ do
         it "returns Pending" $ do
@@ -135,11 +131,7 @@ spec = do
 
       it "shows the collected labels" $ do
         Success details <- evaluateExample $ property $ \ () -> label "unit" True
-#if MIN_VERSION_QuickCheck(2,10,0)
         details `shouldBe` "100.0% unit\n"
-#else
-        details `shouldBe` "100% unit\n"
-#endif
 
       it "returns Failure if property does not hold" $ do
         Failure _ _ <- evaluateExample $ property $ \n -> n /= (n :: Int)
@@ -178,20 +170,12 @@ spec = do
         context "when used with shouldBe" $ do
           it "shows what falsified it" $ do
             Failure _ err <- evaluateExample $ prop $ 23 `shouldBe` (42 :: Int)
-#if MIN_VERSION_HUnit(1,5,0)
             err `shouldBe` ExpectedButGot (Just "Falsifiable (after 1 test):\n  0\n  1") "42" "23"
-#else
-            err `shouldBe` Reason "Falsifiable (after 1 test):\n  0\n  1\nexpected: 42\n but got: 23"
-#endif
 
         context "when used with assertEqual" $ do
           it "includes prefix" $ do
             Failure _ err <- evaluateExample $ prop $ assertEqual "foobar" (42 :: Int) 23
-#if MIN_VERSION_HUnit(1,5,0)
             err `shouldBe` ExpectedButGot (Just "Falsifiable (after 1 test):\n  0\n  1\nfoobar") "42" "23"
-#else
-            err `shouldBe` Reason "Falsifiable (after 1 test):\n  0\n  1\nfoobar\nexpected: 42\n but got: 23"
-#endif
 
         context "when used with assertFailure" $ do
           it "includes reason" $ do

@@ -21,9 +21,7 @@ import qualified Control.Exception as E
 import           Control.Concurrent.Async
 import           Mock
 import           System.SetEnv
-#if MIN_VERSION_HUnit(1,5,0)
 import           System.Console.ANSI
-#endif
 
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Core.Spec as H
@@ -340,7 +338,6 @@ spec = do
 
     context "with --diff" $ do
       it "shows colorized diffs" $ do
-#if MIN_VERSION_HUnit(1,5,0)
         r <- capture_ . ignoreExitCode . withArgs ["--diff", "--color"] . H.hspec $ do
           H.it "foo" $ do
             23 `shouldBe` (42 :: Int)
@@ -348,13 +345,9 @@ spec = do
             red ++ "       expected: " ++ reset ++ red ++ "42" ++ reset
           , red ++ "        but got: " ++ reset ++ green ++ "23" ++ reset
           ]
-#else
-        pending
-#endif
 
     context "with --no-diff" $ do
       it "it does not show colorized diffs" $ do
-#if MIN_VERSION_HUnit(1,5,0)
         r <- capture_ . ignoreExitCode . withArgs ["--no-diff", "--color"] . H.hspec $ do
           H.it "foo" $ do
             23 `shouldBe` (42 :: Int)
@@ -362,9 +355,6 @@ spec = do
             red ++ "       expected: " ++ reset ++ "42"
           , red ++ "        but got: " ++ reset ++ "23"
           ]
-#else
-        pending
-#endif
 
     context "with --format" $ do
       it "uses specified formatter" $ do
@@ -535,8 +525,6 @@ spec = do
       it "returns False" $ do
         H.rerunAll config (Just report) summary {H.summaryFailures = 1} `shouldBe` False
   where
-#if MIN_VERSION_HUnit(1,5,0)
     green  = setSGRCode [SetColor Foreground Dull Green]
     red    = setSGRCode [SetColor Foreground Dull Red]
     reset  = setSGRCode [Reset]
-#endif

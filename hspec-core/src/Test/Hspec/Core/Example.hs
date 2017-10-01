@@ -19,9 +19,7 @@ module Test.Hspec.Core.Example (
 
 import qualified Test.HUnit.Lang as HUnit
 
-#if MIN_VERSION_HUnit(1,4,0)
 import           Data.CallStack
-#endif
 
 import           Control.Exception
 import           Control.DeepSeq
@@ -130,9 +128,7 @@ instance Example Expectation where
 
 hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> Result
 hunitFailureToResult pre e = case e of
-#if MIN_VERSION_HUnit(1,3,0)
   HUnit.HUnitFailure mLoc err ->
-#if MIN_VERSION_HUnit(1,5,0)
       case err of
         HUnit.Reason reason -> Failure location (Reason $ addPre reason)
         HUnit.ExpectedButGot preface expected actual -> Failure location (ExpectedButGot (addPreMaybe preface) expected actual)
@@ -141,20 +137,10 @@ hunitFailureToResult pre e = case e of
             addPreMaybe xs = case (pre, xs) of
               (Just x, Just y) -> Just (x ++ "\n" ++ y)
               _ -> pre <|> xs
-#else
-      Failure location (Reason $ addPre err)
-#endif
     where
       location = case mLoc of
         Nothing -> Nothing
-#if MIN_VERSION_HUnit(1,4,0)
         Just loc -> Just $ Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
-#else
-        Just loc -> Just $ Location (HUnit.locationFile loc) (HUnit.locationLine loc) (HUnit.locationColumn loc)
-#endif
-#else
-  HUnit.HUnitFailure err -> Failure Nothing (Reason $ addPre err)
-#endif
   where
     addPre :: String -> String
     addPre xs = case pre of

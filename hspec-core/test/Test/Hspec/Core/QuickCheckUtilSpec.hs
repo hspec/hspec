@@ -107,10 +107,5 @@ spec = do
 
         it "includes counterexample" $ do
           result <- qc p
-#if MIN_VERSION_QuickCheck(2,10,0)
           let QuickCheckResult _ (QuickCheckFailure r) = parseQuickCheckResult result
           quickCheckFailureCounterexample r `shouldBe` "0\n1"
-#else
-          let QuickCheckResult _ (QuickCheckOtherFailure err) = parseQuickCheckResult result
-          err `shouldBe` "Failed! (after 2 tests and 2 shrinks): \nexpected: 1\n but got: 0\n0\n1"
-#endif

@@ -30,8 +30,8 @@ library
       vendor
   ghc-options: -Wall
   build-depends:
-      HUnit >=1.2.5
-    , QuickCheck >=2.7
+      HUnit >=1.5.0.0
+    , QuickCheck >=2.10
     , ansi-terminal >=0.5
     , array
     , async >=2
@@ -87,8 +87,8 @@ test-suite spec
   ghc-options: -Wall
   cpp-options: -DTEST
   build-depends:
-      HUnit >=1.2.5
-    , QuickCheck >=2.7
+      HUnit >=1.5.0.0
+    , QuickCheck >=2.10
     , ansi-terminal >=0.5
     , array
     , async >=2

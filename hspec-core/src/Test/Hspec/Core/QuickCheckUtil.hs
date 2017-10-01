@@ -19,22 +19,10 @@ import           Test.QuickCheck.Random
 
 import           Test.Hspec.Core.Util
 
-#if MIN_VERSION_QuickCheck(2,10,0)
 import           Test.QuickCheck.Test (formatLabel)
 
 formatLabels :: Int -> [(String, Double)] -> String
 formatLabels n = unlines . map (formatLabel n True)
-
-#else
-showPercent :: Int -> String
-showPercent n = show n ++ "% " ++ if n < 10 then " " else ""
-
-formatLabel :: Int -> Bool -> (String, Int) -> String
-formatLabel _ _ (l, n) = showPercent n ++ l
-
-formatLabels :: Int -> [(String, Int)] -> String
-formatLabels n = unlines . map (formatLabel n True)
-#endif
 
 aroundProperty :: ((a -> IO ()) -> IO ()) -> (a -> Property) -> Property
 aroundProperty action p = MkProperty . MkGen $ \r n -> aroundProp action $ \a -> (unGen . unProperty $ p a) r n
@@ -95,9 +83,7 @@ parseQuickCheckResult r = case r of
 
   GaveUp {..} -> result (QuickCheckOtherFailure $ "Gave up after " ++ pluralize numTests "test")
   NoExpectedFailure {..} -> result (QuickCheckOtherFailure $ "Passed " ++ pluralize numTests "test" ++ " (expected failure)")
-#if MIN_VERSION_QuickCheck(2,8,0)
   InsufficientCoverage {..} -> otherFailure
-#endif
   where
     otherFailure = result (QuickCheckOtherFailure $ maybeStripPrefix "*** " . strip $ output r)
     result = QuickCheckResult (numTests r)

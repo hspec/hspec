@@ -43,8 +43,8 @@ library
   hs-source-dirs:
       src
   build-depends:
-      HUnit >=1.2.5
-    , QuickCheck >=2.5.1
+      HUnit >=1.5.0.0
+    , QuickCheck >=2.10
     , base ==4.*
     , call-stack
     , hspec-core ==2.5.0
@@ -69,8 +69,8 @@ test-suite spec
       test
   main-is: Spec.hs
   build-depends:
-      HUnit >=1.2.5
-    , QuickCheck >=2.5.1
+      HUnit >=1.5.0.0
+    , QuickCheck >=2.10
     , base ==4.*
     , call-stack
     , directory

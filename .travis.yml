@@ -2,15 +2,6 @@ sudo: required
 language: generic
 
 env:
-  # - CABALVER=1.24 GHCVER=8.0.2 QC=QuickCheck-2.7.6
-  # - CABALVER=1.24 GHCVER=8.0.2 QC=QuickCheck-2.8.2
-
-  - CABALVER=1.18 GHCVER=7.8.4 HU=HUnit-1.2.5.2
-
-  - CABALVER=1.18 GHCVER=7.8.4 HU=HUnit-1.3.1.2
-  - CABALVER=1.22 GHCVER=7.10.3 HU=HUnit-1.3.1.2
-  - CABALVER=1.24 GHCVER=8.0.1 HU=HUnit-1.3.1.2
-
   - CABALVER=1.16 GHCVER=7.4.1
   - CABALVER=1.16 GHCVER=7.4.2
   - CABALVER=1.16 GHCVER=7.6.1
@@ -25,6 +16,9 @@ env:
   - CABALVER=1.22 GHCVER=7.10.3
   - CABALVER=1.24 GHCVER=8.0.1
   - CABALVER=1.24 GHCVER=8.0.2
+  - CABALVER=2.0 GHCVER=8.2.1
+  - CABALVER=2.0 GHCVER=8.2.1 HU=HUnit-1.5.0.0
+  - CABALVER=2.0 GHCVER=8.2.1 QC=QuickCheck-2.10.0.1
 
 before_install:
   - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
