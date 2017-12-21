@@ -80,7 +80,7 @@ spec = do
       let p = filterPredicate "bar/baz"
       p (["foo", "bar", "baz"], "example 1") `shouldBe` True
 
-    it "succeeds with a pattern that matches the message give in the failure list" $ do
+    it "succeeds with a pattern that matches the message given in the failure list" $ do
       let p = filterPredicate "ModuleA.ModuleB.foo does something"
       p (["ModuleA", "ModuleB", "foo"], "does something") `shouldBe` True
 
