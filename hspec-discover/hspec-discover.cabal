@@ -43,6 +43,7 @@ library
   exposed-modules:
       Test.Hspec.Discover.Config
       Test.Hspec.Discover.Run
+      Test.Hspec.Discover.Sort
   other-modules:
       Paths_hspec_discover
   default-language: Haskell2010
@@ -71,6 +72,7 @@ test-suite spec
       Helper
       Test.Hspec.Discover.ConfigSpec
       Test.Hspec.Discover.RunSpec
+      Test.Hspec.Discover.SortSpec
       Paths_hspec_discover
   build-depends:
       base ==4.*
