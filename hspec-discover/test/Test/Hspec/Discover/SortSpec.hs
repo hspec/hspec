@@ -3,7 +3,7 @@ module Test.Hspec.Discover.SortSpec (main, spec) where
 
 import           Helper
 
-import           Data.List (sortOn)
+import           Data.List (sortBy)
 import           Data.Ord (comparing)
 
 import           Test.Hspec.Discover.Sort
@@ -38,7 +38,7 @@ spec = do
         "Hello 002 World" <=> "Hello 02 World" `shouldBe` GT
     context "sorts" $ do
       it "for humans" $ do
-        sortOn naturalSortKey
+        sortBy (<=>)
           [ "z" ++ show @Int n ++ ".txt"
           | n <- [1, 10] ++ [100..102] ++ [11..19] ++ [2] ++ [20] ++ [3..9]
           ] `shouldBe`
