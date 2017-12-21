@@ -1,3 +1,9 @@
+## Changes in 2.4.5
+  - `hspec-discover`: Sort specs using natural sort order
+
+## Changes in 2.4.4
+  - Require quickcheck-io >= 0.2.0
+
 ## Changes in 2.4.3
   - Read command-line options from environment variable `HSPEC_OPTIONS`
 

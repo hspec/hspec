@@ -30,6 +30,7 @@ import           System.Directory (doesDirectoryExist, getDirectoryContents, doe
 import           System.FilePath hiding (combine)
 
 import           Test.Hspec.Discover.Config
+import           Test.Hspec.Discover.Sort
 
 instance IsString ShowS where
   fromString = showString
@@ -141,7 +142,8 @@ isValidModuleChar :: Char -> Bool
 isValidModuleChar c = isAlphaNum c || c == '_' || c == '\''
 
 getFilesRecursive :: FilePath -> IO [FilePath]
-getFilesRecursive baseDir = sort <$> go []
+getFilesRecursive baseDir = sortNaturally <$> go []
+
   where
     go :: FilePath -> IO [FilePath]
     go dir = do

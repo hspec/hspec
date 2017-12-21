@@ -1,6 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.18.0.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 800b589609f4917b71da77e4521fc36fe93bd32f5305742fa0a4b7e5621c93f9
 
 name:             hspec-discover
 version:          2.4.4
@@ -36,13 +38,14 @@ library
       src
   ghc-options: -Wall
   build-depends:
-      base == 4.*
-    , filepath
+      base ==4.*
     , directory
+    , filepath
   exposed: False
   exposed-modules:
       Test.Hspec.Discover.Config
       Test.Hspec.Discover.Run
+      Test.Hspec.Discover.Sort
   other-modules:
       Paths_hspec_discover
   default-language: Haskell2010
@@ -52,10 +55,12 @@ executable hspec-discover
   hs-source-dirs:
       driver
   main-is: hspec-discover.hs
+  other-modules:
+      Paths_hspec_discover
   build-depends:
-      base == 4.*
-    , filepath
+      base ==4.*
     , directory
+    , filepath
     , hspec-discover
   default-language: Haskell2010
 
@@ -69,10 +74,13 @@ test-suite spec
       Helper
       Test.Hspec.Discover.ConfigSpec
       Test.Hspec.Discover.RunSpec
+      Test.Hspec.Discover.SortSpec
+      Paths_hspec_discover
   build-depends:
-      base == 4.*
-    , filepath
+      QuickCheck >=2.7
+    , base ==4.*
     , directory
+    , filepath
     , hspec-discover
-    , hspec-meta >= 2.3.2
+    , hspec-meta >=2.3.2
   default-language: Haskell2010
