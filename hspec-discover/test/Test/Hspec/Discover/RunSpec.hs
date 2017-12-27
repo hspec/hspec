@@ -5,6 +5,7 @@ import           Helper
 import           System.IO
 import           System.Directory
 import           System.FilePath
+import           Data.List (sort)
 
 import           Test.Hspec.Discover.Run hiding (Spec)
 import qualified Test.Hspec.Discover.Run
@@ -29,10 +30,6 @@ spec = do
           "{-# LINE 1 \"test-data/nested-spec/Spec.hs\" #-}"
         , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
         , "module Main where"
-        , "import qualified Dir8.X64Spec"
-        , "import qualified Dir8.X128Spec"
-        , "import qualified Dir16.X48Spec"
-        , "import qualified Dir16.X160Spec"
         , "import qualified Foo.Bar.BazSpec"
         , "import qualified Foo.BarSpec"
         , "import qualified FooSpec"
@@ -41,11 +38,7 @@ spec = do
         , "main = hspec spec"
         , "spec :: Spec"
         , "spec = " ++ unwords [
-               "postProcessSpec \"test-data/nested-spec/Dir8/X64Spec.hs\" (describe \"Dir8.X64\" Dir8.X64Spec.spec)"
-          , ">> postProcessSpec \"test-data/nested-spec/Dir8/X128Spec.hs\" (describe \"Dir8.X128\" Dir8.X128Spec.spec)"
-          , ">> postProcessSpec \"test-data/nested-spec/Dir16/X48Spec.hs\" (describe \"Dir16.X48\" Dir16.X48Spec.spec)"
-          , ">> postProcessSpec \"test-data/nested-spec/Dir16/X160Spec.hs\" (describe \"Dir16.X160\" Dir16.X160Spec.spec)"
-          , ">> postProcessSpec \"test-data/nested-spec/Foo/Bar/BazSpec.hs\" (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
+               "postProcessSpec \"test-data/nested-spec/Foo/Bar/BazSpec.hs\" (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
           , ">> postProcessSpec \"test-data/nested-spec/Foo/BarSpec.hs\" (describe \"Foo.Bar\" Foo.BarSpec.spec)"
           , ">> postProcessSpec \"test-data/nested-spec/FooSpec.hs\" (describe \"Foo\" FooSpec.spec)"
           ]
@@ -70,12 +63,8 @@ spec = do
 
   describe "getFilesRecursive" $ do
     it "recursively returns all file entries of a given directory" $ do
-      getFilesRecursive "test-data" `shouldReturn` [
+      getFilesRecursive "test-data" `shouldReturn` sort [
           "empty-dir/Foo/Bar/Baz/.placeholder"
-        , "nested-spec/Dir8/X64Spec.hs"
-        , "nested-spec/Dir8/X128Spec.hs"
-        , "nested-spec/Dir16/X48Spec.hs"
-        , "nested-spec/Dir16/X160Spec.hs"
         , "nested-spec/Foo/Bar/BazSpec.hs"
         , "nested-spec/Foo/BarSpec.hs"
         , "nested-spec/FooSpec.hs"
@@ -113,7 +102,7 @@ spec = do
   describe "findSpecs" $ do
     it "finds specs" $ do
       let dir = "test-data/nested-spec"
-      findSpecs (dir </> "Spec.hs") `shouldReturn` [spec_ (dir </> "Dir8/X64Spec.hs") "Dir8.X64", spec_ (dir </> "Dir8/X128Spec.hs") "Dir8.X128", spec_ (dir </> "Dir16/X48Spec.hs") "Dir16.X48", spec_ (dir </> "Dir16/X160Spec.hs") "Dir16.X160", spec_ (dir </> "Foo/Bar/BazSpec.hs") "Foo.Bar.Baz", spec_ (dir </> "Foo/BarSpec.hs") "Foo.Bar", spec_ (dir </> "FooSpec.hs") "Foo"]
+      findSpecs (dir </> "Spec.hs") `shouldReturn` [spec_ (dir </> "Foo/Bar/BazSpec.hs") "Foo.Bar.Baz", spec_ (dir </> "Foo/BarSpec.hs") "Foo.Bar", spec_ (dir </> "FooSpec.hs") "Foo"]
 
   describe "driverWithFormatter" $ do
     it "generates a test driver that uses a custom formatter" $ do
