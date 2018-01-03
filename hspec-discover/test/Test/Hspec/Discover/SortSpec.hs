@@ -21,7 +21,6 @@ spec = do
     context "compares" $ do
       it "empty first" $ property $ \a -> not (null a) ==> do
         "" <=> a `shouldBe` LT
-        a <=> "" `shouldBe` GT
 
       it "numbers first" $ do
         "Hello2World" <=> "Hello World" `shouldBe` LT
@@ -41,15 +40,15 @@ spec = do
       it "string ties by case" $ do
         "HelloWorld3" <=> "Helloworld3" `shouldBe` LT
 
-    context "sorts" $ do
-      it "for humans" $ do
-        sortBy (<=>)
-          [ "z" ++ show (n :: Int) ++ ".txt"
-          | n <- [1, 10] ++ [100..102] ++ [11..19] ++ [2] ++ [20] ++ [3..9]
-          ] `shouldBe`
-          [ "z" ++ show (n :: Int) ++ ".txt"
-          | n <- [1..20] ++ [100..102]
-          ]
+  describe "sortNatural" $ do
+    it "for humans" $ do
+      sortNatural
+        [ "z" ++ show (n :: Int) ++ ".txt"
+        | n <- [1, 10] ++ [100..102] ++ [11..19] ++ [2] ++ [20] ++ [3..9]
+        ] `shouldBe`
+        [ "z" ++ show (n :: Int) ++ ".txt"
+        | n <- [1..20] ++ [100..102]
+        ]
 
   where
     (<=>) = comparing naturalSortKey

@@ -1,22 +1,30 @@
 module Test.Hspec.Discover.Sort (
-  NaturalSortChunk(..)
+  sortNatural
+, NaturalSortKey
 , naturalSortKey
 ) where
 
 import           Control.Arrow
 import           Data.Char
+import           Data.List
+import           Data.Ord
 
-data NaturalSortChunk
-  = NumericChunk { chunkNum :: Integer, chunkStrLen :: Int }
-  | StringChunk { chunkLCStr :: String }
-  deriving (Eq, Ord, Show)
+sortNatural :: [String] -> [String]
+sortNatural = sortBy (comparing naturalSortKey)
 
-naturalSortKey :: String -> ([NaturalSortChunk], String)
-naturalSortKey = chunks &&& id where
-  chunks s@(c:_)
-    | isDigit c = NumericChunk (read num) (length num) : chunks afterNum
-    | otherwise = StringChunk (map toLower str) : chunks afterStr
-    where
-      (num, afterNum) = span  isDigit s
-      (str, afterStr) = break isDigit s
-  chunks _ = []
+data NaturalSortKey = NaturalSortKey [Chunk] String
+  deriving (Eq, Ord)
+
+data Chunk = Numeric Integer Int | Textual String
+  deriving (Eq, Ord)
+
+naturalSortKey :: String -> NaturalSortKey
+naturalSortKey = uncurry NaturalSortKey . (chunks &&& id)
+  where
+    chunks [] = []
+    chunks s@(c:_)
+      | isDigit c = Numeric (read num) (length num) : chunks afterNum
+      | otherwise = Textual (map toLower str) : chunks afterStr
+      where
+        (num, afterNum) = span  isDigit s
+        (str, afterStr) = break isDigit s

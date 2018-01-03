@@ -143,7 +143,7 @@ isValidModuleChar :: Char -> Bool
 isValidModuleChar c = isAlphaNum c || c == '_' || c == '\''
 
 getFilesRecursive :: FilePath -> IO [FilePath]
-getFilesRecursive baseDir = sortBy (comparing naturalSortKey) <$> go []
+getFilesRecursive baseDir = sortNatural <$> go []
 
   where
     go :: FilePath -> IO [FilePath]
