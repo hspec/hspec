@@ -1,5 +1,5 @@
 module Test.Hspec.Discover.Sort (
-  sortNatural
+  sortNaturally
 , NaturalSortKey
 , naturalSortKey
 ) where
@@ -9,8 +9,8 @@ import           Data.Char
 import           Data.List
 import           Data.Ord
 
-sortNatural :: [String] -> [String]
-sortNatural = sortBy (comparing naturalSortKey)
+sortNaturally :: [String] -> [String]
+sortNaturally = sortBy (comparing naturalSortKey)
 
 data NaturalSortKey = NaturalSortKey [Chunk] String
   deriving (Eq, Ord)

@@ -22,7 +22,6 @@ import           Control.Applicative
 import           Data.List
 import           Data.Char
 import           Data.Maybe
-import           Data.Ord
 import           Data.String
 import           System.Environment
 import           System.Exit
@@ -143,7 +142,7 @@ isValidModuleChar :: Char -> Bool
 isValidModuleChar c = isAlphaNum c || c == '_' || c == '\''
 
 getFilesRecursive :: FilePath -> IO [FilePath]
-getFilesRecursive baseDir = sortNatural <$> go []
+getFilesRecursive baseDir = sortNaturally <$> go []
 
   where
     go :: FilePath -> IO [FilePath]

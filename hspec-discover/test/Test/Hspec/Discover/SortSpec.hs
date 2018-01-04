@@ -1,16 +1,15 @@
 module Test.Hspec.Discover.SortSpec (main, spec) where
 
 import           Helper
-
-import           Data.List (sortBy)
-import           Data.Ord (comparing)
+import           Test.QuickCheck
 
 import           Test.Hspec.Discover.Sort
-import           Test.QuickCheck
 
 main :: IO ()
 main = hspec spec
 
+shuffleAndSort :: [String] -> IO [String]
+shuffleAndSort xs = sortNaturally <$> generate (shuffle xs)
 
 spec :: Spec
 spec = do
@@ -18,38 +17,61 @@ spec = do
     it "is injective" $ property $ \ a  b -> do
       a /= b ==> naturalSortKey a /= naturalSortKey b
 
-    context "compares" $ do
-      it "empty first" $ property $ \a -> not (null a) ==> do
-        "" <=> a `shouldBe` LT
+  describe "sortNaturally" $ do
+    it "gives shorter strings precedence" $ do
+      let expected = [
+              ""
+            , "a"
+            , "aa"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
 
-      it "numbers first" $ do
-        "Hello2World" <=> "Hello World" `shouldBe` LT
+    it "gives numbers precedence" $ do
+      let expected = [
+              "Hello2World"
+            , "Hello World"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
 
-      it "string segments" $ do
-        "Hello2World9" <=> "Hello2World!0" `shouldBe` LT
+    it "sorts numbers in ascending order" $ do
+      let expected = [
+              "Spec9.hs"
+            , "Spec10.hs"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
 
-      it "numeric segments" $ do
-        "3.1.415" <=> "3.14.15" `shouldBe` LT
+    it "breaks numeric ties by string length" $ do
+      let expected = [
+              "Hello 2 World"
+            , "Hello 02 World"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
 
-      it "numeric ties by string length" $ do
-        "Hello 02 World" <=> "Hello 002 World" `shouldBe` LT
+    it "ignores case" $ do
+      let expected = [
+              "SPEC1.hs"
+            , "spec2.hs"
+            , "SPEC3.hs"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
 
-      it "case squashing" $ do
-        "Helloworld1" <=> "HelloWorld2" `shouldBe` LT
+    it "breaks ties by case" $ do
+      let expected = [
+              "SPEC3.hs"
+            , "spec3.hs"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
 
-      it "string ties by case" $ do
-        "HelloWorld3" <=> "Helloworld3" `shouldBe` LT
+    it "sorts number separated strings" $ do
+      let expected = [
+              "Hello2World9"
+            , "Hello2World!0"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
 
-  describe "sortNatural" $ do
-    it "for humans" $ do
-      sortNatural
-        [ "z" ++ show (n :: Int) ++ ".txt"
-        | n <- [1, 10] ++ [100..102] ++ [11..19] ++ [2] ++ [20] ++ [3..9]
-        ] `shouldBe`
-        [ "z" ++ show (n :: Int) ++ ".txt"
-        | n <- [1..20] ++ [100..102]
-        ]
-
-  where
-    (<=>) = comparing naturalSortKey
-    infix 5 <=>
+    it "sorts string separated numbers" $ do
+      let expected = [
+              "3.1.415"
+            , "3.14.15"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
