@@ -47,19 +47,16 @@ spec = do
             ]
       shuffleAndSort expected `shouldReturn` expected
 
-    it "ignores case" $ do
-      let expected = [
-              "SPEC1.hs"
-            , "spec2.hs"
-            , "SPEC3.hs"
-            ]
-      shuffleAndSort expected `shouldReturn` expected
-
-    it "breaks ties by case" $ do
-      let expected = [
-              "SPEC3.hs"
-            , "spec3.hs"
-            ]
+    it "given upper-case letters precedence over lower-case letters" $ do
+      let
+        expected = [
+            "AA.hs"
+          , "Aa.hs"
+          , "aA.hs"
+          , "aa.hs"
+          , "B.hs"
+          , "b.hs"
+          ]
       shuffleAndSort expected `shouldReturn` expected
 
     it "sorts number separated strings" $ do
@@ -73,5 +70,14 @@ spec = do
       let expected = [
               "3.1.415"
             , "3.14.15"
+            ]
+      shuffleAndSort expected `shouldReturn` expected
+
+    it "groups common string prefixes together" $ do
+      let expected = [
+              "SpecFoo.hs"
+            , "SpecFoo.lhs"
+            , "Specfoo.hs"
+            , "Specfoo.lhs"
             ]
       shuffleAndSort expected `shouldReturn` expected
