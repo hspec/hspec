@@ -18,9 +18,9 @@
   - Add location information to `pending`
   - Make sure that progress output is always cleared (fixes #301)
   - Parse source locations from pattern match failures
-  - Automatically discovered specs are sorted in natural order, for example
-    `T1Spec`, `T2Spec`, `T10Spec`, `T20Spec`, instead of lexicographical order
-    `T10Spec`, `T1Spec`, `T20Spec`, `T2Spec`
+
+## Changes in 2.4.5
+  - `hspec-discover`: Sort specs using natural sort order
 
 ## Changes in 2.4.4
   - Require quickcheck-io >= 0.2.0
