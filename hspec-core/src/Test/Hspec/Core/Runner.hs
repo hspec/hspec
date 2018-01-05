@@ -27,6 +27,7 @@ import           Test.Hspec.Core.Compat
 
 import           Control.Monad
 import           Data.Maybe
+import qualified Data.Semigroup as Sem
 import           System.IO
 import           System.Environment (getProgName, getArgs, withArgs)
 import           System.Exit
@@ -236,6 +237,9 @@ data Summary = Summary {
 , summaryFailures :: Int
 } deriving (Eq, Show)
 
+instance Sem.Semigroup Summary where
+ (Summary x1 x2) <> (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
+
 instance Monoid Summary where
   mempty = Summary 0 0
-  (Summary x1 x2) `mappend` (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
+  mappend = (Sem.<>)
