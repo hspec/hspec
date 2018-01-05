@@ -240,7 +240,6 @@ data Summary = Summary {
 , summaryFailures :: Int
 } deriving (Eq, Show)
 
-
 appendSummary :: Summary -> Summary -> Summary
 appendSummary (Summary x1 x2) (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
 
@@ -257,7 +256,7 @@ instance Monoid Summary where
 -- at some point `mappend` will be removed from `Monoid`
 #elif MIN_VERSION_base(4,9,0)
   mappend = (Sem.<>)
-#else // base < 4.9
+#else
 -- prior to GHC 8.0 / base-4.9 where no `Semigroup` class existed
   mappend = appendSummary
 #endif
