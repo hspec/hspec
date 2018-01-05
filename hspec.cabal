@@ -1,9 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.18.0.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: f39894f107ea1cb8e26f0b60c2fa9ae9d1bc538b17823ef2e68757af6268eea1
 
 name:             hspec
-version:          2.4.4
+version:          2.4.5
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2017 Simon Hengel,
@@ -43,14 +45,14 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base == 4.*
-    , hspec-core == 2.4.4
-    , hspec-discover == 2.4.4
-    , hspec-expectations == 0.8.2.*
-    , transformers >= 0.2.2.0
-    , QuickCheck >= 2.5.1
-    , HUnit >= 1.2.5
+      HUnit >=1.2.5
+    , QuickCheck >=2.5.1
+    , base ==4.*
     , call-stack
+    , hspec-core ==2.4.5
+    , hspec-discover ==2.4.5
+    , hspec-expectations ==0.8.2.*
+    , transformers >=0.2.2.0
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
@@ -73,17 +75,18 @@ test-suite spec
       Helper
       HelperSpec
       Test.Hspec.DiscoverSpec
+      Paths_hspec
   build-depends:
-      base == 4.*
-    , hspec-core == 2.4.4
-    , hspec-discover == 2.4.4
-    , hspec-expectations == 0.8.2.*
-    , transformers >= 0.2.2.0
-    , QuickCheck >= 2.5.1
-    , HUnit >= 1.2.5
+      HUnit >=1.2.5
+    , QuickCheck >=2.5.1
+    , base ==4.*
     , call-stack
-    , hspec
     , directory
+    , hspec
+    , hspec-core ==2.4.5
+    , hspec-discover ==2.4.5
+    , hspec-expectations ==0.8.2.*
+    , hspec-meta >=2.3.2
     , stringbuilder
-    , hspec-meta >= 2.3.2
+    , transformers >=0.2.2.0
   default-language: Haskell2010

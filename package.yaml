@@ -1,5 +1,5 @@
 name:             hspec
-version:          2.4.4
+version:          2.4.5
 license:          MIT
 copyright:
   - (c) 2011-2017 Simon Hengel
@@ -34,8 +34,8 @@ ghc-options: -Wall
 
 dependencies:
   - base == 4.*
-  - hspec-core == 2.4.4
-  - hspec-discover == 2.4.4
+  - hspec-core == 2.4.5
+  - hspec-discover == 2.4.5
   - hspec-expectations == 0.8.2.*
   - transformers >= 0.2.2.0
   - QuickCheck >= 2.5.1
