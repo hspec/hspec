@@ -27,6 +27,10 @@ import           Test.Hspec.Core.Compat
 
 import           Control.Monad
 import           Data.Maybe
+#if MIN_VERSION_base(4,9,0)
+-- Data.Semigroup was added in base-4.9
+import qualified Data.Semigroup as Sem
+#endif
 import           System.IO
 import           System.Environment (getProgName, getArgs, withArgs)
 import           System.Exit
@@ -236,6 +240,23 @@ data Summary = Summary {
 , summaryFailures :: Int
 } deriving (Eq, Show)
 
+appendSummary :: Summary -> Summary -> Summary
+appendSummary (Summary x1 x2) (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
+
+#if MIN_VERSION_base(4,9,0)
+instance Sem.Semigroup Summary where
+  (<>) = appendSummary
+#endif
+
 instance Monoid Summary where
   mempty = Summary 0 0
-  (Summary x1 x2) `mappend` (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
+
+#if MIN_VERSION_base(4,11,0)
+-- starting with base-4.11, mappend definitions are redundant;
+-- at some point `mappend` will be removed from `Monoid`
+#elif MIN_VERSION_base(4,9,0)
+  mappend = (Sem.<>)
+#else
+-- prior to GHC 8.0 / base-4.9 where no `Semigroup` class existed
+  mappend = appendSummary
+#endif
