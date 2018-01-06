@@ -228,4 +228,9 @@ data Summary = Summary {
 
 instance Monoid Summary where
   mempty = Summary 0 0
+#if !MIN_VERSION_base(4,11,0)
   (Summary x1 x2) `mappend` (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
+#else
+instance Semigroup Summary where
+  (Summary x1 x2) <> (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
+#endif
