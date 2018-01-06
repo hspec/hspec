@@ -19,6 +19,9 @@
   - Make sure that progress output is always cleared (fixes #301)
   - Parse source locations from pattern match failures
 
+## Changes in 2.4.6
+  - compatibility with the upcoming version `4.11.0.0` of `base`
+
 ## Changes in 2.4.5
   - `hspec-discover`: Sort specs using natural sort order
 
