@@ -1,5 +1,5 @@
 name: hspec-core
-version: 2.4.5
+version: 2.4.6
 synopsis: A Testing Framework for Haskell
 description: >
   This package exposes internal types and functions that can be used to extend

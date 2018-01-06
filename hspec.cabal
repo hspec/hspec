@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f39894f107ea1cb8e26f0b60c2fa9ae9d1bc538b17823ef2e68757af6268eea1
+-- hash: 30a9825e1bfed505eb62eae7711a8d7ea91540607d390023e998bbc2c7a4bb1b
 
 name:             hspec
-version:          2.4.5
+version:          2.4.6
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2017 Simon Hengel,
@@ -49,8 +49,8 @@ library
     , QuickCheck >=2.5.1
     , base ==4.*
     , call-stack
-    , hspec-core ==2.4.5
-    , hspec-discover ==2.4.5
+    , hspec-core ==2.4.6
+    , hspec-discover ==2.4.6
     , hspec-expectations ==0.8.2.*
     , transformers >=0.2.2.0
   exposed-modules:
@@ -83,8 +83,8 @@ test-suite spec
     , call-stack
     , directory
     , hspec
-    , hspec-core ==2.4.5
-    , hspec-discover ==2.4.5
+    , hspec-core ==2.4.6
+    , hspec-discover ==2.4.6
     , hspec-expectations ==0.8.2.*
     , hspec-meta >=2.3.2
     , stringbuilder
