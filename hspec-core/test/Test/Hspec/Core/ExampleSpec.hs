@@ -124,7 +124,11 @@ spec = do
       it "shows what falsified it" $ do
         H.Failure _ r <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> False
         r `shouldBe` (H.Reason . intercalate "\n")  [
+#if MIN_VERSION_QuickCheck(2,11,0)
+            "Falsifiable (after 1 test):"
+#else
             "Falsifiable (after 1 test): "
+#endif
           , "0"
           , "1"
           ]
@@ -154,7 +158,7 @@ spec = do
       context "when used with shouldBe" $ do
         it "shows what falsified it" $ do
           H.Failure _ (H.Reason r) <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> 23 `shouldBe` (42 :: Int)
-          r `shouldStartWith` "Falsifiable (after 1 test): \n"
+          r `shouldStartWith` "Falsifiable (after 1 test):"
           r `shouldEndWith` intercalate "\n" [
               "expected: 42"
             , " but got: 23"

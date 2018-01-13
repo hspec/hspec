@@ -189,7 +189,11 @@ instance Example (a -> QC.Property) where
             Just _ -> (addFalsifiable . stripFailed) m
             Nothing -> let numbers = formatNumbers r in
               "uncaught exception: " ++ formatException e ++ " " ++ numbers ++ "\n" ++ case lines m of
+#if MIN_VERSION_QuickCheck(2,11,0)
+                x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ":") -> unlines xs
+#else
                 x:xs | x == (exceptionPrefix ++ show e ++ "' " ++ numbers ++ ": ") -> unlines xs
+#endif
                 _ -> m
           Nothing ->
 #endif
