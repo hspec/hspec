@@ -78,8 +78,13 @@ parseQuickCheckResult r = case r of
     where
       numbers = formatNumbers numTests numShrinks
       mCounterexample = maybeStripSuffix "\n" <$> (stripPrefix prefix1 output <|> stripPrefix prefix2 output)
-      prefix1 = "*** Failed! " ++ reason ++ " " ++ numbers ++ ": \n"
-      prefix2 = "*** Failed! " ++ numbers ++ ": \n" ++ ensureTrailingNewline reason
+      prefix1 = "*** Failed! " ++ reason ++ " " ++ numbers ++ colonNewline
+      prefix2 = "*** Failed! " ++ numbers ++ colonNewline ++ ensureTrailingNewline reason
+#if MIN_VERSION_QuickCheck(2,11,0)
+      colonNewline = ":\n"
+#else
+      colonNewline = ": \n"
+#endif
 
   GaveUp {..} -> result (QuickCheckOtherFailure $ "Gave up after " ++ pluralize numTests "test")
   NoExpectedFailure {..} -> result (QuickCheckOtherFailure $ "Passed " ++ pluralize numTests "test" ++ " (expected failure)")
