@@ -1,11 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.21.2.
+-- This file has been generated from package.yaml by hpack version 0.25.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2626c6ab19a00241981861bd06c1e6d741fea889c1c413384539ff969cc695c1
+-- hash: 4e6d8536db1ab37d1c42006f33479988a740fc613f7d80c8ac3d2bbc005d2108
 
 name:             hspec
-version:          2.4.7
+version:          2.4.8
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2017 Simon Hengel,
@@ -49,8 +49,8 @@ library
     , QuickCheck >=2.5.1
     , base ==4.*
     , call-stack
-    , hspec-core ==2.4.7
-    , hspec-discover ==2.4.7
+    , hspec-core ==2.4.8
+    , hspec-discover ==2.4.8
     , hspec-expectations ==0.8.2.*
     , transformers >=0.2.2.0
   exposed-modules:
@@ -83,8 +83,8 @@ test-suite spec
     , call-stack
     , directory
     , hspec
-    , hspec-core ==2.4.7
-    , hspec-discover ==2.4.7
+    , hspec-core ==2.4.8
+    , hspec-discover ==2.4.8
     , hspec-expectations ==0.8.2.*
     , hspec-meta >=2.3.2
     , stringbuilder

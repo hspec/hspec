@@ -1,33 +1,33 @@
 dependencies:
 - name: ansi-terminal
-  version: '0.6.2.3'
-- name: async
-  version: '2.1.1'
+  version: '0.8.0.1'
 - name: call-stack
   version: '0.1.0'
+- name: colour
+  version: '2.3.4'
 - name: hspec
-  version: '2.4.3'
+  version: '2.4.8'
 - name: hspec-contrib
   version: '0.4.0'
 - name: hspec-core
-  version: '2.4.3'
+  version: '2.4.8'
 - name: hspec-discover
-  version: '2.4.3'
+  version: '2.4.8'
 - name: hspec-expectations
   version: '0.8.2'
 - name: HUnit
-  version: '1.5.0.0'
+  version: '1.6.0.0'
 - name: primitive
-  version: '0.6.2.0'
+  version: '0.6.3.0'
 - name: QuickCheck
-  version: '2.9.2'
+  version: '2.11.3'
 - name: quickcheck-io
-  version: '0.1.4'
+  version: '0.2.0'
 - name: random
   version: '1.1'
 - name: setenv
   version: '0.1.1.3'
 - name: stm
-  version: '2.4.4.1'
+  version: '2.4.5.0'
 - name: tf-random
   version: '0.5'
