@@ -31,11 +31,11 @@ dependencies:
   - QuickCheck >= 2.10
   - quickcheck-io >= 0.2.0
   - hspec-expectations == 0.8.2.*
-  - async >= 2
   - call-stack
   - directory
   - filepath
 
+  - stm >= 2.2 # for asyc
   - array # for Diff
 
 source-dirs:
