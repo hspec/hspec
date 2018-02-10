@@ -43,7 +43,6 @@ dependencies:
 
 library:
   source-dirs: src
-  dependencies:
   exposed-modules:
     - Test.Hspec
     - Test.Hspec.Core

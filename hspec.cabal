@@ -1,6 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.19.0.
+-- This file has been generated from package.yaml by hpack version 0.25.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 5973a094a7e1665acc54acbbf4e2edfaf3caf3f63f400d39fbbd281fa1479892
 
 name:             hspec
 version:          2.5.0
