@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.21.2.
+-- This file has been generated from package.yaml by hpack version 0.25.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5f2f775ba57cc471e22084afddafbeffb0a467d1863b8df967e9a4ae08874d1b
+-- hash: 07500f64328abc6ef62d427fc45568c248f9ddda4ab95a85fa4732910d517e4d
 
 name:             hspec-core
 version:          2.4.7
@@ -36,7 +36,6 @@ library
     , QuickCheck >=2.5.1
     , ansi-terminal >=0.5
     , array
-    , async >=2
     , base >=4.5.0.0 && <5
     , call-stack
     , deepseq
@@ -46,6 +45,7 @@ library
     , quickcheck-io >=0.2.0
     , random
     , setenv
+    , stm >=2.2
     , tf-random
     , time
     , transformers >=0.2.2.0
@@ -71,6 +71,7 @@ library
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
+      Control.Concurrent.Async
       Data.Algorithm.Diff
       Paths_hspec_core
   default-language: Haskell2010
@@ -89,7 +90,6 @@ test-suite spec
     , QuickCheck >=2.5.1
     , ansi-terminal >=0.5
     , array
-    , async >=2
     , base >=4.5.0.0 && <5
     , call-stack
     , deepseq
@@ -102,6 +102,7 @@ test-suite spec
     , random
     , setenv
     , silently >=1.2.4
+    , stm >=2.2
     , temporary
     , tf-random
     , time
@@ -127,6 +128,7 @@ test-suite spec
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
       Test.Hspec.Core.Util
+      Control.Concurrent.Async
       Data.Algorithm.Diff
       All
       Helper
