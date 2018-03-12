@@ -44,6 +44,13 @@ runPropFoo args = unlines . normalizeSummary . lines <$> do
 spec :: Spec
 spec = do
   describe "hspec" $ do
+    it "evaluates examples Unmasked" $ do
+      mvar <- newEmptyMVar
+      withArgs ["--format", "silent"] . H.hspec $ do
+        H.it "foo" $ do
+          E.getMaskingState >>= putMVar mvar
+      takeMVar mvar `shouldReturn` E.Unmasked
+
     it "runs finalizers" $ do
       mvar <- newEmptyMVar
       ref <- newIORef "did not run finalizer"

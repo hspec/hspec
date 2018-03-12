@@ -169,7 +169,7 @@ parallelizeTree n specs = do
 
 parallelizeItem :: MonadIO m => QSem -> EvalItem -> IO (RunningItem_ m)
 parallelizeItem sem EvalItem{..} = do
-  (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize evalItemAction
+  (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize (interruptible . evalItemAction)
   return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
 
 parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Async (), Job m p (Seconds, a))

@@ -18,6 +18,7 @@ module Test.Hspec.Core.Compat (
 , modifyIORef'
 , atomicWriteIORef
 #endif
+, interruptible
 ) where
 
 import           Control.Applicative
@@ -56,6 +57,12 @@ import           System.Environment
 
 import           Data.Typeable (tyConModule, tyConName)
 import           Control.Concurrent
+
+#if MIN_VERSION_base(4,9,0)
+import           Control.Exception (interruptible)
+#else
+import           GHC.IO
+#endif
 
 #if !MIN_VERSION_base(4,6,0)
 import qualified Text.ParserCombinators.ReadP as P
@@ -112,3 +119,13 @@ showFullType a = let t = typeRepTyCon (typeOf a) in
 
 getDefaultConcurrentJobs :: IO Int
 getDefaultConcurrentJobs = getNumCapabilities
+
+#if !MIN_VERSION_base(4,9,0)
+interruptible :: IO a -> IO a
+interruptible act = do
+  st <- getMaskingState
+  case st of
+    Unmasked              -> act
+    MaskedInterruptible   -> unsafeUnmask act
+    MaskedUninterruptible -> act
+#endif
