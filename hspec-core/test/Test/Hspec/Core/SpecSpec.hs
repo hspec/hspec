@@ -69,14 +69,14 @@ spec = do
     it "specifies a pending example" $ do
       r <- runSpec $ do
         H.it "foo" H.pending
-      r `shouldSatisfy` any (== "     # PENDING: No reason given")
+      r `shouldSatisfy` any (== "  # PENDING: No reason given")
 
   describe "pendingWith" $ do
     it "specifies a pending example with a reason for why it's pending" $ do
       r <- runSpec $ do
         H.it "foo" $ do
           H.pendingWith "for some reason"
-      r `shouldSatisfy` any (== "     # PENDING: for some reason")
+      r `shouldSatisfy` any (== "  # PENDING: for some reason")
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do

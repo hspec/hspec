@@ -172,7 +172,7 @@ spec = do
 
     it "displays a '#' with an additional message for pending examples" $ do
       r <- runSpec testSpec
-      r `shouldSatisfy` any (== "     # PENDING: pending message")
+      r `shouldSatisfy` any (== "    # PENDING: pending message")
 
     context "with an empty group" $ do
       it "omits that group from the report" $ do

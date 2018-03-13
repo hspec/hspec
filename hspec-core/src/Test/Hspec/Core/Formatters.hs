@@ -136,9 +136,10 @@ specdoc = silent {
       writeLine $ indentationFor ("" : nesting) ++ s
 
 , examplePending = \(nesting, requirement) info reason -> withPendingColor $ do
-    writeLine $ indentationFor nesting ++ requirement ++ "\n     # PENDING: " ++ fromMaybe "No reason given" reason
+    writeLine $ indentationFor nesting ++ requirement
     forM_ (lines info) $ \ s ->
       writeLine $ indentationFor ("" : nesting) ++ s
+    writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
 
 , failedFormatter = defaultFailedFormatter
 

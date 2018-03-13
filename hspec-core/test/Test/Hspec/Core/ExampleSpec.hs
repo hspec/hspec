@@ -184,6 +184,12 @@ spec = do
             Result "" (Failure _ err) <- evaluateExample $ prop (assertFailure "foobar" :: IO ())
             err `shouldBe` Reason "Falsifiable (after 1 test):\n  0\n  1\nfoobar"
 
+        context "when used with verbose" $ do
+          it "includes verbose output" $ do
+            Result info (Failure _ err) <- evaluateExample $ verbose $ (`shouldBe` (23 :: Int))
+            info `shouldBe` "Failed:\n0"
+            err `shouldBe` ExpectedButGot (Just "Falsifiable (after 1 test):\n  0") "23" "0"
+
       context "when used with `pending`" $ do
         it "returns Pending" $ do
           let location =

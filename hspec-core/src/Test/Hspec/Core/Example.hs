@@ -85,14 +85,14 @@ instance NFData FailureReason where
     ExpectedButGot p e a  -> p `deepseq` e `deepseq` a `deepseq` ()
     Error m e -> m `deepseq` e `seq` ()
 
-instance Exception Result
+instance Exception ResultStatus
 
 safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 safeEvaluateExample example params around progress = do
   r <- safeTry $ forceResult <$> evaluateExample example params around progress
   return $ case r of
-    Left e | Just result <- fromException e -> result
-    Left e | Just hunit <- fromException e -> hunitFailureToResult Nothing hunit
+    Left e | Just result <- fromException e -> Result "" result
+    Left e | Just hunit <- fromException e -> Result "" $ hunitFailureToResult Nothing hunit
     Left e -> Result "" $ Failure Nothing $ Error Nothing e
     Right result -> result
   where
@@ -135,12 +135,12 @@ instance Example Expectation where
   type Arg Expectation = ()
   evaluateExample e = evaluateExample (\() -> e)
 
-hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> Result
+hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> ResultStatus
 hunitFailureToResult pre e = case e of
   HUnit.HUnitFailure mLoc err ->
       case err of
-        HUnit.Reason reason -> Result "" $ Failure location (Reason $ addPre reason)
-        HUnit.ExpectedButGot preface expected actual -> Result "" $ Failure location (ExpectedButGot (addPreMaybe preface) expected actual)
+        HUnit.Reason reason -> Failure location (Reason $ addPre reason)
+        HUnit.ExpectedButGot preface expected actual -> Failure location (ExpectedButGot (addPreMaybe preface) expected actual)
           where
             addPreMaybe :: Maybe String -> Maybe String
             addPreMaybe xs = case (pre, xs) of
@@ -178,8 +178,8 @@ fromQuickCheckResult r = case parseQuickCheckResult r of
   QuickCheckResult _ info (QuickCheckOtherFailure err) -> Result info $ Failure Nothing (Reason err)
   QuickCheckResult _ info QuickCheckSuccess -> Result info Success
   QuickCheckResult n info (QuickCheckFailure QCFailure{..}) -> case quickCheckFailureException of
-    Just e | Just result <- fromException e -> result
-    Just e | Just hunit <- fromException e -> hunitFailureToResult (Just hunitAssertion) hunit
+    Just e | Just result <- fromException e -> Result info result
+    Just e | Just hunit <- fromException e -> Result info $ hunitFailureToResult (Just hunitAssertion) hunit
     Just e -> failure (uncaughtException e)
     Nothing -> failure falsifiable
     where
