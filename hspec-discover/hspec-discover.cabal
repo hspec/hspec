@@ -1,12 +1,14 @@
--- This file has been generated from package.yaml by hpack version 0.19.0.
+-- This file has been generated from package.yaml by hpack version 0.27.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 914e0ada200714773da45ee3b3db5be95f65e46732b25ef95cfbfcfac47d311e
 
 name:             hspec-discover
 version:          2.5.0
 license:          MIT
 license-file:     LICENSE
-copyright:        (c) 2012-2017 Simon Hengel
+copyright:        (c) 2012-2018 Simon Hengel
 author:           Simon Hengel <sol@typeful.net>
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
@@ -75,10 +77,10 @@ test-suite spec
       Test.Hspec.Discover.SortSpec
       Paths_hspec_discover
   build-depends:
-      base ==4.*
+      QuickCheck >=2.7
+    , base ==4.*
     , directory
     , filepath
     , hspec-discover
     , hspec-meta >=2.3.2
-    , QuickCheck >= 2.7
   default-language: Haskell2010

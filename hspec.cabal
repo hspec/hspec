@@ -1,14 +1,14 @@
--- This file has been generated from package.yaml by hpack version 0.25.0.
+-- This file has been generated from package.yaml by hpack version 0.27.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5973a094a7e1665acc54acbbf4e2edfaf3caf3f63f400d39fbbd281fa1479892
+-- hash: 3e60161e2b175ed3282761fb696e5f80a68ce809bd4674c9124050e3728b1f9d
 
 name:             hspec
 version:          2.5.0
 license:          MIT
 license-file:     LICENSE
-copyright:        (c) 2011-2017 Simon Hengel,
+copyright:        (c) 2011-2018 Simon Hengel,
                   (c) 2011-2012 Trystan Spangler,
                   (c) 2011 Greg Weber
 maintainer:       Simon Hengel <sol@typeful.net>
