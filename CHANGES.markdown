@@ -1,23 +1,25 @@
 ## Changes in 2.5.0
+  - Add `sequential` (see #311)
   - Add support for `--diff` when `shouldBe` is uesd with
     `QuickCheck`-properties
-  - Add source locations when `shouldBe` is uesd with `QuickCheck`-properties
-  - Add `sequential` (see #311)
+  - Add source locations when `shouldBe` is uesd with `QuickCheck` properties
+  - Print `QuickCheck` labels on success (see #297)
+  - Retain output of `verbose`, `label`, `collect`, `classify`, etc. for
+    `QuickCheck` properties (see #257)
+  - Extract source location from error / undefined (see #316)
+  - Parse source locations from pattern match failures
+  - Include source column when formatting source locations
   - Colorize whitespaces with background color instead of foreground color with
     `--diff`
-  - Deprecate `--out`
-  - Removed deprecated module `Test.Hspec.HUnit`, use
-    `Test.Hspec.Contrib.HUnit` instead
   - Run `Test.Hspec.Core.Formatters.exampleProgress` in `FormatM` instead of
     `IO`
-  - Print QuickCheck labels on success (see #297)
-  - Include column when formatting source locations
-  - Extract source location from error / undefined (close #316)
-  - Remove BestEffort source locations
-  - Include duration for each spec item in new formatter API (see #315)
-  - Add location information to `pending`
   - Make sure that progress output is always cleared (fixes #301)
-  - Parse source locations from pattern match failures
+  - Add location information to `pending` (not used by any formatter yet)
+  - Include duration for each spec item in new formatter API (see #315) (not yet exposed)
+  - Removed deprecated module `Test.Hspec.HUnit`, use
+    `Test.Hspec.Contrib.HUnit` instead
+  - Deprecate `--out`
+  - Remove `BestEffort` source locations
 
 ## Changes in 2.4.8
   - compatibility with GHC 8.4.1-alpha3
