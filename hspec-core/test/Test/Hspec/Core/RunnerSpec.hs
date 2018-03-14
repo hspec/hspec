@@ -479,7 +479,7 @@ spec = do
       r `shouldBe` H.Summary 1 1
 
     it "runs specs in parallel" $ do
-      let n = 10
+      let n = 100
           t = 0.01
           dt = t * (fromIntegral n / 2)
       r <- timeout dt . silence . withArgs ["-j", show n] . H.hspecResult . H.parallel $ do
