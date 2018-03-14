@@ -19,6 +19,13 @@
   - Make sure that progress output is always cleared (fixes #301)
   - Parse source locations from pattern match failures
 
+## Changes in 2.4.8
+  - compatibility with GHC 8.4.1-alpha3
+
+## Changes in 2.4.7
+  - compatibility with `QuickCheck-2.11.3` and up (note that `QuickCheck`
+    versions `2.11` to `2.11.2` are not fully supported)
+
 ## Changes in 2.4.6
   - compatibility with the upcoming version `4.11.0.0` of `base`
 
