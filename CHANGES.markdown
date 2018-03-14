@@ -1,4 +1,4 @@
-## next (new release of hspec-contrib)
+## Changes in 2.5.0
   - Add support for `--diff` when `shouldBe` is uesd with
     `QuickCheck`-properties
   - Add source locations when `shouldBe` is uesd with `QuickCheck`-properties
