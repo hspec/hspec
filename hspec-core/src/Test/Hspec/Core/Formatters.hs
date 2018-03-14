@@ -32,6 +32,7 @@ module Test.Hspec.Core.Formatters (
 , getFailMessages
 , usedSeed
 
+, Seconds(..)
 , getCPUTime
 , getRealTime
 
@@ -96,6 +97,8 @@ import Test.Hspec.Core.Formatters.Monad (
   , extraChunk
   , missingChunk
   )
+
+import           Test.Hspec.Core.Clock (Seconds(..))
 
 import           Test.Hspec.Core.Formatters.Diff
 
