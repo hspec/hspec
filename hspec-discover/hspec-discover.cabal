@@ -1,11 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.27.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 914e0ada200714773da45ee3b3db5be95f65e46732b25ef95cfbfcfac47d311e
+-- hash: e95ddf08a197c51b530593153440994740febddf7d9c85a0f766aaf77aec0743
 
 name:             hspec-discover
-version:          2.5.0
+version:          2.5.1
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2012-2018 Simon Hengel
@@ -21,7 +21,6 @@ synopsis:         Automatically discover and run Hspec tests
 description:      Automatically discover and run Hspec tests
                   .
                   <http://hspec.github.io/hspec-discover.html>
-
 extra-source-files:
     test-data/empty-dir/Foo/Bar/Baz/.placeholder
     test-data/nested-spec/Foo/Bar/BazSpec.hs

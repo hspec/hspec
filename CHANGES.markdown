@@ -1,3 +1,6 @@
+## Changes in 2.5.1
+  - Disable tests for Test.Hspec.Core.Timer (see #352)
+
 ## Changes in 2.5.0
   - Add `sequential` (see #311)
   - Add support for `--diff` when `shouldBe` is uesd with

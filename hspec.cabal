@@ -1,11 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.27.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3e60161e2b175ed3282761fb696e5f80a68ce809bd4674c9124050e3728b1f9d
+-- hash: cc8037ab82f8277af7aee801270c02aa011721d8f32f563be1520d25c0590137
 
 name:             hspec
-version:          2.5.0
+version:          2.5.1
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2018 Simon Hengel,
@@ -32,7 +32,6 @@ description:      Hspec is a testing framework for Haskell. It is inspired by
                   * automatic discovery of test files
                   .
                   The Hspec Manual is at <http://hspec.github.io/>.
-
 extra-source-files:
     CHANGES.markdown
 
@@ -49,8 +48,8 @@ library
     , QuickCheck >=2.10
     , base ==4.*
     , call-stack
-    , hspec-core ==2.5.0
-    , hspec-discover ==2.5.0
+    , hspec-core ==2.5.1
+    , hspec-discover ==2.5.1
     , hspec-expectations ==0.8.2.*
     , transformers >=0.2.2.0
   exposed-modules:
@@ -77,8 +76,8 @@ test-suite spec
     , call-stack
     , directory
     , hspec
-    , hspec-core ==2.5.0
-    , hspec-discover ==2.5.0
+    , hspec-core ==2.5.1
+    , hspec-discover ==2.5.1
     , hspec-expectations ==0.8.2.*
     , hspec-meta >=2.3.2
     , stringbuilder
