@@ -34,6 +34,8 @@ dependencies:
   - call-stack
   - directory
   - filepath
+  - contravariant
+  - profunctors
 
   - stm >= 2.2 # for asyc
   - array # for Diff

@@ -16,8 +16,12 @@ module Test.Hspec.Core.Spec.Monad (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import           Control.Arrow
 import           Control.Monad.Trans.Writer
 import           Control.Monad.IO.Class (liftIO)
+
+import           Data.Functor.Contravariant
+import           Data.Profunctor
 
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
@@ -29,6 +33,19 @@ type SpecWith a = SpecM a ()
 -- | A writer monad for `SpecTree` forests
 newtype SpecM a r = SpecM (WriterT [SpecTree a] IO r)
   deriving (Functor, Applicative, Monad)
+
+instance Profunctor SpecM where
+  rmap = fmap
+  lmap f (SpecM w) =
+    SpecM $ mapWriterT (fmap (second (map (contramapTree f)))) w
+
+-- | Contravariant instance for SpecTree, given this way because SpecTree is a
+-- type synonym
+contramapTree :: (b -> a) -> SpecTree a -> SpecTree b
+contramapTree f (Node s ts) = Node s $ map (contramapTree f) ts
+contramapTree f (NodeWithCleanup c ts) =
+  NodeWithCleanup (c . f) $ map (contramapTree f) ts
+contramapTree f (Leaf a) = Leaf $ contramap f a
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
 runSpecM :: SpecWith a -> IO [SpecTree a]

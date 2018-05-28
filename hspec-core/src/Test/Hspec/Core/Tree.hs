@@ -19,6 +19,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Data.CallStack
+import           Data.Functor.Contravariant
 
 import           Test.Hspec.Core.Example
 
@@ -54,6 +55,17 @@ data Item a = Item {
   -- | Example for behavior
 , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 }
+
+instance Contravariant Item where
+  contramap f item = item {itemExample = newExample}
+    where
+      oldExample = itemExample item
+      newExample params action = oldExample params $ action . contramapActionWith f
+
+-- | Contravariant instance for ActionWith, given this way because ActionWith is
+-- a type synonym
+contramapActionWith :: (b -> a) -> ActionWith a -> ActionWith b
+contramapActionWith f act = act . f
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
 specGroup :: String -> [SpecTree a] -> SpecTree a
