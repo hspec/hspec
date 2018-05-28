@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cd0a31bd7edaf1f1a446581fe294f3b1ece7f6ad4c2b328ed847b570055241fa
+-- hash: b81b94506310bc08d6e1282c17048835790a2636944d63f65ea326efcc123a34
 
 name:             hspec-core
 version:          2.5.1
@@ -39,10 +39,12 @@ library
     , base >=4.5.0.0 && <5
     , call-stack
     , clock
+    , contravariant
     , deepseq
     , directory
     , filepath
     , hspec-expectations ==0.8.2.*
+    , profunctors
     , quickcheck-io >=0.2.0
     , random
     , setenv
@@ -97,12 +99,14 @@ test-suite spec
     , base >=4.5.0.0 && <5
     , call-stack
     , clock
+    , contravariant
     , deepseq
     , directory
     , filepath
     , hspec-expectations ==0.8.2.*
     , hspec-meta >=2.3.2
     , process
+    , profunctors
     , quickcheck-io >=0.2.0
     , random
     , setenv
