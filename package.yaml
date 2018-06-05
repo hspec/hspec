@@ -60,3 +60,6 @@ tests:
       - directory
       - stringbuilder
       - hspec-meta >= 2.3.2
+    verbatim: |
+      build-tool-depends:
+          hspec-meta:hspec-meta-discover
