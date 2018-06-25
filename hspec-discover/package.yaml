@@ -47,3 +47,6 @@ tests:
       - hspec-discover
       - hspec-meta >= 2.3.2
       - QuickCheck >= 2.7
+    verbatim: |
+      build-tool-depends:
+          hspec-meta:hspec-meta-discover

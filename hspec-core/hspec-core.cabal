@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cd0a31bd7edaf1f1a446581fe294f3b1ece7f6ad4c2b328ed847b570055241fa
+-- hash: 56a17c4285a3c44f823db7e8731c28c0fc01b940ccb1727c292fed8c0bf95099
 
 name:             hspec-core
 version:          2.5.1
@@ -160,3 +160,5 @@ test-suite spec
       Test.Hspec.Core.UtilSpec
       Paths_hspec_core
   default-language: Haskell2010
+  build-tool-depends:
+      hspec-meta:hspec-meta-discover
