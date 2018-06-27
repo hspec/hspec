@@ -1,3 +1,6 @@
+## next
+  - Use module:line:column as default label for describe/it (see #250)
+
 ## Changes in 2.5.1
   - Disable tests for Test.Hspec.Core.Timer (see #352)
 

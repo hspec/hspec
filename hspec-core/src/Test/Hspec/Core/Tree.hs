@@ -19,6 +19,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Data.CallStack
+import           Data.Maybe
 
 import           Test.Hspec.Core.Example
 
@@ -56,22 +57,29 @@ data Item a = Item {
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
-specGroup :: String -> [SpecTree a] -> SpecTree a
+specGroup :: HasCallStack => String -> [SpecTree a] -> SpecTree a
 specGroup s = Node msg
   where
+    msg :: HasCallStack => String
     msg
-      | null s = "(no description given)"
+      | null s = fromMaybe "(no description given)" defaultDescription
       | otherwise = s
 
 -- | The @specItem@ function creates a spec item.
 specItem :: (HasCallStack, Example a) => String -> a -> SpecTree (Arg a)
 specItem s e = Leaf $ Item requirement location Nothing (safeEvaluateExample e)
   where
+    requirement :: HasCallStack => String
     requirement
-      | null s = "(unspecified behavior)"
+      | null s = fromMaybe "(unspecified behavior)" defaultDescription
       | otherwise = s
 
 location :: HasCallStack => Maybe Location
 location = case reverse callStack of
   (_, loc) : _ -> Just (Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc))
+  _ -> Nothing
+
+defaultDescription :: HasCallStack => Maybe String
+defaultDescription = case reverse callStack of
+  (_, loc) : _ -> Just (srcLocModule loc ++ ":" ++ show (srcLocStartLine loc) ++ ":" ++ show (srcLocStartCol loc))
   _ -> Nothing

@@ -45,22 +45,22 @@ import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
 
 -- | The @describe@ function combines a list of specs into a larger spec.
-describe :: String -> SpecWith a -> SpecWith a
+describe :: HasCallStack => String -> SpecWith a -> SpecWith a
 describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . specGroup label
 
 -- | @context@ is an alias for `describe`.
-context :: String -> SpecWith a -> SpecWith a
+context :: HasCallStack => String -> SpecWith a -> SpecWith a
 context = describe
 
 -- |
 -- Changing `describe` to `xdescribe` marks all spec items of the corresponding subtree as pending.
 --
 -- This can be used to temporarily disable spec items.
-xdescribe :: String -> SpecWith a -> SpecWith a
+xdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
 xdescribe label spec = before_ pending_ $ describe label spec
 
 -- | @xcontext@ is an alias for `xdescribe`.
-xcontext :: String -> SpecWith a -> SpecWith a
+xcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
 xcontext = xdescribe
 
 -- | The @it@ function creates a spec item.
