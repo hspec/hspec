@@ -195,6 +195,14 @@ spec = do
           , ""
           , "  1) foo"
           , ""
+#if __GLASGOW_HASKELL__ == 800
+          , "WARNING:"
+          , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
+          , "  Source locations may not work as expected."
+          , ""
+          , "  Please consider upgrading GHC!"
+          , ""
+#endif
           , "Randomized with seed 23"
           , ""
           ]
@@ -256,6 +264,14 @@ spec = do
           , ""
           , "  1) bar"
           , ""
+#if __GLASGOW_HASKELL__ == 800
+          , "WARNING:"
+          , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
+          , "  Source locations may not work as expected."
+          , ""
+          , "  Please consider upgrading GHC!"
+          , ""
+#endif
           , "Randomized with seed 23"
           , ""
           , "Finished in 0.0000 seconds"
@@ -294,6 +310,14 @@ spec = do
           , ""
           , "  1) foo bar"
           , ""
+#if __GLASGOW_HASKELL__ == 800
+          , "WARNING:"
+          , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
+          , "  Source locations may not work as expected."
+          , ""
+          , "  Please consider upgrading GHC!"
+          , ""
+#endif
           , "Randomized with seed 23"
           , ""
           , "Finished in 0.0000 seconds"
