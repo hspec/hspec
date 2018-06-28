@@ -1,5 +1,7 @@
 ## Next
   - Treat character escapes like `\NUL` as single tokens on `--diff` (see #351)
+  - Allow a `/` at the beginning and at the end of an absolute path that is
+    passed to `--match` or `--skip`
 
 ## Changes in 2.5.2
   - Use module:line:column as default label for describe/it (see #250)

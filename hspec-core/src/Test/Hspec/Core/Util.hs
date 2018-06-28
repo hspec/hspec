@@ -87,7 +87,7 @@ filterPredicate pattern path@(groups, requirement) =
      pattern `isInfixOf` plain
   || pattern `isInfixOf` formatted
   where
-    plain = intercalate "/" (groups ++ [requirement])
+    plain = "/" ++ intercalate "/" (groups ++ [requirement]) ++ "/"
     formatted = formatRequirement path
 
 -- | The function `formatException` converts an exception to a string.

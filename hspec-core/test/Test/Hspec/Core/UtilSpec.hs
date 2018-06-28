@@ -84,6 +84,11 @@ spec = do
       let p = filterPredicate "ModuleA.ModuleB.foo does something"
       p (["ModuleA", "ModuleB", "foo"], "does something") `shouldBe` True
 
+    context "with an absolute path that begins or ends with a slash" $ do
+      it "succeeds" $ do
+        let p = filterPredicate "/foo/bar/baz/example 1/"
+        p (["foo", "bar", "baz"], "example 1") `shouldBe` True
+
   describe "formatRequirement" $ do
     it "creates a sentence from a subject and a requirement" $ do
       formatRequirement (["reverse"], "reverses a list") `shouldBe` "reverse reverses a list"
