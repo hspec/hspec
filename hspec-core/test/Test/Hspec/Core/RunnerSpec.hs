@@ -44,9 +44,14 @@ runPropFoo args = unlines . normalizeSummary . lines <$> do
 spec :: Spec
 spec = do
   describe "hspec" $ do
+
+    let
+      hspec args = withArgs ("--format=silent" : args) . H.hspec
+      hspec_ = hspec []
+
     it "evaluates examples Unmasked" $ do
       mvar <- newEmptyMVar
-      withArgs ["--format", "silent"] . H.hspec $ do
+      hspec_ $ do
         H.it "foo" $ do
           E.getMaskingState >>= putMVar mvar
       takeMVar mvar `shouldReturn` E.Unmasked
@@ -54,7 +59,7 @@ spec = do
     it "runs finalizers" $ do
       mvar <- newEmptyMVar
       ref <- newIORef "did not run finalizer"
-      a <- async $ withArgs ["--format", "silent"] . H.hspec $ do
+      a <- async $ hspec_ $ do
           H.it "foo" $ do
             (putMVar mvar () >> threadDelay 10000000) `E.finally`
               writeIORef ref "ran finalizer"
@@ -63,12 +68,12 @@ spec = do
       readIORef ref `shouldReturn` "ran finalizer"
 
     it "runs a spec" $ do
-      silence . H.hspec $ do
+      hspec_ $ do
         H.it "foobar" True
       `shouldReturn` ()
 
     it "exits with exitFailure if not all examples pass" $ do
-      silence . H.hspec $ do
+      hspec_ $ do
         H.it "foobar" False
       `shouldThrow` (== ExitFailure 1)
 
@@ -87,7 +92,7 @@ spec = do
           ]
 
     it "stores a failure report in the environment" $ do
-      silence . ignoreExitCode . withArgs ["--seed", "23"] . H.hspec $ do
+      ignoreExitCode . hspec ["--seed", "23"] $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "example 1" True
@@ -166,11 +171,10 @@ spec = do
 
 
     it "does not leak command-line options to examples" $ do
-      silence . withArgs ["--verbose"] $ do
-        H.hspec $ do
-          H.it "foobar" $ do
-            getArgs `shouldReturn` []
-        `shouldReturn` ()
+      hspec ["--diff"] $ do
+        H.it "foobar" $ do
+          getArgs `shouldReturn` []
+      `shouldReturn` ()
 
     context "when interrupted with ctrl-c" $ do
       it "prints summary immediately" $ do
@@ -211,7 +215,7 @@ spec = do
         mvar <- newEmptyMVar
         sync <- newEmptyMVar
         threadId <- forkIO $ do
-          silence . H.hspec $ do
+          hspec_ $ do
             H.it "foo" $ do
               putMVar sync ()
               threadDelay 1000000
@@ -283,7 +287,7 @@ spec = do
         child2 <- newQSem 0
         parent <- newQSem 0
         ref <- newIORef ""
-        ignoreExitCode . withArgs ["--fail-fast", "--format=silent", "-j", "2"] . H.hspec $ do
+        ignoreExitCode . hspec ["--fail-fast", "-j", "2"] $ do
           H.parallel $ do
             H.it "foo" $ do
               waitQSem child1
@@ -329,7 +333,7 @@ spec = do
         e1 <- newMock
         e2 <- newMock
         e3 <- newMock
-        silence . withArgs ["-m", "/bar/example"] . H.hspec $ do
+        hspec ["-m", "/bar/example"] $ do
           H.describe "foo" $ do
             H.describe "bar" $ do
               H.it "example 1" $ mockAction e1
@@ -343,7 +347,7 @@ spec = do
         e2 <- newMock
         e3 <- newMock
         e4 <- newMock
-        silence . withArgs ["-m", "/bar/example", "--skip", "example 3"] . H.hspec $ do
+        hspec ["-m", "/bar/example", "--skip", "example 3"] $ do
           H.describe "foo" $ do
             H.describe "bar" $ do
               H.it "example 1" $ mockAction e1
@@ -358,7 +362,7 @@ spec = do
         e1 <- newMock
         e2 <- newMock
         e3 <- newMock
-        silence . withArgs ["-m", "foo", "-m", "baz"] . H.hspec $ do
+        hspec ["-m", "foo", "-m", "baz"] $ do
           H.describe "foo" $ do
             H.it "example 1" $ mockAction e1
           H.describe "bar" $ do
@@ -405,7 +409,7 @@ spec = do
     context "with --qc-max-success" $ do
       it "tries QuickCheck properties specified number of times" $ do
         m <- newMock
-        silence . withArgs ["--qc-max-success", "23"] . H.hspec $ do
+        hspec ["--qc-max-success", "23"] $ do
           H.it "foo" $ property $ \(_ :: Int) -> do
             mockAction m
         mockCounter m `shouldReturn` 23
@@ -471,8 +475,12 @@ spec = do
         r `shouldContain` "<span class=\"hspec-failure\">foo"
 
   describe "hspecResult" $ do
+    let
+      hspecResult args = withArgs ("--format=silent" : args) . H.hspecResult
+      hspecResult_ = hspecResult []
+
     it "returns a summary of the test run" $ do
-      silence . H.hspecResult $ do
+      hspecResult_ $ do
         H.it "foo" True
         H.it "foo" False
         H.it "foo" False
@@ -481,7 +489,7 @@ spec = do
       `shouldReturn` H.Summary 5 2
 
     it "treats uncaught exceptions as failure" $ do
-      silence . H.hspecResult  $ do
+      hspecResult_  $ do
         H.it "foobar" throwException
       `shouldReturn` H.Summary 1 1
 
@@ -498,7 +506,7 @@ spec = do
       r `shouldBe` ""
 
     it "does not let escape error thunks from failure messages" $ do
-      r <- silence . H.hspecResult $ do
+      r <- hspecResult_ $ do
         H.it "some example" (H.Result "" $ H.Failure Nothing . H.Reason $ "foobar" ++ undefined)
       r `shouldBe` H.Summary 1 1
 
@@ -506,7 +514,7 @@ spec = do
       let n = 100
           t = 0.01
           dt = t * (fromIntegral n / 2)
-      r <- timeout dt . silence . withArgs ["-j", show n] . H.hspecResult . H.parallel $ do
+      r <- timeout dt . hspecResult ["-j", show n] . H.parallel $ do
         replicateM_ n (H.it "foo" $ sleep t)
       r `shouldBe` Just (H.Summary n 0)
 
@@ -521,7 +529,7 @@ spec = do
               current <- atomicModifyIORef currentRef $ \x -> let y = succ x in (y, y)
               atomicModifyIORef highRef $ \x -> (max x current, ())
             stop = atomicModifyIORef currentRef $ \x -> (pred x, ())
-        r <- withArgs ["-j", show j] . H.hspecResult . H.parallel $ do
+        r <- hspecResult ["-j", show j] . H.parallel $ do
           replicateM_ n $ H.it "foo" $ E.bracket_ start stop $ sleep t
         r `shouldBe` H.Summary n 0
         high <- readIORef highRef

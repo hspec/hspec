@@ -41,7 +41,7 @@ import           System.SetEnv
 import           System.Directory
 import           System.IO.Temp
 
-import           Test.Hspec.Meta
+import           Test.Hspec.Meta hiding (hspec, hspecResult)
 import           Test.QuickCheck hiding (Result(..))
 
 import qualified Test.Hspec.Core.Spec as H
