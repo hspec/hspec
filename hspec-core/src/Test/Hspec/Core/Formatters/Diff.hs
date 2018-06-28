@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ViewPatterns #-}
 module Test.Hspec.Core.Formatters.Diff (
   Diff (..)
 , diff
@@ -8,17 +9,21 @@ module Test.Hspec.Core.Formatters.Diff (
 #endif
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Core.Compat
+
 import           Data.Char
+import           Data.List (stripPrefix)
 import           Data.Algorithm.Diff
 
 diff :: String -> String -> [Diff String]
 diff expected actual = map (fmap concat) $ getGroupedDiff (partition expected) (partition actual)
 
 partition :: String -> [String]
-partition = mergeBackslashes . breakList isAlphaNum
+partition = filter (not . null) . mergeBackslashes . breakList isAlphaNum
   where
     mergeBackslashes xs = case xs of
-      ['\\'] : (y : ys) : zs -> ['\\', y] : ys : mergeBackslashes zs
+      ['\\'] : (splitEscape -> Just (escape, ys)) : zs -> ("\\" ++ escape) : ys : mergeBackslashes zs
       z : zs -> z : mergeBackslashes zs
       [] -> []
 
@@ -31,3 +36,55 @@ breakList p xs = case break p xs of
     cons x
       | null x = id
       | otherwise = (x :)
+
+splitEscape :: String -> Maybe (String, String)
+splitEscape xs = splitNumericEscape xs <|> (msum $ map split escapes)
+  where
+    split :: String -> Maybe (String, String)
+    split escape = (,) escape <$> stripPrefix escape xs
+
+splitNumericEscape :: String -> Maybe (String, String)
+splitNumericEscape xs = case span isDigit xs of
+  ("", _) -> Nothing
+  r -> Just r
+
+escapes :: [String]
+escapes = [
+    "ACK"
+  , "CAN"
+  , "DC1"
+  , "DC2"
+  , "DC3"
+  , "DC4"
+  , "DEL"
+  , "DLE"
+  , "ENQ"
+  , "EOT"
+  , "ESC"
+  , "ETB"
+  , "ETX"
+  , "NAK"
+  , "NUL"
+  , "SOH"
+  , "STX"
+  , "SUB"
+  , "SYN"
+  , "EM"
+  , "FS"
+  , "GS"
+  , "RS"
+  , "SI"
+  , "SO"
+  , "US"
+  , "a"
+  , "b"
+  , "f"
+  , "n"
+  , "r"
+  , "t"
+  , "v"
+  , "&"
+  , "'"
+  , "\""
+  , "\\"
+  ]

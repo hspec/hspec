@@ -1,3 +1,6 @@
+## Next
+  - Treat character escapes like `\NUL` as single tokens on `--diff` (see #351)
+
 ## Changes in 2.5.2
   - Use module:line:column as default label for describe/it (see #250)
   - Warn if user is affected by https://ghc.haskell.org/trac/ghc/ticket/13285 (see #329)
