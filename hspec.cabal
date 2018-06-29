@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bf5dc1c765ad341077da7d97ffc9db5652d6b90d225ae6e211ba1be255351ca6
+-- hash: 602c4bff89f3c9f3a4a1831835f5227cb5448eb25a317e0daad985cedb5d2ec7
 
 name:             hspec
 version:          2.5.9
@@ -51,7 +51,6 @@ library
     , hspec-expectations ==0.8.2.*
   exposed-modules:
       Test.Hspec
-      Test.Hspec.Core
       Test.Hspec.Discover
       Test.Hspec.Formatters
       Test.Hspec.QuickCheck

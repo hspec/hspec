@@ -1,5 +1,6 @@
 ## Changes in 2.6.0
   - Do not calculate diff on `--no-diff` (see #332)
+  - Remove deprecated module Test.Hspec.Core
 
 ## Changes in 2.5.9
    - Extract source locations from RecConError (see #375)

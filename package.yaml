@@ -40,7 +40,6 @@ library:
   source-dirs: src
   exposed-modules:
     - Test.Hspec
-    - Test.Hspec.Core
     - Test.Hspec.Discover
     - Test.Hspec.Formatters
     - Test.Hspec.QuickCheck
