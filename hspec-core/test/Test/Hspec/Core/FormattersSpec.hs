@@ -73,6 +73,7 @@ environment = Environment {
 , environmentWithSuccessColor = \action -> let (a, r) = runWriter action in tell (colorize Succeeded r) >> return a
 , environmentWithPendingColor = \action -> let (a, r) = runWriter action in tell (colorize Pending r) >> return a
 , environmentWithInfoColor = \action -> let (a, r) = runWriter action in tell (colorize Info r) >> return a
+, environmentUseDiff = return True
 , environmentExtraChunk = tell . return . Extra
 , environmentMissingChunk = tell . return . Missing
 , environmentLiftIO = undefined

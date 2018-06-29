@@ -30,6 +30,7 @@ module Test.Hspec.Core.Formatters.Monad (
 , withPendingColor
 , withFailColor
 
+, useDiff
 , extraChunk
 , missingChunk
 
@@ -97,6 +98,7 @@ data FormatF next =
   | forall a. WithSuccessColor (FormatM a) (a -> next)
   | forall a. WithPendingColor (FormatM a) (a -> next)
   | forall a. WithInfoColor (FormatM a) (a -> next)
+  | UseDiff (Bool -> next)
   | ExtraChunk String next
   | MissingChunk String next
   | forall a. LiftIO (IO a) (a -> next)
@@ -115,6 +117,7 @@ instance Functor FormatF where -- deriving this instance would require GHC >= 7.
     WithSuccessColor action next -> WithSuccessColor action (fmap f next)
     WithPendingColor action next -> WithPendingColor action (fmap f next)
     WithInfoColor action next -> WithInfoColor action (fmap f next)
+    UseDiff next -> UseDiff (fmap f next)
     ExtraChunk s next -> ExtraChunk s (f next)
     MissingChunk s next -> MissingChunk s (f next)
     LiftIO action next -> LiftIO action (fmap f next)
@@ -137,6 +140,7 @@ data Environment m = Environment {
 , environmentWithSuccessColor :: forall a. m a -> m a
 , environmentWithPendingColor :: forall a. m a -> m a
 , environmentWithInfoColor :: forall a. m a -> m a
+, environmentUseDiff :: m Bool
 , environmentExtraChunk :: String -> m ()
 , environmentMissingChunk :: String -> m ()
 , environmentLiftIO :: forall a. IO a -> m a
@@ -161,6 +165,7 @@ interpretWith Environment{..} = go
         WithSuccessColor inner next -> environmentWithSuccessColor (go inner) >>= go . next
         WithPendingColor inner next -> environmentWithPendingColor (go inner) >>= go . next
         WithInfoColor inner next -> environmentWithInfoColor (go inner) >>= go . next
+        UseDiff next -> environmentUseDiff >>= go . next
         ExtraChunk s next -> environmentExtraChunk s >> go next
         MissingChunk s next -> environmentMissingChunk s >> go next
         LiftIO inner next -> environmentLiftIO inner >>= go . next
@@ -227,6 +232,10 @@ withPendingColor s = liftF (WithPendingColor s id)
 -- default color.
 withInfoColor :: FormatM a -> FormatM a
 withInfoColor s = liftF (WithInfoColor s id)
+
+-- | Return `True` if the user requested colorized diffs, `False` otherwise.
+useDiff :: FormatM Bool
+useDiff = liftF (UseDiff id)
 
 -- | Output given chunk in red.
 extraChunk :: String -> FormatM ()

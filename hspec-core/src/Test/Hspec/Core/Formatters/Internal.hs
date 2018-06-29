@@ -68,6 +68,7 @@ interpret = interpretWith Environment {
 , environmentWithSuccessColor = withSuccessColor
 , environmentWithPendingColor = withPendingColor
 , environmentWithInfoColor = withInfoColor
+, environmentUseDiff = gets (formatConfigUseDiff . stateConfig)
 , environmentExtraChunk = extraChunk
 , environmentMissingChunk = missingChunk
 , environmentLiftIO = liftIO
