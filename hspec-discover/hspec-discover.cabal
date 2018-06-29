@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bb9ca9ff127db36ad9dbc9d8916430957ecc971cc2aded6e00554ad9392597f1
+-- hash: 771ed4ca203129de02fab8506e66d4c1e81b126b0abfc5ea244ed681cd07e231
 
 name:             hspec-discover
-version:          2.5.2
+version:          2.5.3
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2012-2018 Simon Hengel

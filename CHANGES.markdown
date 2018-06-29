@@ -1,4 +1,4 @@
-## Next
+## Changes in 2.5.3
   - Treat character escapes like `\NUL` as single tokens on `--diff` (see #351)
   - Allow a `/` at the beginning and at the end of an absolute path that is
     passed to `--match` or `--skip`
