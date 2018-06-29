@@ -7,7 +7,6 @@ module Test.Hspec.Core.Spec.Monad (
 , fromSpecList
 , runIO
 
-, mapSpecTree
 , mapSpecItem
 , mapSpecItem_
 , modifyParams
@@ -16,6 +15,7 @@ module Test.Hspec.Core.Spec.Monad (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import           Control.Arrow
 import           Control.Monad.Trans.Writer
 import           Control.Monad.IO.Class (liftIO)
 
@@ -49,8 +49,8 @@ fromSpecList = SpecM . tell
 runIO :: IO r -> SpecM a r
 runIO = SpecM . liftIO
 
-mapSpecTree :: (SpecTree a -> SpecTree b) -> SpecWith a -> SpecWith b
-mapSpecTree f spec = runIO (runSpecM spec) >>= fromSpecList . map f
+mapSpecTree :: (SpecTree a -> SpecTree b) -> SpecM a r -> SpecM b r
+mapSpecTree f (SpecM specs) = SpecM (mapWriterT (fmap (second (map f))) specs)
 
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem g f = mapSpecTree go
