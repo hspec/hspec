@@ -1,3 +1,6 @@
+## Changes in 2.8.2
+  - Add `mapSubject` and `ignoreSubject`
+
 ## Changes in 2.8.1
   - Take the environment variable `NO_COLOR` into account
 
