@@ -19,6 +19,9 @@ module Test.Hspec.Core.Hooks (
 , aroundAll
 , aroundAll_
 , aroundAllWith
+
+, mapSubject
+, ignoreSubject
 ) where
 
 import           Prelude ()
@@ -166,3 +169,15 @@ signal = flip putMVar ()
 
 waitFor :: BinarySemaphore -> IO ()
 waitFor = takeMVar
+
+-- | Modify the subject under test.
+--
+-- Note that this resembles a contravariant functor on the first type parameter
+-- of `SpecM`.  This is because the subject is passed inwards, as an argument
+-- to the spec item.
+mapSubject :: (b -> a) -> SpecWith a -> SpecWith b
+mapSubject f = aroundWith (. f)
+
+-- | Ignore the subject under test for a given spec.
+ignoreSubject :: SpecWith () -> SpecWith a
+ignoreSubject = mapSubject (const ())
