@@ -230,6 +230,9 @@ defaultFailedFormatter = do
               (xs, "") -> output xs
               (xs, _ : ys) -> output (xs ++ "\n") >> write (indentation ++ "          ") >> indented output ys
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
+
+      writeLine ""
+      writeLine ("  To rerun use: --match " ++ show (joinPath path))
       where
         indentation = "       "
         indent message = do

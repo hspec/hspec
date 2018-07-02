@@ -7,6 +7,7 @@ module Test.Hspec.Core.Util (
 
 -- * Working with paths
 , Path
+, joinPath
 , formatRequirement
 , filterPredicate
 
@@ -68,6 +69,12 @@ lineBreaksAt n input = case words input of
 type Path = ([String], String)
 
 -- |
+-- Join a `Path` with slashes.  The result will have a leading and a trailing
+-- slash.
+joinPath :: Path -> String
+joinPath (groups, requirement) = "/" ++ intercalate "/" (groups ++ [requirement]) ++ "/"
+
+-- |
 -- Try to create a proper English sentence from a path by applying some
 -- heuristics.
 formatRequirement :: Path -> String
@@ -83,11 +90,11 @@ formatRequirement (groups, requirement) = groups_ ++ requirement
 
 -- | A predicate that can be used to filter a spec tree.
 filterPredicate :: String -> Path -> Bool
-filterPredicate pattern path@(groups, requirement) =
+filterPredicate pattern path =
      pattern `isInfixOf` plain
   || pattern `isInfixOf` formatted
   where
-    plain = "/" ++ intercalate "/" (groups ++ [requirement]) ++ "/"
+    plain = joinPath path
     formatted = formatRequirement path
 
 -- | The function `formatException` converts an exception to a string.

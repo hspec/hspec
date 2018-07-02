@@ -217,6 +217,8 @@ spec = do
             , "                 two"
             , "                 third"
             , ""
+            , "  To rerun use: --match \"//\""
+            , ""
 #if __GLASGOW_HASKELL__ == 800
             , "WARNING:"
             , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."

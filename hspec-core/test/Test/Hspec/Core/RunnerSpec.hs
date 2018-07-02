@@ -199,6 +199,8 @@ spec = do
           , ""
           , "  1) foo"
           , ""
+          , "  To rerun use: --match \"/foo/\""
+          , ""
 #if __GLASGOW_HASKELL__ == 800
           , "WARNING:"
           , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
@@ -268,6 +270,8 @@ spec = do
           , ""
           , "  1) bar"
           , ""
+          , "  To rerun use: --match \"/bar/\""
+          , ""
 #if __GLASGOW_HASKELL__ == 800
           , "WARNING:"
           , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
@@ -313,6 +317,8 @@ spec = do
           , "Failures:"
           , ""
           , "  1) foo bar"
+          , ""
+          , "  To rerun use: --match \"/foo/bar/\""
           , ""
 #if __GLASGOW_HASKELL__ == 800
           , "WARNING:"
