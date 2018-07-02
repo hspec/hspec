@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c6552ddea76009fa34e130109e1d7e036f4790640cc908c42633598692cc0c24
+-- hash: b098678af5a5999ea28d6152362006a70a50ebdcf343ec6707a508e3153a7cc2
 
 name:             hspec-core
-version:          2.5.3
+version:          2.5.4
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2018 Simon Hengel,
