@@ -1,18 +1,19 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: >= 1.10
+
+-- This file has been generated from package.yaml by hpack version 0.29.3.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ff1554a21cd3cb7e760af214c3ed52abd94f22d83fe23ffd782457a64015c058
+-- hash: f1e6b9e6a90c282a862d4fe8deff4269fd94d1d71f6d3f307f6e622f97b0d756
 
 name:             hspec-discover
-version:          2.5.4
+version:          2.5.5
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2012-2018 Simon Hengel
 author:           Simon Hengel <sol@typeful.net>
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
-cabal-version:    >= 1.10
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues

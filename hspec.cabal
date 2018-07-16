@@ -1,11 +1,13 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: >= 1.10
+
+-- This file has been generated from package.yaml by hpack version 0.29.3.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5a5174f0bf5d1069bd0020ab79fd669678d5f4deddb967bdb949b55ed72780c9
+-- hash: 32bbd6cd6fd8f6f99fe71a657a2c4674beba6789814e8c4138b399d69a8c02e4
 
 name:             hspec
-version:          2.5.4
+version:          2.5.5
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2018 Simon Hengel,
@@ -13,7 +15,6 @@ copyright:        (c) 2011-2018 Simon Hengel,
                   (c) 2011 Greg Weber
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
-cabal-version:    >= 1.10
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
@@ -48,8 +49,8 @@ library
     , QuickCheck >=2.10
     , base ==4.*
     , call-stack
-    , hspec-core ==2.5.4
-    , hspec-discover ==2.5.4
+    , hspec-core ==2.5.5
+    , hspec-discover ==2.5.5
     , hspec-expectations ==0.8.2.*
     , transformers >=0.2.2.0
   exposed-modules:
@@ -76,8 +77,8 @@ test-suite spec
     , call-stack
     , directory
     , hspec
-    , hspec-core ==2.5.4
-    , hspec-discover ==2.5.4
+    , hspec-core ==2.5.5
+    , hspec-discover ==2.5.5
     , hspec-expectations ==0.8.2.*
     , hspec-meta >=2.3.2
     , stringbuilder
