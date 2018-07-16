@@ -113,7 +113,7 @@ instance Example (a -> Result) where
   type Arg (a -> Result) = a
   evaluateExample example _params action _callback = do
     ref <- newIORef (Result "" Success)
-    action (writeIORef ref . example)
+    action (evaluate . example >=> writeIORef ref)
     readIORef ref
 
 instance Example Bool where
@@ -124,12 +124,12 @@ instance Example (a -> Bool) where
   type Arg (a -> Bool) = a
   evaluateExample p _params action _callback = do
     ref <- newIORef (Result "" Success)
-    action $ \a -> example a >>= writeIORef ref
+    action (evaluate . example >=> writeIORef ref)
     readIORef ref
     where
       example a
-        | p a = return (Result "" Success)
-        | otherwise = return (Result "" $ Failure Nothing NoReason)
+        | p a = Result "" Success
+        | otherwise = Result "" $ Failure Nothing NoReason
 
 instance Example Expectation where
   type Arg Expectation = ()

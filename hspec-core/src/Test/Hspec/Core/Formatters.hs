@@ -62,7 +62,6 @@ import           Data.Maybe
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
-import           Control.Monad (unless)
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.

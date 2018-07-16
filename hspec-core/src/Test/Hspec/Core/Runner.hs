@@ -25,7 +25,6 @@ module Test.Hspec.Core.Runner (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Monad
 import           Data.Maybe
 import           System.IO
 import           System.Environment (getProgName, getArgs, withArgs)

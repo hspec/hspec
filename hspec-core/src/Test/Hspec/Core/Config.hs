@@ -12,9 +12,9 @@ module Test.Hspec.Core.Config (
 ) where
 
 import           Prelude ()
+import           Test.Hspec.Core.Compat
 
 import           Control.Exception
-import           Control.Monad
 import           Data.Maybe
 import           System.IO
 import           System.IO.Error
@@ -24,7 +24,6 @@ import           System.Directory
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Config.Options
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)

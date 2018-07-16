@@ -13,7 +13,6 @@ import           Prelude ()
 import           Helper
 
 import           System.IO (stderr)
-import           Control.Monad (replicateM_)
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import           Control.Concurrent

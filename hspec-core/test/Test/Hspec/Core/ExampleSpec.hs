@@ -61,6 +61,9 @@ spec = do
 
   describe "evaluateExample" $ do
     context "for Result" $ do
+      it "propagates exceptions" $ do
+        evaluateExample (error "foobar" :: Result) `shouldThrow` errorCall "foobar"
+
       it "runs around-action" $ do
         ref <- newIORef (0 :: Int)
         let action :: IO () -> IO ()

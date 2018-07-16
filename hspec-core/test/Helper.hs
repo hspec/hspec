@@ -30,7 +30,6 @@ import           Test.Hspec.Core.Compat
 
 import           Data.List
 import           Data.Char
-import           Control.Monad (guard)
 import           System.Environment (withArgs, getEnvironment)
 import           System.Exit
 import qualified Control.Exception as E

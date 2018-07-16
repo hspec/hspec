@@ -23,7 +23,6 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (Monad)
 import qualified Test.Hspec.Core.Compat as M
 
-import           Control.Monad (unless, when)
 import qualified Control.Exception as E
 import           Control.Concurrent
 import           Control.Concurrent.Async hiding (cancel)

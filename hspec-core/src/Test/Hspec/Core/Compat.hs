@@ -9,6 +9,7 @@ module Test.Hspec.Core.Compat (
 
 , module Prelude
 , module Control.Applicative
+, module Control.Monad
 , module Data.Foldable
 , module Data.Traversable
 , module Data.Monoid
@@ -22,6 +23,15 @@ module Test.Hspec.Core.Compat (
 ) where
 
 import           Control.Applicative
+import           Control.Monad hiding (
+    mapM
+  , mapM_
+  , forM
+  , forM_
+  , msum
+  , sequence
+  , sequence_
+  )
 import           Data.Foldable
 import           Data.Traversable
 import           Data.Monoid

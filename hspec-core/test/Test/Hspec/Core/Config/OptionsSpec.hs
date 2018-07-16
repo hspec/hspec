@@ -3,7 +3,6 @@ module Test.Hspec.Core.Config.OptionsSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           Control.Monad
 import           System.Exit
 
 import qualified Test.Hspec.Core.Config.Options as Options

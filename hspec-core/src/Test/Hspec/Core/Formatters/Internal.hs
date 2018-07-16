@@ -16,7 +16,6 @@ import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
 import           System.IO (Handle)
-import           Control.Monad
 import           Control.Exception (AsyncException(..), bracket_, try, throwIO)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)

@@ -10,7 +10,6 @@ module Test.Hspec.Core.Config.Options (
 ) where
 
 import           Prelude ()
-import           Control.Monad
 import           Test.Hspec.Core.Compat
 
 import           System.IO

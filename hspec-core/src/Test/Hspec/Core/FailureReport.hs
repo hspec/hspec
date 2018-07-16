@@ -5,14 +5,15 @@ module Test.Hspec.Core.FailureReport (
 , readFailureReport
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Core.Compat
+
 #ifndef __GHCJS__
 import           System.SetEnv
 import           Test.Hspec.Core.Util (safeTry)
 #endif
-import           Control.Monad
 import           System.IO
 import           System.Directory
-import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Config.Options (Config(..))
 
