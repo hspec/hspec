@@ -4,7 +4,6 @@ synopsis: A Testing Framework for Haskell
 description: >
   This package exposes internal types and functions that can be used to extend
   Hspec's functionality.
-license: MIT
 copyright:
   - (c) 2011-2018 Simon Hengel
   - (c) 2011-2012 Trystan Spangler

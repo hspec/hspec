@@ -1,6 +1,5 @@
 name:             hspec
 version:          2.5.5
-license:          MIT
 copyright:
   - (c) 2011-2018 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
