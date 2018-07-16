@@ -1,3 +1,7 @@
+## Changes in 2.5.5
+  - Use `module[line:column]` instead of `module:line:column` as default label
+    for `describe`/`it` (fixes #366)
+
 ## Changes in 2.5.4
   - Show how to rerun individual spec items on test failures (see #205)
 

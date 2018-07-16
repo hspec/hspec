@@ -81,5 +81,5 @@ location = case reverse callStack of
 
 defaultDescription :: HasCallStack => Maybe String
 defaultDescription = case reverse callStack of
-  (_, loc) : _ -> Just (srcLocModule loc ++ ":" ++ show (srcLocStartLine loc) ++ ":" ++ show (srcLocStartCol loc))
+  (_, loc) : _ -> Just (srcLocModule loc ++ "[" ++ show (srcLocStartLine loc) ++ ":" ++ show (srcLocStartCol loc) ++ "]")
   _ -> Nothing
