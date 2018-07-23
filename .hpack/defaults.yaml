@@ -1,0 +1,7 @@
+main: Spec.hs
+source-dirs: test
+dependencies:
+- hspec == 2.*
+verbatim:
+  build-tool-depends:
+      hspec-discover:hspec-discover == 2.*
