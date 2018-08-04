@@ -19,7 +19,7 @@ the test driver:
 
 ## Specifying options on the command-line
 
-How to specify command-line options depends on how your run your tests.  This
+How to specify command-line options depends on how you run your tests.  This
 section describes how to pass command-line options to Hspec via Cabal and
 Stack, and from withing a GHCi-session.
 
