@@ -4,11 +4,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE RankNTypes #-}
 module Test.Hspec.Core.Example (
   Example (..)
 , Params (..)
 , defaultParams
 , ActionWith
+, AroundAction -- FIXME: documentation + re-export
 , Progress
 , ProgressCallback
 , Result(..)
@@ -40,7 +42,7 @@ import           Test.Hspec.Core.Example.Location
 class Example e where
   type Arg e
   type Arg e = ()
-  evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+  evaluateExample :: e -> Params -> AroundAction (Arg e) -> ProgressCallback -> IO Result
 
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
@@ -58,6 +60,8 @@ type ProgressCallback = Progress -> IO ()
 
 -- | An `IO` action that expects an argument of type @a@
 type ActionWith a = a -> IO ()
+
+type AroundAction a = forall r. (a -> IO r) -> IO r
 
 -- | The result of running an example
 data Result = Result {
@@ -87,7 +91,7 @@ instance NFData FailureReason where
 
 instance Exception ResultStatus
 
-safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+safeEvaluateExample :: Example e => e -> Params -> AroundAction (Arg e) -> ProgressCallback -> IO Result
 safeEvaluateExample example params around progress = do
   r <- safeTry $ forceResult <$> evaluateExample example params around progress
   return $ case r of
@@ -111,10 +115,7 @@ instance Example Result where
 
 instance Example (a -> Result) where
   type Arg (a -> Result) = a
-  evaluateExample example _params action _callback = do
-    ref <- newIORef (Result "" Success)
-    action (evaluate . example >=> writeIORef ref)
-    readIORef ref
+  evaluateExample example _params action _callback = action (evaluate . example)
 
 instance Example Bool where
   type Arg Bool = ()
@@ -122,10 +123,7 @@ instance Example Bool where
 
 instance Example (a -> Bool) where
   type Arg (a -> Bool) = a
-  evaluateExample p _params action _callback = do
-    ref <- newIORef (Result "" Success)
-    action (evaluate . example >=> writeIORef ref)
-    readIORef ref
+  evaluateExample p _params action _callback = action (evaluate . example)
     where
       example a
         | p a = Result "" Success

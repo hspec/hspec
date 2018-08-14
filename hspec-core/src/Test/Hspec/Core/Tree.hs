@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE RankNTypes #-}
 
 -- |
 -- Stability: unstable
@@ -53,7 +54,7 @@ data Item a = Item {
   -- parallel with other spec items
 , itemIsParallelizable :: Maybe Bool
   -- | Example for behavior
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: Params -> AroundAction a -> ProgressCallback -> IO Result
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.

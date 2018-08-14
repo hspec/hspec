@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
   before
@@ -13,6 +14,9 @@ module Test.Hspec.Core.Hooks (
 , around_
 , aroundWith
 ) where
+
+import           Prelude ()
+import           Test.Hspec.Core.Compat
 
 import           Control.Exception (SomeException, finally, throwIO, try)
 import           Control.Concurrent.MVar
@@ -88,6 +92,11 @@ around_ action = aroundWith $ \e a -> action (e a)
 aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundWith action = mapSpecItem action (modifyAroundAction action)
 
-modifyAroundAction :: (ActionWith a -> ActionWith b) -> Item a -> Item b
+modifyAroundAction :: forall a b. (ActionWith a -> ActionWith b) -> Item a -> Item b
 modifyAroundAction action item@Item{itemExample = e} =
-  item{ itemExample = \params aroundAction -> e params (aroundAction . action) }
+  item{ itemExample = \ params aroundAction -> e params (mapAround action aroundAction) }
+
+mapAround :: (ActionWith a -> ActionWith b) -> ((b -> IO r) -> IO r) -> (a -> IO r) -> IO r
+mapAround action aroundAction example = do
+  ref <- newIORef undefined -- FIXME: This will result in undefined if example is never called by `action`...
+  aroundAction $ \ b -> action (example >=> writeIORef ref) b >> readIORef ref

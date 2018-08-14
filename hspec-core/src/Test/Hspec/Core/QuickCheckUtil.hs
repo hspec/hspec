@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RankNTypes #-}
 module Test.Hspec.Core.QuickCheckUtil where
 
 import           Prelude ()
@@ -25,17 +26,14 @@ import           Test.QuickCheck.Test (formatLabel)
 formatLabels :: Int -> [(String, Double)] -> String
 formatLabels n = unlines . map (formatLabel n True)
 
-aroundProperty :: ((a -> IO ()) -> IO ()) -> (a -> Property) -> Property
+aroundProperty :: (forall r. (a -> IO r) -> IO r) -> (a -> Property) -> Property
 aroundProperty action p = MkProperty . MkGen $ \r n -> aroundProp action $ \a -> (unGen . unProperty $ p a) r n
 
-aroundProp :: ((a -> IO ()) -> IO ()) -> (a -> Prop) -> Prop
+aroundProp :: (forall r. (a -> IO r) -> IO r) -> (a -> Prop) -> Prop
 aroundProp action p = MkProp $ aroundRose action (\a -> unProp $ p a)
 
-aroundRose :: ((a -> IO ()) -> IO ()) -> (a -> Rose QCP.Result) -> Rose QCP.Result
-aroundRose action r = ioRose $ do
-  ref <- newIORef (return QCP.succeeded)
-  action $ \a -> reduceRose (r a) >>= writeIORef ref
-  readIORef ref
+aroundRose :: (forall r. (a -> IO r) -> IO r) -> (a -> Rose QCP.Result) -> Rose QCP.Result
+aroundRose action r = ioRose . action $ \ a -> reduceRose (r a)
 
 newSeed :: IO Int
 newSeed = fst . randomR (0, fromIntegral (maxBound :: Int32)) <$>

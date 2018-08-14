@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE RankNTypes #-}
 module Test.Hspec.Core.ExampleSpec (spec) where
 
 import           Helper
@@ -23,10 +24,10 @@ safeEvaluateExample e = H.safeEvaluateExample e defaultParams ($ ()) noOpProgres
 evaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO Result
 evaluateExample e = H.evaluateExample e defaultParams ($ ()) noOpProgressCallback
 
-evaluateExampleWith :: (H.Example e, H.Arg e ~ ()) => (IO () -> IO ()) -> e -> IO Result
+evaluateExampleWith :: (H.Example e, H.Arg e ~ ()) => (forall r. IO r -> IO r) -> e -> IO Result
 evaluateExampleWith action e = H.evaluateExample e defaultParams (action . ($ ())) noOpProgressCallback
 
-evaluateExampleWithArgument :: H.Example e => (ActionWith (H.Arg e) -> IO ()) -> e -> IO Result
+evaluateExampleWithArgument :: H.Example e => H.AroundAction (H.Arg e) -> e -> IO Result
 evaluateExampleWithArgument action e = H.evaluateExample e defaultParams action noOpProgressCallback
 
 spec :: Spec
@@ -66,10 +67,8 @@ spec = do
 
       it "runs around-action" $ do
         ref <- newIORef (0 :: Int)
-        let action :: IO () -> IO ()
-            action e = do
-              e
-              modifyIORef ref succ
+        let action :: IO r -> IO r
+            action e = e <* modifyIORef ref succ
 
             result = Result "" (Failure Nothing NoReason)
         evaluateExampleWith action result `shouldReturn` result
@@ -77,10 +76,8 @@ spec = do
 
       it "accepts arguments" $ do
         ref <- newIORef (0 :: Int)
-        let action :: (Integer -> IO ()) -> IO ()
-            action e = do
-              e 42
-              modifyIORef ref succ
+        let action :: (Integer -> IO r) -> IO r
+            action e = e 42 <* modifyIORef ref succ
         evaluateExampleWithArgument action (Result "" . Failure Nothing . Reason . show) `shouldReturn` Result "" (Failure Nothing $ Reason "42")
         readIORef ref `shouldReturn` 1
 
@@ -96,19 +93,15 @@ spec = do
 
       it "runs around-action" $ do
         ref <- newIORef (0 :: Int)
-        let action :: IO () -> IO ()
-            action e = do
-              e
-              modifyIORef ref succ
+        let action :: IO r -> IO r
+            action e = e <* modifyIORef ref succ
         evaluateExampleWith action False `shouldReturn` Result "" (Failure Nothing NoReason)
         readIORef ref `shouldReturn` 1
 
       it "accepts arguments" $ do
         ref <- newIORef (0 :: Int)
-        let action :: (Integer -> IO ()) -> IO ()
-            action e = do
-              e 42
-              modifyIORef ref succ
+        let action :: (Integer -> IO r) -> IO r
+            action e = e 42 <* modifyIORef ref succ
         evaluateExampleWithArgument action (== (23 :: Integer)) `shouldReturn` Result "" (Failure Nothing NoReason)
         readIORef ref `shouldReturn` 1
 
@@ -121,12 +114,13 @@ spec = do
 
       it "runs around-action" $ do
         ref <- newIORef (0 :: Int)
-        let action :: IO () -> IO ()
+        let action :: IO r -> IO r
             action e = do
               n <- readIORef ref
-              e
+              r <- e
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
+              return r
         evaluateExampleWith action (modifyIORef ref succ) `shouldReturn` Result "" Success
         readIORef ref `shouldReturn` 2
 
@@ -152,12 +146,13 @@ spec = do
 
       it "runs around-action for each single check of the property" $ do
         ref <- newIORef (0 :: Int)
-        let action :: IO () -> IO ()
+        let action :: IO r -> IO r
             action e = do
               n <- readIORef ref
-              e
+              r <- e
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
+              return r
         Result _ Success <- evaluateExampleWith action (property $ \(_ :: Int) -> modifyIORef ref succ)
         readIORef ref `shouldReturn` 2000
 
