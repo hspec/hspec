@@ -35,10 +35,7 @@ dependencies:
   - hspec-core == 2.5.5
   - hspec-discover == 2.5.5
   - hspec-expectations == 0.8.2.*
-  - transformers >= 0.2.2.0
-  - HUnit >= 1.5.0.0
   - QuickCheck >= 2.10
-  - call-stack
 
 library:
   source-dirs: src
@@ -49,13 +46,3 @@ library:
     - Test.Hspec.Formatters
     - Test.Hspec.QuickCheck
     - Test.Hspec.Runner
-
-tests:
-  spec:
-    source-dirs: test
-    main: Spec.hs
-    dependencies:
-      - hspec
-      - directory
-      - stringbuilder
-      - hspec-meta >= 2.3.2

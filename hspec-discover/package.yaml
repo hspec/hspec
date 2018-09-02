@@ -46,3 +46,4 @@ tests:
       - hspec-discover
       - hspec-meta >= 2.3.2
       - QuickCheck >= 2.7
+    build-tools: hspec-meta:hspec-meta-discover

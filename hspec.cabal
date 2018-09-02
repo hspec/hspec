@@ -1,10 +1,10 @@
-cabal-version: >= 1.10
+cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.29.5.
+-- This file has been generated from package.yaml by hpack version 0.30.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 32bbd6cd6fd8f6f99fe71a657a2c4674beba6789814e8c4138b399d69a8c02e4
+-- hash: 031a62ba360fbdb8e01bc07d5986665564f0502ce2a15711d34ed48bd46f1459
 
 name:             hspec
 version:          2.5.5
@@ -45,14 +45,11 @@ library
   hs-source-dirs:
       src
   build-depends:
-      HUnit >=1.5.0.0
-    , QuickCheck >=2.10
+      QuickCheck >=2.10
     , base ==4.*
-    , call-stack
     , hspec-core ==2.5.5
     , hspec-discover ==2.5.5
     , hspec-expectations ==0.8.2.*
-    , transformers >=0.2.2.0
   exposed-modules:
       Test.Hspec
       Test.Hspec.Core
@@ -60,29 +57,6 @@ library
       Test.Hspec.Formatters
       Test.Hspec.QuickCheck
       Test.Hspec.Runner
-  other-modules:
-      Paths_hspec
-  default-language: Haskell2010
-
-test-suite spec
-  type: exitcode-stdio-1.0
-  ghc-options: -Wall
-  hs-source-dirs:
-      test
-  main-is: Spec.hs
-  build-depends:
-      HUnit >=1.5.0.0
-    , QuickCheck >=2.10
-    , base ==4.*
-    , call-stack
-    , directory
-    , hspec
-    , hspec-core ==2.5.5
-    , hspec-discover ==2.5.5
-    , hspec-expectations ==0.8.2.*
-    , hspec-meta >=2.3.2
-    , stringbuilder
-    , transformers >=0.2.2.0
   other-modules:
       Paths_hspec
   default-language: Haskell2010

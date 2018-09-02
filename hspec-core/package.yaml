@@ -61,3 +61,4 @@ tests:
       - silently >= 1.2.4
       - process
       - temporary
+    build-tools: hspec-meta:hspec-meta-discover

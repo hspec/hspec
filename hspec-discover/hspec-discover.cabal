@@ -1,10 +1,10 @@
-cabal-version: >= 1.10
+cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.29.5.
+-- This file has been generated from package.yaml by hpack version 0.30.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f1e6b9e6a90c282a862d4fe8deff4269fd94d1d71f6d3f307f6e622f97b0d756
+-- hash: e55fa536a4f85f605c18c29df9861213954eb1d2a4181ab22de6457a3a76db84
 
 name:             hspec-discover
 version:          2.5.5
@@ -23,10 +23,10 @@ description:      Automatically discover and run Hspec tests
                   .
                   <http://hspec.github.io/hspec-discover.html>
 extra-source-files:
-    test-data/empty-dir/Foo/Bar/Baz/.placeholder
     test-data/nested-spec/Foo/Bar/BazSpec.hs
     test-data/nested-spec/Foo/BarSpec.hs
     test-data/nested-spec/FooSpec.hs
+    test-data/empty-dir/Foo/Bar/Baz/.placeholder
 
 source-repository head
   type: git
@@ -83,4 +83,6 @@ test-suite spec
     , filepath
     , hspec-discover
     , hspec-meta >=2.3.2
+  build-tool-depends:
+      hspec-meta:hspec-meta-discover
   default-language: Haskell2010
