@@ -20,11 +20,6 @@ import           Test.QuickCheck.Random
 
 import           Test.Hspec.Core.Util
 
-import           Test.QuickCheck.Test (formatLabel)
-
-formatLabels :: Int -> [(String, Double)] -> String
-formatLabels n = unlines . map (formatLabel n True)
-
 aroundProperty :: ((a -> IO ()) -> IO ()) -> (a -> Property) -> Property
 aroundProperty action p = MkProperty . MkGen $ \r n -> aroundProp action $ \a -> (unGen . unProperty $ p a) r n
 
@@ -105,11 +100,13 @@ parseQuickCheckResult r = case r of
     Just (info, err) -> otherFailure info err
     Nothing -> couldNotParse output
 
+#if !MIN_VERSION_QuickCheck(2,12,0)
   InsufficientCoverage {..} -> case splitBy ("*** " ++ pre) output of
     Just (info, err) -> otherFailure info (pre ++ err)
     Nothing -> couldNotParse output
     where
       pre = "Insufficient coverage after "
+#endif
 
   where
     result = QuickCheckResult (numTests r) . strip
