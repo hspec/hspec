@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 module Test.Hspec.Core.QuickCheckUtil where
 
@@ -10,6 +9,7 @@ import           Data.List
 import           Data.Maybe
 import           Data.Int
 import           System.Random
+
 import           Test.QuickCheck
 import           Test.QuickCheck.Text (isOneLine)
 import qualified Test.QuickCheck.Property as QCP
@@ -17,6 +17,8 @@ import           Test.QuickCheck.Property hiding (Result(..))
 import           Test.QuickCheck.Gen
 import           Test.QuickCheck.IO ()
 import           Test.QuickCheck.Random
+import qualified Test.QuickCheck.Test as QC (showTestCount)
+import           Test.QuickCheck.State (State(..))
 
 import           Test.Hspec.Core.Util
 
@@ -83,35 +85,48 @@ parseQuickCheckResult r = case r of
         | isOneLine reason = reason ++ " " ++ numbers ++ colonNewline
         | otherwise = numbers ++ colonNewline ++ ensureTrailingNewline reason
       numbers = formatNumbers numTests numShrinks
-#if MIN_VERSION_QuickCheck(2,11,0)
       colonNewline = ":\n"
-#else
-      colonNewline = ": \n"
-#endif
 
   GaveUp {..} ->
     case stripSuffix outputWithoutVerbose output of
-      Just info -> otherFailure info ("Gave up after " ++ pluralize numTests "test" ++ "!")
+      Just info -> otherFailure info ("Gave up after " ++ numbers ++ "!")
       Nothing -> couldNotParse output
     where
-      outputWithoutVerbose = "*** Gave up! Passed only " ++ pluralize numTests "test" ++ ".\n"
+      numbers = showTestCount numTests numDiscarded
+      outputWithoutVerbose = "*** Gave up! Passed only " ++ numbers ++ " tests.\n"
 
   NoExpectedFailure {..} -> case splitBy "*** Failed! " output of
     Just (info, err) -> otherFailure info err
     Nothing -> couldNotParse output
 
-#if !MIN_VERSION_QuickCheck(2,12,0)
-  InsufficientCoverage {..} -> case splitBy ("*** " ++ pre) output of
-    Just (info, err) -> otherFailure info (pre ++ err)
-    Nothing -> couldNotParse output
-    where
-      pre = "Insufficient coverage after "
-#endif
-
   where
     result = QuickCheckResult (numTests r) . strip
     otherFailure info err = result info (QuickCheckOtherFailure $ strip err)
     couldNotParse = result "" . QuickCheckOtherFailure
+
+showTestCount :: Int -> Int -> String
+showTestCount success discarded = QC.showTestCount state
+  where
+    state = MkState {
+      terminal                  = undefined
+    , maxSuccessTests           = undefined
+    , maxDiscardedRatio         = undefined
+    , coverageConfidence        = undefined
+    , computeSize               = undefined
+    , numTotMaxShrinks          = 0
+    , numSuccessTests           = success
+    , numDiscardedTests         = discarded
+    , numRecentlyDiscardedTests = 0
+    , labels                    = mempty
+    , classes                   = mempty
+    , tables                    = mempty
+    , requiredCoverage          = mempty
+    , expected                  = True
+    , randomSeed                = mkGen 0
+    , numSuccessShrinks         = 0
+    , numTryShrinks             = 0
+    , numTotTryShrinks          = 0
+    }
 
 ensureTrailingNewline :: String -> String
 ensureTrailingNewline = unlines . lines
