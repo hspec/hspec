@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -60,7 +59,7 @@ spec = do
           p n = (n == 1234) ==> True
 
           qc = quickCheckWithResult args {maxSuccess = 2, maxDiscardRatio = 1}
-          result = QuickCheckResult 0 "" (QuickCheckOtherFailure "Gave up after 0 tests!")
+          result = QuickCheckResult 0 "" (QuickCheckOtherFailure "Gave up after 0 tests; 2 discarded!")
 
       it "parses result" $ do
         parseQuickCheckResult <$> qc p `shouldReturn` result
@@ -97,26 +96,57 @@ spec = do
         parseQuickCheckResult <$> quickCheckWithResult args {maxSuccess = 2} (verbose p) `shouldReturn`
           QuickCheckResult 2 info (QuickCheckOtherFailure "Passed 2 tests (expected failure).")
 
-    context "with InsufficientCoverage" $ do
-      let
-        p :: Int -> Property
-        p n = cover (n == 23) 10 "is 23" True
-
-      it "parses result" $ do
-        parseQuickCheckResult <$> qc p `shouldReturn`
-          QuickCheckResult 100 "" (QuickCheckOtherFailure "Insufficient coverage after 100 tests (only 0% is 23, not 10%).")
-
-      it "includes verbose output" $ do
+    context "with cover" $ do
+      context "without checkCoverage" $ do
         let
-          info = intercalate "\n" [
-              "Passed:"
-            , "0"
-            , ""
-            , "Passed:"
-            , "-39"
-            ]
-        parseQuickCheckResult <$> quickCheckWithResult args {maxSuccess = 2} (verbose p) `shouldReturn`
-          QuickCheckResult 2 info (QuickCheckOtherFailure "Insufficient coverage after 2 tests (only 0% is 23, not 10%).")
+          p :: Int -> Property
+          p n = cover 10 (n == 23) "is 23" True
+
+        it "parses result" $ do
+          parseQuickCheckResult <$> qc p `shouldReturn`
+            QuickCheckResult 100 "+++ OK, passed 100 tests.\n\nOnly 0% is 23, but expected 10%" QuickCheckSuccess
+
+        it "includes verbose output" $ do
+          let
+            info = intercalate "\n" [
+                "Passed:"
+              , "0"
+              , ""
+              , "Passed:"
+              , "-39"
+              , ""
+              , "+++ OK, passed 2 tests."
+              , ""
+              , "Only 0% is 23, but expected 10%"
+              ]
+          parseQuickCheckResult <$> quickCheckWithResult args {maxSuccess = 2} (verbose p) `shouldReturn`
+            QuickCheckResult 2 info QuickCheckSuccess
+
+      context "with checkCoverage" $ do
+        let
+          p :: Int -> Property
+          p n = checkCoverage $ cover 10 (n == 23) "is 23" True
+
+          failure :: QuickCheckFailure
+          failure = QCFailure {
+              quickCheckFailureNumShrinks = 0
+            , quickCheckFailureException = Nothing
+            , quickCheckFailureReason = "Insufficient coverage"
+            , quickCheckFailureCounterexample = [
+                " 1.0% is 23"
+              , ""
+              , "Only 1.0% is 23, but expected 10.0%"
+              ]
+            }
+
+        it "parses result" $ do
+          parseQuickCheckResult <$> qc p `shouldReturn`
+            QuickCheckResult 800 "" (QuickCheckFailure failure)
+
+        it "includes verbose output" $ do
+          let info = intercalate "\n\n" (replicate 799 "Passed:")
+          parseQuickCheckResult <$> qc (verbose . p) `shouldReturn`
+            QuickCheckResult 800 info (QuickCheckFailure failure)
 
     context "with Failure" $ do
       context "with single-line failure reason" $ do
@@ -138,11 +168,7 @@ spec = do
                 , "Failed:"
                 , "1"
                 , ""
-#if MIN_VERSION_QuickCheck(2,11,0)
                 , "Passed:"
-#else
-                , "*** Failed! Passed:"
-#endif
                 , "0"
                 ]
 
@@ -167,11 +193,7 @@ spec = do
                 , "Failed:"
                 , "1"
                 , ""
-#if MIN_VERSION_QuickCheck(2,11,0)
                 , "Passed:"
-#else
-                , "*** Failed! Passed:"
-#endif
                 , "0"
                 ]
           parseQuickCheckResult <$> qc (verbose p) `shouldReturn` result {quickCheckResultInfo = info}

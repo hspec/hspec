@@ -27,7 +27,7 @@ dependencies:
   - transformers >= 0.2.2.0
   - deepseq
   - HUnit >= 1.5.0.0 && < 1.7
-  - QuickCheck >= 2.10 && < 2.13
+  - QuickCheck == 2.12.*
   - quickcheck-io >= 0.2.0
   - hspec-expectations == 0.8.2.*
   - call-stack
