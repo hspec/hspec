@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e55fa536a4f85f605c18c29df9861213954eb1d2a4181ab22de6457a3a76db84
+-- hash: 7e2ad6328cf9e252f659edfd6ee5d02439d730ba58b1f7dc10c8e08c11505d95
 
 name:             hspec-discover
-version:          2.5.5
+version:          2.5.6
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2012-2018 Simon Hengel

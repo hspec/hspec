@@ -1,3 +1,6 @@
+## Changes in 2.5.6
+   - Compatibility with `QuickCheck-2.12`
+
 ## Changes in 2.5.5
   - Use `module[line:column]` instead of `module:line:column` as default label
     for `describe`/`it` (fixes #366)
