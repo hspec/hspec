@@ -22,7 +22,7 @@ GEM
       public_suffix (~> 2.0, >= 2.0.2)
     colorator (1.1.0)
     commonjs (0.2.7)
-    ffi (1.9.17)
+    ffi (1.9.24)
     forwardable-extended (2.6.0)
     jekyll (3.4.1)
       addressable (~> 2.4)
