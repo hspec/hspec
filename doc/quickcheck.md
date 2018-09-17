@@ -11,7 +11,7 @@ turn anything that is a member of the {{'Testable'|id}} class into a
 ```hspec
 describe "read" $ do
   it "is inverse to show" $ property $
-    \x -> (read . show) x == (x :: Int)
+    \x -> (read . show) x `shouldBe` (x :: Int)
 ```
 
 {% example QuickCheck.hs %}
@@ -26,5 +26,5 @@ import Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
 
 describe "read" $ do
   modifyMaxSuccess (const 1000) $ it "is inverse to show" $ property $
-    \x -> (read . show) x == (x :: Int)
+    \x -> (read . show) x `shouldBe` (x :: Int)
 ```
