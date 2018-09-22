@@ -1,3 +1,6 @@
+## Changes in 2.5.7
+   - GHC 8.6.1 related changes
+
 ## Changes in 2.5.6
    - Compatibility with `QuickCheck-2.12`
 
