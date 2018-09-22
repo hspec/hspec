@@ -20,6 +20,7 @@ spec = do
             return (n :: Int)
           extractLocation e `shouldBe` location
 
+#if !MIN_VERSION_base(4,12,0)
       context "in Either" $ do
         it "extracts Location" $ do
           let location = Just $ Location __FILE__ (__LINE__ + 4) 15
@@ -30,6 +31,7 @@ spec = do
               return ()
           Left e <- try (evaluate foo)
           extractLocation e `shouldBe` location
+#endif
 
     context "with ErrorCall" $ do
       it "extracts Location" $ do

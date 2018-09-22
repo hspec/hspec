@@ -183,9 +183,9 @@ The details of imprecise exceptions are described in the paper
 [_A semantics for imprecise exceptions_]
 (http://research.microsoft.com/en-us/um/people/simonpj/papers/imprecise-exn.htm).
 But beware that GHC does not fully adhere to those semantics (see
-[#1171](http://hackage.haskell.org/trac/ghc/ticket/1171),
-[#2273](http://hackage.haskell.org/trac/ghc/ticket/2273),
-<del>[#5561](http://hackage.haskell.org/trac/ghc/ticket/5561)</del>,
-<del>[#5129](http://hackage.haskell.org/trac/ghc/ticket/5129)</del>).
+[#1171](https://ghc.haskell.org/trac/ghc/ticket/1171),
+[#2273](https://ghc.haskell.org/trac/ghc/ticket/2273),
+<del>[#5561](https://ghc.haskell.org/trac/ghc/ticket/5561)</del>,
+<del>[#5129](https://ghc.haskell.org/trac/ghc/ticket/5129)</del>).
 
 {% example ImpreciseExceptions.hs %}
