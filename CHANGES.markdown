@@ -1,3 +1,6 @@
+## Changes in 2.5.8
+   - Add `modifyArgs` and `modifyMaxShrinks` to `Test.Hspec.QuickCheck` (see #380)
+
 ## Changes in 2.5.7
    - GHC 8.6.1 related changes
 

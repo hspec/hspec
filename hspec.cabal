@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a8f38345efb8f07b26f9c31f289601c55100dc608d3f606b6c22ce2126b378a4
+-- hash: 40b85ddf44dc97639bb3e671d45d8dfb9cb7a6e2f2636b617e83d9db15d63374
 
 name:             hspec
-version:          2.5.7
+version:          2.5.8
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2018 Simon Hengel,
@@ -47,8 +47,8 @@ library
   build-depends:
       QuickCheck >=2.10
     , base ==4.*
-    , hspec-core ==2.5.7
-    , hspec-discover ==2.5.7
+    , hspec-core ==2.5.8
+    , hspec-discover ==2.5.8
     , hspec-expectations ==0.8.2.*
   exposed-modules:
       Test.Hspec

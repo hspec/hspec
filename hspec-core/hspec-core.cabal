@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aad8baed239fa77de8e6985c3f9589ef910687c7b0e9a6eed0dcf32ca3faf146
+-- hash: 2816c495eba299470f8178ab0162b41c33ff43fdd8c7d53ed3743386b018f184
 
 name:             hspec-core
-version:          2.5.7
+version:          2.5.8
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2018 Simon Hengel,

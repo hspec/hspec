@@ -2,9 +2,11 @@
 {-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.QuickCheck (
 -- * Params
-  modifyMaxSuccess
+  modifyArgs
+, modifyMaxSuccess
 , modifyMaxDiscardRatio
 , modifyMaxSize
+, modifyMaxShrinks
 
 -- * Shortcuts
 , prop
