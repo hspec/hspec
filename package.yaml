@@ -10,9 +10,8 @@ stability:        experimental
 homepage:         http://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
 description: |
-  Hspec is a testing framework for Haskell. It is inspired by
-  the Ruby library RSpec. Some of Hspec's distinctive features
-  are:
+  Hspec is a testing framework for Haskell.  Some of Hspec's distinctive
+  features are:
 
   * a friendly DSL for defining tests
 

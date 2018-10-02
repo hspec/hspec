@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 40b85ddf44dc97639bb3e671d45d8dfb9cb7a6e2f2636b617e83d9db15d63374
+-- hash: c53378a69212cedc3c1267532b8a45de63a40f8ed6e2fae674c21f5e04586406
 
 name:             hspec
 version:          2.5.8
@@ -20,9 +20,8 @@ stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
 homepage:         http://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
-description:      Hspec is a testing framework for Haskell. It is inspired by
-                  the Ruby library RSpec. Some of Hspec's distinctive features
-                  are:
+description:      Hspec is a testing framework for Haskell.  Some of Hspec's distinctive
+                  features are:
                   .
                   * a friendly DSL for defining tests
                   .
