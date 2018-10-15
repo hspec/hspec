@@ -147,7 +147,7 @@ constructor.
 
 Note that `return $!!` (or any other mechanism that relies solely on `seq`)
 does not work reliably!  (see the discussion at
-<del>[#5129](http://hackage.haskell.org/trac/ghc/ticket/5129)</del>)
+<del>[#5129](http://ghc.haskell.org/trac/ghc/ticket/5129)</del>)
 
 {% example ExceptionsFromPureCode.hs %}
 
