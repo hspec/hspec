@@ -10,13 +10,13 @@ dependencies:
 - name: erf
   version: 2.0.0.0
 - name: hspec
-  version: 2.5.8
+  version: 2.5.9
 - name: hspec-contrib
   version: 0.5.0
 - name: hspec-core
-  version: 2.5.8
+  version: 2.5.9
 - name: hspec-discover
-  version: 2.5.8
+  version: 2.5.9
 - name: hspec-expectations
   version: 0.8.2
 - name: HUnit

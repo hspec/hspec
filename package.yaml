@@ -1,5 +1,5 @@
 name:             hspec
-version:          2.5.8
+version:          2.5.9
 copyright:
   - (c) 2011-2018 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
@@ -31,8 +31,8 @@ ghc-options: -Wall
 
 dependencies:
   - base == 4.*
-  - hspec-core == 2.5.8
-  - hspec-discover == 2.5.8
+  - hspec-core == 2.5.9
+  - hspec-discover == 2.5.9
   - hspec-expectations == 0.8.2.*
   - QuickCheck >= 2.10
 
