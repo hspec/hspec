@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields #-}
 module Test.Hspec.Core.Example.LocationSpec (spec) where
 
 import           Helper
@@ -7,6 +8,11 @@ import           Control.Exception
 
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Example.Location
+
+data Person = Person {
+  name :: String
+, age :: Int
+} deriving (Eq, Show)
 
 spec :: Spec
 spec = do
@@ -46,20 +52,27 @@ spec = do
         extractLocation e `shouldBe` location
 
     context "with PatternMatchFail" $ do
-      context "with single-line source space" $ do
+      context "with single-line source span" $ do
         it "extracts Location" $ do
           let
             location = Just $ Location __FILE__ (__LINE__ + 1) 40
           Left e <- try (evaluate (let Just n = Nothing in (n :: Int)))
           extractLocation e `shouldBe` location
 
-      context "with multi-line source space" $ do
+      context "with multi-line source span" $ do
         it "extracts Location" $ do
           let location = Just $ Location __FILE__ (__LINE__ + 1) 36
           Left e <- try (evaluate (case Nothing of
             Just n -> n :: Int
             ))
           extractLocation e `shouldBe` location
+
+    context "with RecConError" $ do
+      it "extracts Location" $ do
+        let
+          location = Just $ Location __FILE__ (__LINE__ + 1) 39
+        Left e <- try $ evaluate (age Person {name = "foo"})
+        extractLocation e `shouldBe` location
 
   describe "parseCallStack" $ do
     it "parses Location from call stack" $ do

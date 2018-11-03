@@ -1,3 +1,6 @@
+## Changes in 2.5.9
+   - Extract source locations from RecConError (see #375)
+
 ## Changes in 2.5.8
    - Add `modifyArgs` and `modifyMaxShrinks` to `Test.Hspec.QuickCheck` (see #380)
 

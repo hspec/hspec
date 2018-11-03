@@ -26,7 +26,11 @@ data Location = Location {
 } deriving (Eq, Show, Read)
 
 extractLocation :: SomeException -> Maybe Location
-extractLocation e = locationFromErrorCall e <|> locationFromPatternMatchFail e <|> locationFromIOException e
+extractLocation e =
+      locationFromErrorCall e
+  <|> locationFromPatternMatchFail e
+  <|> locationFromRecConError e
+  <|> locationFromIOException e
 
 locationFromErrorCall :: SomeException -> Maybe Location
 locationFromErrorCall e = case fromException e of
@@ -42,6 +46,11 @@ locationFromErrorCall e = case fromException e of
 locationFromPatternMatchFail :: SomeException -> Maybe Location
 locationFromPatternMatchFail e = case fromException e of
   Just (PatternMatchFail s) -> listToMaybe (words s) >>= parseSourceSpan
+  Nothing -> Nothing
+
+locationFromRecConError :: SomeException -> Maybe Location
+locationFromRecConError e = case fromException e of
+  Just (RecConError s) -> listToMaybe (words s) >>= parseSourceSpan
   Nothing -> Nothing
 
 locationFromIOException :: SomeException -> Maybe Location
