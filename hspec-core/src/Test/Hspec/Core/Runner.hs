@@ -47,24 +47,24 @@ import           Test.Hspec.Core.Runner.Eval
 -- | Filter specs by given predicate.
 --
 -- The predicate takes a list of "describe" labels and a "requirement".
-filterSpecs :: Config -> [SpecTree a] -> [SpecTree a]
+filterSpecs :: Config -> [EvalTree] -> [EvalTree]
 filterSpecs c = go []
   where
     p :: Path -> Bool
     p path = (fromMaybe (const True) (configFilterPredicate c) path) &&
                not (fromMaybe (const False) (configSkipPredicate c) path)
 
-    go :: [String] -> [SpecTree a] -> [SpecTree a]
+    go :: [String] -> [EvalTree] -> [EvalTree]
     go groups = mapMaybe (goSpec groups)
 
-    goSpecs :: [String] -> [SpecTree a] -> ([SpecTree a] -> b) -> Maybe b
+    goSpecs :: [String] -> [EvalTree] -> ([EvalTree] -> b) -> Maybe b
     goSpecs groups specs ctor = case go groups specs of
       [] -> Nothing
       xs -> Just (ctor xs)
 
-    goSpec :: [String] -> SpecTree a -> Maybe (SpecTree a)
+    goSpec :: [String] -> EvalTree -> Maybe (EvalTree)
     goSpec groups spec = case spec of
-      Leaf item -> guard (p (groups, itemRequirement item)) >> return spec
+      Leaf item -> guard (p (groups, evalItemDescription item)) >> return spec
       Node group specs -> goSpecs (groups ++ [group]) specs (Node group)
       NodeWithCleanup action specs -> goSpecs groups specs (NodeWithCleanup action)
 
@@ -159,7 +159,7 @@ runSpec config spec = do
 
     let params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
 
-    filteredSpec <- map (toEvalTree params) . filterSpecs config . applyDryRun config <$> runSpecM spec
+    filteredSpec <- filterSpecs config . mapMaybe (toEvalTree params) . applyDryRun config <$> runSpecM (focus spec)
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
@@ -181,13 +181,15 @@ runSpec config spec = do
     dumpFailureReport config seed qcArgs failures
     return (Summary total (length failures))
 
-toEvalTree :: Params -> SpecTree () -> EvalTree
+toEvalTree :: Params -> SpecTree () -> Maybe EvalTree
 toEvalTree params = go
   where
+    go :: Tree (() -> c) (Item ()) -> Maybe (Tree c EvalItem)
     go t = case t of
-      Node s xs -> Node s (map go xs)
-      NodeWithCleanup c xs -> NodeWithCleanup (c ()) (map go xs)
-      Leaf (Item requirement loc isParallelizable e)  -> Leaf (EvalItem requirement loc (fromMaybe False isParallelizable) (e params $ ($ ())))
+      Node s xs -> Just $ Node s (mapMaybe go xs)
+      NodeWithCleanup c xs -> Just $ NodeWithCleanup (c ()) (mapMaybe go xs)
+      Leaf (Item requirement loc isParallelizable isFocused e) ->
+        guard isFocused >> return (Leaf (EvalItem requirement loc (fromMaybe False isParallelizable) (e params $ ($ ()))))
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
 dumpFailureReport config seed qcArgs xs = do

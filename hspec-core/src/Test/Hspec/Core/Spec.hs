@@ -18,6 +18,13 @@ module Test.Hspec.Core.Spec (
 , xspecify
 , xdescribe
 , xcontext
+
+, focus
+, fit
+, fspecify
+, fdescribe
+, fcontext
+
 , parallel
 , sequential
 
@@ -91,6 +98,34 @@ xit label action = before_ pending_ $ it label action
 -- | @xspecify@ is an alias for `xit`.
 xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 xspecify = xit
+
+-- | `focus` focuses all spec items of the given spec.
+--
+-- Applying `focus` to a spec with focused spec items has no effect.
+focus :: SpecWith a -> SpecWith a
+focus spec = do
+  xs <- runIO (runSpecM spec)
+  let
+    ys
+      | any (any itemIsFocused) xs = xs
+      | otherwise = map (bimapTree id (\ item -> item {itemIsFocused = True})) xs
+  fromSpecList ys
+
+-- | @fit@ is an alias for @fmap focus . it@
+fit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+fit = fmap focus . it
+
+-- | @fspecify@ is an alias for `fit`.
+fspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+fspecify = fit
+
+-- | @fdescribe@ is an alias for @fmap focus . describe@
+fdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
+fdescribe = fmap focus . describe
+
+-- | @fcontext@ is an alias for `fdescribe`.
+fcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
+fcontext = fdescribe
 
 -- | `parallel` marks all spec items of the given spec to be safe for parallel
 -- evaluation.

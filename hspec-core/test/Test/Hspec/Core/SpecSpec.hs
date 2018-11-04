@@ -10,6 +10,9 @@ import           Test.Hspec.Core.Spec (Tree(..), runSpecM)
 
 import qualified Test.Hspec.Core.Spec as H
 
+ignoreCleanup :: Tree c a -> Tree () a
+ignoreCleanup = H.bimapTree (const ()) id
+
 runSpec :: H.Spec -> IO [String]
 runSpec = captureLines . H.hspecResult
 
@@ -85,6 +88,22 @@ spec = do
         H.it "foo" $ do
           H.pendingWith "for some reason"
       r `shouldSatisfy` any (== "  # PENDING: for some reason")
+
+  describe "focus" $ do
+    it "focuses spec items" $ do
+      items <- runSpecM $ H.focus $ do
+        H.it "is focused and will run" True
+        H.it "is also focused and will also run" True
+      map (ignoreCleanup . fmap itemIsFocused) items
+        `shouldBe` [Leaf True, Leaf True]
+
+    context "when applied to a spec with focused spec items" $ do
+      it "has no effect" $ do
+        items <- runSpecM $ H.focus $ do
+          H.focus $ H.it "is focused and will run" True
+          H.it "is not focused and will not run" True
+        map (ignoreCleanup . fmap itemIsFocused) items
+          `shouldBe` [Leaf True, Leaf False]
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do

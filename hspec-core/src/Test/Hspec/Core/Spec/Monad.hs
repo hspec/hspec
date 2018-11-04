@@ -53,12 +53,7 @@ mapSpecTree :: (SpecTree a -> SpecTree b) -> SpecM a r -> SpecM b r
 mapSpecTree f (SpecM specs) = SpecM (mapWriterT (fmap (second (map f))) specs)
 
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
-mapSpecItem g f = mapSpecTree go
-  where
-    go spec = case spec of
-      Node d xs -> Node d (map go xs)
-      NodeWithCleanup cleanup xs -> NodeWithCleanup (g cleanup) (map go xs)
-      Leaf item -> Leaf (f item)
+mapSpecItem g f = mapSpecTree (bimapTree g f)
 
 mapSpecItem_ :: (Item a -> Item a) -> SpecWith a -> SpecWith a
 mapSpecItem_ = mapSpecItem id

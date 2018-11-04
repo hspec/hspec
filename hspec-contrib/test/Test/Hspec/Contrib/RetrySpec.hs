@@ -1,11 +1,8 @@
-module Test.Hspec.Contrib.RetrySpec (main, spec) where
+module Test.Hspec.Contrib.RetrySpec (spec) where
 
 import           Helper
 
 import           Test.Hspec.Contrib.Retry
-
-main :: IO ()
-main = hspec spec
 
 spec :: Spec
 spec = do

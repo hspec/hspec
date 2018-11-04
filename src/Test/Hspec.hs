@@ -39,6 +39,16 @@ module Test.Hspec (
 , xdescribe
 , xcontext
 
+-- * Focused spec items
+-- |
+-- During a test run, when a spec contains /focused/ spec items, all other spec
+-- items are ignored.
+, focus
+, fit
+, fspecify
+, fdescribe
+, fcontext
+
 -- * Hooks
 , ActionWith
 , before
