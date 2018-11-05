@@ -50,7 +50,7 @@ test-suite spec
       -Wall
   build-depends:
       base == 4.*
-    , hspec-core
+    , hspec-core >= 2.6.0
     , HUnit
 
     , hspec-contrib
