@@ -254,6 +254,20 @@ spec = do
             H.it "bar" True
         readIORef ref `shouldReturn` False
 
+    context "with --focused-only" $ do
+      let withFocused = captureLines . withArgs ["--focused-only"] . H.hspec
+      context "when there aren't any focused spec items" $ do
+        it "does not run anything" $ do
+          r <- withFocused $ do
+            H.it "foo" True
+            H.it "bar" True
+          normalizeSummary r `shouldBe` [
+              ""
+            , ""
+            , "Finished in 0.0000 seconds"
+            , "0 examples, 0 failures"
+            ]
+
     context "with --fail-fast" $ do
       it "stops after first failure" $ do
         r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec . removeLocations $ do

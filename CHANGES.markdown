@@ -1,3 +1,6 @@
+## Changes in 2.7.0
+    - Add `--focused-only` (see #390)
+
 ## Changes in 2.6.1
    - Add `Test.Hspec.Runner.runSpec` (see #216)
 

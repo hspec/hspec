@@ -33,6 +33,7 @@ envVarName = "HSPEC_OPTIONS"
 data Config = Config {
   configIgnoreConfigFile :: Bool
 , configDryRun :: Bool
+, configFocusedOnly :: Bool
 , configPrintCpuTime :: Bool
 , configFastFail :: Bool
 , configFailureReport :: Maybe FilePath
@@ -61,6 +62,7 @@ defaultConfig :: Config
 defaultConfig = Config {
   configIgnoreConfigFile = False
 , configDryRun = False
+, configFocusedOnly = False
 , configPrintCpuTime = False
 , configFastFail = False
 , configFailureReport = Nothing
@@ -190,10 +192,12 @@ quickCheckOptions = [
   ]
 
 runnerOptions :: Monad m => [OptDescr (Result m -> Result m)]
-runnerOptions = [
-    Option [] ["dry-run"] (NoArg setDryRun) "pretend that everything passed; don't verify anything"
-  , Option [] ["fail-fast"] (NoArg setFastFail) "abort on first failure"
-  , Option "r" ["rerun"] (NoArg  setRerun) "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
+runnerOptions = concat [
+    mkFlag "dry-run" setDryRun "pretend that everything passed; don't verify anything"
+  , mkFlag "focused-only" setFocusedOnly "do not run anything, unless there are focused spec items"
+  , mkFlag "fail-fast" setFastFail "abort on first failure"
+  ] ++ [
+    Option "r" ["rerun"] (NoArg  setRerun) "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
   , mkOption [] "failure-report" (Arg "FILE" return setFailureReport) "read/write a failure report for use with --rerun"
   , Option [] ["rerun-all-on-success"] (NoArg setRerunAllOnSuccess) "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
   , mkOption "j" "jobs" (Arg "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
@@ -211,8 +215,15 @@ runnerOptions = [
     setMaxJobs :: Int -> Config -> Config
     setMaxJobs n c = c {configConcurrentJobs = Just n}
 
-    setDryRun       = set $ \config -> config {configDryRun = True}
-    setFastFail     = set $ \config -> config {configFastFail = True}
+    setDryRun :: Bool -> Config -> Config
+    setDryRun value config = config {configDryRun = value}
+
+    setFocusedOnly :: Bool -> Config -> Config
+    setFocusedOnly value config = config {configFocusedOnly = value}
+
+    setFastFail :: Bool -> Config -> Config
+    setFastFail value config = config {configFastFail = value}
+
     setRerun        = set $ \config -> config {configRerun = True}
     setRerunAllOnSuccess = set $ \config -> config {configRerunAllOnSuccess = True}
 
