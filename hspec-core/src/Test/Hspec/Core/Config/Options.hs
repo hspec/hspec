@@ -33,6 +33,7 @@ envVarName = "HSPEC_OPTIONS"
 data Config = Config {
   configIgnoreConfigFile :: Bool
 , configDryRun :: Bool
+, configFocusedOnly :: Bool
 , configPrintCpuTime :: Bool
 , configFastFail :: Bool
 , configFailureReport :: Maybe FilePath
@@ -61,6 +62,7 @@ defaultConfig :: Config
 defaultConfig = Config {
   configIgnoreConfigFile = False
 , configDryRun = False
+, configFocusedOnly = False
 , configPrintCpuTime = False
 , configFastFail = False
 , configFailureReport = Nothing
@@ -192,6 +194,7 @@ quickCheckOptions = [
 runnerOptions :: Monad m => [OptDescr (Result m -> Result m)]
 runnerOptions = [
     Option [] ["dry-run"] (NoArg setDryRun) "pretend that everything passed; don't verify anything"
+  , Option [] ["focused"] (NoArg setFocusedOnly) "do not run anything, unless there are focused spec items"
   , Option [] ["fail-fast"] (NoArg setFastFail) "abort on first failure"
   , Option "r" ["rerun"] (NoArg  setRerun) "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
   , mkOption [] "failure-report" (Arg "FILE" return setFailureReport) "read/write a failure report for use with --rerun"
@@ -212,6 +215,7 @@ runnerOptions = [
     setMaxJobs n c = c {configConcurrentJobs = Just n}
 
     setDryRun       = set $ \config -> config {configDryRun = True}
+    setFocusedOnly  = set $ \config -> config {configFocusedOnly = True}
     setFastFail     = set $ \config -> config {configFastFail = True}
     setRerun        = set $ \config -> config {configRerun = True}
     setRerunAllOnSuccess = set $ \config -> config {configRerunAllOnSuccess = True}

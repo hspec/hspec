@@ -1,3 +1,6 @@
+## next
+    - Add `--focused` (see #390)
+
 ## Changes in 2.6.0
    - Allow to focus individual spec items (see #319)
    - Do not calculate diff on `--no-diff` (see #332)

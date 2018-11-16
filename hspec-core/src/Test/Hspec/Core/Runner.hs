@@ -157,9 +157,11 @@ runSpec config spec = do
 
     useColor <- doesUseColor h config
 
-    let params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+    let
+      focusedSpec = (if configFocusedOnly config then id else focus) spec
+      params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
 
-    filteredSpec <- filterSpecs config . mapMaybe (toEvalTree params) . applyDryRun config <$> runSpecM (focus spec)
+    filteredSpec <- filterSpecs config . mapMaybe (toEvalTree params) . applyDryRun config <$> runSpecM focusedSpec
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
