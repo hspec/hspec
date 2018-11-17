@@ -1,5 +1,6 @@
 ## next
     - Add `--focused-only` (see #390)
+    - Add `--fail-on-focused` (see #389)
 
 ## Changes in 2.6.0
    - Allow to focus individual spec items (see #319)

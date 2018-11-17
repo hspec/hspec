@@ -255,10 +255,10 @@ spec = do
         readIORef ref `shouldReturn` False
 
     context "with --focused-only" $ do
-      let withFocused = captureLines . withArgs ["--focused-only"] . H.hspec
+      let run = captureLines . withArgs ["--focused-only"] . H.hspec
       context "when there aren't any focused spec items" $ do
         it "does not run anything" $ do
-          r <- withFocused $ do
+          r <- run $ do
             H.it "foo" True
             H.it "bar" True
           normalizeSummary r `shouldBe` [
@@ -267,6 +267,29 @@ spec = do
             , "Finished in 0.0000 seconds"
             , "0 examples, 0 failures"
             ]
+
+    context "with --fail-on-focused" $ do
+      let run = captureLines . ignoreExitCode . withArgs ["--fail-on-focused", "--seed", "23"] . H.hspec . removeLocations
+      it "fails on focused spec items" $ do
+        r <- run $ do
+          H.it "foo" True
+          H.fit "bar" True
+        normalizeSummary r `shouldBe` [
+            ""
+          , "bar FAILED [1]"
+          , ""
+          , "Failures:"
+          , ""
+          , "  1) bar"
+          , "       item is focused; failing due to --fail-on-focused"
+          , ""
+          , "  To rerun use: --match \"/bar/\""
+          , ""
+          , "Randomized with seed 23"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
+          ]
 
     context "with --fail-fast" $ do
       it "stops after first failure" $ do

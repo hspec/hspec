@@ -144,6 +144,29 @@ hspecWithResult config spec = do
         then hspecWithResult config spec
         else return summary
 
+failFocused :: Item a -> Item a
+failFocused item = item {itemExample = example}
+  where
+    failure = Failure Nothing (Reason "item is focused; failing due to --fail-on-focused")
+    example
+      | itemIsFocused item = \ params hook p -> do
+          Result info status <- itemExample item params hook p
+          return $ Result info $ case status of
+            Success -> failure
+            Pending _ _ -> failure
+            Failure{} -> status
+      | otherwise = itemExample item
+
+failFocusedItems :: Config -> Spec -> Spec
+failFocusedItems config spec
+  | configFailOnFocused config = mapSpecItem_ failFocused spec
+  | otherwise = spec
+
+focusSpec :: Config -> Spec -> Spec
+focusSpec config spec
+  | configFocusedOnly config = spec
+  | otherwise = focus spec
+
 runSpec :: Config -> Spec -> IO Summary
 runSpec config spec = do
   doNotLeakCommandLineArgumentsToExamples $ withHandle config $ \h -> do
@@ -158,7 +181,7 @@ runSpec config spec = do
     useColor <- doesUseColor h config
 
     let
-      focusedSpec = (if configFocusedOnly config then id else focus) spec
+      focusedSpec = focusSpec config (failFocusedItems config spec)
       params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
 
     filteredSpec <- filterSpecs config . mapMaybe (toEvalTree params) . applyDryRun config <$> runSpecM focusedSpec
