@@ -34,6 +34,7 @@ data Config = Config {
   configIgnoreConfigFile :: Bool
 , configDryRun :: Bool
 , configFocusedOnly :: Bool
+, configFailOnFocused :: Bool
 , configPrintCpuTime :: Bool
 , configFastFail :: Bool
 , configFailureReport :: Maybe FilePath
@@ -63,6 +64,7 @@ defaultConfig = Config {
   configIgnoreConfigFile = False
 , configDryRun = False
 , configFocusedOnly = False
+, configFailOnFocused = False
 , configPrintCpuTime = False
 , configFastFail = False
 , configFailureReport = Nothing
@@ -195,6 +197,7 @@ runnerOptions :: Monad m => [OptDescr (Result m -> Result m)]
 runnerOptions = concat [
     mkFlag "dry-run" setDryRun "pretend that everything passed; don't verify anything"
   , mkFlag "focused-only" setFocusedOnly "do not run anything, unless there are focused spec items"
+  , mkFlag "fail-on-focused" setFailOnFocused "fail on focused spec items"
   , mkFlag "fail-fast" setFastFail "abort on first failure"
   ] ++ [
     Option "r" ["rerun"] (NoArg  setRerun) "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
@@ -220,6 +223,9 @@ runnerOptions = concat [
 
     setFocusedOnly :: Bool -> Config -> Config
     setFocusedOnly value config = config {configFocusedOnly = value}
+
+    setFailOnFocused :: Bool -> Config -> Config
+    setFailOnFocused value config = config {configFailOnFocused = value}
 
     setFastFail :: Bool -> Config -> Config
     setFastFail value config = config {configFastFail = value}

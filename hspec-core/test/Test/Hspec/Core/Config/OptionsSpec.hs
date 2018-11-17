@@ -91,6 +91,7 @@ spec = do
         fromLeft (parseOptions [("~/.hspec", ["--fail"])] Nothing []) `shouldBe` (ExitFailure 1,
           unlines [
             "my-spec: option `--fail' is ambiguous; could be one of:"
+          , "    --fail-on-focused      fail on focused spec items"
           , "    --fail-fast            abort on first failure"
           , "    --failure-report=FILE  read/write a failure report for use with --rerun"
           , "in config file ~/.hspec"
