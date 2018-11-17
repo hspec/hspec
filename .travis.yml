@@ -14,8 +14,13 @@ env:
   - CABALVER=1.22 GHCVER=7.10.1
   - CABALVER=1.22 GHCVER=7.10.2
   - CABALVER=1.22 GHCVER=7.10.3
-  - CABALVER=1.24 GHCVER=8.0.1
-  - CABALVER=1.24 GHCVER=8.0.2
+
+  # These versions of GHC are affected by
+  # https://ghc.haskell.org/trac/ghc/ticket/13285, which causes some tests to
+  # fail.
+  # - CABALVER=1.24 GHCVER=8.0.1
+  # - CABALVER=1.24 GHCVER=8.0.2
+
   - CABALVER=2.0 GHCVER=8.2.1
   - CABALVER=2.0 GHCVER=8.2.2
   - CABALVER=2.2 GHCVER=8.4.1
