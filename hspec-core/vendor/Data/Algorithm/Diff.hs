@@ -37,44 +37,35 @@ data DI = F | S | B deriving (Show, Eq)
 -- newtype to only perform equality on side of a tuple).
 data Diff a = First a | Second a | Both a a deriving (Show, Eq, Functor)
 
-data DL = DL {poi :: !Int, poj :: !Int, path::[DI]} deriving (Show, Eq)
-
-instance Ord DL
-        where x <= y = if poi x == poi y
-                then  poj x > poj y
-                else poi x <= poi y
-
-canDiag :: (a -> a -> Bool) -> [a] -> [a] -> Int -> Int -> Int -> Int -> Bool
-canDiag eq as bs lena lenb = \ i j ->
-   if i < lena && j < lenb then (arAs ! i) `eq` (arBs ! j) else False
-    where arAs = listArray (0,lena - 1) as
-          arBs = listArray (0,lenb - 1) bs
-
-dstep :: (Int -> Int -> Bool) -> [DL] -> [DL]
-dstep cd dls = hd:pairMaxes rst
-  where (hd:rst) = nextDLs dls
-        nextDLs [] = []
-        nextDLs (dl:rest) = dl':dl'':nextDLs rest
-          where dl'  = addsnake cd $ dl {poi=poi dl + 1, path=(F : pdl)}
-                dl'' = addsnake cd $ dl {poj=poj dl + 1, path=(S : pdl)}
-                pdl = path dl
-        pairMaxes [] = []
-        pairMaxes [x] = [x]
-        pairMaxes (x:y:rest) = max x y:pairMaxes rest
-
-addsnake :: (Int -> Int -> Bool) -> DL -> DL
-addsnake cd dl
-    | cd pi pj = addsnake cd $
-                 dl {poi = pi + 1, poj = pj + 1, path=(B : path dl)}
-    | otherwise   = dl
-    where pi = poi dl; pj = poj dl
+data DL = DL {longest :: !Int, path :: !DI} deriving (Show, Eq)
 
 lcs :: (a -> a -> Bool) -> [a] -> [a] -> [DI]
-lcs eq as bs = path . head . dropWhile (\dl -> poi dl /= lena || poj dl /= lenb) .
-            concat . iterate (dstep cd) . (:[]) . addsnake cd $
-            DL {poi=0,poj=0,path=[]}
-            where cd = canDiag eq as bs lena lenb
-                  lena = length as; lenb = length bs
+lcs eq as bs = back lena lenb
+    where lena = length as; lenb = length bs
+
+          arAs = listArray (0, lena-1) as
+          arBs = listArray (0, lenb-1) bs
+
+          dp = listArray ((0, 0), (lena, lenb)) $ step <$> [0..lena] <*> [0..lenb]
+
+          step 0 0 = DL 0 B
+          step 0 _ = DL 0 S
+          step _ 0 = DL 0 F
+          step r c
+            | (arAs!(lena-r)) `eq` (arBs!(lenb-c))
+                        = let n = longest $ dp!(r-1, c-1)
+                          in DL (n+1) B
+            | otherwise = let n1 = longest $ dp!(r-1, c)
+                              n2 = longest $ dp!(r, c-1)
+                          in if n1 >= n2
+                                then DL n1 F
+                                else DL n2 S
+
+          back 0 0 = []
+          back r c = case path $ dp!(r, c) of
+                        F -> F : back (r-1)   c
+                        S -> S : back   r   (c-1)
+                        B -> B : back (r-1) (c-1)
 
 -- | Takes two lists and returns a list of differences between them. This is
 -- 'getDiffBy' with '==' used as predicate.
@@ -89,7 +80,7 @@ getGroupedDiff = getGroupedDiffBy (==)
 -- | A form of 'getDiff' with no 'Eq' constraint. Instead, an equality predicate
 -- is taken as the first argument.
 getDiffBy :: (t -> t -> Bool) -> [t] -> [t] -> [Diff t]
-getDiffBy eq a b = markup a b . reverse $ lcs eq a b
+getDiffBy eq a b = markup a b $ lcs eq a b
     where markup (x:xs)   ys   (F:ds) = First x  : markup xs ys ds
           markup   xs   (y:ys) (S:ds) = Second y : markup xs ys ds
           markup (x:xs) (y:ys) (B:ds) = Both x y : markup xs ys ds
