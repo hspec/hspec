@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fef917dc0cb43c6da4719fb2d080d28e01d8bc888b679a3fa1c61559f02d9848
+-- hash: ba41a22bf03e86b2dcfbc3ee96107cb1fde29bbbcd25d4c00e50c30f748b2a4d
 
 name:             hspec-core
 version:          2.6.0
@@ -142,6 +142,7 @@ test-suite spec
       Control.Concurrent.Async
       Data.Algorithm.Diff
       All
+      Data.Algorithm.DiffSpec
       Helper
       Mock
       Test.Hspec.Core.ClockSpec
