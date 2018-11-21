@@ -27,6 +27,7 @@ module Data.Algorithm.Diff
 
 import Prelude hiding (pi)
 
+import Control.Applicative (liftA2)
 import Data.Array
 
 data DI = F | S | B deriving (Show, Eq)
@@ -46,7 +47,7 @@ lcs eq as bs = back lena lenb
           arAs = listArray (0, lena-1) as
           arBs = listArray (0, lenb-1) bs
 
-          dp = listArray ((0, 0), (lena, lenb)) $ step <$> [0..lena] <*> [0..lenb]
+          dp = listArray ((0, 0), (lena, lenb)) $ liftA2 step [0..lena] [0..lenb]
 
           step 0 0 = DL 0 B
           step 0 _ = DL 0 S
