@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.Core.RunnerSpec (spec) where
 
 import           Prelude ()
@@ -762,12 +764,20 @@ spec = do
           r `shouldContain` "invalid argument `foo' for `--format'"
 
     context "with --qc-max-success" $ do
+      let
+        run :: HasCallStack => String -> IO ()
+        run option = do
+          m <- newMock
+          hspec [option, "23"] $ do
+            H.it "foo" $ property $ \(_ :: Int) -> do
+              mockAction m
+          mockCounter m `shouldReturn` 23
+
       it "tries QuickCheck properties specified number of times" $ do
-        m <- newMock
-        hspec ["--qc-max-success", "23"] $ do
-          H.it "foo" $ property $ \(_ :: Int) -> do
-            mockAction m
-        mockCounter m `shouldReturn` 23
+        run "--qc-max-success"
+
+      it "accepts --maximum-generated-tests as an alias" $ do
+        run "--maximum-generated-tests"
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do
