@@ -54,6 +54,9 @@ module Test.Hspec.Core.Formatters (
 
 -- ** Helpers
 , formatException
+
+-- ** Develop
+, trace
 ) where
 
 import           Prelude ()
@@ -103,6 +106,19 @@ import Test.Hspec.Core.Formatters.Monad (
 import           Test.Hspec.Core.Clock (Seconds(..))
 
 import           Test.Hspec.Core.Formatters.Diff
+
+trace :: Formatter
+trace = silent {
+  headerFormatter     = writeLine "headerFormatter"
+, exampleGroupStarted = \tags name -> writeLine $ "group started " ++ show (tags, name)
+, exampleGroupDone    = writeLine "group done"
+, exampleProgress     = \path prog -> writeLine $ "progress" ++ show (path,prog)
+, exampleSucceeded    = \path name -> writeLine $ "success" ++ show (path, name)
+, exampleFailed       = \path name _reason -> writeLine $ "failure" ++ show (path,name)
+, examplePending      = \path name _reason -> writeLine $ "pending" ++ show (path,name)
+, failedFormatter     = writeLine "failed"
+, footerFormatter     = writeLine "footer"
+                  }
 
 silent :: Formatter
 silent = Formatter {

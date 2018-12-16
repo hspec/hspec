@@ -161,6 +161,7 @@ formatterOptions = concat [
       , ("progress", progress)
       , ("failed-examples", failed_examples)
       , ("silent", silent)
+      , ("trace", trace)
       ]
 
     helpForFormat :: String
