@@ -250,7 +250,7 @@ toEvalTree params = go
       Node s xs -> Just $ Node s (mapMaybe go xs)
       NodeWithCleanup c xs -> Just $ NodeWithCleanup (c ()) (mapMaybe go xs)
       Leaf (Item requirement loc isParallelizable isFocused e) ->
-        guard isFocused >> return (Leaf (EvalItem requirement loc (fromMaybe False isParallelizable) (e params $ ($ ()))))
+        guard isFocused >> return (Leaf (EvalItem requirement loc (fromMaybe False isParallelizable) (\lc -> e params ($ ()) (lc . Progress))))
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
 dumpFailureReport config seed qcArgs xs = do

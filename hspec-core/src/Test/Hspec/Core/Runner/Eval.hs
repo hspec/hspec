@@ -33,8 +33,9 @@ import qualified Control.Monad.IO.Class as M
 import           Control.Monad.Trans.State hiding (State, state)
 import           Control.Monad.Trans.Class
 
+import           Test.Hspec.Core.Example (LifeCycle(..), LifeCycleCallback)
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Spec (Tree(..), Progress, FailureReason(..), Result(..), ResultStatus(..), ProgressCallback)
+import           Test.Hspec.Core.Spec (Tree(..), FailureReason(..), Result(..), ResultStatus(..))
 import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format (Format(..))
 import qualified Test.Hspec.Core.Format as Format
@@ -88,7 +89,7 @@ reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Result) -> EvalM 
 reportResult path loc (duration, result) = do
   case result of
     Result info status -> case status of
-      Success -> reportItem path (Format.Item loc duration info Format.Success)
+      Success -> reportItem path (Format.Item loc duration info $ Format.Success)
       Pending loc_ reason -> reportItem path (Format.Item (loc_ <|> loc) duration info $ Format.Pending reason)
       Failure loc_ err@(Error _ e) -> reportItem path (failureItem (loc_ <|> extractLocation e <|> loc) duration info err)
       Failure loc_ err -> reportItem path (failureItem (loc_ <|> loc) duration info err)
@@ -107,7 +108,7 @@ data EvalItem = EvalItem {
   evalItemDescription :: String
 , evalItemLocation :: Maybe Location
 , evalItemParallelize :: Bool
-, evalItemAction :: ProgressCallback -> IO Result
+, evalItemAction :: LifeCycleCallback -> IO Result
 }
 
 type EvalTree = Tree (IO ()) EvalItem
@@ -124,8 +125,9 @@ runFormatter config specs = do
   E.bracket start cancel $ \ runningSpecs -> do
     withTimer 0.05 $ \ timer -> do
       state <- formatRun format $ do
-        runEvalM config $
-          run $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs
+        runEvalM config $ run $
+          map (fmap (fmap (. reportProgress timer) . snd))
+              runningSpecs
       let
         failures = stateFailures state
         total = stateSuccessCount state + statePendingCount state + length failures
@@ -133,10 +135,12 @@ runFormatter config specs = do
   where
     format = evalConfigFormat config
 
-    reportProgress :: IO Bool -> Path -> Progress -> m ()
-    reportProgress timer path progress = do
+    reportProgress :: IO Bool -> Path -> LifeCycle -> m ()
+    reportProgress _timer path Started =
+      formatProgress format path Started
+    reportProgress timer path (Progress progress) = do
       r <- liftIO timer
-      when r (formatProgress format path progress)
+      when r (formatProgress format path $ Progress progress)
 
 cancelMany :: [Async a] -> IO ()
 cancelMany asyncs = do
@@ -149,12 +153,12 @@ data Item a = Item {
 , _itemAction :: a
 } deriving Functor
 
-type Job m p a = (p -> m ()) -> m a
+type Job m a = (LifeCycle -> m ()) -> m a
 
 type RunningItem m = Item (Path -> m (Seconds, Result))
 type RunningTree m = Tree (IO ()) (RunningItem m)
 
-type RunningItem_ m = (Async (), Item (Job m Progress (Seconds, Result)))
+type RunningItem_ m = (Async (), Item (Job m (Seconds, Result)))
 type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
 
 data Semaphore = Semaphore {
@@ -172,12 +176,12 @@ parallelizeItem sem EvalItem{..} = do
   (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize (interruptible . evalItemAction)
   return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
 
-parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
+parallelize :: MonadIO m => Semaphore -> Bool -> Job IO a -> IO (Async (), Job m (Seconds, a))
 parallelize sem isParallelizable
   | isParallelizable = runParallel sem
   | otherwise = runSequentially
 
-runSequentially :: MonadIO m => Job IO p a -> IO (Async (), Job m p (Seconds, a))
+runSequentially :: MonadIO m => Job IO a -> IO (Async (), Job m (Seconds, a))
 runSequentially action = do
   mvar <- newEmptyMVar
   (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) (return ())) action
@@ -185,7 +189,7 @@ runSequentially action = do
 
 data Parallel p a = Partial p | Return a
 
-runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
+runParallel :: forall m a. MonadIO m => Semaphore -> Job IO a -> IO (Async (), Job m (Seconds, a))
 runParallel Semaphore{..} action = do
   mvar <- newEmptyMVar
   asyncAction <- async $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
@@ -193,10 +197,11 @@ runParallel Semaphore{..} action = do
   where
     worker mvar = do
       let partialCallback = replaceMVar mvar . Partial
+      partialCallback Started
       result <- measure $ action partialCallback
       replaceMVar mvar (Return result)
 
-    eval :: MVar (Parallel p (Seconds, a)) -> (p -> m ()) -> m (Seconds, a)
+    eval :: MVar (Parallel LifeCycle (Seconds, a)) -> (LifeCycle -> m ()) -> m (Seconds, a)
     eval mvar notifyPartial = do
       r <- liftIO (takeMVar mvar)
       case r of

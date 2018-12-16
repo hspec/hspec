@@ -10,6 +10,8 @@ module Test.Hspec.Core.Example (
 , defaultParams
 , ActionWith
 , Progress
+, LifeCycle(..)
+, LifeCycleCallback
 , ProgressCallback
 , Result(..)
 , ResultStatus (..)
@@ -55,6 +57,9 @@ defaultParams = Params {
 
 type Progress = (Int, Int)
 type ProgressCallback = Progress -> IO ()
+
+data LifeCycle = Started | Progress Progress
+type LifeCycleCallback = LifeCycle -> IO ()
 
 -- | An `IO` action that expects an argument of type @a@
 type ActionWith a = a -> IO ()

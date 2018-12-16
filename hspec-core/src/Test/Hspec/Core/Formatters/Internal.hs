@@ -27,6 +27,7 @@ import qualified Test.Hspec.Core.Formatters.Monad as M
 import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWith, FailureRecord(..))
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
+import           Test.Hspec.Core.Spec (LifeCycle(..))
 
 formatterToFormat :: M.Formatter -> FormatConfig -> Format FormatM
 formatterToFormat formatter config = Format {
@@ -37,8 +38,10 @@ formatterToFormat formatter config = Format {
     return a
 , formatGroupStarted = \ (nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
 , formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
-, formatProgress = \ path progress -> when useColor $ do
-    interpret $ M.exampleProgress formatter path progress
+, formatProgress = \path progress -> case progress of
+    Started -> interpret $ M.exampleStarted formatter path
+    Progress p -> when useColor $ do
+      interpret $ M.exampleProgress formatter path p
 , formatItem = \ path (Item loc _duration info result) -> do
     clearTransientOutput
     case result of

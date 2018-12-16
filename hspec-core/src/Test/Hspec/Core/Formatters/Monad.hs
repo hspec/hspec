@@ -63,6 +63,9 @@ data Formatter = Formatter {
 -- /Note/: This is only called when interactive/color mode.
 , exampleProgress :: Path -> Progress -> FormatM ()
 
+-- | evaluated when an example is started
+, exampleStarted   :: Path -> FormatM ()
+
 -- | evaluated after each successful example
 , exampleSucceeded :: Path -> String -> FormatM ()
 
