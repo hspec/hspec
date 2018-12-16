@@ -28,8 +28,7 @@ instance IsFormatter Formatter where
 
 hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
 hspecWithFormatter formatter spec = do
-  f <- toFormatter formatter
-  hspecWith defaultConfig {configFormatter = Just f} spec
+  hspecWith defaultConfig {configFormatter = Just $ toFormatter formatter} spec
 
 postProcessSpec :: FilePath -> Spec -> Spec
 postProcessSpec _ = id

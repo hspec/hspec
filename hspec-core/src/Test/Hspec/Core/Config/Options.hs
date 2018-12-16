@@ -53,7 +53,7 @@ data Config = Config {
 , configSmallCheckDepth :: Int
 , configColorMode :: ColorMode
 , configDiff :: Bool
-, configFormatter :: Maybe Formatter
+, configFormatter :: Maybe (IO Formatter)
 , configHtmlOutput :: Bool
 , configOutputFile :: Either Handle FilePath
 , configConcurrentJobs :: Maybe Int
@@ -155,22 +155,22 @@ formatterOptions = concat [
   , [Option [] ["print-cpu-time"] (NoArg setPrintCpuTime) "include used CPU time in summary"]
   ]
   where
-    formatters :: [(String, Formatter)]
+    formatters :: [(String, IO Formatter)]
     formatters = [
-        ("specdoc", specdoc)
-      , ("progress", progress)
-      , ("failed-examples", failed_examples)
-      , ("silent", silent)
-      , ("trace", trace)
+        ("specdoc", pure specdoc)
+      , ("progress", pure progress)
+      , ("failed-examples", pure failed_examples)
+      , ("silent", pure silent)
+      , ("trace", pure trace)
       ]
 
     helpForFormat :: String
     helpForFormat = "use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatters)
 
-    readFormatter :: String -> Maybe Formatter
+    readFormatter :: String -> Maybe (IO Formatter)
     readFormatter = (`lookup` formatters)
 
-    setFormatter :: Formatter -> Config -> Config
+    setFormatter :: IO Formatter -> Config -> Config
     setFormatter f c = c {configFormatter = Just f}
 
     setColor :: Bool -> Config -> Config

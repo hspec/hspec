@@ -92,29 +92,32 @@ testSpec = do
 spec :: Spec
 spec = do
   describe "progress" $ do
-    let formatter = H.progress
+    let mkFormatter = pure H.progress
 
     describe "exampleSucceeded" $ do
       it "marks succeeding examples with ." $ do
+        formatter <- mkFormatter
         interpret (H.exampleSucceeded formatter undefined undefined) `shouldBe` [
             Succeeded "."
           ]
 
     describe "exampleFailed" $ do
       it "marks failing examples with F" $ do
+        formatter <- mkFormatter
         interpret (H.exampleFailed formatter undefined undefined undefined) `shouldBe` [
             Failed "F"
           ]
 
     describe "examplePending" $ do
       it "marks pending examples with ." $ do
+        formatter <- mkFormatter
         interpret (H.examplePending formatter undefined undefined undefined) `shouldBe` [
             Pending "."
           ]
 
   describe "specdoc" $ do
     let
-      formatter = H.specdoc
+      formatter = pure H.specdoc
       runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
 
     it "displays a header for each thing being described" $ do
@@ -198,14 +201,14 @@ spec = do
           ]
 
     describe "failedFormatter" $ do
-      let action = H.failedFormatter formatter
-
       context "when actual/expected contain newlines" $ do
         let
           env = environment {
             environmentGetFailMessages = return [FailureRecord Nothing ([], "") (ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
             }
         it "adds indentation" $ do
+          formatter <- formatter
+          let action = H.failedFormatter formatter
           removeColors (interpretWith env action) `shouldBe` unlines [
               ""
             , "Failures:"
@@ -233,11 +236,11 @@ spec = do
             ]
 
     describe "footerFormatter" $ do
-      let action = H.footerFormatter formatter
-
       context "without failures" $ do
         let env = environment {environmentGetSuccessCount = return 1}
         it "shows summary in green if there are no failures" $ do
+          formatter <- formatter
+          let action = H.footerFormatter formatter
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
             , Succeeded "1 example, 0 failures\n"
@@ -246,6 +249,8 @@ spec = do
       context "with pending examples" $ do
         let env = environment {environmentGetPendingCount = return 1}
         it "shows summary in yellow if there are pending examples" $ do
+          formatter <- formatter
+          let action = H.footerFormatter formatter
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
             , Pending "1 example, 0 failures, 1 pending\n"
@@ -254,6 +259,8 @@ spec = do
       context "with failures" $ do
         let env = environment {environmentGetFailMessages = return [undefined]}
         it "shows summary in red" $ do
+          formatter <- formatter
+          let action = H.footerFormatter formatter
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
             , Failed "1 example, 1 failure\n"
@@ -262,15 +269,17 @@ spec = do
       context "with both failures and pending examples" $ do
         let env = environment {environmentGetFailMessages = return [undefined], environmentGetPendingCount = return 1}
         it "shows summary in red" $ do
+          formatter <- formatter
+          let action = H.footerFormatter formatter
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
             , Failed "2 examples, 1 failure, 1 pending\n"
             ]
 
     context "same as failed_examples" $ do
-      failed_examplesSpec formatter
+      failed_examplesSpec (pure H.specdoc)
 
-failed_examplesSpec :: H.Formatter -> Spec
+failed_examplesSpec :: IO H.Formatter -> Spec
 failed_examplesSpec formatter = do
   let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
 
