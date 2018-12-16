@@ -155,7 +155,7 @@ getFailMessages = reverse `fmap` gets stateFailMessages
 writeTransient :: String -> FormatM ()
 writeTransient s = do
   write ("\r" ++ s)
-  modify $ \ state -> state {stateTransientOutput = s}
+  modify $ \ state -> state {stateTransientOutput = stateTransientOutput state ++ s}
   h <- getHandle
   liftIO $ IO.hFlush h
 
