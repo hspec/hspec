@@ -8,6 +8,7 @@ module Test.Hspec.Core.Runner (
 , hspecWith
 , hspecResult
 , hspecWithResult
+, runSpec
 
 -- * Types
 , Summary (..)
@@ -123,8 +124,7 @@ hspecWithResult :: Config -> Spec -> IO Summary
 hspecWithResult config spec = do
   prog <- getProgName
   args <- getArgs
-  (oldFailureReport, c_) <- getConfig config prog args
-  c <- ensureSeed c_
+  (oldFailureReport, c) <- getConfig config prog args
   if configRerunAllOnSuccess c
     -- With --rerun-all we may run the spec twice. For that reason GHC can not
     -- optimize away the spec tree. That means that the whole spec tree has to
@@ -144,8 +144,10 @@ hspecWithResult config spec = do
         then hspecWithResult config spec
         else return summary
 
+-- | The core of 'hspec', without command line parsing and ignoring --rerun-all.
 runSpec :: Config -> Spec -> IO Summary
-runSpec config spec = do
+runSpec config_ spec = do
+  config <- ensureSeed config_
   doNotLeakCommandLineArgumentsToExamples $ withHandle config $ \h -> do
     let formatter = fromMaybe specdoc (configFormatter config)
         seed = (fromJust . configQuickCheckSeed) config
