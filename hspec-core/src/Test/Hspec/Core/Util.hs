@@ -63,7 +63,7 @@ lineBreaksAt n input = case words input of
           else s : go (y, ys)
 
 -- |
--- A `Path` represents the location of an example within the spec tree.
+-- A `Path` describes the location of a spec item within a spec tree.
 --
 -- It consists of a list of group descriptions and a requirement description.
 type Path = ([String], String)

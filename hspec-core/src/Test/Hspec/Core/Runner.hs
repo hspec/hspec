@@ -5,17 +5,26 @@
 module Test.Hspec.Core.Runner (
 -- * Running a spec
   hspec
-, hspecWith
-, hspecResult
-, hspecWithResult
+, runSpec
 
--- * Types
-, Summary (..)
+-- * Config
 , Config (..)
 , ColorMode (..)
 , Path
 , defaultConfig
 , configAddFilter
+, readConfig
+
+-- * Summary
+, Summary (..)
+, isSuccess
+, evaluateSummary
+
+-- * Legacy
+-- | The following primitives are deprecated.  Use `runSpec` instead.
+, hspecWith
+, hspecResult
+, hspecWithResult
 
 #ifdef TEST
 , rerunAll
@@ -27,7 +36,7 @@ import           Test.Hspec.Core.Compat
 
 import           Data.Maybe
 import           System.IO
-import           System.Environment (getProgName, getArgs, withArgs)
+import           System.Environment (getArgs, withArgs)
 import           System.Exit
 import qualified Control.Exception as E
 
@@ -82,10 +91,18 @@ applyDryRun c
       NodeWithCleanup _ xs -> NodeWithCleanup (\() -> return ()) (map removeCleanup xs)
       leaf@(Leaf _) -> leaf
 
--- | Run given spec and write a report to `stdout`.
+-- | Run a given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
+--
+-- /Note/: `hspec` handles command-line options and reads config files.  This
+-- is not always desired.  Use `runSpec` if you need more control over these
+-- aspects.
 hspec :: Spec -> IO ()
-hspec = hspecWith defaultConfig
+hspec spec =
+      getArgs
+  >>= readConfig defaultConfig
+  >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+  >>= evaluateSummary
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
@@ -99,12 +116,17 @@ ensureSeed c = case configQuickCheckSeed c of
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Spec -> IO ()
-hspecWith conf spec = do
-  r <- hspecWithResult conf spec
-  unless (isSuccess r) exitFailure
+hspecWith config spec = getArgs >>= readConfig config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec >>= evaluateSummary
 
+-- | `True` if the given `Summary` indicates that there were no
+-- failures, `False` otherwise.
 isSuccess :: Summary -> Bool
 isSuccess summary = summaryFailures summary == 0
+
+-- | Exit with `exitFailure` if the given `Summary` indicates that there was at
+-- least one failure.
+evaluateSummary :: Summary -> IO ()
+evaluateSummary summary = unless (isSuccess summary) exitFailure
 
 -- | Run given spec and returns a summary of the test run.
 --
@@ -112,7 +134,7 @@ isSuccess summary = summaryFailures summary == 0
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecResult :: Spec -> IO Summary
-hspecResult = hspecWithResult defaultConfig
+hspecResult spec = getArgs >>= readConfig defaultConfig >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
 
 -- | Run given spec with custom options and returns a summary of the test run.
 --
@@ -120,11 +142,25 @@ hspecResult = hspecWithResult defaultConfig
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult config spec = do
-  prog <- getProgName
-  args <- getArgs
-  (oldFailureReport, c_) <- getConfig config prog args
-  c <- ensureSeed c_
+hspecWithResult config spec = getArgs >>= readConfig config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+
+-- |
+-- `runSpec` is the most basic primitive to run a spec. `hspec` is defined in
+-- terms of @runSpec@:
+--
+-- @
+-- hspec spec =
+--       `getArgs`
+--   >>= `readConfig` `defaultConfig`
+--   >>= `withArgs` [] . runSpec spec
+--   >>= `evaluateSummary`
+-- @
+runSpec :: Spec -> Config -> IO Summary
+runSpec spec c_ = do
+  oldFailureReport <- readFailureReportOnRerun c_
+
+  c <- ensureSeed (applyFailureReport oldFailureReport c_)
+
   if configRerunAllOnSuccess c
     -- With --rerun-all we may run the spec twice. For that reason GHC can not
     -- optimize away the spec tree. That means that the whole spec tree has to
@@ -137,16 +173,16 @@ hspecWithResult config spec = do
     then rerunAllMode c oldFailureReport
     else normalMode c
   where
-    normalMode c = runSpec c spec
+    normalMode c = runSpec_ c spec
     rerunAllMode c oldFailureReport = do
-      summary <- runSpec c spec
+      summary <- runSpec_ c spec
       if rerunAll c oldFailureReport summary
-        then hspecWithResult config spec
+        then runSpec spec c_
         else return summary
 
-runSpec :: Config -> Spec -> IO Summary
-runSpec config spec = do
-  doNotLeakCommandLineArgumentsToExamples $ withHandle config $ \h -> do
+runSpec_ :: Config -> Spec -> IO Summary
+runSpec_ config spec = do
+  withHandle config $ \h -> do
     let formatter = fromMaybe specdoc (configFormatter config)
         seed = (fromJust . configQuickCheckSeed) config
         qcArgs = configQuickCheckArgs config

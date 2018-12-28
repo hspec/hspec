@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Helper (
   module Test.Hspec.Meta
@@ -96,7 +98,7 @@ noOpProgressCallback _ = return ()
 timeout :: Seconds -> IO a -> IO (Maybe a)
 timeout = System.timeout . toMicroseconds
 
-shouldUseArgs :: [String] -> (Args -> Bool) -> Expectation
+shouldUseArgs :: HasCallStack => [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do
   spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
   let interceptArgs item = item {H.itemExample = \params action progressCallback -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params action progressCallback}

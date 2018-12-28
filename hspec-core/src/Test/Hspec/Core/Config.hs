@@ -3,9 +3,12 @@ module Test.Hspec.Core.Config (
   Config (..)
 , ColorMode(..)
 , defaultConfig
-, getConfig
+, readConfig
 , configAddFilter
 , configQuickCheckArgs
+
+, readFailureReportOnRerun
+, applyFailureReport
 #ifdef TEST
 , readConfigFiles
 #endif
@@ -21,6 +24,7 @@ import           System.IO.Error
 import           System.Exit
 import           System.FilePath
 import           System.Directory
+import           System.Environment (getProgName)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
@@ -36,8 +40,8 @@ configAddFilter p1 c = c {
     configFilterPredicate = Just p1 `filterOr` configFilterPredicate c
   }
 
-mkConfig :: Maybe FailureReport -> Config -> Config
-mkConfig mFailureReport opts = opts {
+applyFailureReport :: Maybe FailureReport -> Config -> Config
+applyFailureReport mFailureReport opts = opts {
     configFilterPredicate = matchFilter `filterOr` rerunFilter
   , configQuickCheckSeed = mSeed
   , configQuickCheckMaxSuccess = mMaxSuccess
@@ -79,8 +83,31 @@ configQuickCheckArgs c = qcArgs
     setSeed :: Integer -> QC.Args -> QC.Args
     setSeed n args = args {QC.replay = Just (mkGen (fromIntegral n), 0)}
 
-getConfig :: Config -> String -> [String] -> IO (Maybe FailureReport, Config)
-getConfig opts_ prog args = do
+-- |
+-- `readConfig` parses config options from several sources and constructs a
+-- `Config` value.  It takes options from:
+--
+-- 1. @~/.hspec@ (a config file in the user's home directory)
+-- 1. @.hspec@ (a config file in the current working directory)
+-- 1. the environment variable @HSPEC_OPTIONS@
+-- 1. the provided list of command-line options (the second argument to @readConfig@)
+--
+-- (precedence from low to high)
+--
+-- When parsing fails then @readConfig@ writes an error message to `stderr` and
+-- exits with `exitFailure`.
+--
+-- When @--help@ is provided as a command-line option then @readConfig@ writes
+-- a help message to `stdout` and exits with `exitSuccess`.
+--
+-- A common way to use @readConfig@ is:
+--
+-- @
+-- `System.Environment.getArgs` >>= readConfig `defaultConfig`
+-- @
+readConfig :: Config -> [String] -> IO Config
+readConfig opts_ args = do
+  prog <- getProgName
   configFiles <- do
     ignore <- ignoreConfigFile opts_ args
     case ignore of
@@ -89,9 +116,12 @@ getConfig opts_ prog args = do
   envVar <- fmap words <$> lookupEnv envVarName
   case parseOptions opts_ prog configFiles envVar args of
     Left (err, msg) -> exitWithMessage err msg
-    Right opts -> do
-      r <- if configRerun opts then readFailureReport opts else return Nothing
-      return (r, mkConfig r opts)
+    Right opts -> return opts
+
+readFailureReportOnRerun :: Config -> IO (Maybe FailureReport)
+readFailureReportOnRerun config
+  | configRerun config = readFailureReport config
+  | otherwise = return Nothing
 
 readConfigFiles :: IO [ConfigFile]
 readConfigFiles = do
