@@ -3,9 +3,9 @@ layout: default
 title: Passing options to Hspec
 ---
 
-In the last section we have seen how to [create a test driver for your tests](running-specs.html).
-It is possible to customize how a spec is run by passing *options* to that test
-driver.
+The previous section described how to
+[create a test driver to run a spec](running-specs.html).  It is possible to customize how a spec is run by
+passing *options* to that test driver.
 
 ## Supported options
 
