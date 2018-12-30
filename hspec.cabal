@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f6583555d5f4a1fddb54a7003125379b4bc4dc0603254ef4afbcacfc19ffa3ae
+-- hash: ebdaf2805efdecd4004db26d1d3853ad9709a44237e63b04d87c41213a234a74
 
 name:             hspec
 version:          2.6.0
@@ -44,7 +44,7 @@ library
   hs-source-dirs:
       src
   build-depends:
-      QuickCheck >=2.10
+      QuickCheck >=2.12
     , base ==4.*
     , hspec-core ==2.6.0
     , hspec-discover ==2.6.0

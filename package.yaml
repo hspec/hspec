@@ -34,7 +34,7 @@ dependencies:
   - hspec-core == 2.6.0
   - hspec-discover == 2.6.0
   - hspec-expectations == 0.8.2.*
-  - QuickCheck >= 2.10
+  - QuickCheck >= 2.12
 
 library:
   source-dirs: src
