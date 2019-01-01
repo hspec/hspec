@@ -1,11 +1,11 @@
 name: hspec-core
-version: 2.6.0
+version: 2.6.1
 synopsis: A Testing Framework for Haskell
 description: >
   This package exposes internal types and functions that can be used to extend
   Hspec's functionality.
 copyright:
-  - (c) 2011-2018 Simon Hengel
+  - (c) 2011-2019 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
   - (c) 2011 Greg Weber
 maintainer: Simon Hengel <sol@typeful.net>

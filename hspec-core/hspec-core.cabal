@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fef917dc0cb43c6da4719fb2d080d28e01d8bc888b679a3fa1c61559f02d9848
+-- hash: 7cca186c021b61bad5f4aa3748a723fbe2ec81a918644d575eaa8d7fbba6f3a0
 
 name:             hspec-core
-version:          2.6.0
+version:          2.6.1
 license:          MIT
 license-file:     LICENSE
-copyright:        (c) 2011-2018 Simon Hengel,
+copyright:        (c) 2011-2019 Simon Hengel,
                   (c) 2011-2012 Trystan Spangler,
                   (c) 2011 Greg Weber
 maintainer:       Simon Hengel <sol@typeful.net>
