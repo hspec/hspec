@@ -35,6 +35,7 @@ import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Example.Location
+import           Test.Hspec.Core.Golden
 
 -- | A type class for examples
 class Example e where
@@ -203,6 +204,28 @@ fromQuickCheckResult r = case parseQuickCheckResult r of
           quickCheckFailureReason ++ " " ++ numbers ++ ":"
         , indent (unlines quickCheckFailureCounterexample)
         ]
+
+instance Example (Golden str) where
+  type Arg (Golden str) = ()
+  evaluateExample e = evaluateExample (\() -> e)
+
+instance Example (arg -> Golden str) where
+  type Arg (arg -> Golden str) = arg
+  evaluateExample golden _ action _ = do
+    ref <- newIORef (Result "" Success)
+    action $ \arg -> do
+      r <- runGolden (golden arg)
+      writeIORef ref (fromGoldenResult r)
+    readIORef ref
+
+-- | Transform a GoldenResult into a Result from Hspec
+
+fromGoldenResult :: GoldenResult -> Result
+fromGoldenResult FirstExecution  = Result "First time execution. Golden file created." Success
+fromGoldenResult SameOutput      = Result "Golden and Actual output hasn't changed" Success
+fromGoldenResult MissmatchOutput =
+  Result "Files golden and actual missmatch"
+         (Failure Nothing (Reason "Files golden and actual missmatch"))
 
 indent :: String -> String
 indent = intercalate "\n" . map ("  " ++) . lines
