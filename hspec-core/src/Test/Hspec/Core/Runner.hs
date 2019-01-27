@@ -206,8 +206,8 @@ focusSpec config spec
 runSpec_ :: Config -> Spec -> IO Summary
 runSpec_ config spec = do
   withHandle config $ \h -> do
-    let formatter = fromMaybe (pure specdoc) (configFormatter config)
-        seed = (fromJust . configQuickCheckSeed) config
+    formatter <- fromMaybe (pure specdoc) (configFormatter config)
+    let seed = (fromJust . configQuickCheckSeed) config
         qcArgs = configQuickCheckArgs config
 
     concurrentJobs <- case configConcurrentJobs config of
@@ -236,6 +236,7 @@ runSpec_ config spec = do
           evalConfigFormat = formatterToFormat formatter formatConfig
         , evalConfigConcurrentJobs = concurrentJobs
         , evalConfigFastFail = configFastFail config
+        , evalConfigAsyncFormatting = configAsyncFormatting config
         }
       runFormatter evalConfig filteredSpec
 
@@ -245,7 +246,7 @@ runSpec_ config spec = do
 toEvalTree :: Params -> SpecTree () -> Maybe EvalTree
 toEvalTree params = go
   where
-    go :: Tree (() -> c) (Item ()) -> Maybe (Tree c EvalItem)
+    go :: Tree (() -> c) (Item ()) -> Maybe (Tree c (EvalItem Result))
     go t = case t of
       Node s xs -> Just $ Node s (mapMaybe go xs)
       NodeWithCleanup c xs -> Just $ NodeWithCleanup (c ()) (mapMaybe go xs)

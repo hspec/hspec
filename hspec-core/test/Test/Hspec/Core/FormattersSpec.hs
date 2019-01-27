@@ -207,7 +207,7 @@ spec = do
             environmentGetFailMessages = return [FailureRecord Nothing ([], "") (ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
             }
         it "adds indentation" $ do
-          formatter <- formatter
+          formatter <- formatterIO
           let action = H.failedFormatter formatter
           removeColors (interpretWith env action) `shouldBe` unlines [
               ""
@@ -239,7 +239,7 @@ spec = do
       context "without failures" $ do
         let env = environment {environmentGetSuccessCount = return 1}
         it "shows summary in green if there are no failures" $ do
-          formatter <- formatter
+          formatter <- formatterIO
           let action = H.footerFormatter formatter
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
@@ -249,7 +249,7 @@ spec = do
       context "with pending examples" $ do
         let env = environment {environmentGetPendingCount = return 1}
         it "shows summary in yellow if there are pending examples" $ do
-          formatter <- formatter
+          formatter <- formatterIO
           let action = H.footerFormatter formatter
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
@@ -259,7 +259,7 @@ spec = do
       context "with failures" $ do
         let env = environment {environmentGetFailMessages = return [undefined]}
         it "shows summary in red" $ do
-          formatter <- formatter
+          formatter <- formatterIO
           let action = H.footerFormatter formatter
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"
@@ -269,7 +269,7 @@ spec = do
       context "with both failures and pending examples" $ do
         let env = environment {environmentGetFailMessages = return [undefined], environmentGetPendingCount = return 1}
         it "shows summary in red" $ do
-          formatter <- formatter
+          formatter <- formatterIO
           let action = H.footerFormatter formatter
           interpretWith env action `shouldBe` [
               "Finished in 0.0000 seconds\n"

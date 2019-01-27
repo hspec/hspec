@@ -56,7 +56,7 @@ data Formatter = Formatter {
 -- | evaluated before each test group
 , exampleGroupStarted :: [String] -> String -> FormatM ()
 
-, exampleGroupDone :: FormatM ()
+, exampleGroupDone :: [String] -> String -> FormatM ()
 
 -- | used to notify the progress of the currently evaluated example
 --

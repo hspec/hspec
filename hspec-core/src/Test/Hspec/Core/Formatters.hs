@@ -111,7 +111,7 @@ trace :: Formatter
 trace = silent {
   headerFormatter     = writeLine "headerFormatter"
 , exampleGroupStarted = \tags name -> writeLine $ "group started " ++ show (tags, name)
-, exampleGroupDone    = writeLine "group done"
+, exampleGroupDone    = \tags name -> writeLine $ "group done " ++ show (tags, name)
 , exampleProgress     = \path prog -> writeLine $ "progress" ++ show (path,prog)
 , exampleStarted      = \path -> writeLine $ "started" ++ show path
 , exampleSucceeded    = \path name -> writeLine $ "success" ++ show (path, name)
@@ -125,7 +125,7 @@ silent :: Formatter
 silent = Formatter {
   headerFormatter     = return ()
 , exampleGroupStarted = \_ _ -> return ()
-, exampleGroupDone    = return ()
+, exampleGroupDone    = \_ _ -> return ()
 , exampleStarted      = \_ -> return ()
 , exampleProgress     = \_ _ -> return ()
 , exampleSucceeded    = \ _ _ -> return ()

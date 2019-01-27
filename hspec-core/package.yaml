@@ -19,6 +19,8 @@ ghc-options: -Wall
 
 dependencies:
   - base >= 4.5.0.0 && < 5
+  - bifunctors
+  - semigroups
   - random
   - tf-random
   - setenv

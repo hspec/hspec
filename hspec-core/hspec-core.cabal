@@ -1,26 +1,26 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 39dc148675f73276544e876331589928821112ae13bb688991d3c5c5ee686cee
+-- hash: 5f91f4209b0966cff7c5d86a95a6c82d80704664d7a31e5f166faa9d58682758
 
-name:             hspec-core
-version:          2.7.0
-license:          MIT
-license-file:     LICENSE
-copyright:        (c) 2011-2019 Simon Hengel,
-                  (c) 2011-2012 Trystan Spangler,
-                  (c) 2011 Greg Weber
-maintainer:       Simon Hengel <sol@typeful.net>
-build-type:       Simple
-category:         Testing
-stability:        experimental
-bug-reports:      https://github.com/hspec/hspec/issues
-homepage:         http://hspec.github.io/
-synopsis:         A Testing Framework for Haskell
-description:      This package exposes internal types and functions that can be used to extend Hspec's functionality.
+name:           hspec-core
+version:        2.7.0
+synopsis:       A Testing Framework for Haskell
+description:    This package exposes internal types and functions that can be used to extend Hspec's functionality.
+category:       Testing
+stability:      experimental
+homepage:       http://hspec.github.io/
+bug-reports:    https://github.com/hspec/hspec/issues
+maintainer:     Simon Hengel <sol@typeful.net>
+copyright:      (c) 2011-2019 Simon Hengel,
+                (c) 2011-2012 Trystan Spangler,
+                (c) 2011 Greg Weber
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
 
 source-repository head
   type: git
@@ -28,28 +28,6 @@ source-repository head
   subdir: hspec-core
 
 library
-  hs-source-dirs:
-      src
-      vendor
-  ghc-options: -Wall
-  build-depends:
-      HUnit ==1.6.*
-    , QuickCheck ==2.12.*
-    , ansi-terminal >=0.5
-    , array
-    , base >=4.5.0.0 && <5
-    , call-stack
-    , clock
-    , deepseq
-    , directory
-    , filepath
-    , hspec-expectations ==0.8.2.*
-    , quickcheck-io >=0.2.0
-    , random
-    , setenv
-    , stm >=2.2
-    , tf-random
-    , transformers >=0.2.2.0
   exposed-modules:
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
@@ -73,47 +51,42 @@ library
       Test.Hspec.Core.Formatters.Monad
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Runner.Eval.Types
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
       Control.Concurrent.Async
       Data.Algorithm.Diff
       Paths_hspec_core
-  default-language: Haskell2010
-
-test-suite spec
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
   hs-source-dirs:
       src
       vendor
-      test
   ghc-options: -Wall
-  cpp-options: -DTEST
   build-depends:
       HUnit ==1.6.*
     , QuickCheck ==2.12.*
     , ansi-terminal >=0.5
     , array
     , base >=4.5.0.0 && <5
+    , bifunctors
     , call-stack
     , clock
     , deepseq
     , directory
     , filepath
     , hspec-expectations ==0.8.2.*
-    , hspec-meta >=2.3.2
-    , process
     , quickcheck-io >=0.2.0
     , random
+    , semigroups
     , setenv
-    , silently >=1.2.4
     , stm >=2.2
-    , temporary
     , tf-random
     , transformers >=0.2.2.0
-  build-tool-depends:
-      hspec-meta:hspec-meta-discover
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
   other-modules:
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
@@ -134,6 +107,7 @@ test-suite spec
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Runner.Eval.Types
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
@@ -162,4 +136,36 @@ test-suite spec
       Test.Hspec.Core.TimerSpec
       Test.Hspec.Core.UtilSpec
       Paths_hspec_core
+  hs-source-dirs:
+      src
+      vendor
+      test
+  ghc-options: -Wall
+  cpp-options: -DTEST
+  build-tool-depends:
+      hspec-meta:hspec-meta-discover
+  build-depends:
+      HUnit ==1.6.*
+    , QuickCheck ==2.12.*
+    , ansi-terminal >=0.5
+    , array
+    , base >=4.5.0.0 && <5
+    , bifunctors
+    , call-stack
+    , clock
+    , deepseq
+    , directory
+    , filepath
+    , hspec-expectations ==0.8.2.*
+    , hspec-meta >=2.3.2
+    , process
+    , quickcheck-io >=0.2.0
+    , random
+    , semigroups
+    , setenv
+    , silently >=1.2.4
+    , stm >=2.2
+    , temporary
+    , tf-random
+    , transformers >=0.2.2.0
   default-language: Haskell2010

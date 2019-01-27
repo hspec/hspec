@@ -1,7 +1,10 @@
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 module Test.Hspec.Core.Example (
@@ -58,8 +61,13 @@ defaultParams = Params {
 type Progress = (Int, Int)
 type ProgressCallback = Progress -> IO ()
 
-data LifeCycle = Started | Progress Progress
-type LifeCycleCallback = LifeCycle -> IO ()
+data LifeCycle p = Started p | Progress p
+  deriving (Functor, Foldable)
+type LifeCycleCallback = LifeCycle Progress -> IO ()
+
+instance Semigroup (LifeCycle p) where
+  Started _ <> Progress b = Started b
+  _ <> b = b
 
 -- | An `IO` action that expects an argument of type @a@
 type ActionWith a = a -> IO ()

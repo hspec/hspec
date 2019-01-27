@@ -43,9 +43,19 @@ runPropFoo args = unlines . normalizeSummary . lines <$> do
 spec :: Spec
 spec = do
   describe "hspec" $ do
+    context "synchronous formatting" $
+      runnerSpec H.defaultConfig
+    context "asynchronous formatting" $
+      runnerSpec H.defaultConfig{H.configAsyncFormatting = True}
+  describe "hspecResult" $
+    hspecResultSpec
+  describe "rerunAll" $
+    rerunAllSpec
 
+runnerSpec :: H.Config -> Spec
+runnerSpec cfg = do
     let
-      hspec args = withArgs ("--format=silent" : args) . H.hspec
+      hspec args = withArgs ("--format=silent" : args) . H.hspecWith cfg
       hspec_ = hspec []
 
     it "evaluates examples Unmasked" $ do
@@ -183,6 +193,7 @@ spec = do
           r <- captureLines . ignoreUserInterrupt . withArgs ["--seed", "23"] . H.hspec . removeLocations $ do
             H.it "foo" False
             H.it "bar" $ do
+              threadDelay 15 -- This is needed as the progress is polled every 10ms
               putMVar sync ()
               threadDelay 1000000
             H.it "baz" True
@@ -515,8 +526,13 @@ spec = do
         r <- capture_ . ignoreExitCode . withArgs ["--html"] . H.hspec $ do
           H.it "foo" False
         r `shouldContain` "<span class=\"hspec-failure\">foo"
+  where
+    green  = setSGRCode [SetColor Foreground Dull Green]
+    red    = setSGRCode [SetColor Foreground Dull Red]
+    reset  = setSGRCode [Reset]
 
-  describe "hspecResult" $ do
+hspecResultSpec :: Spec
+hspecResultSpec = do
     let
       hspecResult args = withArgs ("--format=silent" : args) . H.hspecResult
       hspecResult_ = hspecResult []
@@ -577,7 +593,8 @@ spec = do
         high <- readIORef highRef
         high `shouldBe` j
 
-  describe "rerunAll" $ do
+rerunAllSpec :: Spec
+rerunAllSpec = do
     let
       report = FailureReport 0 0 0 0 [([], "foo")]
       config = H.defaultConfig {H.configRerun = True, H.configRerunAllOnSuccess = True}
@@ -605,7 +622,3 @@ spec = do
     context "on failure" $ do
       it "returns False" $ do
         H.rerunAll config (Just report) summary {H.summaryFailures = 1} `shouldBe` False
-  where
-    green  = setSGRCode [SetColor Foreground Dull Green]
-    red    = setSGRCode [SetColor Foreground Dull Red]
-    reset  = setSGRCode [Reset]

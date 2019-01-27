@@ -37,9 +37,12 @@ formatterToFormat formatter config = Format {
     interpret (M.footerFormatter formatter)
     return a
 , formatGroupStarted = \ (nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
-, formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
+, formatGroupDone = \(nesting, name) -> interpret (M.exampleGroupDone formatter nesting name)
 , formatProgress = \path progress -> case progress of
-    Started -> interpret $ M.exampleStarted formatter path
+    Started p -> do
+      when (p /= (0,0) && useColor) $
+         interpret $ M.exampleProgress formatter path p
+      interpret $ M.exampleStarted formatter path
     Progress p -> when useColor $ do
       interpret $ M.exampleProgress formatter path p
 , formatItem = \ path (Item loc _duration info result) -> do
