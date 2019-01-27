@@ -236,6 +236,7 @@ runSpec_ config spec = do
           evalConfigFormat = formatterToFormat formatter formatConfig
         , evalConfigConcurrentJobs = concurrentJobs
         , evalConfigFastFail = configFastFail config
+        , evalConfigAsyncFormatting = configAsyncFormatting config
         }
       runFormatter evalConfig filteredSpec
 
@@ -245,12 +246,12 @@ runSpec_ config spec = do
 toEvalTree :: Params -> SpecTree () -> Maybe EvalTree
 toEvalTree params = go
   where
-    go :: Tree (() -> c) (Item ()) -> Maybe (Tree c EvalItem)
+    go :: Tree (() -> c) (Item ()) -> Maybe (Tree c (EvalItem Result))
     go t = case t of
       Node s xs -> Just $ Node s (mapMaybe go xs)
       NodeWithCleanup c xs -> Just $ NodeWithCleanup (c ()) (mapMaybe go xs)
       Leaf (Item requirement loc isParallelizable isFocused e) ->
-        guard isFocused >> return (Leaf (EvalItem requirement loc (fromMaybe False isParallelizable) (e params $ ($ ()))))
+        guard isFocused >> return (Leaf (EvalItem requirement loc (fromMaybe False isParallelizable) (\lc -> e params ($ ()) (lc . Progress))))
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
 dumpFailureReport config seed qcArgs xs = do

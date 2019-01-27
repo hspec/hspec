@@ -3,11 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ConstraintKinds #-}
-
-#if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
--- Control.Concurrent.QSem is deprecated in base-4.6.0.*
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
-#endif
+{-# LANGUAGE ViewPatterns #-}
 
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
@@ -15,6 +11,8 @@ module Test.Hspec.Core.Runner.Eval (
 , EvalItem(..)
 , runFormatter
 #ifdef TEST
+, AsyncCell(..)
+, Parallel(..)
 , runSequentially
 #endif
 ) where
@@ -33,8 +31,14 @@ import qualified Control.Monad.IO.Class as M
 import           Control.Monad.Trans.State hiding (State, state)
 import           Control.Monad.Trans.Class
 
+import           Data.Bifunctor
+import           Data.Maybe (catMaybes, fromMaybe, maybeToList)
+import qualified Data.Semigroup as S
+
+import           Test.Hspec.Core.Example (LifeCycle(..), LifeCycleCallback, Progress)
+import           Test.Hspec.Core.Runner.Eval.Types
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Spec (Tree(..), Progress, FailureReason(..), Result(..), ResultStatus(..), ProgressCallback)
+import           Test.Hspec.Core.Spec (Tree(..), FailureReason(..), Result(..), ResultStatus(..))
 import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format (Format(..))
 import qualified Test.Hspec.Core.Format as Format
@@ -45,32 +49,17 @@ import           Test.Hspec.Core.Example.Location
 type Monad m = (Functor m, Applicative m, M.Monad m)
 type MonadIO m = (Monad m, M.MonadIO m)
 
-data EvalConfig m = EvalConfig {
-  evalConfigFormat :: Format m
-, evalConfigConcurrentJobs :: Int
-, evalConfigFastFail :: Bool
-}
-
-data State m = State {
-  stateConfig :: EvalConfig m
-, stateSuccessCount :: Int
-, statePendingCount :: Int
-, stateFailures :: [Path]
-}
-
-type EvalM m = StateT (State m) m
-
 increaseSuccessCount :: Monad m => EvalM m ()
-increaseSuccessCount = modify $ \state -> state {stateSuccessCount = stateSuccessCount state + 1}
+increaseSuccessCount = EvalM $ modify $ \state -> state {stateSuccessCount = stateSuccessCount state + 1}
 
 increasePendingCount :: Monad m => EvalM m ()
-increasePendingCount = modify $ \state -> state {statePendingCount = statePendingCount state + 1}
+increasePendingCount = EvalM $ modify $ \state -> state {statePendingCount = statePendingCount state + 1}
 
 addFailure :: Monad m => Path -> EvalM m ()
-addFailure path = modify $ \state -> state {stateFailures = path : stateFailures state}
+addFailure path = EvalM $ modify $ \state -> state {stateFailures = path : stateFailures state}
 
 getFormat :: Monad m => (Format m -> a) -> EvalM m a
-getFormat format = gets (format . evalConfigFormat . stateConfig)
+getFormat format = EvalM $ gets (format . evalConfigFormat . stateConfig)
 
 reportItem :: Monad m => Path -> Format.Item -> EvalM m ()
 reportItem path item = do
@@ -103,29 +92,32 @@ groupDone path = do
   format <- getFormat formatGroupDone
   lift $ format path
 
-data EvalItem = EvalItem {
+data EvalItem a = EvalItem {
   evalItemDescription :: String
 , evalItemLocation :: Maybe Location
 , evalItemParallelize :: Bool
-, evalItemAction :: ProgressCallback -> IO Result
+, evalItemAction :: LifeCycleCallback -> IO a
 }
 
-type EvalTree = Tree (IO ()) EvalItem
+type EvalTree = Tree (IO ()) (EvalItem Result)
+type ReportProgress m = Path -> LifeCycle Progress -> m ()
 
 runEvalM :: Monad m => EvalConfig m -> EvalM m () -> m (State m)
-runEvalM config action = execStateT action (State config 0 0 [])
+runEvalM config (EvalM action) = execStateT action (State config 0 0 [])
 
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: forall m. MonadIO m => EvalConfig m -> [EvalTree] -> IO (Int, [Path])
 runFormatter config specs = do
+  atomicSemaphore <- if evalConfigAsyncFormatting config then Just <$> newSem 1 else return Nothing
   let
-    start = parallelizeTree (evalConfigConcurrentJobs config) specs
+    start :: IO [RunningTree_ m Result]
+    start = parallelizeTree atomicSemaphore (evalConfigConcurrentJobs config) specs
     cancel = cancelMany . concatMap toList . map (fmap fst)
   E.bracket start cancel $ \ runningSpecs -> do
     withTimer 0.05 $ \ timer -> do
       state <- formatRun format $ do
-        runEvalM config $
-          run $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs
+        runEvalM config $ run (reportProgress timer) (fromMaybe mempty atomicSemaphore) $
+          (fmap.fmap) ((fmap.fmap.first) maybeToList . snd) runningSpecs
       let
         failures = stateFailures state
         total = stateSuccessCount state + statePendingCount state + length failures
@@ -133,10 +125,12 @@ runFormatter config specs = do
   where
     format = evalConfigFormat config
 
-    reportProgress :: IO Bool -> Path -> Progress -> m ()
-    reportProgress timer path progress = do
+    reportProgress :: IO Bool -> ReportProgress m
+    reportProgress _timer path (Started p) =
+      formatProgress format path (Started p)
+    reportProgress timer path (Progress progress) = do
       r <- liftIO timer
-      when r (formatProgress format path progress)
+      when r (formatProgress format path $ Progress progress)
 
 cancelMany :: [Async a] -> IO ()
 cancelMany asyncs = do
@@ -149,120 +143,196 @@ data Item a = Item {
 , _itemAction :: a
 } deriving Functor
 
-type Job m p a = (p -> m ()) -> m a
+type Job m a = (LifeCycle Progress -> m ()) -> m a
 
-type RunningItem m = Item (Path -> m (Seconds, Result))
+type RunningItem m = Item (AsyncCell m (JobStatus Progress (Seconds, Result)))
 type RunningTree m = Tree (IO ()) (RunningItem m)
 
-type RunningItem_ m = (Async (), Item (Job m Progress (Seconds, Result)))
-type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
+type RunningItem_ m a = (Async (), Item (AsyncCell m (JobStatus_ (Seconds, a))))
+type RunningTree_ m a = Tree (IO ()) (RunningItem_ m a)
 
-data Semaphore = Semaphore {
-  semaphoreWait :: IO ()
-, semaphoreSignal :: IO ()
-}
+type JobStatus    p a = Parallel [LifeCycle p] a
+type JobStatus_     a = Parallel (Maybe (LifeCycle Progress)) a
 
-parallelizeTree :: MonadIO m => Int -> [EvalTree] -> IO [RunningTree_ m]
-parallelizeTree n specs = do
-  sem <- newQSem n
-  mapM (traverse $ parallelizeItem sem) specs
+parallelizeTree
+  :: (MonadIO m, Traversable t)
+  => Maybe Semaphore -> Int -> [t (EvalItem a)] -> IO [t (RunningItem_ m a)]
+parallelizeTree atomicSem n specs = do
+  sequentialSem <- newSem 1
+  parallelSem   <- if n == 1 then return sequentialSem else  newSem n
+  (traverse.traverse) (parallelizeItem parallelSem sequentialSem) specs
+  where
+  parallelizeItem parallelSem sequentialSem EvalItem{..} = do
+    (asyncAction, evalAction)  <-
+      parallelize parallelSem sequentialSem evalItemParallelize (interruptible . evalItemAction)
+    return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
 
-parallelizeItem :: MonadIO m => QSem -> EvalItem -> IO (RunningItem_ m)
-parallelizeItem sem EvalItem{..} = do
-  (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize (interruptible . evalItemAction)
-  return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
+  parallelize parallelSem sequentialSem isParallelizable
+    | Just atomicS <- atomicSem, isParallelizable
+    = runParallel parallelSem atomicS
+    | Just atomicS <- atomicSem
+    = runParallel sequentialSem atomicS
+    | isParallelizable
+    = runParallel parallelSem mempty
+    | otherwise
+    = runSequentially   mempty      mempty
 
-parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
-parallelize sem isParallelizable
-  | isParallelizable = runParallel sem
-  | otherwise = runSequentially
+-- | Like 'runParallel', but delays the start of the job until progress is checked
+runSequentially
+  :: forall m a.
+     (MonadIO m)
+  => Semaphore -- ^ synchronization of worker thread
+  -> Semaphore -- ^ synchronization of start and done progress reports
+  -> Job IO a
+  -> IO (Async (), AsyncCell m (JobStatus_ (Seconds, a)))
+runSequentially workSem progressSem action = do
+  delaySem <- newSem 1
+  semaphoreWait delaySem
+  (cancel, eval) <- runParallel (delaySem M.<> workSem) progressSem action
+  return (cancel, liftIO(semaphoreSignal delaySem) >> eval)
 
-runSequentially :: MonadIO m => Job IO p a -> IO (Async (), Job m p (Seconds, a))
-runSequentially action = do
-  mvar <- newEmptyMVar
-  (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) (return ())) action
-  return (asyncAction, \ notifyPartial -> liftIO (putMVar mvar ()) >> evalAction notifyPartial)
-
-data Parallel p a = Partial p | Return a
-
-runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
-runParallel Semaphore{..} action = do
-  mvar <- newEmptyMVar
-  asyncAction <- async $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
-  return (asyncAction, eval mvar)
+runParallel
+  :: forall m a.
+     (MonadIO m)
+  => Semaphore -- ^ synchronization of worker thread
+  -> Semaphore -- ^ synchronization of start and done progress reports
+  -> Job IO a
+  -> IO (Async (), AsyncCell m (JobStatus_ (Seconds, a)))
+runParallel workSem progressSem action = do
+  progressVar <- newEmptyMVar
+  asyncAction <- async $ withSemaphore workSem (worker progressVar)
+  let eval = asyncCellFromMVar progressVar
+  return (asyncAction, (fmap.fmap) S.getFirst eval)
   where
     worker mvar = do
-      let partialCallback = replaceMVar mvar . Partial
+      let partialCallback x = withSemaphore progressSem $ replaceMVar mvar (\s -> fromMaybe (Partial Nothing) s S.<> Partial (Just x))
+      partialCallback (Started (0,0))
       result <- measure $ action partialCallback
-      replaceMVar mvar (Return result)
+      replaceMVar mvar (\s -> fromMaybe (Partial Nothing) s S.<> Return Nothing (S.First result))
 
-    eval :: MVar (Parallel p (Seconds, a)) -> (p -> m ()) -> m (Seconds, a)
-    eval mvar notifyPartial = do
-      r <- liftIO (takeMVar mvar)
-      case r of
-        Partial p -> do
-          notifyPartial p
-          eval mvar notifyPartial
-        Return result -> return result
+replaceMVar :: MVar a -> (Maybe a -> a) -> IO ()
+replaceMVar mvar f = tryTakeMVar mvar >>= putMVar mvar . f
 
-replaceMVar :: MVar a -> a -> IO ()
-replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
-
-run :: forall m. MonadIO m => [RunningTree m] -> EvalM m ()
-run specs = do
-  fastFail <- gets (evalConfigFastFail . stateConfig)
-  sequenceActions fastFail (concatMap foldSpec specs)
+run :: forall m. MonadIO m => ReportProgress m -> Semaphore -> [RunningTree m] -> EvalM m ()
+run reportProgress atomicSemaphore specs = do
+  fastFail <- EvalM $ gets (evalConfigFastFail . stateConfig)
+  flatSpecs <- lift $ concat <$> mapM foldSpec specs
+  asyncReport <- EvalM $ gets (evalConfigAsyncFormatting . stateConfig)
+  let sync = if asyncReport then Just (10, atomicSemaphore) else Nothing
+  sequenceActions sync fastFail ((fmap . fmap . first) (foldMap sequence_) flatSpecs)
   where
-    foldSpec :: RunningTree m -> [EvalM m ()]
+    foldSpec :: RunningTree m -> m [AsyncCell (EvalM m) (JobStatus (EvalM m ()) (EvalM m ()))]
     foldSpec = foldTree FoldTree {
-      onGroupStarted = groupStarted
-    , onGroupDone = groupDone
-    , onCleanup = runCleanup
-    , onLeafe = evalItem
+      -- Notify groupStarted as a side effect of starting children 0
+      onNode = runNode
+    , onNodeWithCleanup = runCleanup
+    , onLeafe = (return.) . evalItem
     }
 
-    runCleanup :: [String] -> IO () -> EvalM m ()
-    runCleanup groups action = do
-      (dt, r) <- liftIO $ measure $ safeTry action
-      either (\ e -> reportItem path . failureItem (extractLocation e) dt "" . Error Nothing $ e) return r
+    runNode path (concat -> children) = do
+        let initial = whenAnyStarted children (groupStarted path)
+        children' <- whenAllReturn  children (groupDone path)
+        return $ initial : children'
+
+    runCleanup groups (concat -> children) cleanUp = do
+      let cleanUp' = do
+              (dt, r) <- liftIO $ measure $ safeTry cleanUp
+              either (\ e -> reportItem path . failureItem (extractLocation e) dt "" . Error Nothing $ e) return r
+      whenAllReturn children cleanUp'
       where
         path = (groups, "afterAll-hook")
 
-    evalItem :: [String] -> RunningItem m -> EvalM m ()
-    evalItem groups (Item requirement loc action) = do
-      lift (action path) >>= reportResult path loc
+    evalItem :: [String] -> RunningItem m -> [AsyncCell (EvalM m) (JobStatus (EvalM m ()) (EvalM m ()))]
+    evalItem groups (Item requirement loc action) = [do
+      res <- asyncCellHoist lift action
+      return $ bimap (reportLifeCycle path <$>) (reportResult path loc) res]
       where
         path :: Path
         path = (groups, requirement)
 
-data FoldTree c a r = FoldTree {
-  onGroupStarted :: Path -> r
-, onGroupDone :: Path -> r
-, onCleanup :: [String] -> c -> r
-, onLeafe :: [String] -> a -> r
+        reportLifeCycle thePath (Started p)  =
+          Started  $ lift $ reportProgress thePath (Started  p)
+        reportLifeCycle thePath (Progress p) =
+          Progress $ lift $ reportProgress thePath (Progress p)
+
+    whenAnyStarted children sideEffect = unsafeAsyncCell (return $ Return mempty sideEffect) $ Just <$> do
+      states <- catMaybes <$> mapM asyncCellTryRead children
+      return $ if any isStarted states then Return mempty sideEffect else Partial mempty
+
+    whenAllReturn children sideEffect = do
+      barriers <- liftIO $ mapM (const newEmptyMVar) children
+      let wrap c barrier = do
+            x <- c
+            when (isReturn x) $ void $ liftIO $ tryPutMVar barrier ()
+            return x
+          final = do
+            mapM_ asyncCellFromMVarAlwaysRead barriers
+            return $ Return mempty sideEffect
+      return $ zipWith wrap children barriers ++ [final]
+
+data FoldTree c a m r = FoldTree {
+  onNode :: Path -> [r] -> m r
+, onNodeWithCleanup :: [String] -> [r] -> c -> m r
+, onLeafe :: [String] -> a -> m r
 }
 
-foldTree :: FoldTree c a r -> Tree c a -> [r]
+foldTree :: Monad m => FoldTree c a m r -> Tree c a -> m r
 foldTree FoldTree{..} = go []
   where
-    go rGroups (Node group xs) = start : children ++ [done]
+    go rGroups (Node group xs) = onNode path =<< children
       where
         path = (reverse rGroups, group)
-        start = onGroupStarted path
-        children = concatMap (go (group : rGroups)) xs
-        done =  onGroupDone path
-    go rGroups (NodeWithCleanup action xs) = children ++ [cleanup]
+        children = mapM (go (group : rGroups)) xs
+    go rGroups (NodeWithCleanup action xs) = do
+      cc <- children
+      onNodeWithCleanup (reverse rGroups) cc action
       where
-        children = concatMap (go rGroups) xs
-        cleanup = onCleanup (reverse rGroups) action
-    go rGroups (Leaf a) = [onLeafe (reverse rGroups) a]
+        children = mapM (go rGroups) xs
+    go rGroups (Leaf a) = onLeafe (reverse rGroups) a
 
-sequenceActions :: Monad m => Bool -> [EvalM m ()] -> EvalM m ()
-sequenceActions fastFail = go
+sequenceActions
+  :: (MonadIO m)
+  => Maybe (Int, Semaphore) -- ^ Polling period in microseconds and semaphore to synchronize progress reporting. If 'Nothing' then reporting will be synchronous
+  -> Bool                   -- ^ fail fast
+  -> [AsyncCell (EvalM m) (Parallel (EvalM m ()) (EvalM m ()))]
+  -> EvalM m ()
+sequenceActions _ _ [] = return ()
+-- Synchronous reporting
+sequenceActions Nothing fastFail aa = go aa
   where
     go [] = return ()
     go (action : actions) = do
-      () <- action
-      hasFailures <- (not . null) <$> gets stateFailures
-      let stopNow = fastFail && hasFailures
-      unless stopNow (go actions)
+      status <- asyncCellTake action
+      case status of
+        Partial p -> p >> go (action:actions)
+        Return p report -> do
+          () <- p
+          () <- report
+          hasFailures <- EvalM $ (not . null) <$> gets stateFailures
+          let stopNow = fastFail && hasFailures
+          unless stopNow (go actions)
+-- Asynchronous reporting
+sequenceActions (Just (period, atomicSemaphore)) fastFail aa = do
+    liftIO (semaphoreWait atomicSemaphore)
+    go [] aa
+  where
+    go acc [] = do
+      liftIO (semaphoreSignal atomicSemaphore *> threadDelay period)
+      sequenceActions (Just (period, atomicSemaphore)) fastFail (reverse acc)
+    go acc (action:actions) = do
+      status <- asyncCellTryTake action
+      case status of
+        Nothing -> go (action:acc) actions
+        Just (Partial p) -> do
+          p
+          go (action : acc) actions
+        Just (Return p report) -> do
+          p
+          report
+          hasFailures <- EvalM $ (not . null) <$> gets stateFailures
+          let stopNow = fastFail && hasFailures
+          unless stopNow (go acc actions)
+
+isStarted :: Parallel [LifeCycle a] b -> Bool
+isStarted (Partial updates) = not $ null updates
+isStarted Return{} = True

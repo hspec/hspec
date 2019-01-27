@@ -1,37 +1,37 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 82bc339ad7726a9fc53ee3731cd9e47f997a9d73e6297de54342d95744b1eaaa
+-- hash: 773d65e888e3a8b90bf93cb09c2965add2b428ed67f197ebd445d6fded409522
 
-name:             hspec
-version:          2.7.1
-license:          MIT
-license-file:     LICENSE
-copyright:        (c) 2011-2019 Simon Hengel,
-                  (c) 2011-2012 Trystan Spangler,
-                  (c) 2011 Greg Weber
-maintainer:       Simon Hengel <sol@typeful.net>
-build-type:       Simple
-category:         Testing
-stability:        experimental
-bug-reports:      https://github.com/hspec/hspec/issues
-homepage:         http://hspec.github.io/
-synopsis:         A Testing Framework for Haskell
-description:      Hspec is a testing framework for Haskell.  Some of Hspec's distinctive
-                  features are:
-                  .
-                  * a friendly DSL for defining tests
-                  .
-                  * integration with QuickCheck, SmallCheck, and HUnit
-                  .
-                  * parallel test execution
-                  .
-                  * automatic discovery of test files
-                  .
-                  The Hspec Manual is at <http://hspec.github.io/>.
+name:           hspec
+version:        2.7.1
+synopsis:       A Testing Framework for Haskell
+description:    Hspec is a testing framework for Haskell.  Some of Hspec's distinctive
+                features are:
+                .
+                * a friendly DSL for defining tests
+                .
+                * integration with QuickCheck, SmallCheck, and HUnit
+                .
+                * parallel test execution
+                .
+                * automatic discovery of test files
+                .
+                The Hspec Manual is at <http://hspec.github.io/>.
+category:       Testing
+stability:      experimental
+homepage:       http://hspec.github.io/
+bug-reports:    https://github.com/hspec/hspec/issues
+maintainer:     Simon Hengel <sol@typeful.net>
+copyright:      (c) 2011-2019 Simon Hengel,
+                (c) 2011-2012 Trystan Spangler,
+                (c) 2011 Greg Weber
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
 extra-source-files:
     CHANGES.markdown
 
@@ -40,15 +40,6 @@ source-repository head
   location: https://github.com/hspec/hspec
 
 library
-  ghc-options: -Wall
-  hs-source-dirs:
-      src
-  build-depends:
-      QuickCheck >=2.12
-    , base ==4.*
-    , hspec-core ==2.7.1
-    , hspec-discover ==2.7.1
-    , hspec-expectations ==0.8.2.*
   exposed-modules:
       Test.Hspec
       Test.Hspec.Discover
@@ -57,4 +48,13 @@ library
       Test.Hspec.Runner
   other-modules:
       Paths_hspec
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  build-depends:
+      QuickCheck >=2.12
+    , base ==4.*
+    , hspec-core ==2.7.1
+    , hspec-discover ==2.7.1
+    , hspec-expectations ==0.8.2.*
   default-language: Haskell2010

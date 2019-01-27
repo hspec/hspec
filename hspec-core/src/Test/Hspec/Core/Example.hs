@@ -1,7 +1,10 @@
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 module Test.Hspec.Core.Example (
@@ -9,6 +12,8 @@ module Test.Hspec.Core.Example (
 , Params (..)
 , defaultParams
 , ActionWith
+, LifeCycle(..)
+, LifeCycleCallback
 , Progress
 , ProgressCallback
 , Result(..)
@@ -56,6 +61,16 @@ defaultParams = Params {
 type Progress = (Int, Int)
 type ProgressCallback = Progress -> IO ()
 
+data LifeCycle p
+  = Started  { lifecycle :: p}
+  | Progress { lifecycle :: p}
+  deriving (Functor, Foldable)
+type LifeCycleCallback = LifeCycle Progress -> IO ()
+
+instance Semigroup (LifeCycle p) where
+  Started _ <> Progress b = Started b
+  _ <> b = b
+
 -- | An `IO` action that expects an argument of type @a@
 type ActionWith a = a -> IO ()
 
@@ -88,8 +103,8 @@ instance NFData FailureReason where
 instance Exception ResultStatus
 
 safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-safeEvaluateExample example params around progress = do
-  r <- safeTry $ forceResult <$> evaluateExample example params around progress
+safeEvaluateExample example params around lifecycle = do
+  r <- safeTry $ forceResult <$> evaluateExample example params around lifecycle
   return $ case r of
     Left e | Just result <- fromException e -> Result "" result
     Left e | Just hunit <- fromException e -> Result "" $ hunitFailureToResult Nothing hunit
@@ -166,12 +181,12 @@ instance Example QC.Property where
 
 instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = a
-  evaluateExample p c action progressCallback = do
+  evaluateExample p c action lifecycleCallback = do
     r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
     return $ fromQuickCheckResult r
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
-        \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
+        \st _ -> lifecycleCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
 
 fromQuickCheckResult :: QC.Result -> Result
 fromQuickCheckResult r = case parseQuickCheckResult r of

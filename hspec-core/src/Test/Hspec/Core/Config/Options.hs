@@ -54,6 +54,7 @@ data Config = Config {
 , configColorMode :: ColorMode
 , configDiff :: Bool
 , configFormatter :: Maybe Formatter
+, configAsyncFormatting :: Bool
 , configHtmlOutput :: Bool
 , configOutputFile :: Either Handle FilePath
 , configConcurrentJobs :: Maybe Int
@@ -80,6 +81,7 @@ defaultConfig = Config {
 , configColorMode = ColorAuto
 , configDiff = True
 , configFormatter = Nothing
+, configAsyncFormatting = False
 , configHtmlOutput = False
 , configOutputFile = Left stdout
 , configConcurrentJobs = Nothing
@@ -155,23 +157,24 @@ formatterOptions = concat [
   , [Option [] ["print-cpu-time"] (NoArg setPrintCpuTime) "include used CPU time in summary"]
   ]
   where
-    formatters :: [(String, Formatter)]
+    formatters :: [(String, (Formatter, Bool))]
     formatters = [
-        ("specdoc", specdoc)
-      , ("progress", progress)
-      , ("failed-examples", failed_examples)
-      , ("silent", silent)
-      , ("trace", trace)
+        ("specdoc", (specdoc, False))
+      , ("progress", (progress, False))
+      , ("failed-examples", (failed_examples, False))
+      , ("silent", (silent, False))
+      , ("trace", (trace, False))
+      , ("traceAsync", (trace, True))
       ]
 
     helpForFormat :: String
     helpForFormat = "use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatters)
 
-    readFormatter :: String -> Maybe Formatter
+    readFormatter :: String -> Maybe (Formatter, Bool)
     readFormatter = (`lookup` formatters)
 
-    setFormatter :: Formatter -> Config -> Config
-    setFormatter f c = c {configFormatter = Just f}
+    setFormatter :: (Formatter, Bool) -> Config -> Config
+    setFormatter (f, async) c = c {configFormatter = Just f, configAsyncFormatting = async}
 
     setColor :: Bool -> Config -> Config
     setColor v config = config {configColorMode = if v then ColorAlways else ColorNever}

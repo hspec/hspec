@@ -10,8 +10,8 @@ module Test.Hspec.Core.Format (
 , FailureReason(..)
 ) where
 
-import           Test.Hspec.Core.Spec (Progress, Location(..))
-import           Test.Hspec.Core.Example (FailureReason(..))
+import           Test.Hspec.Core.Spec (Location(..))
+import           Test.Hspec.Core.Example (FailureReason(..), LifeCycle, Progress)
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Clock
 
@@ -31,6 +31,6 @@ data Format m = Format {
   formatRun :: forall a. m a -> IO a
 , formatGroupStarted :: Path -> m ()
 , formatGroupDone :: Path -> m ()
-, formatProgress :: Path -> Progress -> m ()
+, formatProgress :: Path -> LifeCycle Progress -> m ()
 , formatItem :: Path -> Item -> m ()
 }

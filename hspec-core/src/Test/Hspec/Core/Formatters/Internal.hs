@@ -23,6 +23,7 @@ import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
 import qualified System.CPUTime as CPUTime
 
+import           Test.Hspec.Core.Example (LifeCycle(..))
 import qualified Test.Hspec.Core.Formatters.Monad as M
 import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWith, FailureRecord(..))
 import           Test.Hspec.Core.Format
@@ -37,8 +38,11 @@ formatterToFormat formatter config = Format {
     return a
 , formatGroupStarted = \ (nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
 , formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
-, formatProgress = \ path progress -> when useColor $ do
-    interpret $ M.exampleProgress formatter path progress
+, formatProgress = \ path progress -> case progress of
+    Started p ->
+      when (p /= (0,0) && useColor) $ interpret $ M.exampleProgress formatter path p
+    Progress p -> when useColor $
+      interpret $ M.exampleProgress formatter path p
 , formatItem = \ path (Item loc _duration info result) -> do
     clearTransientOutput
     case result of

@@ -11,6 +11,7 @@ module Test.Hspec.Core.Compat (
 , module Control.Applicative
 , module Control.Monad
 , module Data.Foldable
+, module Data.Semigroup
 , module Data.Traversable
 , module Data.Monoid
 , module Data.List
@@ -20,6 +21,7 @@ module Test.Hspec.Core.Compat (
 , atomicWriteIORef
 #endif
 , interruptible
+, tryReadMVar
 ) where
 
 import           Control.Applicative
@@ -34,8 +36,9 @@ import           Control.Monad hiding (
   )
 import           Data.Foldable
 import           Data.Traversable
-import           Data.Monoid
+import           Data.Monoid (First(..), Monoid(..), mconcat)
 import           Data.List (intercalate)
+import           Data.Semigroup (Semigroup(..))
 
 import           Prelude hiding (
     all
@@ -138,4 +141,14 @@ interruptible act = do
     Unmasked              -> act
     MaskedInterruptible   -> unsafeUnmask act
     MaskedUninterruptible -> act
+#endif
+
+#if !MIN_VERSION_base(4,7,0)
+tryReadMVar :: MVar a -> IO (Maybe a)
+tryReadMVar m = do
+  x <- tryTakeMVar m
+  case x of
+    Just v -> putMVar m v
+    _ -> return ()
+  return x
 #endif
