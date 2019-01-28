@@ -515,7 +515,7 @@ runnerSpec cfg = do
       it "marks successful examples with CSS class hspec-success" $ do
         r <- capture_ . withArgs ["--html"] . H.hspec $ do
           H.it "foo" True
-        r `shouldContain` "<span class=\"hspec-success\">foo\n</span>"
+        r `shouldContain` "<span class=\"hspec-success\">foo"
 
       it "marks pending examples with CSS class hspec-pending" $ do
         r <- capture_ . withArgs ["--html"] . H.hspec $ do

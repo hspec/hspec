@@ -159,8 +159,9 @@ formatterOptions = concat [
   where
     formatters :: [(String, (IO Formatter, Bool))]
     formatters = [
-        ("specdoc", (pure specdoc, False))
-      , ("progress", (pure progress, False))
+        ("specdoc", (specdoc, False))
+      , ("specdyn", (specdyn, True))
+      , ("progress", (progress, False))
       , ("failed-examples", (pure failed_examples, False))
       , ("silent", (pure silent, False))
       , ("trace", (pure trace, False))

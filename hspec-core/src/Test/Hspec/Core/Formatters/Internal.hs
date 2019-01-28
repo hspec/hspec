@@ -1,7 +1,12 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE UndecidableInstances       #-}
 module Test.Hspec.Core.Formatters.Internal (
-  FormatM
-, FormatConfig(..)
+  FormatConfig(..)
 , runFormatM
 , interpret
 , increaseSuccessCount
@@ -15,38 +20,57 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
-import           System.IO (Handle)
-import           Control.Exception (AsyncException(..), bracket_, try, throwIO)
+import           Control.Exception (AsyncException(..))
+import           Control.Monad.Catch(throwM, try, MonadMask)
 import           System.Console.ANSI
-import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
+import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.State hiding (gets, modify)
 import           Data.Char (isSpace)
+import           GHC.IO.Handle
 import qualified System.CPUTime as CPUTime
+import           System.IO.Silently
 
+import           Test.Hspec.Core.Formatters.Free
 import qualified Test.Hspec.Core.Formatters.Monad as M
 import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWith, FailureRecord(..))
+import           Test.Hspec.Core.Formatters.TextBlock
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec (LifeCycle(..))
 
-formatterToFormat :: M.Formatter -> FormatConfig -> Format FormatM
+formatterToFormat
+  :: M.Formatter
+  -> FormatConfig
+  -> Format FormatM
 formatterToFormat formatter config = Format {
-  formatRun = \action -> runFormatM config $ do
-    interpret (M.headerFormatter formatter)
-    a <- action `finally_` interpret (M.failedFormatter formatter)
-    interpret (M.footerFormatter formatter)
-    return a
+  formatRun = \action -> do
+      let runStuff h =
+            runTextIO h config $
+            runFormatM config $ do
+              interpret (M.headerFormatter formatter)
+              a <- action `finally_` interpret (M.failedFormatter formatter)
+              interpret (M.footerFormatter formatter)
+              return a
+      case M.capturedOutputFormatter formatter of
+        Nothing -> runStuff (formatConfigHandle config)
+        Just capturedF -> do
+          h' <- hDuplicate (formatConfigHandle config)
+          (output, res) <- hCapture [IO.stdout, IO.stderr] $ runStuff h'
+          runTextIO h' config $ runFormatM config $ interpret (capturedF output)
+          hClose h'
+          return res
+
 , formatGroupStarted = \ (nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
 , formatGroupDone = \(nesting, name) -> interpret (M.exampleGroupDone formatter nesting name)
 , formatProgress = \path progress -> case progress of
     Started p -> do
-      when (p /= (0,0) && useColor) $
-         interpret $ M.exampleProgress formatter path p
       interpret $ M.exampleStarted formatter path
-    Progress p -> when useColor $ do
+      when (p /= (0,0) && useColor) $
+        interpret $ M.exampleProgress formatter path p
+    Progress p -> when useColor $
       interpret $ M.exampleProgress formatter path p
-, formatItem = \ path (Item loc _duration info result) -> do
-    clearTransientOutput
+, formatItem = \ path (Item loc _duration info result) ->
     case result of
       Success -> do
         increaseSuccessCount
@@ -68,15 +92,10 @@ interpret = interpretWith Environment {
 , environmentUsedSeed = usedSeed
 , environmentGetCPUTime = getCPUTime
 , environmentGetRealTime = getRealTime
-, environmentWrite = write
-, environmentWriteTransient = writeTransient
-, environmentWithFailColor = withFailColor
-, environmentWithSuccessColor = withSuccessColor
-, environmentWithPendingColor = withPendingColor
-, environmentWithInfoColor = withInfoColor
+, environmentWrite = writeTextBlock
+, environmentRewrite = rewriteTextBlock
+, environmentInsert  = insertTextBlock
 , environmentUseDiff = gets (formatConfigUseDiff . stateConfig)
-, environmentExtraChunk = extraChunk
-, environmentMissingChunk = missingChunk
 , environmentLiftIO = liftIO
 }
 
@@ -102,18 +121,15 @@ data FormatConfig = FormatConfig {
 data FormatterState = FormatterState {
   stateSuccessCount    :: Int
 , statePendingCount    :: Int
+, stateBlocks          :: TextBlocks
 , stateFailMessages    :: [FailureRecord]
 , stateCpuStartTime    :: Maybe Integer
 , stateStartTime       :: Seconds
-, stateTransientOutput :: String
-, stateConfig :: FormatConfig
+, stateConfig          :: FormatConfig
 }
 
 getConfig :: (FormatConfig -> a) -> FormatM a
 getConfig f = gets (f . stateConfig)
-
-getHandle :: FormatM Handle
-getHandle = getConfig formatConfigHandle
 
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer
@@ -121,14 +137,18 @@ usedSeed = getConfig formatConfigUsedSeed
 
 -- NOTE: We use an IORef here, so that the state persists when UserInterrupt is
 -- thrown.
-newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
+newtype FormatM a = FormatM (StateT (IORef FormatterState) (FreeT TextF IO) a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
-runFormatM :: FormatConfig -> FormatM a -> IO a
+liftText :: FreeT TextF IO a -> FormatM a
+liftText = FormatM . lift
+
+runFormatM :: FormatConfig -> FormatM a -> FreeT TextF IO a
 runFormatM config (FormatM action) = do
-  time <- getMonotonicTime
-  cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState 0 0 [] cpuTime time "" config)
+  time <- liftIO getMonotonicTime
+  cpuTime <- if formatConfigPrintCpuTime config
+             then Just <$> liftIO CPUTime.getCPUTime else return Nothing
+  st <- liftIO$ newIORef (FormatterState 0 0 mempty [] cpuTime time config)
   evalStateT action st
 
 -- | Increase the counter for successful examples
@@ -155,101 +175,29 @@ addFailMessage loc p m = modify $ \s -> s {stateFailMessages = FailureRecord loc
 getFailMessages :: FormatM [FailureRecord]
 getFailMessages = reverse `fmap` gets stateFailMessages
 
-writeTransient :: String -> FormatM ()
-writeTransient s = do
-  write ("\r" ++ s)
-  modify $ \ state -> state {stateTransientOutput = stateTransientOutput state ++ s}
-  h <- getHandle
-  liftIO $ IO.hFlush h
+writeTextBlock :: TextBlock () -> FormatM Int
+writeTextBlock tb = do
+  blocks <- gets stateBlocks
+  let (blocks', ix) = appendTextBlock tb blocks
+  modify $ \s -> s{stateBlocks = blocks'}
+  void $ liftText $ renderTextBlock tb
+  return ix
 
-clearTransientOutput :: FormatM ()
-clearTransientOutput = do
-  n <- length <$> gets stateTransientOutput
-  unless (n == 0) $ do
-    write ("\r" ++ replicate n ' ' ++ "\r")
-    modify $ \ state -> state {stateTransientOutput = ""}
+insertTextBlock :: Int -> TextBlock () -> FormatM Int
+insertTextBlock l tb = do
+  blocks <- gets stateBlocks
+  let (blocks', ix) = insertTextBlockAt l tb blocks
+  modify $ \s -> s { stateBlocks = blocks'}
+  liftText $ reRenderTextBlocks blocks blocks'
+  return ix
 
--- | Append some output to the report.
-write :: String -> FormatM ()
-write s = do
-  h <- getHandle
-  liftIO $ IO.hPutStr h s
-
--- | Set output color to red, run given action, and finally restore the default
--- color.
-withFailColor :: FormatM a -> FormatM a
-withFailColor = withColor (SetColor Foreground Dull Red) "hspec-failure"
-
--- | Set output color to green, run given action, and finally restore the
--- default color.
-withSuccessColor :: FormatM a -> FormatM a
-withSuccessColor = withColor (SetColor Foreground Dull Green) "hspec-success"
-
--- | Set output color to yellow, run given action, and finally restore the
--- default color.
-withPendingColor :: FormatM a -> FormatM a
-withPendingColor = withColor (SetColor Foreground Dull Yellow) "hspec-pending"
-
--- | Set output color to cyan, run given action, and finally restore the
--- default color.
-withInfoColor :: FormatM a -> FormatM a
-withInfoColor = withColor (SetColor Foreground Dull Cyan) "hspec-info"
-
--- | Set a color, run an action, and finally reset colors.
-withColor :: SGR -> String -> FormatM a -> FormatM a
-withColor color cls action = do
-  produceHTML <- getConfig formatConfigHtmlOutput
-  (if produceHTML then htmlSpan cls else withColor_ color) action
-
-htmlSpan :: String -> FormatM a -> FormatM a
-htmlSpan cls action = write ("<span class=\"" ++ cls ++ "\">") *> action <* write "</span>"
-
-withColor_ :: SGR -> FormatM a -> FormatM a
-withColor_ color (FormatM action) = do
-  useColor <- getConfig formatConfigUseColor
-  h <- getHandle
-
-  FormatM . StateT $ \st -> do
-    bracket_
-
-      -- set color
-      (when useColor $ hSetSGR h [color])
-
-      -- reset colors
-      (when useColor $ hSetSGR h [Reset])
-
-      -- run action
-      (runStateT action st)
-
--- | Output given chunk in red.
-extraChunk :: String -> FormatM ()
-extraChunk s = do
-  useDiff <- getConfig formatConfigUseDiff
-  case useDiff of
-    True -> extra s
-    False -> write s
-  where
-    extra :: String -> FormatM ()
-    extra = diffColorize Red "hspec-failure"
-
--- | Output given chunk in green.
-missingChunk :: String -> FormatM ()
-missingChunk s = do
-  useDiff <- getConfig formatConfigUseDiff
-  case useDiff of
-    True -> missing s
-    False -> write s
-  where
-    missing :: String-> FormatM ()
-    missing = diffColorize Green "hspec-success"
-
-diffColorize :: Color -> String -> String-> FormatM ()
-diffColorize color cls s = withColor (SetColor layer Dull color) cls $ do
-  write s
-  where
-    layer
-      | all isSpace s = Background
-      | otherwise = Foreground
+rewriteTextBlock
+  :: Int -> (TextBlock () -> Maybe (TextBlock ())) -> FormatM ()
+rewriteTextBlock l f = do
+  blocks <- gets stateBlocks
+  let blocks' = modifyTextBlock l f blocks
+  modify $ \s -> s{stateBlocks = blocks'}
+  liftText $ reRenderTextBlocks blocks blocks'
 
 -- |
 -- @finally_ actionA actionB@ runs @actionA@ and then @actionB@.  @actionB@ is
@@ -261,7 +209,7 @@ finally_ (FormatM actionA) (FormatM actionB) = FormatM . StateT $ \st -> do
     Left e -> do
       when (e == UserInterrupt) $
         runStateT actionB st >> return ()
-      throwIO e
+      throwM e
     Right (a, st_) -> do
       runStateT actionB st_ >>= return . replaceValue a
   where
@@ -282,3 +230,75 @@ getRealTime = do
   t1 <- liftIO getMonotonicTime
   t0 <- gets stateStartTime
   return (t1 - t0)
+
+-- -----------
+-- Text blocks
+-- -----------
+runTextIO :: (MonadIO m, MonadMask m) => Handle -> FormatConfig -> FreeT TextF m b -> m b
+runTextIO h config act = interpretText (renderEnv h config) act
+
+renderEnv, renderText, renderHtml :: (MonadIO m, MonadMask m) => Handle -> FormatConfig -> TextEnvironment m
+renderEnv h cfg
+  | formatConfigHtmlOutput cfg = renderHtml h cfg
+  | otherwise = renderText h cfg
+
+renderHtml h _ = TextEnvironment{..}
+  where
+    envClearFromCursorToEnd = return ()
+    envClearLine = return ()
+    envMoveCursorUp _ = return ()
+    envRenderTextSpan tb
+      | Just cls <- styleToClass (tsStyle tb)
+      = liftIO $ IO.hPutStrLn h $ "<span class=\"" ++ cls ++ "\">" ++ tsText tb ++ "</span>"
+      | otherwise
+      = liftIO $ IO.hPutStrLn h $ tsText tb
+    styleToClass InfoStyle    = Just "hspec-info"
+    styleToClass FailureStyle = Just "hspec-failure"
+    styleToClass PendingStyle = Just "hspec-pending"
+    styleToClass SuccessStyle = Just "hspec-success"
+    styleToClass DiffExtraStyle   = Just "hspec-failure"
+    styleToClass DiffMissingStyle = Just "hspec-success"
+    styleToClass _ = Nothing
+
+renderText h config = TextEnvironment{..}
+  where
+    envRenderTextSpan tb = liftIO $ do
+      let sgr = styleToSGR config (tsStyle tb) (tsText tb)
+          codes =
+            setSGRCode' sgr ++
+            tsText tb ++
+            resetSGRCode sgr
+      IO.hPutStr h codes
+
+    setSGRCode' [] = []
+    setSGRCode' other = setSGRCode other
+
+    resetSGRCode [] = []
+    resetSGRCode _  = setSGRCode [Reset]
+
+    envMoveCursorUp n = liftIO $ do
+      case n of
+        0 -> return ()
+        _ | n>0 -> IO.hPutStr h $ cursorUpLineCode n
+        _       -> IO.hPutStr h $ cursorDownLineCode (-n)
+
+    envClearFromCursorToEnd = liftIO $ hClearFromCursorToScreenEnd h
+
+    envClearLine = liftIO $ hClearLine h
+
+    styleToSGR :: FormatConfig -> Style -> String -> [SGR]
+    styleToSGR cfg InfoStyle        _ | formatConfigUseColor cfg = [SetColor Foreground Dull Cyan]
+    styleToSGR cfg FailureStyle     _ | formatConfigUseColor cfg = [SetColor Foreground Dull Red]
+    styleToSGR cfg SuccessStyle     _ | formatConfigUseColor cfg = [SetColor Foreground Dull Green]
+    styleToSGR cfg PendingStyle     _ | formatConfigUseColor cfg = [SetColor Foreground Dull Yellow]
+    styleToSGR cfg DiffMissingStyle t | formatConfigUseColor cfg && formatConfigUseDiff cfg = diffColorize Green t
+    styleToSGR cfg DiffExtraStyle   t | formatConfigUseColor cfg && formatConfigUseDiff cfg = diffColorize Red t
+    styleToSGR _   _ _ = []
+
+    diffColorize :: Color -> String-> [SGR]
+    diffColorize color s = [SetColor layer Dull color]
+      where
+        layer
+          | all isSpace s = Background
+          | otherwise = Foreground
+

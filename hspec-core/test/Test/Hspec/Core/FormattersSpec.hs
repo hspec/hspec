@@ -1,10 +1,12 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Test.Hspec.Core.FormattersSpec (spec) where
 
 import           Prelude ()
 import           Helper
-import           Data.String
+import           Control.Monad.IO.Class
+import           Control.Monad.Trans.State
 import           Control.Monad.Trans.Writer
 import qualified Control.Exception as E
 
@@ -14,52 +16,25 @@ import qualified Test.Hspec.Core.Formatters as H
 import qualified Test.Hspec.Core.Formatters.Monad as H
 import           Test.Hspec.Core.Formatters.Monad hiding (interpretWith)
 
-data ColorizedText =
-    Plain String
-  | Transient String
-  | Info String
-  | Succeeded String
-  | Failed String
-  | Pending String
-  | Extra String
-  | Missing String
-  deriving (Eq, Show)
-
-instance IsString ColorizedText where
-  fromString = Plain
-
-removeColors :: [ColorizedText] -> String
-removeColors input = case input of
-  Plain x : xs -> x ++ removeColors xs
-  Transient _ : xs -> removeColors xs
-  Info x : xs -> x ++ removeColors xs
-  Succeeded x : xs -> x ++ removeColors xs
-  Failed x : xs -> x ++ removeColors xs
-  Pending x : xs -> x ++ removeColors xs
-  Extra x : xs -> x ++ removeColors xs
-  Missing x : xs -> x ++ removeColors xs
-  [] -> ""
-
-simplify :: [ColorizedText] -> [ColorizedText]
-simplify input = case input of
-  Plain xs : Plain ys : zs -> simplify (Plain (xs ++ ys) : zs)
-  Extra xs : Extra ys : zs -> simplify (Extra (xs ++ ys) : zs)
-  Missing xs : Missing ys : zs -> simplify (Missing (xs ++ ys) : zs)
-  x : xs -> x : simplify xs
-  [] -> []
-
-colorize :: (String -> ColorizedText) -> [ColorizedText] -> [ColorizedText]
-colorize color input = case simplify input of
-  Plain x : xs -> color x : xs
-  xs -> xs
-
-interpret :: FormatM a -> [ColorizedText]
+interpret :: FormatM a -> IO TextBlocks
 interpret = interpretWith environment
 
-interpretWith :: Environment (Writer [ColorizedText]) -> FormatM a -> [ColorizedText]
-interpretWith env = simplify . execWriter . H.interpretWith env
+simplify :: TextBlocks -> TextBlocks
+simplify = id
 
-environment :: Environment (Writer [ColorizedText])
+removeColors :: TextBlocks -> String
+removeColors = execWriter . interpretText env . renderTextBlocks
+  where
+    env = TextEnvironment{..}
+    envRenderTextSpan = tell . tsText
+    envMoveCursorUp _ = pure ()
+    envClearFromCursorToEnd = pure ()
+    envClearLine = pure ()
+
+interpretWith :: Environment (StateT TextBlocks IO) -> FormatM a -> IO TextBlocks
+interpretWith env = fmap simplify . flip execStateT mempty . H.interpretWith env
+
+environment :: Environment (StateT TextBlocks IO)
 environment = Environment {
   environmentGetSuccessCount = return 0
 , environmentGetPendingCount = return 0
@@ -67,16 +42,14 @@ environment = Environment {
 , environmentUsedSeed = return 0
 , environmentGetCPUTime = return Nothing
 , environmentGetRealTime = return 0
-, environmentWrite = tell . return . Plain
-, environmentWriteTransient = tell . return . Transient
-, environmentWithFailColor = \action -> let (a, r) = runWriter action in tell (colorize Failed r) >> return a
-, environmentWithSuccessColor = \action -> let (a, r) = runWriter action in tell (colorize Succeeded r) >> return a
-, environmentWithPendingColor = \action -> let (a, r) = runWriter action in tell (colorize Pending r) >> return a
-, environmentWithInfoColor = \action -> let (a, r) = runWriter action in tell (colorize Info r) >> return a
+, environmentWrite = \tb -> do
+    blocks <- get
+    modify $ fst . appendTextBlock tb
+    return (textBlocksCount blocks)
+, environmentInsert = \_ _ -> error "insert is not implemented here"
+, environmentRewrite = \i f -> modify (modifyTextBlock i f)
 , environmentUseDiff = return True
-, environmentExtraChunk = tell . return . Extra
-, environmentMissingChunk = tell . return . Missing
-, environmentLiftIO = undefined
+, environmentLiftIO = liftIO
 }
 
 testSpec :: H.Spec
@@ -92,33 +65,36 @@ testSpec = do
 spec :: Spec
 spec = do
   describe "progress" $ do
-    let mkFormatter = pure H.progress
+    let mkFormatter = H.progress
 
     describe "exampleSucceeded" $ do
       it "marks succeeding examples with ." $ do
         formatter <- mkFormatter
-        interpret (H.exampleSucceeded formatter undefined undefined) `shouldBe` [
-            Succeeded "."
+        interpret (H.exampleSucceeded formatter undefined undefined) `shouldReturn` textBlocks [
+            withSuccessColor "."
           ]
 
     describe "exampleFailed" $ do
       it "marks failing examples with F" $ do
         formatter <- mkFormatter
-        interpret (H.exampleFailed formatter undefined undefined undefined) `shouldBe` [
-            Failed "F"
+        interpret (H.exampleFailed formatter undefined undefined undefined) `shouldReturn` textBlocks [
+            withFailColor "F"
           ]
 
     describe "examplePending" $ do
       it "marks pending examples with ." $ do
         formatter <- mkFormatter
-        interpret (H.examplePending formatter undefined undefined undefined) `shouldBe` [
-            Pending "."
+        interpret (H.examplePending formatter undefined undefined undefined) `shouldReturn` textBlocks [
+            withPendingColor "."
           ]
+  describe "specdoc" $ specdoc H.defaultConfig {H.configFormatter = Just H.specdoc}
+  describe "specdoc (with -j)" $ specdoc H.defaultConfig {H.configFormatter = Just H.specdoc, H.configConcurrentJobs = Just 4 }
 
-  describe "specdoc" $ do
+specdoc :: H.Config -> Spec
+specdoc config = do
     let
-      formatter = pure H.specdoc
-      runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
+      Just formatterIO = H.configFormatter config
+      runSpec = captureLines . H.hspecWithResult config
 
     it "displays a header for each thing being described" $ do
       _:x:_ <- runSpec testSpec
@@ -126,32 +102,34 @@ spec = do
 
     it "displays one row for each behavior" $ do
       r <- runSpec $ do
-        H.describe "List as a Monoid" $ do
-          H.describe "mappend" $ do
-            H.it "is associative" True
-          H.describe "mempty" $ do
-            H.it "is a left identity" True
-            H.it "is a right identity" True
-        H.describe "Maybe as a Monoid" $ do
-          H.describe "mappend" $ do
-            H.it "is associative" True
-          H.describe "mempty" $ do
-            H.it "is a left identity" True
-            H.it "is a right identity" True
+        H.describe "Properties" $ do
+          H.describe "List as a Monoid" $ do
+            H.describe "mappend" $ do
+              H.it "is associative" True
+            H.describe "mempty" $ do
+              H.it "is a left identity" True
+              H.it "is a right identity" True
+          H.describe "Maybe as a Monoid" $ do
+            H.describe "mappend" $ do
+              H.it "is associative" True
+            H.describe "mempty" $ do
+              H.it "is a left identity" True
+              H.it "is a right identity" True
       normalizeSummary r `shouldBe` [
           ""
-        , "List as a Monoid"
-        , "  mappend"
-        , "    is associative"
-        , "  mempty"
-        , "    is a left identity"
-        , "    is a right identity"
-        , "Maybe as a Monoid"
-        , "  mappend"
-        , "    is associative"
-        , "  mempty"
-        , "    is a left identity"
-        , "    is a right identity"
+        , "Properties"
+        , "  List as a Monoid"
+        , "    mappend"
+        , "      is associative"
+        , "    mempty"
+        , "      is a left identity"
+        , "      is a right identity"
+        , "  Maybe as a Monoid"
+        , "    mappend"
+        , "      is associative"
+        , "    mempty"
+        , "      is a left identity"
+        , "      is a right identity"
         , ""
         , "Finished in 0.0000 seconds"
         , "6 examples, 0 failures"
@@ -209,7 +187,7 @@ spec = do
         it "adds indentation" $ do
           formatter <- formatterIO
           let action = H.failedFormatter formatter
-          removeColors (interpretWith env action) `shouldBe` unlines [
+          fmap removeColors (interpretWith env action) `shouldReturn` unlines [
               ""
             , "Failures:"
             , ""
@@ -241,9 +219,9 @@ spec = do
         it "shows summary in green if there are no failures" $ do
           formatter <- formatterIO
           let action = H.footerFormatter formatter
-          interpretWith env action `shouldBe` [
+          interpretWith env action `shouldReturn` textBlocks [
               "Finished in 0.0000 seconds\n"
-            , Succeeded "1 example, 0 failures\n"
+            , withSuccessColor "1 example, 0 failures\n"
             ]
 
       context "with pending examples" $ do
@@ -251,9 +229,9 @@ spec = do
         it "shows summary in yellow if there are pending examples" $ do
           formatter <- formatterIO
           let action = H.footerFormatter formatter
-          interpretWith env action `shouldBe` [
+          interpretWith env action `shouldReturn` textBlocks [
               "Finished in 0.0000 seconds\n"
-            , Pending "1 example, 0 failures, 1 pending\n"
+            , withPendingColor "1 example, 0 failures, 1 pending\n"
             ]
 
       context "with failures" $ do
@@ -261,9 +239,9 @@ spec = do
         it "shows summary in red" $ do
           formatter <- formatterIO
           let action = H.footerFormatter formatter
-          interpretWith env action `shouldBe` [
+          interpretWith env action `shouldReturn` textBlocks [
               "Finished in 0.0000 seconds\n"
-            , Failed "1 example, 1 failure\n"
+            , withFailColor "1 example, 1 failure\n"
             ]
 
       context "with both failures and pending examples" $ do
@@ -271,13 +249,13 @@ spec = do
         it "shows summary in red" $ do
           formatter <- formatterIO
           let action = H.footerFormatter formatter
-          interpretWith env action `shouldBe` [
+          interpretWith env action `shouldReturn` textBlocks [
               "Finished in 0.0000 seconds\n"
-            , Failed "2 examples, 1 failure, 1 pending\n"
+            , withFailColor "2 examples, 1 failure, 1 pending\n"
             ]
 
     context "same as failed_examples" $ do
-      failed_examplesSpec (pure H.specdoc)
+      failed_examplesSpec H.specdoc
 
 failed_examplesSpec :: IO H.Formatter -> Spec
 failed_examplesSpec formatter = do

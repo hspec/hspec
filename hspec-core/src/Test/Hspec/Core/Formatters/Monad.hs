@@ -8,6 +8,9 @@ module Test.Hspec.Core.Formatters.Monad (
   Formatter (..)
 , FailureReason (..)
 , FormatM
+, TextBlockHandle
+, TextBlock(..)
+, module Test.Hspec.Core.Formatters.TextBlock
 
 , getSuccessCount
 , getPendingCount
@@ -21,18 +24,12 @@ module Test.Hspec.Core.Formatters.Monad (
 , getCPUTime
 , getRealTime
 
-, write
+, insertTextBlock
+, writeTextBlock
 , writeLine
-, writeTransient
-
-, withInfoColor
-, withSuccessColor
-, withPendingColor
-, withFailColor
+, rewrite
 
 , useDiff
-, extraChunk
-, missingChunk
 
 , Environment(..)
 , interpretWith
@@ -43,7 +40,10 @@ import           Test.Hspec.Core.Compat
 
 import           Control.Monad.IO.Class
 
+import GHC.Exts (IsString(..))
+
 import           Test.Hspec.Core.Formatters.Free
+import           Test.Hspec.Core.Formatters.TextBlock
 import           Test.Hspec.Core.Example (FailureReason(..))
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec (Progress, Location)
@@ -80,6 +80,10 @@ data Formatter = Formatter {
 
 -- | evaluated after `failuresFormatter`
 , footerFormatter :: FormatM ()
+
+-- | If given, called at the end with the captured program output
+--   If not given the program output is not captured
+, capturedOutputFormatter :: Maybe (String -> FormatM ())
 }
 
 data FailureRecord = FailureRecord {
@@ -88,6 +92,8 @@ data FailureRecord = FailureRecord {
 , failureRecordMessage  :: FailureReason
 }
 
+newtype TextBlockHandle = TextBlockHandle Int
+
 data FormatF next =
     GetSuccessCount (Int -> next)
   | GetPendingCount (Int -> next)
@@ -95,15 +101,10 @@ data FormatF next =
   | UsedSeed (Integer -> next)
   | GetCPUTime (Maybe Seconds -> next)
   | GetRealTime (Seconds -> next)
-  | Write String next
-  | WriteTransient String next
-  | forall a. WithFailColor (FormatM a) (a -> next)
-  | forall a. WithSuccessColor (FormatM a) (a -> next)
-  | forall a. WithPendingColor (FormatM a) (a -> next)
-  | forall a. WithInfoColor (FormatM a) (a -> next)
+  | Write (TextBlock ()) (TextBlockHandle -> next)
+  | Insert  TextBlockHandle (TextBlock ()) (TextBlockHandle -> next)
+  | Rewrite TextBlockHandle (TextBlock () -> Maybe (TextBlock ())) next
   | UseDiff (Bool -> next)
-  | ExtraChunk String next
-  | MissingChunk String next
   | forall a. LiftIO (IO a) (a -> next)
 
 instance Functor FormatF where -- deriving this instance would require GHC >= 7.10.1
@@ -114,15 +115,10 @@ instance Functor FormatF where -- deriving this instance would require GHC >= 7.
     UsedSeed next -> UsedSeed (fmap f next)
     GetCPUTime next -> GetCPUTime (fmap f next)
     GetRealTime next -> GetRealTime (fmap f next)
-    Write s next -> Write s (f next)
-    WriteTransient s next -> WriteTransient s (f next)
-    WithFailColor action next -> WithFailColor action (fmap f next)
-    WithSuccessColor action next -> WithSuccessColor action (fmap f next)
-    WithPendingColor action next -> WithPendingColor action (fmap f next)
-    WithInfoColor action next -> WithInfoColor action (fmap f next)
+    Write s next -> Write s (fmap f next)
+    Insert l s next -> Insert l s (fmap f next)
+    Rewrite l s next -> Rewrite l s (f next)
     UseDiff next -> UseDiff (fmap f next)
-    ExtraChunk s next -> ExtraChunk s (f next)
-    MissingChunk s next -> MissingChunk s (f next)
     LiftIO action next -> LiftIO action (fmap f next)
 
 type FormatM = Free FormatF
@@ -137,41 +133,28 @@ data Environment m = Environment {
 , environmentUsedSeed :: m Integer
 , environmentGetCPUTime :: m (Maybe Seconds)
 , environmentGetRealTime :: m Seconds
-, environmentWrite :: String -> m ()
-, environmentWriteTransient :: String -> m ()
-, environmentWithFailColor :: forall a. m a -> m a
-, environmentWithSuccessColor :: forall a. m a -> m a
-, environmentWithPendingColor :: forall a. m a -> m a
-, environmentWithInfoColor :: forall a. m a -> m a
+, environmentWrite :: TextBlock () -> m Int
+, environmentInsert :: Int -> TextBlock () -> m Int
+, environmentRewrite :: Int -> (TextBlock () -> Maybe(TextBlock ())) -> m ()
 , environmentUseDiff :: m Bool
-, environmentExtraChunk :: String -> m ()
-, environmentMissingChunk :: String -> m ()
 , environmentLiftIO :: forall a. IO a -> m a
 }
 
 interpretWith :: forall m a. Monad m => Environment m -> FormatM a -> m a
-interpretWith Environment{..} = go
+interpretWith Environment{..} = foldF alg return
   where
-    go :: forall b. FormatM b -> m b
-    go m = case m of
-      Pure value -> return value
-      Free action -> case action of
-        GetSuccessCount next -> environmentGetSuccessCount >>= go . next
-        GetPendingCount next -> environmentGetPendingCount >>= go . next
-        GetFailMessages next -> environmentGetFailMessages >>= go . next
-        UsedSeed next -> environmentUsedSeed >>= go . next
-        GetCPUTime next -> environmentGetCPUTime >>= go . next
-        GetRealTime next -> environmentGetRealTime >>= go . next
-        Write s next -> environmentWrite s >> go next
-        WriteTransient s next -> environmentWriteTransient s >> go next
-        WithFailColor inner next -> environmentWithFailColor (go inner) >>= go . next
-        WithSuccessColor inner next -> environmentWithSuccessColor (go inner) >>= go . next
-        WithPendingColor inner next -> environmentWithPendingColor (go inner) >>= go . next
-        WithInfoColor inner next -> environmentWithInfoColor (go inner) >>= go . next
-        UseDiff next -> environmentUseDiff >>= go . next
-        ExtraChunk s next -> environmentExtraChunk s >> go next
-        MissingChunk s next -> environmentMissingChunk s >> go next
-        LiftIO inner next -> environmentLiftIO inner >>= go . next
+    alg action = case action of
+        GetSuccessCount next -> environmentGetSuccessCount >>= next
+        GetPendingCount next -> environmentGetPendingCount >>= next
+        GetFailMessages next -> environmentGetFailMessages >>= next
+        UsedSeed next -> environmentUsedSeed >>=  next
+        GetCPUTime next -> environmentGetCPUTime >>= next
+        GetRealTime next -> environmentGetRealTime >>=  next
+        Write s next -> environmentWrite s >>= next . TextBlockHandle
+        Insert (TextBlockHandle l) s next -> environmentInsert l s >>= next . TextBlockHandle
+        Rewrite (TextBlockHandle l) s next -> environmentRewrite l s >> next
+        UseDiff next -> environmentUseDiff >>= next
+        LiftIO inner next -> environmentLiftIO inner >>=  next
 
 -- | Get the number of successful examples encountered so far.
 getSuccessCount :: FormatM Int
@@ -205,45 +188,22 @@ getCPUTime = liftF (GetCPUTime id)
 getRealTime :: FormatM Seconds
 getRealTime = liftF (GetRealTime id)
 
--- | Append some output to the report.
-write :: String -> FormatM ()
-write s = liftF (Write s ())
+-- | Insert a text block to the report.
+writeTextBlock :: TextBlock () -> FormatM TextBlockHandle
+writeTextBlock s = liftF (Write s id)
 
--- | The same as `write`, but adds a newline character.
+-- | Insert a text block below the given handle
+insertTextBlock :: TextBlockHandle -> TextBlock () -> FormatM TextBlockHandle
+insertTextBlock l s = liftF (Insert l s id)
+
+-- | Insert some output to the report, adding a newline if not already terminated in one.
 writeLine :: String -> FormatM ()
-writeLine s = write s >> write "\n"
+writeLine = void . writeTextBlock . fromString
 
-writeTransient :: String -> FormatM ()
-writeTransient s = liftF (WriteTransient s ())
-
--- | Set output color to red, run given action, and finally restore the default
--- color.
-withFailColor :: FormatM a -> FormatM a
-withFailColor s = liftF (WithFailColor s id)
-
--- | Set output color to green, run given action, and finally restore the
--- default color.
-withSuccessColor :: FormatM a -> FormatM a
-withSuccessColor s = liftF (WithSuccessColor s id)
-
--- | Set output color to yellow, run given action, and finally restore the
--- default color.
-withPendingColor :: FormatM a -> FormatM a
-withPendingColor s = liftF (WithPendingColor s id)
-
--- | Set output color to cyan, run given action, and finally restore the
--- default color.
-withInfoColor :: FormatM a -> FormatM a
-withInfoColor s = liftF (WithInfoColor s id)
+-- | Modify or remove a text block from the report
+rewrite :: TextBlockHandle -> (TextBlock () -> Maybe(TextBlock ())) -> FormatM ()
+rewrite l s = liftF (Rewrite l s ())
 
 -- | Return `True` if the user requested colorized diffs, `False` otherwise.
 useDiff :: FormatM Bool
 useDiff = liftF (UseDiff id)
-
--- | Output given chunk in red.
-extraChunk :: String -> FormatM ()
-extraChunk s = liftF (ExtraChunk s ())
-
--- | Output given chunk in green.
-missingChunk :: String -> FormatM ()
-missingChunk s = liftF (MissingChunk s ())

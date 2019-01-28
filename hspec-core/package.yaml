@@ -20,6 +20,7 @@ ghc-options: -Wall
 dependencies:
   - base >= 4.5.0.0 && < 5
   - bifunctors
+  - containers
   - semigroups
   - random
   - tf-random
@@ -35,6 +36,8 @@ dependencies:
   - call-stack
   - directory
   - filepath
+  - silently
+  - exceptions
 
   - stm >= 2.2 # for asyc
   - array # for Diff

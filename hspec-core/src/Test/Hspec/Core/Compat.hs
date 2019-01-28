@@ -18,6 +18,7 @@ module Test.Hspec.Core.Compat (
 
 #if !MIN_VERSION_base(4,6,0)
 , modifyIORef'
+, atomicModifyIORef'
 , atomicWriteIORef
 #endif
 , interruptible
@@ -91,6 +92,9 @@ atomicWriteIORef :: IORef a -> a -> IO ()
 atomicWriteIORef ref a = do
     x <- atomicModifyIORef ref (\_ -> (a, ()))
     x `seq` return ()
+
+atomicModifyIORef' :: IORef a -> (a -> (a, b)) -> IO b
+atomicModifyIORef' = atomicModifyIORef
 
 -- | Parse a string using the 'Read' instance.
 -- Succeeds if there is exactly one valid result.

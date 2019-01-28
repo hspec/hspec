@@ -206,7 +206,7 @@ focusSpec config spec
 runSpec_ :: Config -> Spec -> IO Summary
 runSpec_ config spec = do
   withHandle config $ \h -> do
-    formatter <- fromMaybe (pure specdoc) (configFormatter config)
+    formatter <- fromMaybe specdoc (configFormatter config)
     let seed = (fromJust . configQuickCheckSeed) config
         qcArgs = configQuickCheckArgs config
 

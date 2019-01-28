@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5f91f4209b0966cff7c5d86a95a6c82d80704664d7a31e5f166faa9d58682758
+-- hash: e193414a86e2b82455bfb7617874c732b8262a03ace3716adc98d4ea3f4dd56f
 
 name:           hspec-core
 version:        2.7.0
@@ -49,6 +49,7 @@ library
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
+      Test.Hspec.Core.Formatters.TextBlock
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.Eval.Types
@@ -71,14 +72,17 @@ library
     , bifunctors
     , call-stack
     , clock
+    , containers
     , deepseq
     , directory
+    , exceptions
     , filepath
     , hspec-expectations ==0.8.2.*
     , quickcheck-io >=0.2.0
     , random
     , semigroups
     , setenv
+    , silently
     , stm >=2.2
     , tf-random
     , transformers >=0.2.2.0
@@ -102,6 +106,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
+      Test.Hspec.Core.Formatters.TextBlock
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.QuickCheckUtil
@@ -153,8 +158,10 @@ test-suite spec
     , bifunctors
     , call-stack
     , clock
+    , containers
     , deepseq
     , directory
+    , exceptions
     , filepath
     , hspec-expectations ==0.8.2.*
     , hspec-meta >=2.3.2
