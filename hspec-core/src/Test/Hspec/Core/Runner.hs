@@ -25,6 +25,9 @@ module Test.Hspec.Core.Runner (
 , hspecWith
 , hspecResult
 , hspecWithResult
+, hspecCustomFormatters
+, hspecWithCustomFormatters
+, hspecWithResultCustomFormatters
 
 #ifdef TEST
 , rerunAll
@@ -97,11 +100,7 @@ applyDryRun c
 -- is not always desired.  Use `runSpec` if you need more control over these
 -- aspects.
 hspec :: Spec -> IO ()
-hspec spec =
-      getArgs
-  >>= readConfig defaultConfig
-  >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
-  >>= evaluateSummary
+hspec = hspecCustomFormatters []
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
@@ -112,11 +111,22 @@ ensureSeed c = case configQuickCheckSeed c of
     return c {configQuickCheckSeed = Just (fromIntegral seed)}
   _       -> return c
 
+-- | Run with additional formatters available for selection
+--   This is otherwise the same as 'hspec'
+hspecCustomFormatters :: FormattersList -> Spec -> IO ()
+hspecCustomFormatters formatterChoices spec =
+      getArgs
+  >>= readConfig (formatterChoices ++ defaultFormatters) defaultConfig
+  >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+  >>= evaluateSummary
+
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
-hspecWith :: Config -> Spec -> IO ()
-hspecWith config spec = getArgs >>= readConfig config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec >>= evaluateSummary
+hspecWithCustomFormatters :: FormattersList -> Config -> Spec -> IO ()
+hspecWithCustomFormatters formatterChoices config spec = getArgs >>= readConfig (formatterChoices ++ defaultFormatters) config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec >>= evaluateSummary
 
+hspecWith :: Config -> Spec -> IO ()
+hspecWith = hspecWithCustomFormatters []
 -- | `True` if the given `Summary` indicates that there were no
 -- failures, `False` otherwise.
 isSuccess :: Summary -> Bool
@@ -133,16 +143,18 @@ evaluateSummary summary = unless (isSuccess summary) exitFailure
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecResult :: Spec -> IO Summary
-hspecResult spec = getArgs >>= readConfig defaultConfig >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+hspecResult spec = getArgs >>= readConfig defaultFormatters defaultConfig >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
 
 -- | Run given spec with custom options and returns a summary of the test run.
 --
 -- /Note/: `hspecWithResult` does not exit with `exitFailure` on failing spec
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
-hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult config spec = getArgs >>= readConfig config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+hspecWithResultCustomFormatters :: FormattersList -> Config -> Spec -> IO Summary
+hspecWithResultCustomFormatters formatterChoices config spec = getArgs >>= readConfig (formatterChoices ++ defaultFormatters) config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
 
+hspecWithResult :: Config -> Spec -> IO Summary
+hspecWithResult = hspecWithResultCustomFormatters []
 -- |
 -- `runSpec` is the most basic primitive to run a spec. `hspec` is defined in
 -- terms of @runSpec@:

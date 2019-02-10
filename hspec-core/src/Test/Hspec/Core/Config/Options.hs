@@ -2,6 +2,8 @@ module Test.Hspec.Core.Config.Options (
   Config(..)
 , ColorMode (..)
 , defaultConfig
+, FormattersList
+, defaultFormatters
 , filterOr
 , parseOptions
 , ConfigFile
@@ -86,6 +88,8 @@ defaultConfig = Config {
 , configConcurrentJobs = Nothing
 }
 
+type FormattersList = [(String, FormatConfig -> IO SomeFormat)]
+
 filterOr :: Maybe (Path -> Bool) -> Maybe (Path -> Bool) -> Maybe (Path -> Bool)
 filterOr p1_ p2_ = case (p1_, p2_) of
   (Just p1, Just p2) -> Just $ \path -> p1 path || p2 path
@@ -148,28 +152,19 @@ commandLineOptions = [
   where
     setIgnoreConfigFile = set $ \config -> config {configIgnoreConfigFile = True}
 
-formatterOptions :: Monad m => [OptDescr (Result m -> Result m)]
-formatterOptions = concat [
+formatterOptions :: Monad m => FormattersList -> [OptDescr (Result m -> Result m)]
+formatterOptions formatterChoices = concat [
     [mkOption "f" "format" (Arg "FORMATTER" readFormatter setFormatter) helpForFormat]
   , mkFlag "color" setColor "colorize the output"
   , mkFlag "diff" setDiff "show colorized diffs"
   , [Option [] ["print-cpu-time"] (NoArg setPrintCpuTime) "include used CPU time in summary"]
   ]
   where
-    formatters :: [(String, FormatConfig -> IO SomeFormat)]
-    formatters = [
-        ("specdoc", (flip toFormatter specdoc))
-      , ("progress", (flip toFormatter progress))
-      , ("failed-examples", (flip toFormatter failed_examples))
-      , ("silent", (flip toFormatter silent))
-      , ("trace", (flip toFormatter trace))
-      , ("traceAsync", traceAsync)
-      ]
 
     helpForFormat :: String
-    helpForFormat = "use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatters)
+    helpForFormat = "use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatterChoices)
 
-    readFormatter = (`lookup` formatters)
+    readFormatter = (`lookup` formatterChoices)
 
     setFormatter f c = c {configFormatter = Just f}
 
@@ -181,6 +176,16 @@ formatterOptions = concat [
 
     setPrintCpuTime = set $ \config -> config {configPrintCpuTime = True}
 
+defaultFormatters :: FormattersList
+defaultFormatters =
+  [ ("specdoc", (flip toFormatter specdoc))
+  , ("progress", (flip toFormatter progress))
+  , ("failed-examples", (flip toFormatter failed_examples))
+  , ("silent", (flip toFormatter silent))
+  , ("trace", (flip toFormatter trace))
+  , ("traceAsync", traceAsync)
+  ]
+  where
     traceAsync :: FormatConfig -> IO SomeFormat
     traceAsync cfg = (\(SomeFormat x) -> SomeFormat x{formatAsynchronously = True}) <$> toFormatter cfg trace
 
@@ -237,19 +242,19 @@ runnerOptions = concat [
     setRerun        = set $ \config -> config {configRerun = True}
     setRerunAllOnSuccess = set $ \config -> config {configRerunAllOnSuccess = True}
 
-documentedConfigFileOptions :: Monad m => [(String, [OptDescr (Result m -> Result m)])]
-documentedConfigFileOptions = [
+documentedConfigFileOptions :: Monad m => FormattersList -> [(String, [OptDescr (Result m -> Result m)])]
+documentedConfigFileOptions formatterChoices = [
     ("RUNNER OPTIONS", runnerOptions)
-  , ("FORMATTER OPTIONS", formatterOptions)
+  , ("FORMATTER OPTIONS", formatterOptions formatterChoices)
   , ("OPTIONS FOR QUICKCHECK", quickCheckOptions)
   , ("OPTIONS FOR SMALLCHECK", smallCheckOptions)
   ]
 
-documentedOptions :: [(String, [OptDescr (Result Maybe -> Result Maybe)])]
-documentedOptions = ("OPTIONS", commandLineOptions) : documentedConfigFileOptions
+documentedOptions :: FormattersList -> [(String, [OptDescr (Result Maybe -> Result Maybe)])]
+documentedOptions formatterChoices = ("OPTIONS", commandLineOptions) : documentedConfigFileOptions formatterChoices
 
-configFileOptions :: Monad m => [OptDescr (Result m -> Result m)]
-configFileOptions = (concat . map snd) documentedConfigFileOptions
+configFileOptions :: Monad m => FormattersList -> [OptDescr (Result m -> Result m)]
+configFileOptions formatterChoices = (concat . map snd) (documentedConfigFileOptions formatterChoices)
 
 set :: Monad m => (Config -> Config) -> Either a (m Config) -> Either a (m Config)
 set = liftM . liftM
@@ -274,17 +279,17 @@ undocumentedOptions = [
     setOutputFile :: String -> Config -> Config
     setOutputFile file c = c {configOutputFile = Right file}
 
-recognizedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
-recognizedOptions = commandLineOptions ++ configFileOptions ++ undocumentedOptions
+recognizedOptions :: FormattersList -> [OptDescr (Result Maybe -> Result Maybe)]
+recognizedOptions formatterChoices = commandLineOptions ++ configFileOptions formatterChoices ++ undocumentedOptions
 
-parseOptions :: Config -> String -> [ConfigFile] -> Maybe EnvVar -> [String] -> Either (ExitCode, String) Config
-parseOptions config prog configFiles envVar args = do
-      foldM (parseFileOptions prog) config configFiles
-  >>= parseEnvVarOptions prog envVar
-  >>= parseCommandLineOptions prog args
+parseOptions :: FormattersList -> Config -> String -> [ConfigFile] -> Maybe EnvVar -> [String] -> Either (ExitCode, String) Config
+parseOptions formatterChoices config prog configFiles envVar args = do
+      foldM (parseFileOptions formatterChoices prog) config configFiles
+  >>= parseEnvVarOptions formatterChoices prog envVar
+  >>= parseCommandLineOptions formatterChoices prog args
 
-parseCommandLineOptions :: String -> [String] -> Config -> Either (ExitCode, String) Config
-parseCommandLineOptions prog args config = case parse recognizedOptions config args of
+parseCommandLineOptions :: FormattersList -> String -> [String] -> Config -> Either (ExitCode, String) Config
+parseCommandLineOptions formatterChoices prog args config = case parse (recognizedOptions formatterChoices) config args of
   Right Nothing -> Left (ExitSuccess, usage)
   Right (Just c) -> Right c
   Left err -> failure err
@@ -293,18 +298,18 @@ parseCommandLineOptions prog args config = case parse recognizedOptions config a
 
     usage :: String
     usage = "Usage: " ++ prog ++ " [OPTION]...\n\n"
-      ++ (intercalate "\n" $ map (uncurry mkUsageInfo) documentedOptions)
+      ++ (intercalate "\n" $ map (uncurry mkUsageInfo) (documentedOptions formatterChoices))
 
-parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
-parseFileOptions prog config (name, args) =
-  parseOtherOptions prog ("in config file " ++ name) args config
+parseFileOptions :: FormattersList -> String -> Config -> ConfigFile -> Either (ExitCode, String) Config
+parseFileOptions formatterChoices prog config (name, args) =
+  parseOtherOptions formatterChoices prog ("in config file " ++ name) args config
 
-parseEnvVarOptions :: String -> (Maybe EnvVar) -> Config -> Either (ExitCode, String) Config
-parseEnvVarOptions prog args =
-  parseOtherOptions prog ("from environment variable " ++ envVarName) (fromMaybe [] args)
+parseEnvVarOptions :: FormattersList -> String -> (Maybe EnvVar) -> Config -> Either (ExitCode, String) Config
+parseEnvVarOptions formatterChoices prog args =
+  parseOtherOptions formatterChoices prog ("from environment variable " ++ envVarName) (fromMaybe [] args)
 
-parseOtherOptions :: String -> String -> [String] -> Config -> Either (ExitCode, String) Config
-parseOtherOptions prog source args config = case parse configFileOptions config args of
+parseOtherOptions :: FormattersList -> String -> String -> [String] -> Config -> Either (ExitCode, String) Config
+parseOtherOptions formatterChoices prog source args config = case parse (configFileOptions formatterChoices) config args of
   Right (Identity c) -> Right c
   Left err -> failure err
   where
@@ -322,11 +327,11 @@ parse options config args = case getOpt Permute options args of
   (_, _, err:_) -> Left (init err)
   (_, arg:_, _) -> Left ("unexpected argument `" ++ arg ++ "'")
 
-ignoreConfigFile :: Config -> [String] -> IO Bool
-ignoreConfigFile config args = do
+ignoreConfigFile :: FormattersList -> Config -> [String] -> IO Bool
+ignoreConfigFile formatterChoices config args = do
   ignore <- lookupEnv "IGNORE_DOT_HSPEC"
   case ignore of
     Just _ -> return True
-    Nothing -> case parse recognizedOptions config args of
+    Nothing -> case parse (recognizedOptions formatterChoices) config args of
       Right (Just c) -> return (configIgnoreConfigFile c)
       _ -> return False

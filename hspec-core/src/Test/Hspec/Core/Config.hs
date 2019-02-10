@@ -3,6 +3,8 @@ module Test.Hspec.Core.Config (
   Config (..)
 , ColorMode(..)
 , defaultConfig
+, FormattersList
+, defaultFormatters
 , readConfig
 , configAddFilter
 , configQuickCheckArgs
@@ -105,16 +107,16 @@ configQuickCheckArgs c = qcArgs
 -- @
 -- `System.Environment.getArgs` >>= readConfig `defaultConfig`
 -- @
-readConfig :: Config -> [String] -> IO Config
-readConfig opts_ args = do
+readConfig :: FormattersList -> Config -> [String] -> IO Config
+readConfig formatterChoices opts_ args = do
   prog <- getProgName
   configFiles <- do
-    ignore <- ignoreConfigFile opts_ args
+    ignore <- ignoreConfigFile formatterChoices opts_ args
     case ignore of
       True -> return []
       False -> readConfigFiles
   envVar <- fmap words <$> lookupEnv envVarName
-  case parseOptions opts_ prog configFiles envVar args of
+  case parseOptions formatterChoices opts_ prog configFiles envVar args of
     Left (err, msg) -> exitWithMessage err msg
     Right opts -> return opts
 
