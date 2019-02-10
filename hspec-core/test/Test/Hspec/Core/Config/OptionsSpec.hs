@@ -16,7 +16,7 @@ spec :: Spec
 spec = do
   describe "parseOptions" $ do
 
-    let parseOptions = Options.parseOptions defaultConfig "my-spec"
+    let parseOptions = Options.parseOptions defaultFormatters defaultConfig "my-spec"
 
     it "rejects unexpected arguments" $ do
       fromLeft (parseOptions [] Nothing ["foo"]) `shouldBe` (ExitFailure 1, "my-spec: unexpected argument `foo'\nTry `my-spec --help' for more information.\n")
@@ -115,13 +115,13 @@ spec = do
   describe "ignoreConfigFile" $ around_ (withEnvironment []) $ do
     context "by default" $ do
       it "returns False" $ do
-        ignoreConfigFile defaultConfig [] `shouldReturn` False
+        ignoreConfigFile defaultFormatters defaultConfig [] `shouldReturn` False
 
     context "with --ignore-dot-hspec" $ do
       it "returns True" $ do
-        ignoreConfigFile defaultConfig ["--ignore-dot-hspec"] `shouldReturn` True
+        ignoreConfigFile defaultFormatters defaultConfig ["--ignore-dot-hspec"] `shouldReturn` True
 
     context "with IGNORE_DOT_HSPEC" $ do
       it "returns True" $ do
         withEnvironment [("IGNORE_DOT_HSPEC", "yes")] $ do
-          ignoreConfigFile defaultConfig [] `shouldReturn` True
+          ignoreConfigFile defaultFormatters defaultConfig [] `shouldReturn` True

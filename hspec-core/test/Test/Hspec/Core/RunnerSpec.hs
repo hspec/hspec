@@ -25,7 +25,7 @@ import           System.Console.ANSI
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
-import qualified Test.Hspec.Core.Formatters as H (silent)
+import qualified Test.Hspec.Core.Formatters as H (toFormatter, silent)
 import qualified Test.Hspec.Core.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
@@ -45,8 +45,6 @@ spec = do
   describe "hspec" $ do
     context "synchronous formatting" $
       runnerSpec H.defaultConfig
-    context "asynchronous formatting" $
-      runnerSpec H.defaultConfig{H.configAsyncFormatting = True}
   describe "hspecResult" $
     hspecResultSpec
   describe "rerunAll" $
@@ -558,7 +556,7 @@ hspecResultSpec = do
       r `shouldBe` "Foo.Bar"
 
     it "can use a custom formatter" $ do
-      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormatter = Just H.silent} $ do
+      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormatter = Just $ flip H.toFormatter H.silent} $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` ""

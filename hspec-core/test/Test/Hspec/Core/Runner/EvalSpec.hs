@@ -11,19 +11,19 @@ import           Control.Monad.IO.Class
 import qualified Data.Foldable as F (toList)
 import           Data.List (permutations, sort)
 import           Test.Hspec.Core.Tree
-import           Test.Hspec.Core.Formatters
+import           Test.Hspec.Core.Formatters as H
 import           Test.Hspec.Core.Runner.Eval
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Spec as H
 
 spec :: Spec
 spec = do
-  let mkCfg f = do
-        (traceF, getLines) <- traceFormatterIO
+  let mkCfg asyncFmt f = do
+        (traceF, getLines) <- traceFormatterIO asyncFmt
         let cfg = H.defaultConfig{H.configFormatter = Just traceF}
         return (f cfg, getLines)
-      synchronousCfg n = mkCfg $ \cfg -> cfg{H.configConcurrentJobs = Just n, H.configAsyncFormatting = False}
-      parallelCfg   = mkCfg $ \cfg -> cfg{H.configConcurrentJobs = Just 8, H.configAsyncFormatting = True}
+      synchronousCfg n = mkCfg False $ \cfg -> cfg{H.configConcurrentJobs = Just n}
+      parallelCfg   = mkCfg True $ \cfg -> cfg{H.configConcurrentJobs = Just 8}
 
   describe "traverse" $ do
     context "when used with Tree" $ do
@@ -96,18 +96,20 @@ data FormatterLine
   | ExamplePending H.Path String (Maybe String)
   deriving (Eq, Ord, Show)
 
-traceFormatterIO :: IO (Formatter, IO [FormatterLine])
-traceFormatterIO = do
+traceFormatterIO :: Bool -> IO (FormatConfig -> IO SomeFormat, IO [FormatterLine])
+traceFormatterIO asyncFmt = do
   ref <- newIORef []
   let push x = liftIO $ modifyIORef' ref (x :)
-      f = silent
-        { exampleGroupStarted = (push.) . ExampleGroupStarted
-        , exampleGroupDone    = push ExampleGroupDone
-        , exampleProgress     = (push.) . ExampleProgress
-        , exampleSucceeded    = (push.) . ExampleSucceeded
-        , exampleFailed       = \path info reason -> push $ ExampleFailed path info (show reason)
-        , examplePending      = ((push.).) . ExamplePending
-        }
+      f cfg = do
+        SomeFormat fmt <- H.toFormatter cfg $ silent
+          { exampleGroupStarted = (push.) . ExampleGroupStarted
+          , exampleGroupDone    = push ExampleGroupDone
+          , exampleProgress     = (push.) . ExampleProgress
+          , exampleSucceeded    = (push.) . ExampleSucceeded
+          , exampleFailed       = \path info reason -> push $ ExampleFailed path info (show reason)
+          , examplePending      = ((push.).) . ExamplePending
+          }
+        return $ SomeFormat fmt{formatAsynchronously = asyncFmt}
   return (f, reverse <$> readIORef ref)
 
 ------------------------------------------------------------------------------
