@@ -1,4 +1,6 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS -fno-warn-orphans #-}
 module Test.Hspec.Core.Formatters.Internal (
   FormatM
 , FormatConfig(..)
@@ -29,20 +31,21 @@ import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWit
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 
-formatterToFormat :: M.Formatter -> FormatConfig -> Format FormatM
-formatterToFormat formatter config = Format {
+formatterToFormat :: FormatConfig -> M.Formatter -> Format FormatM
+formatterToFormat config formatter = Format {
   formatRun = \action -> runFormatM config $ do
     interpret (M.headerFormatter formatter)
     a <- action `finally_` interpret (M.failedFormatter formatter)
     interpret (M.footerFormatter formatter)
     return a
+, formatAsynchronously = False
 , formatGroupStarted = \ (nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
 , formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
 , formatProgress = \ path progress -> case progress of
     Started p ->
       when (p /= (0,0) && useColor) $ interpret $ M.exampleProgress formatter path p
-    Progress p -> when useColor $
-      interpret $ M.exampleProgress formatter path p
+    Progress p ->
+      when useColor $ interpret $ M.exampleProgress formatter path p
 , formatItem = \ path (Item loc _duration info result) -> do
     clearTransientOutput
     case result of
@@ -57,6 +60,13 @@ formatterToFormat formatter config = Format {
         interpret $ M.exampleFailed formatter path info err
 } where
     useColor = formatConfigUseColor config
+
+-- TODO Orphan instance
+instance IsFormatter M.Formatter where
+  toFormatter cfg = pure . SomeFormat . formatterToFormat cfg
+
+instance IsFormatter (IO M.Formatter) where
+  toFormatter cfg = fmap (SomeFormat . formatterToFormat cfg)
 
 interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {
@@ -87,15 +97,6 @@ gets f = FormatM $ do
 modify :: (FormatterState -> FormatterState) -> FormatM ()
 modify f = FormatM $ do
   get >>= liftIO . (`modifyIORef'` f)
-
-data FormatConfig = FormatConfig {
-  formatConfigHandle :: Handle
-, formatConfigUseColor :: Bool
-, formatConfigUseDiff :: Bool
-, formatConfigHtmlOutput :: Bool
-, formatConfigPrintCpuTime :: Bool
-, formatConfigUsedSeed :: Integer
-} deriving (Eq, Show)
 
 data FormatterState = FormatterState {
   stateSuccessCount    :: Int

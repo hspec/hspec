@@ -17,6 +17,7 @@ import           System.Exit
 import           System.Console.GetOpt
 
 import           Test.Hspec.Core.Formatters
+import           Test.Hspec.Core.Formatters.Internal ()
 import           Test.Hspec.Core.Config.Util
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
@@ -53,8 +54,7 @@ data Config = Config {
 , configSmallCheckDepth :: Int
 , configColorMode :: ColorMode
 , configDiff :: Bool
-, configFormatter :: Maybe Formatter
-, configAsyncFormatting :: Bool
+, configFormatter :: Maybe (FormatConfig -> IO SomeFormat)
 , configHtmlOutput :: Bool
 , configOutputFile :: Either Handle FilePath
 , configConcurrentJobs :: Maybe Int
@@ -81,7 +81,6 @@ defaultConfig = Config {
 , configColorMode = ColorAuto
 , configDiff = True
 , configFormatter = Nothing
-, configAsyncFormatting = False
 , configHtmlOutput = False
 , configOutputFile = Left stdout
 , configConcurrentJobs = Nothing
@@ -157,24 +156,22 @@ formatterOptions = concat [
   , [Option [] ["print-cpu-time"] (NoArg setPrintCpuTime) "include used CPU time in summary"]
   ]
   where
-    formatters :: [(String, (Formatter, Bool))]
+    formatters :: [(String, FormatConfig -> IO SomeFormat)]
     formatters = [
-        ("specdoc", (specdoc, False))
-      , ("progress", (progress, False))
-      , ("failed-examples", (failed_examples, False))
-      , ("silent", (silent, False))
-      , ("trace", (trace, False))
-      , ("traceAsync", (trace, True))
+        ("specdoc", (flip toFormatter specdoc))
+      , ("progress", (flip toFormatter progress))
+      , ("failed-examples", (flip toFormatter failed_examples))
+      , ("silent", (flip toFormatter silent))
+      , ("trace", (flip toFormatter trace))
+      , ("traceAsync", traceAsync)
       ]
 
     helpForFormat :: String
     helpForFormat = "use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatters)
 
-    readFormatter :: String -> Maybe (Formatter, Bool)
     readFormatter = (`lookup` formatters)
 
-    setFormatter :: (Formatter, Bool) -> Config -> Config
-    setFormatter (f, async) c = c {configFormatter = Just f, configAsyncFormatting = async}
+    setFormatter f c = c {configFormatter = Just f}
 
     setColor :: Bool -> Config -> Config
     setColor v config = config {configColorMode = if v then ColorAlways else ColorNever}
@@ -183,6 +180,9 @@ formatterOptions = concat [
     setDiff v config = config {configDiff = v}
 
     setPrintCpuTime = set $ \config -> config {configPrintCpuTime = True}
+
+    traceAsync :: FormatConfig -> IO SomeFormat
+    traceAsync cfg = (\(SomeFormat x) -> SomeFormat x{formatAsynchronously = True}) <$> toFormatter cfg trace
 
 smallCheckOptions :: Monad m => [OptDescr (Result m -> Result m)]
 smallCheckOptions = [

@@ -6,8 +6,11 @@
 -- `Test.Hspec.Runner.hspecWith`.
 module Test.Hspec.Core.Formatters (
 
+-- * Primitive Format API
+  module Test.Hspec.Core.Format
+
 -- * Formatters
-  silent
+, silent
 , specdoc
 , progress
 , failed_examples
@@ -57,12 +60,14 @@ module Test.Hspec.Core.Formatters (
 
 -- ** Develop
 , trace
+
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Maybe
+import           Test.Hspec.Core.Format(Format(..), FormatConfig(..), IsFormatter(..), SomeFormat(..))
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
@@ -103,6 +108,8 @@ import Test.Hspec.Core.Formatters.Monad (
   , missingChunk
   )
 
+import Test.Hspec.Core.Formatters.Internal () -- for the IsFormatter instance
+
 import           Test.Hspec.Core.Clock (Seconds(..))
 
 import           Test.Hspec.Core.Formatters.Diff
@@ -142,8 +149,8 @@ specdoc = silent {
 , exampleGroupStarted = \nesting name -> do
     writeLine (indentationFor nesting ++ name)
 
-, exampleProgress = \_ p -> do
-    writeTransient (formatProgress p)
+, exampleProgress = \_ (current,total) -> do
+    writeTransient $ show current ++ if total == 0 then "" else "/" ++ show total
 
 , exampleSucceeded = \(nesting, requirement) info -> withSuccessColor $ do
     writeLine $ indentationFor nesting ++ requirement
@@ -167,10 +174,6 @@ specdoc = silent {
 , footerFormatter = defaultFooter
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
-    formatProgress (current, total)
-      | total == 0 = show current
-      | otherwise  = show current ++ "/" ++ show total
-
 
 progress :: Formatter
 progress = silent {

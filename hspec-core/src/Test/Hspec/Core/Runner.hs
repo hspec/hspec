@@ -47,7 +47,6 @@ import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Formatters
-import           Test.Hspec.Core.Formatters.Internal
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 
@@ -206,7 +205,7 @@ focusSpec config spec
 runSpec_ :: Config -> Spec -> IO Summary
 runSpec_ config spec = do
   withHandle config $ \h -> do
-    let formatter = fromMaybe specdoc (configFormatter config)
+    let formatter = fromMaybe (flip toFormatter specdoc) (configFormatter config)
         seed = (fromJust . configQuickCheckSeed) config
         qcArgs = configQuickCheckArgs config
 
@@ -232,11 +231,12 @@ runSpec_ config spec = do
         , formatConfigPrintCpuTime = configPrintCpuTime config
         , formatConfigUsedSeed =  seed
         }
+      SomeFormat f <- formatter formatConfig
+      let
         evalConfig = EvalConfig {
-          evalConfigFormat = formatterToFormat formatter formatConfig
+          evalConfigFormat = f
         , evalConfigConcurrentJobs = concurrentJobs
         , evalConfigFastFail = configFastFail config
-        , evalConfigAsyncFormatting = configAsyncFormatting config
         }
       runFormatter evalConfig filteredSpec
 

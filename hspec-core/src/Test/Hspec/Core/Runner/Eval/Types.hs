@@ -140,7 +140,6 @@ data EvalConfig m = EvalConfig {
   evalConfigFormat          :: Format m
 , evalConfigConcurrentJobs  :: Int
 , evalConfigFastFail        :: Bool
-, evalConfigAsyncFormatting :: Bool
 }
 
 data State m = State {

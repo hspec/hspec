@@ -108,7 +108,9 @@ runEvalM config (EvalM action) = execStateT action (State config 0 0 [])
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: forall m. MonadIO m => EvalConfig m -> [EvalTree] -> IO (Int, [Path])
 runFormatter config specs = do
-  atomicSemaphore <- if evalConfigAsyncFormatting config then Just <$> newSem 1 else return Nothing
+  atomicSemaphore <- if formatAsynchronously (evalConfigFormat config)
+                     then Just <$> newSem 1
+                     else return Nothing
   let
     start :: IO [RunningTree_ m Result]
     start = parallelizeTree atomicSemaphore (evalConfigConcurrentJobs config) specs
@@ -216,8 +218,8 @@ replaceMVar mvar f = tryTakeMVar mvar >>= putMVar mvar . f
 run :: forall m. MonadIO m => ReportProgress m -> Semaphore -> [RunningTree m] -> EvalM m ()
 run reportProgress atomicSemaphore specs = do
   fastFail <- EvalM $ gets (evalConfigFastFail . stateConfig)
+  asyncReport <- EvalM $ gets (formatAsynchronously . evalConfigFormat . stateConfig)
   flatSpecs <- lift $ concat <$> mapM foldSpec specs
-  asyncReport <- EvalM $ gets (evalConfigAsyncFormatting . stateConfig)
   let sync = if asyncReport then Just (10, atomicSemaphore) else Nothing
   sequenceActions sync fastFail ((fmap . fmap . first) (foldMap sequence_) flatSpecs)
   where

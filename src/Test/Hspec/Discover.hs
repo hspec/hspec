@@ -17,18 +17,9 @@ import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Runner
 import           Test.Hspec.Formatters
 
-class IsFormatter a where
-  toFormatter :: a -> IO Formatter
-
-instance IsFormatter (IO Formatter) where
-  toFormatter = id
-
-instance IsFormatter Formatter where
-  toFormatter = return
-
 hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
 hspecWithFormatter formatter spec = do
-  f <- toFormatter formatter
+  let f = flip toFormatter formatter
   hspecWith defaultConfig {configFormatter = Just f} spec
 
 postProcessSpec :: FilePath -> Spec -> Spec
