@@ -37,6 +37,7 @@ module Test.Hspec.Core.Runner (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import           Data.Bifunctor
 import           Data.Maybe
 import           System.IO
 import           System.Environment (getArgs, withArgs)
@@ -100,7 +101,7 @@ applyDryRun c
 -- is not always desired.  Use `runSpec` if you need more control over these
 -- aspects.
 hspec :: Spec -> IO ()
-hspec = hspecCustomFormatters []
+hspec = hspecCustomFormatters ([] :: [(String, SomeFormat)])
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
@@ -111,22 +112,25 @@ ensureSeed c = case configQuickCheckSeed c of
     return c {configQuickCheckSeed = Just (fromIntegral seed)}
   _       -> return c
 
+packFormatters :: IsFormatter fmt => [(String, fmt)] -> FormattersList
+packFormatters = map (second (flip toFormatter))
+
 -- | Run with additional formatters available for selection
 --   This is otherwise the same as 'hspec'
-hspecCustomFormatters :: FormattersList -> Spec -> IO ()
+hspecCustomFormatters :: IsFormatter fmt => [(String, fmt)] -> Spec -> IO ()
 hspecCustomFormatters formatterChoices spec =
       getArgs
-  >>= readConfig (formatterChoices ++ defaultFormatters) defaultConfig
+  >>= readConfig (packFormatters formatterChoices ++ defaultFormatters) defaultConfig
   >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
   >>= evaluateSummary
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
-hspecWithCustomFormatters :: FormattersList -> Config -> Spec -> IO ()
-hspecWithCustomFormatters formatterChoices config spec = getArgs >>= readConfig (formatterChoices ++ defaultFormatters) config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec >>= evaluateSummary
+hspecWithCustomFormatters :: IsFormatter fmt => [(String, fmt)] -> Config -> Spec -> IO ()
+hspecWithCustomFormatters formatterChoices config spec = getArgs >>= readConfig (packFormatters formatterChoices ++ defaultFormatters) config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec >>= evaluateSummary
 
 hspecWith :: Config -> Spec -> IO ()
-hspecWith = hspecWithCustomFormatters []
+hspecWith = hspecWithCustomFormatters ([] :: [(String, SomeFormat)])
 -- | `True` if the given `Summary` indicates that there were no
 -- failures, `False` otherwise.
 isSuccess :: Summary -> Bool
@@ -150,11 +154,11 @@ hspecResult spec = getArgs >>= readConfig defaultFormatters defaultConfig >>= do
 -- /Note/: `hspecWithResult` does not exit with `exitFailure` on failing spec
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
-hspecWithResultCustomFormatters :: FormattersList -> Config -> Spec -> IO Summary
-hspecWithResultCustomFormatters formatterChoices config spec = getArgs >>= readConfig (formatterChoices ++ defaultFormatters) config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+hspecWithResultCustomFormatters :: IsFormatter fmt => [(String, fmt)] -> Config -> Spec -> IO Summary
+hspecWithResultCustomFormatters formatterChoices config spec = getArgs >>= readConfig (packFormatters formatterChoices ++ defaultFormatters) config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
 
 hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult = hspecWithResultCustomFormatters []
+hspecWithResult = hspecWithResultCustomFormatters ([] :: [(String, SomeFormat)])
 -- |
 -- `runSpec` is the most basic primitive to run a spec. `hspec` is defined in
 -- terms of @runSpec@:
