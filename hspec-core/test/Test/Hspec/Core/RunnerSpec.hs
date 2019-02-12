@@ -556,7 +556,7 @@ hspecResultSpec = do
       r `shouldBe` "Foo.Bar"
 
     it "can use a custom formatter" $ do
-      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormatter = Just $ flip H.toFormatter H.silent} $ do
+      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormatter = Just $ H.toFormatter H.silent} $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` ""

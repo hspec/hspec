@@ -49,7 +49,7 @@ data Format m = Format {
 
 -- TODO Rename to Formatter
 data SomeFormat where
-  SomeFormat :: (Applicative m, MonadIO m) => Format m -> SomeFormat
+  SomeFormat :: (Applicative m, MonadIO m) => (FormatConfig -> IO (Format m)) -> SomeFormat
 
 data FormatConfig = FormatConfig {
   formatConfigHandle :: Handle
@@ -61,16 +61,28 @@ data FormatConfig = FormatConfig {
 } deriving (Eq, Show)
 
 class IsFormatter a where
-  toFormatter :: FormatConfig -> a -> IO SomeFormat
+  toFormatter :: a -> IO SomeFormat
 
 instance IsFormatter (IO SomeFormat) where
-  toFormatter _ = id
+  toFormatter = id
 
 instance IsFormatter SomeFormat where
-  toFormatter _ = return
+  toFormatter = return
 
 instance (Applicative m, MonadIO m) => IsFormatter (Format m) where
-  toFormatter _ = return . SomeFormat
+  toFormatter = return . SomeFormat . const . return
 
 instance (Applicative m, MonadIO m) => IsFormatter (IO (Format m)) where
-  toFormatter _ = fmap SomeFormat
+  toFormatter = return . SomeFormat . const
+
+instance (Applicative m, MonadIO m) => IsFormatter (FormatConfig -> Format m) where
+  toFormatter = return . SomeFormat . fmap return
+
+instance (Applicative m, MonadIO m) => IsFormatter (FormatConfig -> IO (Format m)) where
+  toFormatter = return . SomeFormat
+
+instance (Applicative m, MonadIO m) => IsFormatter (IO (FormatConfig -> Format m)) where
+  toFormatter = fmap (SomeFormat . fmap return)
+
+instance (Applicative m, MonadIO m) => IsFormatter (IO (FormatConfig -> IO (Format m))) where
+  toFormatter = fmap SomeFormat

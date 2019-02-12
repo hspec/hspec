@@ -11,7 +11,7 @@ import           Control.Monad.IO.Class
 import qualified Data.Foldable as F (toList)
 import           Data.List (permutations, sort)
 import           Test.Hspec.Core.Tree
-import           Test.Hspec.Core.Format as H (Format(..), FormatConfig(..), SomeFormat(..))
+import           Test.Hspec.Core.Format as H (Format(..), SomeFormat(..))
 import           Test.Hspec.Core.Formatters as H
 import           Test.Hspec.Core.Runner.Eval
 import qualified Test.Hspec.Core.Runner as H
@@ -97,12 +97,12 @@ data FormatterLine
   | ExamplePending H.Path String (Maybe String)
   deriving (Eq, Ord, Show)
 
-traceFormatterIO :: Bool -> IO (FormatConfig -> IO SomeFormat, IO [FormatterLine])
+traceFormatterIO :: Bool -> IO (IO SomeFormat, IO [FormatterLine])
 traceFormatterIO asyncFmt = do
   ref <- newIORef []
   let push x = liftIO $ modifyIORef' ref (x :)
-      f cfg = do
-        SomeFormat fmt <- H.toFormatter cfg $ silent
+      f = do
+        SomeFormat fmt <- H.toFormatter $ silent
           { exampleGroupStarted = (push.) . ExampleGroupStarted
           , exampleGroupDone    = push ExampleGroupDone
           , exampleProgress     = (push.) . ExampleProgress
@@ -110,7 +110,9 @@ traceFormatterIO asyncFmt = do
           , exampleFailed       = \path info reason -> push $ ExampleFailed path info (show reason)
           , examplePending      = ((push.).) . ExamplePending
           }
-        return $ SomeFormat fmt{formatAsynchronously = asyncFmt}
+        return $ SomeFormat $ \cfg -> do
+          theFormat <- fmt cfg
+          return theFormat{formatAsynchronously = asyncFmt}
   return (f, reverse <$> readIORef ref)
 
 ------------------------------------------------------------------------------

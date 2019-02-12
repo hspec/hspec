@@ -102,7 +102,7 @@ applyDryRun c
 -- is not always desired.  Use `runSpec` if you need more control over these
 -- aspects.
 hspec :: Spec -> IO ()
-hspec = hspecCustomFormatters ([] :: [(String, SomeFormat)])
+hspec = hspecCustomFormatters ([] :: [(String, IO SomeFormat)])
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
@@ -113,8 +113,8 @@ ensureSeed c = case configQuickCheckSeed c of
     return c {configQuickCheckSeed = Just (fromIntegral seed)}
   _       -> return c
 
-packFormatters :: IsFormatter fmt => [(String, fmt)] -> FormattersList
-packFormatters = map (second (flip toFormatter))
+packFormatters :: IsFormatter fmt => [(String, fmt)] -> [(String, IO SomeFormat)]
+packFormatters = map (second toFormatter)
 
 -- | Run with additional formatters available for selection
 --   This is otherwise the same as 'hspec'
@@ -131,7 +131,7 @@ hspecWithCustomFormatters :: IsFormatter fmt => [(String, fmt)] -> Config -> Spe
 hspecWithCustomFormatters formatterChoices config spec = getArgs >>= readConfig (packFormatters formatterChoices ++ defaultFormatters) config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec >>= evaluateSummary
 
 hspecWith :: Config -> Spec -> IO ()
-hspecWith = hspecWithCustomFormatters ([] :: [(String, SomeFormat)])
+hspecWith = hspecWithCustomFormatters ([] :: [(String, IO SomeFormat)])
 -- | `True` if the given `Summary` indicates that there were no
 -- failures, `False` otherwise.
 isSuccess :: Summary -> Bool
@@ -159,7 +159,7 @@ hspecWithResultCustomFormatters :: IsFormatter fmt => [(String, fmt)] -> Config 
 hspecWithResultCustomFormatters formatterChoices config spec = getArgs >>= readConfig (packFormatters formatterChoices ++ defaultFormatters) config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
 
 hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult = hspecWithResultCustomFormatters ([] :: [(String, SomeFormat)])
+hspecWithResult = hspecWithResultCustomFormatters ([] :: [(String, IO SomeFormat)])
 -- |
 -- `runSpec` is the most basic primitive to run a spec. `hspec` is defined in
 -- terms of @runSpec@:
@@ -222,7 +222,7 @@ focusSpec config spec
 runSpec_ :: Config -> Spec -> IO Summary
 runSpec_ config spec = do
   withHandle config $ \h -> do
-    let formatter = fromMaybe (flip toFormatter specdoc) (configFormatter config)
+    let formatter = fromMaybe (toFormatter specdoc) (configFormatter config)
         seed = (fromJust . configQuickCheckSeed) config
         qcArgs = configQuickCheckArgs config
 
@@ -248,10 +248,12 @@ runSpec_ config spec = do
         , formatConfigPrintCpuTime = configPrintCpuTime config
         , formatConfigUsedSeed =  seed
         }
-      SomeFormat f <- formatter formatConfig
+      SomeFormat f <- formatter
+      f' <- f formatConfig
+
       let
         evalConfig = EvalConfig {
-          evalConfigFormat = f
+          evalConfigFormat = f'
         , evalConfigConcurrentJobs = concurrentJobs
         , evalConfigFastFail = configFastFail config
         }

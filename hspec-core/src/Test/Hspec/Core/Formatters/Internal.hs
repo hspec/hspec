@@ -30,8 +30,8 @@ import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWit
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 
-formatterToFormat :: FormatConfig -> M.Formatter -> Format FormatM
-formatterToFormat config formatter = Format {
+formatterToFormat :: M.Formatter -> FormatConfig -> Format FormatM
+formatterToFormat formatter config = Format {
   formatRun = \action -> runFormatM config $ do
     interpret (M.headerFormatter formatter)
     a <- action `finally_` interpret (M.failedFormatter formatter)
@@ -62,10 +62,10 @@ formatterToFormat config formatter = Format {
 
 -- TODO Orphan instance
 instance IsFormatter M.Formatter where
-  toFormatter cfg = pure . SomeFormat . formatterToFormat cfg
+  toFormatter = toFormatter . formatterToFormat
 
 instance IsFormatter (IO M.Formatter) where
-  toFormatter cfg = fmap (SomeFormat . formatterToFormat cfg)
+  toFormatter = toFormatter . fmap formatterToFormat
 
 interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {

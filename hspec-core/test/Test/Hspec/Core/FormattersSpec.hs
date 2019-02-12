@@ -115,7 +115,7 @@ spec = do
   describe "specdoc" $ do
     let
       formatter = H.specdoc
-      runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just $ flip H.toFormatter formatter}
+      runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just $ H.toFormatter formatter}
 
     it "displays a header for each thing being described" $ do
       _:x:_ <- runSpec testSpec
@@ -272,7 +272,7 @@ spec = do
 
 failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do
-  let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just $ flip H.toFormatter formatter}
+  let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just $ H.toFormatter formatter}
 
   context "displays a detailed list of failures" $ do
     it "prints all requirements that are not met" $ do

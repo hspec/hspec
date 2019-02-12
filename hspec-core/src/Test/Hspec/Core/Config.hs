@@ -3,7 +3,6 @@ module Test.Hspec.Core.Config (
   Config (..)
 , ColorMode(..)
 , defaultConfig
-, FormattersList
 , defaultFormatters
 , readConfig
 , configAddFilter
@@ -32,6 +31,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Config.Options
 import           Test.Hspec.Core.FailureReport
+import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 
@@ -107,7 +107,7 @@ configQuickCheckArgs c = qcArgs
 -- @
 -- `System.Environment.getArgs` >>= readConfig `defaultConfig`
 -- @
-readConfig :: FormattersList -> Config -> [String] -> IO Config
+readConfig :: [(String, IO SomeFormat)] -> Config -> [String] -> IO Config
 readConfig formatterChoices opts_ args = do
   prog <- getProgName
   configFiles <- do

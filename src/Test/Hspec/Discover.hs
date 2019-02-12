@@ -19,7 +19,7 @@ import           Test.Hspec.Formatters
 
 hspecWithFormatter :: IsFormatter a => a -> Spec -> IO ()
 hspecWithFormatter formatter spec = do
-  let f = flip toFormatter formatter
+  let f = toFormatter formatter
   hspecWith defaultConfig {configFormatter = Just f} spec
 
 postProcessSpec :: FilePath -> Spec -> Spec
