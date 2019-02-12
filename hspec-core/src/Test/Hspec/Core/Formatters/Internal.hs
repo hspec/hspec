@@ -25,7 +25,6 @@ import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
 import qualified System.CPUTime as CPUTime
 
-import           Test.Hspec.Core.Example (LifeCycle(..))
 import qualified Test.Hspec.Core.Formatters.Monad as M
 import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWith, FailureRecord(..))
 import           Test.Hspec.Core.Format

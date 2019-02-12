@@ -11,6 +11,7 @@ import           Control.Monad.IO.Class
 import qualified Data.Foldable as F (toList)
 import           Data.List (permutations, sort)
 import           Test.Hspec.Core.Tree
+import           Test.Hspec.Core.Format as H (Format(..), FormatConfig(..), SomeFormat(..))
 import           Test.Hspec.Core.Formatters as H
 import           Test.Hspec.Core.Runner.Eval
 import qualified Test.Hspec.Core.Runner as H

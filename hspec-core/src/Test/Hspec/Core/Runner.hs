@@ -50,6 +50,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Config
+import           Test.Hspec.Core.Format (FormatConfig(..), SomeFormat(..))
 import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil

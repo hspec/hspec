@@ -6,11 +6,8 @@
 -- `Test.Hspec.Runner.hspecWith`.
 module Test.Hspec.Core.Formatters (
 
--- * Primitive Format API
-  module Test.Hspec.Core.Format
-
 -- * Formatters
-, silent
+  silent
 , specdoc
 , progress
 , failed_examples
@@ -23,6 +20,7 @@ module Test.Hspec.Core.Formatters (
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
 , Formatter (..)
+, IsFormatter(..)
 , FailureReason (..)
 , FormatM
 
@@ -67,7 +65,6 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Maybe
-import           Test.Hspec.Core.Format(Format(..), FormatConfig(..), IsFormatter(..), SomeFormat(..))
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
@@ -108,6 +105,7 @@ import Test.Hspec.Core.Formatters.Monad (
   , missingChunk
   )
 
+import Test.Hspec.Core.Format (IsFormatter(..))
 import Test.Hspec.Core.Formatters.Internal () -- for the IsFormatter instance
 
 import           Test.Hspec.Core.Clock (Seconds(..))

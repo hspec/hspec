@@ -6,6 +6,7 @@ module Test.Hspec.Core.Format (
 , SomeFormat(..)
 , FormatConfig(..)
 , IsFormatter(..)
+, LifeCycle(..)
 , Progress
 , Path
 , Location(..)
@@ -20,7 +21,7 @@ import           Control.Monad.IO.Class
 import           System.IO (Handle)
 import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Spec (Location(..))
-import           Test.Hspec.Core.Example (FailureReason(..), LifeCycle, Progress)
+import           Test.Hspec.Core.Example (FailureReason(..), LifeCycle(..), Progress)
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Clock
 

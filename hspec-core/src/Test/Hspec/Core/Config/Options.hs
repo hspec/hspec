@@ -19,6 +19,7 @@ import           System.Exit
 import           System.Console.GetOpt
 
 import           Test.Hspec.Core.Formatters
+import           Test.Hspec.Core.Format (Format(..), SomeFormat(..))
 import           Test.Hspec.Core.Formatters.Internal ()
 import           Test.Hspec.Core.Config.Util
 import           Test.Hspec.Core.Util

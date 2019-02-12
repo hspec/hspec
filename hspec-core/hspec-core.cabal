@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5f91f4209b0966cff7c5d86a95a6c82d80704664d7a31e5f166faa9d58682758
+-- hash: de87aadde18a0651538a768fcd95b85ecdfbe1d16e6770be9a47c857decb8015
 
 name:           hspec-core
 version:        2.7.0
@@ -32,7 +32,9 @@ library
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.Runner
+      Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters
+      Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
   other-modules:
@@ -44,8 +46,6 @@ library
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
       Test.Hspec.Core.FailureReport
-      Test.Hspec.Core.Format
-      Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
