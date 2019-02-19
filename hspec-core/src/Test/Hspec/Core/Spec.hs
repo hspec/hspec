@@ -15,6 +15,7 @@ module Test.Hspec.Core.Spec (
 , pending
 , pendingWith
 , xit
+, uit
 , xspecify
 , xdescribe
 , xcontext
@@ -94,6 +95,11 @@ specify = it
 -- This can be used to temporarily disable a spec item.
 xit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 xit label action = before_ pending_ $ it label action
+
+-- |
+-- Allows pending test to be undefined.
+uit :: HasCallStack => String -> SpecWith (Arg Bool)
+uit label = xit label (undefined :: Bool)
 
 -- | @xspecify@ is an alias for `xit`.
 xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
