@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aa2e4e848271b5c72186127d82684509de117a55fc4de3dad4a84f0c4c6b91e8
+-- hash: 508f5ff6faaff2982f789144ff6b82c6aab8d9972cba0fb8095b0b4cd6a3e929
 
 name:             hspec-core
 version:          2.7.0
@@ -34,7 +34,7 @@ library
   ghc-options: -Wall
   build-depends:
       HUnit ==1.6.*
-    , QuickCheck >=2.12
+    , QuickCheck >=2.13.1
     , ansi-terminal >=0.5
     , array
     , base >=4.5.0.0 && <5
@@ -92,7 +92,7 @@ test-suite spec
   cpp-options: -DTEST
   build-depends:
       HUnit ==1.6.*
-    , QuickCheck >=2.12
+    , QuickCheck >=2.13.1
     , ansi-terminal >=0.5
     , array
     , base >=4.5.0.0 && <5

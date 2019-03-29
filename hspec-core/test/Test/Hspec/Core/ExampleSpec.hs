@@ -145,7 +145,7 @@ spec = do
       it "shows what falsified it" $ do
         Result "" (Failure _ r) <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> False
         r `shouldBe` (Reason . intercalate "\n")  [
-            "Falsifiable (after 1 test):"
+            "Falsified (after 1 test):"
           , "  0"
           , "  1"
           ]

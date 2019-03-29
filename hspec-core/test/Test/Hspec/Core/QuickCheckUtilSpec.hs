@@ -91,7 +91,7 @@ spec = do
             , "0"
             , ""
             , "Passed:"
-            , "-39"
+            , "28"
             ]
         parseQuickCheckResult <$> quickCheckWithResult args {maxSuccess = 2} (verbose p) `shouldReturn`
           QuickCheckResult 2 info (QuickCheckOtherFailure "Passed 2 tests (expected failure).")
@@ -113,7 +113,7 @@ spec = do
               , "0"
               , ""
               , "Passed:"
-              , "-39"
+              , "28"
               , ""
               , "+++ OK, passed 2 tests."
               , ""
@@ -133,29 +133,29 @@ spec = do
             , quickCheckFailureException = Nothing
             , quickCheckFailureReason = "Insufficient coverage"
             , quickCheckFailureCounterexample = [
-                " 1.0% is 23"
+                " 0.8% is 23"
               , ""
-              , "Only 1.0% is 23, but expected 10.0%"
+              , "Only 0.8% is 23, but expected 10.0%"
               ]
             }
 
         it "parses result" $ do
           parseQuickCheckResult <$> qc p `shouldReturn`
-            QuickCheckResult 800 "" (QuickCheckFailure failure)
+            QuickCheckResult 400 "" (QuickCheckFailure failure)
 
         it "includes verbose output" $ do
-          let info = intercalate "\n\n" (replicate 799 "Passed:")
+          let info = intercalate "\n\n" (replicate 399 "Passed:")
           parseQuickCheckResult <$> qc (verbose . p) `shouldReturn`
-            QuickCheckResult 800 info (QuickCheckFailure failure)
+            QuickCheckResult 400 info (QuickCheckFailure failure)
 
     context "with Failure" $ do
       context "with single-line failure reason" $ do
         let
           p :: Int -> Bool
-          p = (/= 1)
+          p = (< 1)
 
-          err = "Falsifiable"
-          result = QuickCheckResult 2 "" (QuickCheckFailure $ QCFailure 0 Nothing err ["1"])
+          err = "Falsified"
+          result = QuickCheckResult 3 "" (QuickCheckFailure $ QCFailure 1 Nothing err ["1"])
 
         it "parses result" $ do
           parseQuickCheckResult <$> qc p `shouldReturn` result
@@ -163,6 +163,15 @@ spec = do
         it "includes verbose output" $ do
           let info = intercalate "\n" [
                   "Passed:"
+                , "0"
+                , ""
+                , "Passed:"
+                , "-1"
+                , ""
+                , "Failed:"
+                , "2"
+                , ""
+                , "Passed:"
                 , "0"
                 , ""
                 , "Failed:"
@@ -177,10 +186,10 @@ spec = do
       context "with multi-line failure reason" $ do
         let
           p :: Int -> QCP.Result
-          p n = if n /= 1 then QCP.succeeded else QCP.failed {QCP.reason = err}
+          p n = if n /= 2 then QCP.succeeded else QCP.failed {QCP.reason = err}
 
           err = "foo\nbar"
-          result = QuickCheckResult 2 "" (QuickCheckFailure $ QCFailure 0 Nothing err ["1"])
+          result = QuickCheckResult 3 "" (QuickCheckFailure $ QCFailure 0 Nothing err ["2"])
 
         it "parses result" $ do
           parseQuickCheckResult <$> qc p `shouldReturn` result
@@ -190,11 +199,17 @@ spec = do
                   "Passed:"
                 , "0"
                 , ""
+                , "Passed:"
+                , "-1"
+                , ""
                 , "Failed:"
-                , "1"
+                , "2"
                 , ""
                 , "Passed:"
                 , "0"
+                , ""
+                , "Passed:"
+                , "1"
                 ]
           parseQuickCheckResult <$> qc (verbose p) `shouldReturn` result {quickCheckResultInfo = info}
 
