@@ -1,26 +1,29 @@
+## Changes in 2.7.1
+  - Add compatibility with QuickCheck 2.13.1 (see #410)
+
 ## Changes in 2.7.0
-    - Add `--focused-only` (see #390)
-    - Add `--fail-on-focused` (see #389)
+  - Add `--focused-only` (see #390)
+  - Add `--fail-on-focused` (see #389)
 
 ## Changes in 2.6.1
-   - Add `Test.Hspec.Runner.runSpec` (see #216)
+  - Add `Test.Hspec.Runner.runSpec` (see #216)
 
 ## Changes in 2.6.0
-   - Allow to focus individual spec items (see #319)
-   - Do not calculate diff on `--no-diff` (see #332)
-   - Remove deprecated module Test.Hspec.Core
+  - Allow to focus individual spec items (see #319)
+  - Do not calculate diff on `--no-diff` (see #332)
+  - Remove deprecated module Test.Hspec.Core
 
 ## Changes in 2.5.9
-   - Extract source locations from RecConError (see #375)
+  - Extract source locations from RecConError (see #375)
 
 ## Changes in 2.5.8
-   - Add `modifyArgs` and `modifyMaxShrinks` to `Test.Hspec.QuickCheck` (see #380)
+  - Add `modifyArgs` and `modifyMaxShrinks` to `Test.Hspec.QuickCheck` (see #380)
 
 ## Changes in 2.5.7
-   - GHC 8.6.1 related changes
+  - GHC 8.6.1 related changes
 
 ## Changes in 2.5.6
-   - Compatibility with `QuickCheck-2.12`
+  - Compatibility with `QuickCheck-2.12`
 
 ## Changes in 2.5.5
   - Use `module[line:column]` instead of `module:line:column` as default label
