@@ -5,6 +5,7 @@ module Test.Hspec.Core.FormattersSpec (spec) where
 import           Prelude ()
 import           Helper
 import           Data.String
+import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Writer
 import qualified Control.Exception as E
 
@@ -53,13 +54,13 @@ colorize color input = case simplify input of
   Plain x : xs -> color x : xs
   xs -> xs
 
-interpret :: FormatM a -> [ColorizedText]
+interpret :: FormatM a -> IO [ColorizedText]
 interpret = interpretWith environment
 
-interpretWith :: Environment (Writer [ColorizedText]) -> FormatM a -> [ColorizedText]
-interpretWith env = simplify . execWriter . H.interpretWith env
+interpretWith :: Environment (WriterT [ColorizedText] IO) -> FormatM a -> IO [ColorizedText]
+interpretWith env = fmap simplify . execWriterT . H.interpretWith env
 
-environment :: Environment (Writer [ColorizedText])
+environment :: Environment (WriterT [ColorizedText] IO)
 environment = Environment {
   environmentGetSuccessCount = return 0
 , environmentGetPendingCount = return 0
@@ -69,14 +70,22 @@ environment = Environment {
 , environmentGetRealTime = return 0
 , environmentWrite = tell . return . Plain
 , environmentWriteTransient = tell . return . Transient
-, environmentWithFailColor = \action -> let (a, r) = runWriter action in tell (colorize Failed r) >> return a
-, environmentWithSuccessColor = \action -> let (a, r) = runWriter action in tell (colorize Succeeded r) >> return a
-, environmentWithPendingColor = \action -> let (a, r) = runWriter action in tell (colorize Pending r) >> return a
-, environmentWithInfoColor = \action -> let (a, r) = runWriter action in tell (colorize Info r) >> return a
+, environmentWithFailColor = \ action -> do
+    (a, r) <- liftIO $ runWriterT action
+    tell (colorize Failed r) >> return a
+, environmentWithSuccessColor = \ action -> do
+    (a, r) <- liftIO $ runWriterT action
+    tell (colorize Succeeded r) >> return a
+, environmentWithPendingColor = \ action -> do
+    (a, r) <- liftIO $ runWriterT action
+    tell (colorize Pending r) >> return a
+, environmentWithInfoColor = \ action -> do
+    (a, r) <- liftIO $ runWriterT action
+    tell (colorize Info r) >> return a
 , environmentUseDiff = return True
 , environmentExtraChunk = tell . return . Extra
 , environmentMissingChunk = tell . return . Missing
-, environmentLiftIO = undefined
+, environmentLiftIO = liftIO
 }
 
 testSpec :: H.Spec
@@ -96,19 +105,19 @@ spec = do
 
     describe "exampleSucceeded" $ do
       it "marks succeeding examples with ." $ do
-        interpret (H.exampleSucceeded formatter undefined undefined) `shouldBe` [
+        interpret (H.exampleSucceeded formatter undefined undefined) `shouldReturn` [
             Succeeded "."
           ]
 
     describe "exampleFailed" $ do
       it "marks failing examples with F" $ do
-        interpret (H.exampleFailed formatter undefined undefined undefined) `shouldBe` [
+        interpret (H.exampleFailed formatter undefined undefined undefined) `shouldReturn` [
             Failed "F"
           ]
 
     describe "examplePending" $ do
       it "marks pending examples with ." $ do
-        interpret (H.examplePending formatter undefined undefined undefined) `shouldBe` [
+        interpret (H.examplePending formatter undefined undefined undefined) `shouldReturn` [
             Pending "."
           ]
 
@@ -206,7 +215,7 @@ spec = do
             environmentGetFailMessages = return [FailureRecord Nothing ([], "") (ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
             }
         it "adds indentation" $ do
-          removeColors (interpretWith env action) `shouldBe` unlines [
+          (removeColors <$> interpretWith env action) `shouldReturn` unlines [
               ""
             , "Failures:"
             , ""
@@ -238,7 +247,7 @@ spec = do
       context "without failures" $ do
         let env = environment {environmentGetSuccessCount = return 1}
         it "shows summary in green if there are no failures" $ do
-          interpretWith env action `shouldBe` [
+          interpretWith env action `shouldReturn` [
               "Finished in 0.0000 seconds\n"
             , Succeeded "1 example, 0 failures\n"
             ]
@@ -246,7 +255,7 @@ spec = do
       context "with pending examples" $ do
         let env = environment {environmentGetPendingCount = return 1}
         it "shows summary in yellow if there are pending examples" $ do
-          interpretWith env action `shouldBe` [
+          interpretWith env action `shouldReturn` [
               "Finished in 0.0000 seconds\n"
             , Pending "1 example, 0 failures, 1 pending\n"
             ]
@@ -254,7 +263,7 @@ spec = do
       context "with failures" $ do
         let env = environment {environmentGetFailMessages = return [undefined]}
         it "shows summary in red" $ do
-          interpretWith env action `shouldBe` [
+          interpretWith env action `shouldReturn` [
               "Finished in 0.0000 seconds\n"
             , Failed "1 example, 1 failure\n"
             ]
@@ -262,7 +271,7 @@ spec = do
       context "with both failures and pending examples" $ do
         let env = environment {environmentGetFailMessages = return [undefined], environmentGetPendingCount = return 1}
         it "shows summary in red" $ do
-          interpretWith env action `shouldBe` [
+          interpretWith env action `shouldReturn` [
               "Finished in 0.0000 seconds\n"
             , Failed "2 examples, 1 failure, 1 pending\n"
             ]

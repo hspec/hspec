@@ -61,8 +61,11 @@ import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Maybe
 import           Test.Hspec.Core.Util
+import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
+import           Control.Monad.IO.Class
+import           Control.Exception
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.
@@ -99,8 +102,6 @@ import Test.Hspec.Core.Formatters.Monad (
   , extraChunk
   , missingChunk
   )
-
-import           Test.Hspec.Core.Clock (Seconds(..))
 
 import           Test.Hspec.Core.Formatters.Diff
 
@@ -212,28 +213,38 @@ defaultFailedFormatter = do
           mapM_ indent preface
 
           b <- useDiff
-          let
-            chunks
-              | b = diff expected actual
-              | otherwise = [First expected, Second actual]
 
-          withFailColor $ write (indentation ++ "expected: ")
-          forM_ chunks $ \chunk -> case chunk of
-            Both a _ -> indented write a
-            First a -> indented extraChunk a
-            Second _ -> return ()
-          writeLine ""
+          let threshold = 2 :: Seconds
 
-          withFailColor $ write (indentation ++ " but got: ")
-          forM_ chunks $ \chunk -> case chunk of
-            Both a _ -> indented write a
-            First _ -> return ()
-            Second a -> indented missingChunk a
-          writeLine ""
+          mchunks <- liftIO $ if b
+            then timeout threshold (evaluate $ diff expected actual)
+            else return Nothing
+
+          case mchunks of
+            Just chunks -> do
+              writeDiff chunks extraChunk missingChunk
+            Nothing -> do
+              writeDiff [First expected, Second actual] write write
           where
             indented output text = case break (== '\n') text of
               (xs, "") -> output xs
               (xs, _ : ys) -> output (xs ++ "\n") >> write (indentation ++ "          ") >> indented output ys
+
+            writeDiff chunks extra missing = do
+              withFailColor $ write (indentation ++ "expected: ")
+              forM_ chunks $ \ chunk -> case chunk of
+                Both a _ -> indented write a
+                First a -> indented extra a
+                Second _ -> return ()
+              writeLine ""
+
+              withFailColor $ write (indentation ++ " but got: ")
+              forM_ chunks $ \ chunk -> case chunk of
+                Both a _ -> indented write a
+                First _ -> return ()
+                Second a -> indented missing a
+              writeLine ""
+
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
 
       writeLine ""

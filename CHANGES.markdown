@@ -1,3 +1,6 @@
+## Next
+  - Interrupt diff calculation if it takes longer than two seconds (see #415)
+
 ## Changes in 2.7.1
   - Add compatibility with QuickCheck 2.13.1 (see #410)
 

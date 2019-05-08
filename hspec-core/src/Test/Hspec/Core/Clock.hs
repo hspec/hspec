@@ -5,11 +5,13 @@ module Test.Hspec.Core.Clock (
 , getMonotonicTime
 , measure
 , sleep
+, timeout
 ) where
 
 import           Text.Printf
 import           System.Clock
 import           Control.Concurrent
+import qualified System.Timeout as System
 
 newtype Seconds = Seconds Double
   deriving (Eq, Show, Num, Fractional, PrintfArg)
@@ -31,3 +33,6 @@ measure action = do
 
 sleep :: Seconds -> IO ()
 sleep = threadDelay . toMicroseconds
+
+timeout :: Seconds -> IO a -> IO (Maybe a)
+timeout = System.timeout . toMicroseconds

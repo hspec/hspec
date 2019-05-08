@@ -36,7 +36,6 @@ import           System.Environment (withArgs, getEnvironment)
 import           System.Exit
 import qualified Control.Exception as E
 import           Control.Exception
-import qualified System.Timeout as System
 import           System.IO.Silently
 import           System.SetEnv
 import           System.Directory
@@ -94,9 +93,6 @@ defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just
 
 noOpProgressCallback :: H.ProgressCallback
 noOpProgressCallback _ = return ()
-
-timeout :: Seconds -> IO a -> IO (Maybe a)
-timeout = System.timeout . toMicroseconds
 
 shouldUseArgs :: HasCallStack => [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do
