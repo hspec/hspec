@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.32.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 82bf612e65db816a15de01c4c432597ef4492ceeb81f46063dcdd57b74ec523a
+-- hash: a20d6ae2db0faf77da76207c1c022c3ca012a9b17fa08b5afb82cb0a5561df2b
 
 name:             hspec-core
 version:          2.7.1
@@ -39,7 +39,7 @@ library
     , array
     , base >=4.5.0.0 && <5
     , call-stack
-    , clock
+    , clock >=0.7.1
     , deepseq
     , directory
     , filepath
@@ -97,7 +97,7 @@ test-suite spec
     , array
     , base >=4.5.0.0 && <5
     , call-stack
-    , clock
+    , clock >=0.7.1
     , deepseq
     , directory
     , filepath

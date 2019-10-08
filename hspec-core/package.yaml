@@ -23,7 +23,7 @@ dependencies:
   - tf-random
   - setenv
   - ansi-terminal >= 0.5
-  - clock
+  - clock >= 0.7.1
   - transformers >= 0.2.2.0
   - deepseq
   - HUnit == 1.6.*
