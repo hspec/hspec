@@ -14,6 +14,16 @@ describe "read" $ do
     \x -> (read . show) x `shouldBe` (x :: Int)
 ```
 
+`it "description" $ property $ ...` is a very common pattern, so
+{{'Test.Hspec.QuickCheck'|id}} module provides {{'prop'|id}} function. With {{'prop'|id}},
+the last example is also written as this:
+
+```hspec
+describe "read" $ do
+  prop "is inverse to show" $
+    \x -> (read . show) x `shouldBe` (x :: Int)
+```
+
 {% example QuickCheck.hs %}
 
 It's also possible to modify some of the arguments passed to the Quickcheck
