@@ -11,7 +11,17 @@ turn anything that is a member of the {{'Testable'|id}} class into a
 ```hspec
 describe "read" $ do
   it "is inverse to show" $ property $
-    \x -> (read . show) x == (x :: Int)
+    \x -> (read . show) x `shouldBe` (x :: Int)
+```
+
+`it "description" $ property $ ...` is a very common pattern, so
+{{'Test.Hspec.QuickCheck'|id}} module provides {{'prop'|id}} function. With {{'prop'|id}},
+the last example is also written as this:
+
+```hspec
+describe "read" $ do
+  prop "is inverse to show" $
+    \x -> (read . show) x `shouldBe` (x :: Int)
 ```
 
 {% example QuickCheck.hs %}
@@ -25,6 +35,6 @@ the test case:
 import Test.Hspec.Core.QuickCheck (modifyMaxSize)
 
 describe "read" $ do
-  modifyMaxSize (const 1000) $ it "is inverse to show" $ property $
-    \x -> (read . show) x == (x :: Int)
+  modifyMaxSize (const 1000) $ prop "is inverse to show" $
+    \x -> (read . show) x `shouldBe` (x :: Int)
 ```
