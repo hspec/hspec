@@ -91,7 +91,7 @@ spec = do
             , "0"
             , ""
             , "Passed:"
-            , "28"
+            , "23"
             ]
         parseQuickCheckResult <$> quickCheckWithResult args {maxSuccess = 2} (verbose p) `shouldReturn`
           QuickCheckResult 2 info (QuickCheckOtherFailure "Passed 2 tests (expected failure).")
@@ -100,11 +100,11 @@ spec = do
       context "without checkCoverage" $ do
         let
           p :: Int -> Property
-          p n = cover 10 (n == 23) "is 23" True
+          p n = cover 10 (n == 5) "is 5" True
 
         it "parses result" $ do
           parseQuickCheckResult <$> qc p `shouldReturn`
-            QuickCheckResult 100 "+++ OK, passed 100 tests.\n\nOnly 0% is 23, but expected 10%" QuickCheckSuccess
+            QuickCheckResult 100 "+++ OK, passed 100 tests (1% is 5).\n\nOnly 1% is 5, but expected 10%" QuickCheckSuccess
 
         it "includes verbose output" $ do
           let
@@ -113,11 +113,11 @@ spec = do
               , "0"
               , ""
               , "Passed:"
-              , "28"
+              , "23"
               , ""
               , "+++ OK, passed 2 tests."
               , ""
-              , "Only 0% is 23, but expected 10%"
+              , "Only 0% is 5, but expected 10%"
               ]
           parseQuickCheckResult <$> quickCheckWithResult args {maxSuccess = 2} (verbose p) `shouldReturn`
             QuickCheckResult 2 info QuickCheckSuccess
@@ -133,20 +133,20 @@ spec = do
             , quickCheckFailureException = Nothing
             , quickCheckFailureReason = "Insufficient coverage"
             , quickCheckFailureCounterexample = [
-                " 0.8% is 23"
+                " 0.9% is 23"
               , ""
-              , "Only 0.8% is 23, but expected 10.0%"
+              , "Only 0.9% is 23, but expected 10.0%"
               ]
             }
 
         it "parses result" $ do
           parseQuickCheckResult <$> qc p `shouldReturn`
-            QuickCheckResult 400 "" (QuickCheckFailure failure)
+            QuickCheckResult 800 "" (QuickCheckFailure failure)
 
         it "includes verbose output" $ do
-          let info = intercalate "\n\n" (replicate 399 "Passed:")
+          let info = intercalate "\n\n" (replicate 799 "Passed:")
           parseQuickCheckResult <$> qc (verbose . p) `shouldReturn`
-            QuickCheckResult 400 info (QuickCheckFailure failure)
+            QuickCheckResult 800 info (QuickCheckFailure failure)
 
     context "with Failure" $ do
       context "with single-line failure reason" $ do
@@ -155,7 +155,7 @@ spec = do
           p = (< 1)
 
           err = "Falsified"
-          result = QuickCheckResult 3 "" (QuickCheckFailure $ QCFailure 1 Nothing err ["1"])
+          result = QuickCheckResult 4 "" (QuickCheckFailure $ QCFailure 2 Nothing err ["1"])
 
         it "parses result" $ do
           parseQuickCheckResult <$> qc p `shouldReturn` result
@@ -166,7 +166,16 @@ spec = do
                 , "0"
                 , ""
                 , "Passed:"
-                , "-1"
+                , "0"
+                , ""
+                , "Passed:"
+                , "-2"
+                , ""
+                , "Failed:"
+                , "3"
+                , ""
+                , "Passed:"
+                , "0"
                 , ""
                 , "Failed:"
                 , "2"
@@ -189,7 +198,7 @@ spec = do
           p n = if n /= 2 then QCP.succeeded else QCP.failed {QCP.reason = err}
 
           err = "foo\nbar"
-          result = QuickCheckResult 3 "" (QuickCheckFailure $ QCFailure 0 Nothing err ["2"])
+          result = QuickCheckResult 5 "" (QuickCheckFailure $ QCFailure 0 Nothing err ["2"])
 
         it "parses result" $ do
           parseQuickCheckResult <$> qc p `shouldReturn` result
@@ -200,7 +209,13 @@ spec = do
                 , "0"
                 , ""
                 , "Passed:"
-                , "-1"
+                , "0"
+                , ""
+                , "Passed:"
+                , "-2"
+                , ""
+                , "Passed:"
+                , "3"
                 , ""
                 , "Failed:"
                 , "2"
