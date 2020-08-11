@@ -1,4 +1,4 @@
-## Next
+## Changes in 2.7.2
   - Interrupt diff calculation if it takes longer than two seconds (see #415)
 
 ## Changes in 2.7.1

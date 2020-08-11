@@ -1,13 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 9b44a2b69e59bf10ff6d4877ff4484732ed37786a4021fc8b09a8032a9e28664
 
 name:             hspec-discover
-version:          2.7.1
+version:          2.7.2
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2012-2019 Simon Hengel

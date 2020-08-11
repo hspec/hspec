@@ -1,13 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 82bc339ad7726a9fc53ee3731cd9e47f997a9d73e6297de54342d95744b1eaaa
 
 name:             hspec
-version:          2.7.1
+version:          2.7.2
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2019 Simon Hengel,
@@ -46,8 +44,8 @@ library
   build-depends:
       QuickCheck >=2.12
     , base ==4.*
-    , hspec-core ==2.7.1
-    , hspec-discover ==2.7.1
+    , hspec-core ==2.7.2
+    , hspec-discover ==2.7.2
     , hspec-expectations ==0.8.2.*
   exposed-modules:
       Test.Hspec
