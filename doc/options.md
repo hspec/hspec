@@ -28,9 +28,12 @@ Stack, and from withing a GHCi-session.
 If you are using Cabal you can use `--test-option` to pass command-line options
 to Hspec:
 
-<pre><kbd class="shell-input">cabal test --show-details=direct --test-option=--format=progress</kbd></pre>
+<pre><kbd class="shell-input">cabal test --test-show-details=direct --test-option=--format=progress</kbd></pre>
+<pre><kbd class="shell-input">cabal test --test-show-details=direct --test-option=--match --test-option="some spec item"</kbd></pre>
 
-{% note When running Hspec tests via Cabal, it is recommended to always specify `--show-details=direct`. %}
+{% note When running Hspec tests via Cabal, it is recommended to always specify `--test-show-details=direct`. %}
+
+{% note With older versions of Cabal use `--show-details=direct` instead of `--test-show-details=direct`. %}
 
 ### Stack
 
@@ -38,6 +41,7 @@ If you are using `stack` you can use `--test-arguments` to pass command-line
 options to Hspec:
 
 <pre><kbd class="shell-input">stack test --test-arguments=--format=progress</kbd></pre>
+<pre><kbd class="shell-input">stack test --test-arguments='--match "some spec item"'</kbd></pre>
 
 ### GHCi
 
@@ -46,6 +50,9 @@ options right after `:main`:
 
 ```
 *Main> :main --format=progress
+```
+```
+*Main> :main --match "some spec item"
 ```
 
 ## Specifying options in config files
