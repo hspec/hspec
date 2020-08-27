@@ -22,7 +22,7 @@ number of discarded tests per successful test before giving up and the size of
 the test case:
 
 ```hspec
-import Test.Hspec.Core.QuickCheck (modifyMaxSize)
+import Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
 
 describe "read" $ do
   modifyMaxSuccess (const 1000) $ it "is inverse to show" $ property $
