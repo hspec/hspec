@@ -39,6 +39,9 @@ import           System.IO
 import           System.Environment (getArgs, withArgs)
 import           System.Exit
 import qualified Control.Exception as E
+import           System.Random
+import           Control.Monad.ST
+import           Data.STRef
 
 import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
@@ -50,6 +53,7 @@ import           Test.Hspec.Core.Formatters
 import           Test.Hspec.Core.Formatters.Internal
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
+import           Test.Hspec.Core.Shuffle
 
 import           Test.Hspec.Core.Runner.Eval
 
@@ -219,8 +223,11 @@ runSpec_ config spec = do
     let
       focusedSpec = focusSpec config (failFocusedItems config spec)
       params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+      randomize
+        | configRandomize config = randomizeForest seed
+        | otherwise = id
 
-    filteredSpec <- filterSpecs config . mapMaybe (toEvalTree params) . applyDryRun config <$> runSpecM focusedSpec
+    filteredSpec <- randomize . filterSpecs config . mapMaybe (toEvalTree params) . applyDryRun config <$> runSpecM focusedSpec
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
@@ -306,3 +313,14 @@ instance Monoid Summary where
 instance Semigroup Summary where
   (Summary x1 x2) <> (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
 #endif
+
+randomizeForest :: Integer -> [Tree c a] -> [Tree c a]
+randomizeForest seed t = runST $ do
+  ref <- newSTRef (mkStdGen $ fromIntegral seed)
+  mapM (randomizeTree ref) t
+
+randomizeTree :: STRef s StdGen -> Tree c a -> ST s (Tree c a)
+randomizeTree ref t = case t of
+  Node d xs -> Node d <$> shuffle ref xs
+  NodeWithCleanup c xs -> NodeWithCleanup c <$> shuffle ref xs
+  Leaf {} -> return t

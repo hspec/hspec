@@ -37,6 +37,7 @@ data Config = Config {
 , configFailOnFocused :: Bool
 , configPrintCpuTime :: Bool
 , configFastFail :: Bool
+, configRandomize :: Bool
 , configFailureReport :: Maybe FilePath
 , configRerun :: Bool
 , configRerunAllOnSuccess :: Bool
@@ -67,6 +68,7 @@ defaultConfig = Config {
 , configFailOnFocused = False
 , configPrintCpuTime = False
 , configFastFail = False
+, configRandomize = False
 , configFailureReport = Nothing
 , configRerun = False
 , configRerunAllOnSuccess = False
@@ -199,10 +201,13 @@ runnerOptions = concat [
   , mkFlag "focused-only" setFocusedOnly "do not run anything, unless there are focused spec items"
   , mkFlag "fail-on-focused" setFailOnFocused "fail on focused spec items"
   , mkFlag "fail-fast" setFastFail "abort on first failure"
+  , mkFlag "randomize" setRandomize "randomize execution order"
   ] ++ [
     Option "r" ["rerun"] (NoArg  setRerun) "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
   , mkOption [] "failure-report" (Arg "FILE" return setFailureReport) "read/write a failure report for use with --rerun"
   , Option [] ["rerun-all-on-success"] (NoArg setRerunAllOnSuccess) "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
+
+
   , mkOption "j" "jobs" (Arg "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
   ]
   where
@@ -229,6 +234,9 @@ runnerOptions = concat [
 
     setFastFail :: Bool -> Config -> Config
     setFastFail value config = config {configFastFail = value}
+
+    setRandomize :: Bool -> Config -> Config
+    setRandomize value config = config {configRandomize = value}
 
     setRerun        = set $ \config -> config {configRerun = True}
     setRerunAllOnSuccess = set $ \config -> config {configRerunAllOnSuccess = True}

@@ -1,3 +1,6 @@
+## Changes in next
+  - Add `--randomize`
+
 ## Changes in 2.7.2
   - Interrupt diff calculation if it takes longer than two seconds (see #415)
 

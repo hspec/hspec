@@ -71,6 +71,7 @@ library
       Test.Hspec.Core.Formatters.Monad
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Shuffle
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
@@ -132,6 +133,7 @@ test-suite spec
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Shuffle
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
@@ -156,6 +158,7 @@ test-suite spec
       Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.Runner.EvalSpec
       Test.Hspec.Core.RunnerSpec
+      Test.Hspec.Core.ShuffleSpec
       Test.Hspec.Core.SpecSpec
       Test.Hspec.Core.TimerSpec
       Test.Hspec.Core.UtilSpec
