@@ -146,7 +146,7 @@ import Data.Traversable
 #if __GLASGOW_HASKELL__ < 710
 import Data.Typeable
 #endif
-#if MIN_VERSION_base(4,9,0)
+#if MIN_VERSION_base(4,9,0) && !MIN_VERSION_base(4,13,0)
 import Data.Semigroup (Semigroup((<>)))
 #endif
 
