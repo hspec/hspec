@@ -8,7 +8,7 @@ import           Test.Hspec.Core.Config
 
 spec :: Spec
 spec = do
-  describe "readConfigFiles" $ around_ (withEnvironment []) $ around_ inTempDirectory $ do
+  describe "readConfigFiles" $ around_ inTempDirectory $ around_ (withEnvironment [("HOME", "/foo")]) $ do
     it "reads .hspec" $ do
       dir <- getCurrentDirectory
       let name = dir </> ".hspec"

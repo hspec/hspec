@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
+{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
 module Test.Hspec.Core.Example.LocationSpec (spec) where
 
 import           Helper
