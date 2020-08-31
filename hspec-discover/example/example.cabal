@@ -6,6 +6,7 @@ cabal-version:    >= 1.8
 library
 
 test-suite spec
+  build-tool-depends: hspec-discover:hspec-discover
   type:
       exitcode-stdio-1.0
   ghc-options:

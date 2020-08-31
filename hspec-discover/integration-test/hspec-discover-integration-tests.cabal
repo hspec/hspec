@@ -7,6 +7,7 @@ library
   default-language: Haskell2010
 
 test-suite empty
+  build-tool-depends: hspec-discover:hspec-discover
   type:
       exitcode-stdio-1.0
   ghc-options:
@@ -21,6 +22,7 @@ test-suite empty
   default-language: Haskell2010
 
 test-suite with-formatter
+  build-tool-depends: hspec-discover:hspec-discover
   type:
       exitcode-stdio-1.0
   ghc-options:
@@ -37,6 +39,7 @@ test-suite with-formatter
   default-language: Haskell2010
 
 test-suite with-io-formatter
+  build-tool-depends: hspec-discover:hspec-discover
   type:
       exitcode-stdio-1.0
   ghc-options:
@@ -55,6 +58,7 @@ test-suite with-io-formatter
   default-language: Haskell2010
 
 test-suite with-formatter-empty
+  build-tool-depends: hspec-discover:hspec-discover
   type:
       exitcode-stdio-1.0
   ghc-options:
@@ -69,6 +73,7 @@ test-suite with-formatter-empty
   default-language: Haskell2010
 
 test-suite with-no-main
+  build-tool-depends: hspec-discover:hspec-discover
   type:
       exitcode-stdio-1.0
   ghc-options:
@@ -85,6 +90,7 @@ test-suite with-no-main
   default-language: Haskell2010
 
 test-suite with-module-name
+  build-tool-depends: hspec-discover:hspec-discover
   type:
       exitcode-stdio-1.0
   ghc-options:
@@ -101,6 +107,7 @@ test-suite with-module-name
   default-language: Haskell2010
 
 test-suite with-no-implicit-prelude
+  build-tool-depends: hspec-discover:hspec-discover
   type:
       exitcode-stdio-1.0
   ghc-options:
