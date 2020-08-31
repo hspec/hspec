@@ -1,4 +1,4 @@
-## Changes in 2.7.3 (unreleased)
+## Changes in 2.7.3
   - Add `--randomize`
 
 ## Changes in 2.7.2
