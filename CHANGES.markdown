@@ -1,3 +1,6 @@
+## Changes in 2.7.4
+  - Apply --randomize recursively
+
 ## Changes in 2.7.3
   - Add `--randomize`
 

@@ -8,13 +8,13 @@ dependencies:
 - name: colour
   version: 2.3.4
 - name: hspec
-  version: 2.7.3
+  version: 2.7.4
 - name: hspec-contrib
   version: 0.5.1
 - name: hspec-core
-  version: 2.7.3
+  version: 2.7.4
 - name: hspec-discover
-  version: 2.7.3
+  version: 2.7.4
 - name: hspec-expectations
   version: 0.8.2
 - name: HUnit

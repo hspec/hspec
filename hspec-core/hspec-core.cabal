@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.7.3
+version:          2.7.4
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2019 Simon Hengel,
