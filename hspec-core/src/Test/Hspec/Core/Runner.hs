@@ -317,10 +317,4 @@ instance Semigroup Summary where
 randomizeForest :: Integer -> [Tree c a] -> [Tree c a]
 randomizeForest seed t = runST $ do
   ref <- newSTRef (mkStdGen $ fromIntegral seed)
-  mapM (randomizeTree ref) t
-
-randomizeTree :: STRef s StdGen -> Tree c a -> ST s (Tree c a)
-randomizeTree ref t = case t of
-  Node d xs -> Node d <$> shuffle ref xs
-  NodeWithCleanup c xs -> NodeWithCleanup c <$> shuffle ref xs
-  Leaf {} -> return t
+  shuffleForest ref t

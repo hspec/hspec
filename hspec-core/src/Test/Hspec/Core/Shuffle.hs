@@ -1,18 +1,29 @@
 {-# LANGUAGE CPP #-}
 module Test.Hspec.Core.Shuffle (
-  shuffle
+  shuffleForest
 #ifdef TEST
+, shuffle
 , mkArray
 #endif
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
+import           Test.Hspec.Core.Tree
 
 import           System.Random
 import           Control.Monad.ST
 import           Data.STRef
 import           Data.Array.ST
+
+shuffleForest :: STRef s StdGen -> [Tree c a] -> ST s [Tree c a]
+shuffleForest ref xs = (shuffle ref xs >>= mapM (shuffleTree ref))
+
+shuffleTree :: STRef s StdGen -> Tree c a -> ST s (Tree c a)
+shuffleTree ref t = case t of
+  Node d xs -> Node d <$> shuffleForest ref xs
+  NodeWithCleanup c xs -> NodeWithCleanup c <$> shuffleForest ref xs
+  Leaf {} -> return t
 
 shuffle :: STRef s StdGen -> [a] -> ST s [a]
 shuffle ref xs = do
