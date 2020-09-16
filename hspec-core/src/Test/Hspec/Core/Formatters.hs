@@ -3,7 +3,7 @@
 -- Stability: experimental
 --
 -- This module contains formatters that can be used with
--- `Test.Hspec.Runner.hspecWith`.
+-- `Test.Hspec.Core.Runner.hspecWith`.
 module Test.Hspec.Core.Formatters (
 
 -- * Formatters
