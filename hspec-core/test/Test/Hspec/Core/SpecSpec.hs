@@ -125,3 +125,11 @@ spec = do
     it "takes precedence over a later `parallel`" $ do
       [Leaf item] <- runSpecM . H.parallel . H.sequential $ H.it "whatever" H.pending
       itemIsParallelizable item `shouldBe` Just False
+
+  describe "shouldFail" $ do
+    it "can reverse the sense of a test" $ do
+      result <- runSpec . H.shouldFail $ H.it "should succeed by failing" (1 `shouldBe` (2::Int))
+      last result `shouldBe` "1 example, 0 failures"
+
+      failureResult <- runSpec . H.shouldFail $ H.it "should fail by succeeding" (2 `shouldBe` (2::Int))
+      last failureResult `shouldBe` "1 example, 1 failures"

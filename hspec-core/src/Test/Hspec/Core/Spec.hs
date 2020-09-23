@@ -28,6 +28,7 @@ module Test.Hspec.Core.Spec (
 , parallel
 , sequential
 
+, shouldFail
 -- * The @SpecM@ monad
 , module Test.Hspec.Core.Spec.Monad
 
@@ -158,3 +159,16 @@ pending_ = (E.throwIO (Pending Nothing Nothing))
 -- argument that can be used to specify the reason for why the spec item is pending.
 pendingWith :: HasCallStack => String -> Expectation
 pendingWith = E.throwIO . Pending location . Just
+
+shouldFail :: SpecWith a -> SpecWith a
+shouldFail = mapSpecItem_ (\i -> i {
+                              itemExample = \p a cb -> do
+                                  r <- (itemExample i) p a cb
+                                  pure r {resultStatus = case resultStatus r of
+                                             Success -> Failure Nothing (Reason "Unexpected success")
+                                             Failure _ _ -> Success
+                                             x -> x
+                                         }
+                                   })
+
+-- , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
