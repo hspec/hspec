@@ -132,4 +132,4 @@ spec = do
       last result `shouldBe` "1 example, 0 failures"
 
       failureResult <- runSpec . H.shouldFail $ H.it "should fail by succeeding" (2 `shouldBe` (2::Int))
-      last failureResult `shouldBe` "1 example, 1 failures"
+      last failureResult `shouldBe` "1 example, 1 failure"
