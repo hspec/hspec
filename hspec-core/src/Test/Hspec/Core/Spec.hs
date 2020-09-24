@@ -160,6 +160,8 @@ pending_ = (E.throwIO (Pending Nothing Nothing))
 pendingWith :: HasCallStack => String -> Expectation
 pendingWith = E.throwIO . Pending location . Just
 
+-- | `shouldFail` allows you to assert that a given `Spec` should contain at least one failing test.
+--   this is often useful when testing tests.
 shouldFail :: SpecWith a -> SpecWith a
 shouldFail = mapSpecItem_ (\i -> i {
                               itemExample = \p a cb -> do
@@ -170,5 +172,3 @@ shouldFail = mapSpecItem_ (\i -> i {
                                              x -> x
                                          }
                                    })
-
--- , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
