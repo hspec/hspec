@@ -5,6 +5,7 @@ module Test.Hspec.Core.Hooks (
 , beforeWith
 , beforeAll
 , beforeAll_
+, beforeAllWith
 , after
 , after_
 , afterAll
@@ -44,6 +45,12 @@ beforeAll_ :: IO () -> SpecWith a -> SpecWith a
 beforeAll_ action spec = do
   mvar <- runIO (newMVar Empty)
   before_ (memoize mvar action) spec
+
+-- | Run a custom action with an argument before the first spec item.
+beforeAllWith :: (b -> IO a) -> SpecWith a -> SpecWith b
+beforeAllWith action spec = do
+  mvar <- runIO (newMVar Empty)
+  beforeWith (memoize mvar . action) spec
 
 data Memoized a =
     Empty
