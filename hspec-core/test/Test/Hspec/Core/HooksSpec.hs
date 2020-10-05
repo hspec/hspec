@@ -155,6 +155,66 @@ spec = do
           , "bar"
           ]
 
+  describe "beforeAllWith" $ do
+    it "transforms the spec argument" $ do
+      (rec, retrieve) <- mkAppend
+      let action :: Int -> IO String
+          action = return . show
+      runSilent $ H.beforeAll (return 23) $ H.beforeAllWith action $ do
+        H.it "foo" $ \value -> rec value
+      retrieve `shouldReturn` ["23"]
+
+    it "can be used multiple times" $ do
+      let action1 :: Int -> IO Int
+          action1 = return . succ
+
+          action2 :: Int -> IO String
+          action2 = return . show
+
+          action3 :: String -> IO String
+          action3 = return . ("foo " ++)
+
+      (rec, retrieve) <- mkAppend
+
+      runSilent $ H.beforeAll (return 23) $
+        H.beforeAllWith action1 $ H.beforeAllWith action2 $ H.beforeAllWith action3 $ do
+          H.it "foo" $ \value -> rec value
+
+      retrieve `shouldReturn` ["foo 24"]
+
+    it "runs an action before the first spec item" $ do
+      (rec, retrieve) <- mkAppend
+      runSilent $ H.beforeAll (return (23 :: Int)) $
+        H.beforeAllWith (\value -> rec "beforeAllWith" >> return (show value)) $ do
+          H.it "foo" $ \value -> do
+            rec $ "foo " ++ value
+          H.it "bar" $ \value -> do
+            rec $ "bar " ++ value
+      retrieve `shouldReturn` [
+          "beforeAllWith"
+        , "foo 23"
+        , "bar 23"
+        ]
+
+    context "when specified action throws an exception" $ do
+      it "sets subsequent spec items to pending" $ do
+        result <- silence . H.hspecResult $
+          H.beforeAll (return (23 :: Int)) $
+            H.beforeAllWith (\_ -> throwIO (ErrorCall "foo")) $ do
+              H.it "foo" $ \n -> do
+                n `shouldBe` (23 :: Int)
+              H.it "bar" $ \n -> do
+                n `shouldBe` 23
+        result `shouldBe` H.Summary {H.summaryExamples = 2, H.summaryFailures = 1}
+
+    context "when used with an empty list of examples" $ do
+      it "does not run specified action" $ do
+        (rec, retrieve) <- mkAppend
+        runSilent $ H.beforeAll (return (23 :: Int)) $
+          H.beforeAllWith (\_ -> rec "beforeAllWith" >> return "value") $ do
+            return ()
+        retrieve `shouldReturn` []
+
   describe "after" $ do
     it "runs an action after every spec item" $ do
       (rec, retrieve) <- mkAppend
