@@ -1,5 +1,8 @@
+## Changes in next
+  - Extract source locations from `NoMethodError` and `AssertionFailed`
+
 ## Changes in 2.7.4
-  - Apply --randomize recursively
+  - Apply `--randomize` recursively
 
 ## Changes in 2.7.3
   - Add `--randomize`
