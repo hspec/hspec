@@ -5,7 +5,7 @@ import           System.SetEnv
 import qualified All
 
 spec :: Spec
-spec = beforeAll_ (setEnv "IGNORE_DOT_HSPEC" "yes") $ afterAll_ (unsetEnv "IGNORE_DOT_HSPEC") All.spec
+spec = beforeAll_ (setEnv "IGNORE_DOT_HSPEC" "yes" >> unsetEnv "HSPEC_OPTIONS") $ afterAll_ (unsetEnv "IGNORE_DOT_HSPEC") All.spec
 
 main :: IO ()
 main = hspec spec
