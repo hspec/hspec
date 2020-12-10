@@ -1,0 +1,78 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / Cabal ${{ matrix.cabal }} / GHC ${{ matrix.ghc }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-16.04
+        cabal:
+          - 3.2
+        ghc:
+          - 7.4.1
+          - 7.4.2
+          - 7.6.1
+          - 7.6.2
+          - 7.6.3
+          - 7.8.1
+          - 7.8.2
+          - 7.8.3
+          - 7.8.4
+          - 7.10.1
+          - 7.10.2
+          - 7.10.3
+          - 8.0.1
+          - 8.0.2
+          - 8.2.1
+          - 8.2.2
+          - 8.4.1
+          - 8.4.2
+          - 8.4.3
+          - 8.4.4
+          - 8.6.1
+          - 8.6.2
+          - 8.6.3
+          - 8.6.4
+          - 8.6.5
+          - 8.8.1
+          - 8.8.2
+          - 8.8.3
+          - 8.8.4
+          - 8.10.1
+          - 8.10.2
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-haskell@v1
+        with:
+          cabal-version: ${{ matrix.cabal }}
+          ghc-version: ${{ matrix.ghc }}
+
+      - name: Install dependencies
+        run: |
+          cabal update
+          cabal build --only-dependencies --enable-tests --enable-benchmarks
+      - name: Build
+        run: cabal build --enable-tests --enable-benchmarks all
+      - name: Run tests
+        run: cabal test all --test-show-details=direct
+        env:
+          HSPEC_OPTIONS: --color
+
+      - name: Run regression tests
+        run: |
+          cabal install --lib --package-env test/regression/issue-169/
+          test/regression/issue-169/run.sh
+          cabal install --lib --package-env test/regression/issue-270/
+          test/regression/issue-270/run.sh
+        if: startsWith(matrix.ghc, '8.') && matrix.ghc != '8.0.1'
