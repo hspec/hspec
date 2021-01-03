@@ -1,4 +1,4 @@
-## Changes in next
+## Changes in 2.7.5
   - Extract source locations from `NoMethodError` and `AssertionFailed`
 
 ## Changes in 2.7.4
