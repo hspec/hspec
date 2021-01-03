@@ -1,5 +1,7 @@
+_: !include ../version.yaml
+
 name: hspec-core
-version: 2.7.4
+version: *version
 synopsis: A Testing Framework for Haskell
 description: >
   This package exposes internal types and functions that can be used to extend
