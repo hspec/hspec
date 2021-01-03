@@ -1,7 +1,7 @@
 name: hspec-contrib
 version: 0.5.1
 copyright:
-  - (c) 2011-2019 Simon Hengel
+  - (c) 2011-2021 Simon Hengel
   - (c) 2014 Junji Hashimoto
 maintainer: Simon Hengel <sol@typeful.net>
 category: Testing
