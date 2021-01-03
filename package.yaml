@@ -1,5 +1,7 @@
+_: !include version.yaml
+
 name:             hspec
-version:          2.7.4
+version: *version
 copyright:
   - (c) 2011-2021 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
@@ -29,10 +31,11 @@ github: hspec/hspec
 
 ghc-options: -Wall
 
+
 dependencies:
   base: 4.*
-  hspec-core: 2.7.4
-  hspec-discover: 2.7.4
+  hspec-core: *version
+  hspec-discover: *version
   hspec-expectations: 0.8.2.*
   QuickCheck: ">= 2.12"
 
