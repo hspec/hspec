@@ -13,6 +13,8 @@ copyright:        (c) 2011-2021 Simon Hengel,
                   (c) 2011 Greg Weber
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
+extra-source-files:
+    version.yaml
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues

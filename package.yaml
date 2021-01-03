@@ -25,7 +25,9 @@ description: |
 
   The Hspec Manual is at <http://hspec.github.io/>.
 
-extra-source-files: CHANGES.markdown
+extra-source-files:
+  - version.yaml
+  - CHANGES.markdown
 
 github: hspec/hspec
 
