@@ -31,6 +31,7 @@ description:      Hspec is a testing framework for Haskell.  Some of Hspec's dis
                   .
                   The Hspec Manual is at <http://hspec.github.io/>.
 extra-source-files:
+    version.yaml
     CHANGES.markdown
 
 source-repository head

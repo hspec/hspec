@@ -1,4 +1,4 @@
-_: !include ../version.yaml
+_: !include version.yaml
 
 name:             hspec-discover
 version: *version
@@ -17,6 +17,7 @@ description: |
 github: hspec/hspec/hspec-discover
 
 extra-source-files:
+  - version.yaml
   - test-data/**/*.hs
   - test-data/**/.placeholder
 

@@ -21,6 +21,7 @@ description:      Automatically discover and run Hspec tests
                   .
                   <http://hspec.github.io/hspec-discover.html>
 extra-source-files:
+    version.yaml
     test-data/nested-spec/Foo/Bar/BazSpec.hs
     test-data/nested-spec/Foo/BarSpec.hs
     test-data/nested-spec/FooSpec.hs

@@ -1,4 +1,4 @@
-_: !include ../version.yaml
+_: !include version.yaml
 
 name: hspec-core
 version: *version
@@ -16,6 +16,8 @@ stability: experimental
 homepage: http://hspec.github.io/
 
 github: hspec/hspec/hspec-core
+
+extra-source-files: version.yaml
 
 ghc-options: -Wall
 
