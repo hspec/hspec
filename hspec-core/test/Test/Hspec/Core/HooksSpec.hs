@@ -467,6 +467,22 @@ spec = do
         ]
       mockCounter mock `shouldReturn` 3
 
+  describe "aroundAll" $ do
+    it "wraps an action around a spec" $ do
+      (rec, retrieve) <- mkAppend
+      let action e = rec "before" *> e "from around" <* rec "after"
+      evalSpec_ $ H.aroundAll action $ do
+        H.it "foo" $ rec . ("foo " ++)
+        H.it "bar" $ rec . ("bar " ++)
+        H.it "baz" $ rec . ("baz " ++)
+      retrieve `shouldReturn` [
+          "before"
+        , "foo from around"
+        , "bar from around"
+        , "baz from around"
+        , "after"
+        ]
+
   describe "aroundAll_" $ do
     it "wraps an action around a spec" $ do
       (rec, retrieve) <- mkAppend
@@ -510,6 +526,40 @@ spec = do
     it "reports exceptions on release" $ do
       evalSpec $ do
         H.aroundAll_ (<* throwException) $ do
+          H.it "foo" True
+      `shouldReturn` [
+        item ["foo"] Success
+      , item ["afterAll-hook"] divideByZero
+      ]
+
+  describe "aroundAllWith" $ do
+    it "wraps an action around a spec" $ do
+      mock <- newMock
+      (rec, retrieve) <- mkAppend
+      let action = (. show)
+      evalSpec_ $ H.before (mockAction mock >> mockCounter mock) $ H.aroundAllWith action $ do
+        H.it "foo" rec
+        H.it "bar" rec
+        H.it "baz" rec
+      retrieve `shouldReturn` [
+          "1"
+        , "1"
+        , "1"
+        ]
+      mockCounter mock `shouldReturn` 4
+
+    it "reports exceptions on acquire" $ do
+      evalSpec $ do
+        H.aroundAllWith (\ action () -> throwException >>= action) $ do
+          H.it "foo" H.pending
+      `shouldReturn` [
+        item ["foo"] divideByZero
+      , item ["afterAll-hook"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+      ]
+
+    it "reports exceptions on release" $ do
+      evalSpec $ do
+        H.aroundAllWith (\ action () -> action () <* throwException) $ do
           H.it "foo" True
       `shouldReturn` [
         item ["foo"] Success
