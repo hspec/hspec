@@ -3,6 +3,7 @@ module Test.Hspec.Core.HooksSpec (spec) where
 
 import           Prelude ()
 import           Helper
+import           Mock
 
 import           Control.Exception
 
@@ -452,6 +453,56 @@ spec = do
       runSilent $ H.before (return 23) $ H.aroundWith action $ do
         H.it "foo" rec
       retrieve `shouldReturn` ["23"]
+
+  describe "aroundAll_" $ do
+    it "wraps an action around a spec" $ do
+      (rec, retrieve) <- mkAppend
+      let action inner = rec "before" *> inner <* rec "after"
+      _ <- evalSpec $ H.aroundAll_ action $ do
+        H.it "foo" $ rec "foo"
+        H.it "bar" $ rec "bar"
+      retrieve `shouldReturn` [
+          "before"
+        , "foo"
+        , "bar"
+        , "after"
+        ]
+
+    it "does not memoize subject" $ do
+      mock <- newMock
+      let action :: IO Int
+          action = mockAction mock >> mockCounter mock
+
+      (rec, retrieve) <- mkAppend
+      _ <- evalSpec $ H.before action $ H.aroundAll_ id $ do
+        H.it "foo" $ rec . show
+        H.it "bar" $ rec . show
+        H.it "baz" $ rec . show
+      retrieve `shouldReturn` [
+          "1"
+        , "2"
+        , "3"
+        ]
+      mockCounter mock `shouldReturn` 4
+
+    it "reports exceptions in acquire-part" $ do
+      evalSpec $ do
+        H.aroundAll_ (throwException <*) $ do
+          H.it "foo" True
+      `shouldReturn` [
+        item ["foo"] divideByZero
+      , item ["afterAll-hook"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+      ]
+
+    it "reports exceptions in cleanup-part" $ do
+      evalSpec $ do
+        H.aroundAll_ (<* throwException) $ do
+          H.it "foo" True
+      `shouldReturn` [
+        item ["foo"] Success
+      , item ["afterAll-hook"] divideByZero
+      ]
+
   where
     divideByZero :: Result
     divideByZero = Failure (Error Nothing $ toException DivideByZero)
