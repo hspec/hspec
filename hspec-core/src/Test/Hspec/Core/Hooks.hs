@@ -13,10 +13,15 @@ module Test.Hspec.Core.Hooks (
 , around
 , around_
 , aroundWith
+, aroundAll_
 ) where
 
-import           Control.Exception (SomeException, finally, throwIO, try)
+import           Prelude ()
+import           Test.Hspec.Core.Compat
+
+import           Control.Exception (SomeException, finally, throwIO, try, catch)
 import           Control.Concurrent.MVar
+import           Control.Concurrent.Async
 
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
@@ -98,3 +103,33 @@ aroundWith action = mapSpecItem action (modifyAroundAction action)
 modifyAroundAction :: (ActionWith a -> ActionWith b) -> Item a -> Item b
 modifyAroundAction action item@Item{itemExample = e} =
   item{ itemExample = \params aroundAction -> e params (aroundAction . action) }
+
+-- | Wrap an action around the given spec.
+aroundAll_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
+aroundAll_ action spec = do
+  startCleanup <- runIO newEmptyMVar
+  workerRef <- runIO newEmptyMVar
+  let
+    acquire :: IO ()
+    acquire = do
+      acquireDone <- newEmptyMVar
+      worker <- async $ do
+        action $ do
+          signal acquireDone
+          waitFor startCleanup
+      putMVar workerRef worker
+      unwrapExceptionsFromLinkedThread $ do
+        link worker
+        waitFor acquireDone
+    cleanup :: IO ()
+    cleanup = signal startCleanup >> takeMVar workerRef >>= wait
+  beforeAll_ acquire $ afterAll_ cleanup spec
+  where
+    signal :: MVar () -> IO ()
+    signal = flip putMVar ()
+
+    waitFor :: MVar () -> IO ()
+    waitFor = takeMVar
+
+    unwrapExceptionsFromLinkedThread :: IO a -> IO a
+    unwrapExceptionsFromLinkedThread = (`catch` \ (ExceptionInLinkedThread _ e) -> throwIO e)

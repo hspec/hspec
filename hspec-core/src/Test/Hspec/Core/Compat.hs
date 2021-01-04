@@ -60,6 +60,9 @@ import           Prelude hiding (
   , sequence
   , sequence_
   , sum
+#if !MIN_VERSION_base(4,6,0)
+  , catch
+#endif
   )
 
 import           Data.Typeable (Typeable, typeOf, typeRepTyCon)
