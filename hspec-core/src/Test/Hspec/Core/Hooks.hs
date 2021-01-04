@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
   before
@@ -13,7 +14,9 @@ module Test.Hspec.Core.Hooks (
 , around
 , around_
 , aroundWith
+, aroundAll
 , aroundAll_
+, aroundAllWith
 ) where
 
 import           Prelude ()
@@ -105,6 +108,10 @@ modifyAroundAction action item@Item{itemExample = e} =
   item{ itemExample = \params aroundAction -> e params (aroundAction . action) }
 
 -- | Wrap an action around the given spec.
+aroundAll :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
+aroundAll action = aroundAllWith $ \ e () -> action e
+
+-- | Wrap an action around the given spec.
 aroundAll_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
 aroundAll_ action spec = do
   allSpecItemsDone <- runIO newEmptyMVar
@@ -124,6 +131,27 @@ aroundAll_ action spec = do
     release :: IO ()
     release = signal allSpecItemsDone >> takeMVar workerRef >>= wait
   beforeAll_ acquire $ afterAll_ release spec
+
+-- | Wrap an action around the given spec. Changes the arg type inside.
+aroundAllWith :: forall a b. (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+aroundAllWith action spec = do
+  allSpecItemsDone <- runIO newEmptyMVar
+  workerRef <- runIO newEmptyMVar
+  let
+    acquire :: b -> IO a
+    acquire b = do
+      resource <- newEmptyMVar
+      worker <- async $ do
+        flip action b $ \ a -> do
+          putMVar resource a
+          waitFor allSpecItemsDone
+      putMVar workerRef worker
+      unwrapExceptionsFromLinkedThread $ do
+        link worker
+        takeMVar resource
+    release :: IO ()
+    release = signal allSpecItemsDone >> takeMVar workerRef >>= wait
+  beforeAllWith acquire $ afterAll_ release spec
 
 unwrapExceptionsFromLinkedThread :: IO a -> IO a
 unwrapExceptionsFromLinkedThread = (`catch` \ (ExceptionInLinkedThread _ e) -> throwIO e)
