@@ -68,7 +68,7 @@ instance Eq SomeException where
   (==) = exceptionEq
 
 throwException :: IO ()
-throwException = E.throwIO (E.ErrorCall "foobar")
+throwException = E.throwIO DivideByZero
 
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
