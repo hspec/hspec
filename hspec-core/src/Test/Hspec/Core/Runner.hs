@@ -78,18 +78,18 @@ filterSpecs c = go []
       Node group specs -> goSpecs (groups ++ [group]) specs (Node group)
       NodeWithCleanup action specs -> goSpecs groups specs (NodeWithCleanup action)
 
-applyDryRun :: Config -> [SpecTree ()] -> [SpecTree ()]
+applyDryRun :: Config -> [EvalTree] -> [EvalTree]
 applyDryRun c
   | configDryRun c = map (removeCleanup . fmap markSuccess)
   | otherwise = id
   where
-    markSuccess :: Item () -> Item ()
-    markSuccess item = item {itemExample = safeEvaluateExample (Result "" Success)}
+    markSuccess :: EvalItem -> EvalItem
+    markSuccess item = item {evalItemAction = \ _ -> return $ Result "" Success}
 
-    removeCleanup :: SpecTree () -> SpecTree ()
+    removeCleanup :: EvalTree -> EvalTree
     removeCleanup spec = case spec of
       Node x xs -> Node x (map removeCleanup xs)
-      NodeWithCleanup _ xs -> NodeWithCleanup (\() -> return ()) (map removeCleanup xs)
+      NodeWithCleanup _ xs -> NodeWithCleanup (return ()) (map removeCleanup xs)
       leaf@(Leaf _) -> leaf
 
 -- | Run a given spec and write a report to `stdout`.
@@ -224,7 +224,7 @@ runSpec_ config spec = do
         | configRandomize config = randomizeForest seed
         | otherwise = id
 
-    filteredSpec <- randomize . filterSpecs config . toEvalForest params . applyDryRun config <$> runSpecM focusedSpec
+    filteredSpec <- randomize . filterSpecs config . applyDryRun config . toEvalForest params <$> runSpecM focusedSpec
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
