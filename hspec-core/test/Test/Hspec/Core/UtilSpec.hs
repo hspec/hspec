@@ -49,7 +49,7 @@ spec = do
 
     it "returns Left on exception" $ do
       Left e <- safeTry throwException
-      show e `shouldBe` "foobar"
+      E.fromException e `shouldBe` Just E.DivideByZero
 
     it "evaluates result to weak head normal form" $ do
       Left e <- safeTry (return $ E.throw $ E.ErrorCall "foo")
