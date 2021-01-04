@@ -224,7 +224,7 @@ runSpec_ config spec = do
         | configRandomize config = randomizeForest seed
         | otherwise = id
 
-    filteredSpec <- randomize . filterSpecs config . mapMaybe (toEvalTree params) . applyDryRun config <$> runSpecM focusedSpec
+    filteredSpec <- randomize . filterSpecs config . toEvalForest params . applyDryRun config <$> runSpecM focusedSpec
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
@@ -246,15 +246,14 @@ runSpec_ config spec = do
     dumpFailureReport config seed qcArgs failures
     return (Summary total (length failures))
 
-toEvalTree :: Params -> SpecTree () -> Maybe EvalTree
-toEvalTree params = go
+toEvalForest :: Params -> [SpecTree ()] -> [EvalTree]
+toEvalForest params = bimapForest withUnit toEvalItem . filterForest itemIsFocused
   where
-    go :: Tree (() -> c) (Item ()) -> Maybe (Tree c EvalItem)
-    go t = case t of
-      Node s xs -> Just $ Node s (mapMaybe go xs)
-      NodeWithCleanup c xs -> Just $ NodeWithCleanup (c ()) (mapMaybe go xs)
-      Leaf (Item requirement loc isParallelizable isFocused e) ->
-        guard isFocused >> return (Leaf (EvalItem requirement loc (fromMaybe False isParallelizable) (e params $ ($ ()))))
+    toEvalItem :: Item () -> EvalItem
+    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem requirement loc (fromMaybe False isParallelizable) (e params withUnit)
+
+    withUnit :: ActionWith () -> IO ()
+    withUnit action = action ()
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
 dumpFailureReport config seed qcArgs xs = do
