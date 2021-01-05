@@ -80,17 +80,14 @@ filterSpecs c = go []
 
 applyDryRun :: Config -> [EvalTree] -> [EvalTree]
 applyDryRun c
-  | configDryRun c = map (removeCleanup . fmap markSuccess)
+  | configDryRun c = bimapForest removeCleanup markSuccess
   | otherwise = id
   where
+    removeCleanup :: IO () -> IO ()
+    removeCleanup _ = return ()
+
     markSuccess :: EvalItem -> EvalItem
     markSuccess item = item {evalItemAction = \ _ -> return $ Result "" Success}
-
-    removeCleanup :: EvalTree -> EvalTree
-    removeCleanup spec = case spec of
-      Node x xs -> Node x (map removeCleanup xs)
-      NodeWithCleanup _ xs -> NodeWithCleanup (return ()) (map removeCleanup xs)
-      leaf@(Leaf _) -> leaf
 
 -- | Run a given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
