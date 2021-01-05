@@ -13,6 +13,9 @@ module Test.Hspec.Core.Tree (
 , specGroup
 , specItem
 , bimapTree
+, bimapForest
+, filterTree
+, filterForest
 , location
 ) where
 
@@ -35,6 +38,9 @@ data Tree c a =
 -- over the type of cleanup actions and the type of the actual spec items.
 type SpecTree a = Tree (ActionWith a) (Item a)
 
+bimapForest :: (a -> b) -> (c -> d) -> [Tree a c] -> [Tree b d]
+bimapForest g f = map (bimapTree g f)
+
 bimapTree :: (a -> b) -> (c -> d) -> Tree a c -> Tree b d
 bimapTree g f = go
   where
@@ -42,6 +48,15 @@ bimapTree g f = go
       Node d xs -> Node d (map go xs)
       NodeWithCleanup cleanup xs -> NodeWithCleanup (g cleanup) (map go xs)
       Leaf item -> Leaf (f item)
+
+filterForest :: (a -> Bool) -> [Tree c a] -> [Tree c a]
+filterForest = mapMaybe . filterTree
+
+filterTree :: (a -> Bool) -> Tree c a -> Maybe (Tree c a)
+filterTree p t = case t of
+  Node s xs -> Just $ Node s (filterForest p xs)
+  NodeWithCleanup c xs -> Just $ NodeWithCleanup c (filterForest p xs)
+  leaf@(Leaf a) -> guard (p a) >> return leaf
 
 -- |
 -- @Item@ is used to represent spec items internally.  A spec item consists of:
