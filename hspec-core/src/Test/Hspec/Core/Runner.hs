@@ -57,9 +57,6 @@ import           Test.Hspec.Core.Shuffle
 
 import           Test.Hspec.Core.Runner.Eval
 
--- | Filter specs by given predicate.
---
--- The predicate takes a list of "describe" labels and a "requirement".
 filterSpecs :: Config -> [EvalTree] -> [EvalTree]
 filterSpecs c = go []
   where
