@@ -16,6 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false # required so that jobs.success is not skipped on failures; we can't skip `jobs.success` as skipped jobs trigger auto-merge
       matrix:
         os:
           - ubuntu-16.04 # https://launchpad.net/~hvr/+archive/ubuntu/ghc?field.series_filter=xenial
