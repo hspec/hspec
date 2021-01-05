@@ -108,7 +108,7 @@ focus spec = do
   let
     ys
       | any (any itemIsFocused) xs = xs
-      | otherwise = map (bimapTree id (\ item -> item {itemIsFocused = True})) xs
+      | otherwise = bimapForest id (\ item -> item {itemIsFocused = True}) xs
   fromSpecList ys
 
 -- | @fit@ is an alias for @fmap focus . it@
