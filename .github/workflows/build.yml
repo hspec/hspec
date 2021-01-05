@@ -53,7 +53,6 @@ jobs:
           - 8.8.4
           - 8.10.1
           - 8.10.2
-          - 8.10.3
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-haskell@v1
@@ -72,10 +71,10 @@ jobs:
         if: startsWith(matrix.ghc, '8.') && matrix.ghc != '8.0.1'
 
   success:
-    if: always() # this is required as GitHub considers "skipped" jobs as "passed" when checking branch protection rules
     needs: build
     runs-on: ubuntu-latest
+    if: always() # this is required as GitHub considers "skipped" jobs as "passed" when checking branch protection rules
+
     steps:
-      - uses: technote-space/workflow-conclusion-action@v2
       - run: exit 1
-        if: env.WORKFLOW_CONCLUSION == 'failure'
+        if: needs.build.result != 'success'
