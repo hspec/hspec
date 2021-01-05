@@ -16,7 +16,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: false # required so that jobs.success is not skipped on failures; we can't skip `jobs.success` as skipped jobs trigger auto-merge
       matrix:
         os:
           - ubuntu-16.04 # https://launchpad.net/~hvr/+archive/ubuntu/ghc?field.series_filter=xenial
@@ -73,6 +72,10 @@ jobs:
         if: startsWith(matrix.ghc, '8.') && matrix.ghc != '8.0.1'
 
   success:
-    needs: [build]
+    if: always() # this is required as GitHub considers "skipped" jobs as "passed" when checking branch protection rules
+    needs: build
     runs-on: ubuntu-latest
-    steps: [run: echo success]
+    steps:
+      - uses: technote-space/workflow-conclusion-action@v2
+      - run: exit 1
+        if: env.WORKFLOW_CONCLUSION == 'failure'
