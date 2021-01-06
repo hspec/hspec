@@ -1,3 +1,6 @@
+## Changes in 2.7.6
+  - Add `beforeAllWith` (see #447)
+
 ## Changes in 2.7.5
   - Extract source locations from `NoMethodError` and `AssertionFailed`
 
