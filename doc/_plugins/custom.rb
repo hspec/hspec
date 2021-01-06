@@ -5,17 +5,17 @@ module Hspec
   module CustomFilters
     def runhaskell(args)
       cmd = "runhaskell -Wall -Werror #{args}"
-      cache  = ".cache/runhaskell"
+      cache  = "_cache/runhaskell"
       system "mkdir -p #{cache}"
 
-      digest = Digest::MD5.hexdigest(cmd)
+      source = args.split.select {|i| i[/\.hs$/] }.first
+      digest = Digest::MD5.hexdigest(cmd + File.read(source))
       file   = File.join cache, digest
 
-      puts "#{cmd}"
       if File.exists? file
-        puts "  using cache file #{file}"
         File.read file
       else
+        puts "#{cmd}"
         r = `#{cmd}`
           .gsub(/Finished in \S+ seconds/, 'Finished in 0.0005 seconds')
           .gsub(/_includes\/introduction\/MathSpec.hs:/, 'MathSpec.hs:')
