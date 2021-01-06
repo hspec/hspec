@@ -425,7 +425,7 @@ Internal changes:
  - `hspec-discover`, a mechanism for automatic spec discovery, is now an
    official part of Hspec.
    Have a look at [`hspec-discover`'s README]
-   (https://github.com/hspec/hspec/tree/master/hspec-discover#readme)
+   (https://github.com/hspec/hspec/tree/main/hspec-discover#readme)
    for a short introduction.
 
 ## Changes in 1.2.0
