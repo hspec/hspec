@@ -56,6 +56,7 @@ module Test.Hspec (
 , beforeWith
 , beforeAll
 , beforeAll_
+, beforeAllWith
 , after
 , after_
 , afterAll
