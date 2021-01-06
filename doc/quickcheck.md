@@ -14,9 +14,11 @@ describe "read" $ do
     \x -> (read . show) x `shouldBe` (x :: Int)
 ```
 
-`it "description" $ property $ ...` is a very common pattern, so
-{{'Test.Hspec.QuickCheck'|id}} module provides {{'prop'|id}} function. With {{'prop'|id}},
-the last example is also written as this:
+{% example QuickCheck.hs %}
+
+`it ".." $ property $ ..` is a common pattern. The
+{{'Test.Hspec.QuickCheck'|id}} module provides the {{'prop'|id}} function as a
+shortcut. With `prop`, the last example can be written as:
 
 ```hspec
 describe "read" $ do
@@ -24,7 +26,7 @@ describe "read" $ do
     \x -> (read . show) x `shouldBe` (x :: Int)
 ```
 
-{% example QuickCheck.hs %}
+{% example QuickCheckProp.hs %}
 
 It's also possible to modify some of the arguments passed to the Quickcheck
 driver, namely: the maximum number of successes before succeeding, the maximum
@@ -32,7 +34,7 @@ number of discarded tests per successful test before giving up and the size of
 the test case:
 
 ```hspec
-import Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
+import Test.Hspec.QuickCheck (modifyMaxSuccess)
 
 describe "read" $ do
   modifyMaxSuccess (const 1000) $ it "is inverse to show" $ property $

@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/hspec/pygments.rb.git
-  revision: 239add1ad763a48c335d98e21adce3e53f3c4513
+  revision: aa9d3ef47029276ac585f1070ce853541bc0954f
   tag: v1.1.2-hspec
   specs:
     pygments.rb (1.1.2)
@@ -76,4 +76,4 @@ DEPENDENCIES
   therubyracer
 
 BUNDLED WITH
-   1.10.6
+   1.17.3
