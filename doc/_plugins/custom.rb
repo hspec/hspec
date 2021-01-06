@@ -4,7 +4,7 @@ require "jekyll-less"
 module Hspec
   module CustomFilters
     def runhaskell(args)
-      cmd = "runhaskell -Wall -Werror #{args}"
+      cmd = "stack runhaskell --package hspec --package hspec-contrib -- -Wall -Werror #{args}"
       cache  = "_cache/runhaskell"
       system "mkdir -p #{cache}"
 
@@ -112,7 +112,7 @@ module Hspec
 -- file Spec.hs
 #{source}
 {% endhighlight %}
-<pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
+<pre><kbd class="shell-input">stack runhaskell --package hspec Spec.hs</kbd>
 <samp>{{ "#{file} --html --seed 921447365 --ignore-dot-hspec" | runhaskell }}</samp></pre>
 HTML
     end
