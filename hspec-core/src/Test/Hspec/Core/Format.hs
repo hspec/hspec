@@ -20,12 +20,13 @@ data Item = Item {
 , itemDuration :: Seconds
 , itemInfo :: String
 , itemResult :: Result
-}
+} deriving Show
 
 data Result =
     Success
   | Pending (Maybe String)
   | Failure FailureReason
+  deriving Show
 
 data Format m = Format {
   formatRun :: forall a. m a -> IO a
