@@ -196,6 +196,7 @@ focusSpec config spec
 
 runSpec_ :: Config -> Spec -> IO Summary
 runSpec_ config spec = do
+  filteredSpec <- specToEvalForest config spec
   withHandle config $ \h -> do
     let formatter = fromMaybe specdoc (configFormatter config)
         seed = (fromJust . configQuickCheckSeed) config
@@ -206,15 +207,6 @@ runSpec_ config spec = do
       Just n -> return n
 
     useColor <- doesUseColor h config
-
-    let
-      focusedSpec = focusSpec config (failFocusedItems config spec)
-      params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
-      randomize
-        | configRandomize config = randomizeForest seed
-        | otherwise = id
-
-    filteredSpec <- randomize . pruneForest . applyFilterPredicates config . applyDryRun config . toEvalForest params <$> runSpecM focusedSpec
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
@@ -235,6 +227,17 @@ runSpec_ config spec = do
 
     dumpFailureReport config seed qcArgs failures
     return (Summary total (length failures))
+
+specToEvalForest :: Config -> Spec -> IO [EvalTree]
+specToEvalForest config spec = do
+  let
+    seed = (fromJust . configQuickCheckSeed) config
+    focusedSpec = focusSpec config (failFocusedItems config spec)
+    params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+    randomize
+      | configRandomize config = randomizeForest seed
+      | otherwise = id
+  randomize . pruneForest . applyFilterPredicates config . applyDryRun config . toEvalForest params <$> runSpecM focusedSpec
 
 toEvalForest :: Params -> [SpecTree ()] -> [EvalTree]
 toEvalForest params = bimapForest withUnit toEvalItem . filterForest itemIsFocused
