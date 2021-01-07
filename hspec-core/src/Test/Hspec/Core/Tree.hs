@@ -15,6 +15,10 @@ module Test.Hspec.Core.Tree (
 , bimapForest
 , filterTree
 , filterForest
+, filterTreeWithLabels
+, filterForestWithLabels
+, pruneTree
+, pruneForest
 , location
 ) where
 
@@ -48,14 +52,37 @@ bimapTree g f = go
       NodeWithCleanup cleanup xs -> NodeWithCleanup (g cleanup) (map go xs)
       Leaf item -> Leaf (f item)
 
-filterForest :: (a -> Bool) -> [Tree c a] -> [Tree c a]
-filterForest = mapMaybe . filterTree
-
 filterTree :: (a -> Bool) -> Tree c a -> Maybe (Tree c a)
-filterTree p t = case t of
-  Node s xs -> Just $ Node s (filterForest p xs)
-  NodeWithCleanup c xs -> Just $ NodeWithCleanup c (filterForest p xs)
-  leaf@(Leaf a) -> guard (p a) >> return leaf
+filterTree = filterTreeWithLabels . const
+
+filterForest :: (a -> Bool) -> [Tree c a] -> [Tree c a]
+filterForest = filterForestWithLabels . const
+
+filterTreeWithLabels :: ([String] -> a -> Bool) -> Tree c a -> Maybe (Tree c a)
+filterTreeWithLabels = filterTree_ []
+
+filterForestWithLabels :: ([String] -> a -> Bool) -> [Tree c a] -> [Tree c a]
+filterForestWithLabels = filterForest_ []
+
+filterForest_ :: [String] -> ([String] -> a -> Bool) -> [Tree c a] -> [Tree c a]
+filterForest_ groups = mapMaybe . filterTree_ groups
+
+filterTree_ :: [String] -> ([String] -> a -> Bool) -> Tree c a -> Maybe (Tree c a)
+filterTree_ groups p tree = case tree of
+  Node group xs -> Just $ Node group $ filterForest_ (groups ++ [group]) p xs
+  NodeWithCleanup action xs -> Just $ NodeWithCleanup action $ filterForest_ groups p xs
+  Leaf item -> Leaf <$> guarded (p groups) item
+
+pruneForest :: [Tree c a] -> [Tree c a]
+pruneForest = mapMaybe pruneTree
+
+pruneTree :: Tree c a -> Maybe (Tree c a)
+pruneTree node = case node of
+  Node group xs -> Node group <$> prune xs
+  NodeWithCleanup action xs -> NodeWithCleanup action <$> prune xs
+  Leaf{} -> Just node
+  where
+    prune = guarded (not . null) . pruneForest
 
 -- |
 -- @Item@ is used to represent spec items internally.  A spec item consists of:

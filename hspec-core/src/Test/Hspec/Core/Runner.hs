@@ -57,26 +57,19 @@ import           Test.Hspec.Core.Shuffle
 
 import           Test.Hspec.Core.Runner.Eval
 
-filterSpecs :: Config -> [EvalTree] -> [EvalTree]
-filterSpecs c = go []
+applyFilterPredicates :: Config -> [EvalTree] -> [EvalTree]
+applyFilterPredicates c = filterForestWithLabels p
   where
-    p :: Path -> Bool
-    p path = (fromMaybe (const True) (configFilterPredicate c) path) &&
-               not (fromMaybe (const False) (configSkipPredicate c) path)
+    include :: Path -> Bool
+    include = fromMaybe (const True) (configFilterPredicate c)
 
-    go :: [String] -> [EvalTree] -> [EvalTree]
-    go groups = mapMaybe (goSpec groups)
+    skip :: Path -> Bool
+    skip = fromMaybe (const False) (configSkipPredicate c)
 
-    goSpecs :: [String] -> [EvalTree] -> ([EvalTree] -> b) -> Maybe b
-    goSpecs groups specs ctor = case go groups specs of
-      [] -> Nothing
-      xs -> Just (ctor xs)
-
-    goSpec :: [String] -> EvalTree -> Maybe (EvalTree)
-    goSpec groups spec = case spec of
-      Leaf item -> guard (p (groups, evalItemDescription item)) >> return spec
-      Node group specs -> goSpecs (groups ++ [group]) specs (Node group)
-      NodeWithCleanup action specs -> goSpecs groups specs (NodeWithCleanup action)
+    p :: [String] -> EvalItem -> Bool
+    p groups item = include path && not (skip path)
+      where
+        path = (groups, evalItemDescription item)
 
 applyDryRun :: Config -> [EvalTree] -> [EvalTree]
 applyDryRun c
@@ -221,7 +214,7 @@ runSpec_ config spec = do
         | configRandomize config = randomizeForest seed
         | otherwise = id
 
-    filteredSpec <- randomize . filterSpecs config . applyDryRun config . toEvalForest params <$> runSpecM focusedSpec
+    filteredSpec <- randomize . pruneForest . applyFilterPredicates config . applyDryRun config . toEvalForest params <$> runSpecM focusedSpec
 
     (total, failures) <- withHiddenCursor useColor h $ do
       let
