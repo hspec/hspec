@@ -51,11 +51,11 @@ fromSpecList = SpecM . tell
 runIO :: IO r -> SpecM a r
 runIO = SpecM . liftIO
 
-mapSpecTree :: (SpecTree a -> SpecTree b) -> SpecM a r -> SpecM b r
-mapSpecTree f (SpecM specs) = SpecM (mapWriterT (fmap (second (map f))) specs)
+mapSpecForest :: ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
+mapSpecForest f (SpecM specs) = SpecM (mapWriterT (fmap (second f)) specs)
 
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
-mapSpecItem g f = mapSpecTree (bimapTree g f)
+mapSpecItem g f = mapSpecForest (bimapForest g f)
 
 mapSpecItem_ :: (Item a -> Item a) -> SpecWith a -> SpecWith a
 mapSpecItem_ = mapSpecItem id

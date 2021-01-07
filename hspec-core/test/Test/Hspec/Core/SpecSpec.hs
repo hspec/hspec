@@ -10,8 +10,8 @@ import           Test.Hspec.Core.Spec (Tree(..), runSpecM)
 
 import qualified Test.Hspec.Core.Spec as H
 
-ignoreCleanup :: Tree c a -> Tree () a
-ignoreCleanup = H.bimapTree (const ()) id
+extract :: (Item () -> a) -> H.Spec -> IO [Tree () a]
+extract f = fmap (H.bimapForest (const ()) f) . runSpecM
 
 runSpec :: H.Spec -> IO [String]
 runSpec = captureLines . H.hspecResult
@@ -91,37 +91,35 @@ spec = do
 
   describe "focus" $ do
     it "focuses spec items" $ do
-      items <- runSpecM $ H.focus $ do
+      items <- extract itemIsFocused $ H.focus $ do
         H.it "is focused and will run" True
         H.it "is also focused and will also run" True
-      map (ignoreCleanup . fmap itemIsFocused) items
-        `shouldBe` [Leaf True, Leaf True]
+      items `shouldBe` [Leaf True, Leaf True]
 
     context "when applied to a spec with focused spec items" $ do
       it "has no effect" $ do
-        items <- runSpecM $ H.focus $ do
+        items <- extract itemIsFocused $ H.focus $ do
           H.focus $ H.it "is focused and will run" True
           H.it "is not focused and will not run" True
-        map (ignoreCleanup . fmap itemIsFocused) items
-          `shouldBe` [Leaf True, Leaf False]
+        items `shouldBe` [Leaf True, Leaf False]
 
   describe "parallel" $ do
     it "marks examples for parallel execution" $ do
-      [Leaf item] <- runSpecM . H.parallel $ H.it "whatever" H.pending
-      itemIsParallelizable item `shouldBe` Just True
+      items <- extract itemIsParallelizable . H.parallel $ H.it "whatever" H.pending
+      items `shouldBe` [Leaf $ Just True]
 
     it "is applied recursively" $ do
-      [Node _ [Node _ [Leaf item]]] <- runSpecM . H.parallel $ do
+      items <- extract itemIsParallelizable . H.parallel $ do
         H.describe "foo" $ do
           H.describe "bar" $ do
             H.it "baz" H.pending
-      itemIsParallelizable item `shouldBe` Just True
+      items `shouldBe` [Node "foo" [Node "bar" [Leaf $ Just True]]]
 
   describe "sequential" $ do
     it "marks examples for sequential execution" $ do
-      [Leaf item] <- runSpecM . H.sequential $ H.it "whatever" H.pending
-      itemIsParallelizable item `shouldBe` Just False
+      items <- extract itemIsParallelizable . H.sequential $ H.it "whatever" H.pending
+      items `shouldBe` [Leaf $ Just False]
 
     it "takes precedence over a later `parallel`" $ do
-      [Leaf item] <- runSpecM . H.parallel . H.sequential $ H.it "whatever" H.pending
-      itemIsParallelizable item `shouldBe` Just False
+      items <- extract itemIsParallelizable . H.parallel . H.sequential $ H.it "whatever" H.pending
+      items `shouldBe` [Leaf $ Just False]
