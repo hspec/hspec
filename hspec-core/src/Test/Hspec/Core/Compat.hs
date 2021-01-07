@@ -20,6 +20,8 @@ module Test.Hspec.Core.Compat (
 , atomicWriteIORef
 #endif
 , interruptible
+
+, guarded
 ) where
 
 import           Control.Applicative
@@ -139,3 +141,6 @@ interruptible act = do
     MaskedInterruptible   -> unsafeUnmask act
     MaskedUninterruptible -> act
 #endif
+
+guarded :: Alternative m => (a -> Bool) -> a -> m a
+guarded p a = if p a then pure a else empty
