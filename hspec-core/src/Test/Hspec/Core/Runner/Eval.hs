@@ -41,6 +41,7 @@ import           Test.Hspec.Core.Format (Format(..))
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
+import           Test.Hspec.Core.Example (safeEvaluate)
 
 -- for compatibility with GHC < 7.10.1
 type Monad m = (Functor m, Applicative m, M.Monad m)
@@ -210,8 +211,10 @@ run specs = do
 
     runCleanup :: [String] -> IO () -> EvalM m ()
     runCleanup groups action = do
-      (dt, r) <- liftIO $ measure $ safeTry action
-      either (\ e -> reportItem path . failureItem (extractLocation e) dt "" . Error Nothing $ e) return r
+      r <- liftIO $ measure $ safeEvaluate (action >> return (Result "" Success))
+      case r of
+        (_, Result "" Success) -> return ()
+        _ -> reportResult path Nothing r
       where
         path = (groups, "afterAll-hook")
 

@@ -17,6 +17,7 @@ module Test.Hspec.Core.Example (
 , ResultStatus (..)
 , Location (..)
 , FailureReason (..)
+, safeEvaluate
 , safeEvaluateExample
 ) where
 
@@ -90,13 +91,7 @@ instance NFData FailureReason where
 instance Exception ResultStatus
 
 safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-safeEvaluateExample example params around progress = do
-  r <- safeTry $ forceResult <$> evaluateExample example params around progress
-  return $ case r of
-    Left e | Just result <- fromException e -> Result "" result
-    Left e | Just hunit <- fromException e -> Result "" $ hunitFailureToResult Nothing hunit
-    Left e -> Result "" $ Failure Nothing $ Error Nothing e
-    Right result -> result
+safeEvaluateExample example params around progress = safeEvaluate $ forceResult <$> evaluateExample example params around progress
   where
     forceResult :: Result -> Result
     forceResult r@(Result info status) = info `deepseq` (forceResultStatus status) `seq` r
@@ -106,6 +101,15 @@ safeEvaluateExample example params around progress = do
       Success -> r
       Pending _ m -> m `deepseq` r
       Failure _ m -> m `deepseq` r
+
+safeEvaluate :: IO Result -> IO Result
+safeEvaluate action = do
+  r <- safeTry $ action
+  return $ case r of
+    Left e | Just result <- fromException e -> Result "" result
+    Left e | Just hunit <- fromException e -> Result "" $ hunitFailureToResult Nothing hunit
+    Left e -> Result "" $ Failure Nothing $ Error Nothing e
+    Right result -> result
 
 instance Example Result where
   type Arg Result = ()
