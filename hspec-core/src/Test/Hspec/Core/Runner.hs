@@ -28,6 +28,7 @@ module Test.Hspec.Core.Runner (
 
 #ifdef TEST
 , rerunAll
+, specToEvalForest
 #endif
 ) where
 

@@ -1,17 +1,39 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.HooksSpec (spec) where
 
-import           Control.Exception
-import           Helper
 import           Prelude ()
+import           Helper
+
+import           Control.Exception
 
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Spec as H
+import           Test.Hspec.Core.Format
+import           Test.Hspec.Core.Runner.Eval
 
 import qualified Test.Hspec.Core.Hooks as H
 
 runSilent :: H.Spec -> IO ()
 runSilent = silence . H.hspec
+
+evalSpec :: H.Spec -> IO [([String], Item)]
+evalSpec = fmap normalize . (H.specToEvalForest H.defaultConfig >=> runFormatter config)
+  where
+    config = EvalConfig {
+      evalConfigFormat = format
+    , evalConfigConcurrentJobs = 1
+    , evalConfigFastFail = False
+    }
+    format = Format {
+      formatRun = id
+    , formatGroupStarted = \ _ -> return ()
+    , formatGroupDone = \ _ -> return ()
+    , formatProgress = \ _ _ -> return ()
+    , formatItem = \ _ _ -> return ()
+    }
+    normalize = map $ \ (path, item) -> (pathToList path, normalizeItem item)
+    normalizeItem item = item {itemLocation = Nothing, itemDuration = 0}
+    pathToList (xs, x) = xs ++ [x]
 
 mkAppend :: IO (String -> IO (), IO [String])
 mkAppend = do
@@ -294,16 +316,18 @@ spec = do
 
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
-        (rec, retrieve) <- mkAppend
-        runSilent $ H.before (rec "before" >> return "from before") $ H.afterAll rec $ do
+        evalSpec $ H.before undefined $ H.afterAll undefined $ do
           return ()
-        retrieve `shouldReturn` []
+        `shouldReturn` []
 
     context "when action throws an exception" $ do
       it "reports a failure" $ do
-        r <- runSpec $ H.before (return "from before") $ H.afterAll (\_ -> throwException) $ do
+        evalSpec $ H.before (return "from before") $ H.afterAll (\_ -> throwException) $ do
           H.it "foo" $ \a -> a `shouldBe` "from before"
-        r `shouldSatisfy` any (== "afterAll-hook FAILED [1]")
+        `shouldReturn` [
+          item ["foo"] Success
+        , item ["afterAll-hook"] divideByZero
+        ]
 
   describe "afterAll_" $ do
     it "runs an action after the last spec item" $ do
@@ -343,10 +367,13 @@ spec = do
 
     context "when action throws an exception" $ do
       it "reports a failure" $ do
-        r <- runSpec $ do
+        evalSpec $ do
           H.afterAll_ throwException $ do
             H.it "foo" True
-        r `shouldSatisfy` any (== "afterAll-hook FAILED [1]")
+        `shouldReturn` [
+          item ["foo"] Success
+        , item ["afterAll-hook"] divideByZero
+        ]
 
   describe "around" $ do
     it "wraps every spec item with an action" $ do
@@ -407,5 +434,8 @@ spec = do
         H.it "foo" rec
       retrieve `shouldReturn` ["23"]
   where
-    runSpec :: H.Spec -> IO [String]
-    runSpec = captureLines . H.hspecResult
+    divideByZero :: Result
+    divideByZero = Failure (Error Nothing $ toException DivideByZero)
+
+    item :: [String] -> Result -> ([String], Item)
+    item path result = (path, Item Nothing 0 "" result)
