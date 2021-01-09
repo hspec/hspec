@@ -4,8 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
 
--- |
--- Stability: unstable
+-- NOTE: re-exported from Test.Hspec.Core.Spec
 module Test.Hspec.Core.Tree (
   SpecTree
 , Tree (..)
