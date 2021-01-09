@@ -66,6 +66,7 @@ deriving instance Eq ResultStatus
 deriving instance Eq Result
 
 deriving instance Eq Format.Result
+deriving instance Eq Format.Item
 
 instance Eq SomeException where
   (==) = exceptionEq
