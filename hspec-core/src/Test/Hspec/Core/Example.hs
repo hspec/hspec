@@ -4,6 +4,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+
+-- NOTE: re-exported from Test.Hspec.Core.Spec
 module Test.Hspec.Core.Example (
   Example (..)
 , Params (..)
