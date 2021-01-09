@@ -41,14 +41,16 @@ import           System.SetEnv
 import           System.Directory
 import           System.IO.Temp
 
-import           Test.Hspec.Meta hiding (hspec, hspecResult)
+import           Test.Hspec.Meta hiding (hspec, hspecResult, pending, pendingWith)
 import           Test.QuickCheck hiding (Result(..))
+import qualified Test.HUnit.Lang as HUnit
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..))
+import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
 
 #if !MIN_VERSION_base(4,7,0)
@@ -59,7 +61,7 @@ exceptionEq :: E.SomeException -> E.SomeException -> Bool
 exceptionEq a b
   | Just ea <- E.fromException a, Just eb <- E.fromException b = ea == (eb :: E.ErrorCall)
   | Just ea <- E.fromException a, Just eb <- E.fromException b = ea == (eb :: E.ArithException)
-  | otherwise = undefined
+  | otherwise = throw (HUnit.HUnitFailure Nothing $ HUnit.ExpectedButGot Nothing (formatException b) (formatException a))
 
 deriving instance Eq FailureReason
 deriving instance Eq ResultStatus

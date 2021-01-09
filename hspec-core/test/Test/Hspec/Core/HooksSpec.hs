@@ -365,6 +365,16 @@ spec = do
           return ()
         retrieve `shouldReturn` []
 
+    context "when action is pending" $ do
+      it "reports pending" $ do
+        evalSpec $ do
+          H.afterAll_ H.pending $ do
+            H.it "foo" True
+        `shouldReturn` [
+          item ["foo"] Success
+        , item ["afterAll-hook"] (Pending Nothing)
+        ]
+
     context "when action throws an exception" $ do
       it "reports a failure" $ do
         evalSpec $ do
@@ -373,6 +383,15 @@ spec = do
         `shouldReturn` [
           item ["foo"] Success
         , item ["afterAll-hook"] divideByZero
+        ]
+
+    context "when action is successful" $ do
+      it "does not report anythig" $ do
+        evalSpec $ do
+          H.afterAll_ (return ()) $ do
+            H.it "foo" True
+        `shouldReturn` [
+          item ["foo"] Success
         ]
 
   describe "around" $ do
