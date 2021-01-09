@@ -14,6 +14,7 @@ module Test.Hspec.Core.Runner.Eval (
 , EvalTree
 , EvalItem(..)
 , runFormatter
+, resultItemIsFailure
 #ifdef TEST
 , runSequentially
 #endif
@@ -53,31 +54,20 @@ data EvalConfig m = EvalConfig {
 
 data State m = State {
   stateConfig :: EvalConfig m
-, stateSuccessCount :: Int
-, statePendingCount :: Int
-, stateFailures :: [Path]
+, stateResults :: [(Path, Format.Item)]
 }
 
 type EvalM m = StateT (State m) m
 
-increaseSuccessCount :: Monad m => EvalM m ()
-increaseSuccessCount = modify $ \state -> state {stateSuccessCount = stateSuccessCount state + 1}
-
-increasePendingCount :: Monad m => EvalM m ()
-increasePendingCount = modify $ \state -> state {statePendingCount = statePendingCount state + 1}
-
-addFailure :: Monad m => Path -> EvalM m ()
-addFailure path = modify $ \state -> state {stateFailures = path : stateFailures state}
+addResult :: Monad m => Path -> Format.Item -> EvalM m ()
+addResult path item = modify $ \ state -> state {stateResults = (path, item) : stateResults state}
 
 getFormat :: Monad m => (Format m -> a) -> EvalM m a
 getFormat format = gets (format . evalConfigFormat . stateConfig)
 
 reportItem :: Monad m => Path -> Format.Item -> EvalM m ()
 reportItem path item = do
-  case Format.itemResult item of
-    Format.Success {} -> increaseSuccessCount
-    Format.Pending {} -> increasePendingCount
-    Format.Failure {} -> addFailure path
+  addResult path item
   format <- getFormat formatItem
   lift (format path item)
 
@@ -113,10 +103,10 @@ data EvalItem = EvalItem {
 type EvalTree = Tree (IO ()) EvalItem
 
 runEvalM :: Monad m => EvalConfig m -> EvalM m () -> m (State m)
-runEvalM config action = execStateT action (State config 0 0 [])
+runEvalM config action = execStateT action (State config [])
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: forall m. MonadIO m => EvalConfig m -> [EvalTree] -> IO (Int, [Path])
+runFormatter :: forall m. MonadIO m => EvalConfig m -> [EvalTree] -> IO ([(Path, Format.Item)])
 runFormatter config specs = do
   let
     start = parallelizeTree (evalConfigConcurrentJobs config) specs
@@ -126,10 +116,7 @@ runFormatter config specs = do
       state <- formatRun format $ do
         runEvalM config $
           run $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs
-      let
-        failures = stateFailures state
-        total = stateSuccessCount state + statePendingCount state + length failures
-      return (total, reverse failures)
+      return (reverse $ stateResults state)
   where
     format = evalConfigFormat config
 
@@ -260,9 +247,18 @@ foldTree FoldTree{..} = go []
 sequenceActions :: Monad m => Bool -> [EvalM m ()] -> EvalM m ()
 sequenceActions fastFail = go
   where
+    go :: Monad m => [EvalM m ()] -> EvalM m ()
     go [] = return ()
     go (action : actions) = do
-      () <- action
-      hasFailures <- (not . null) <$> gets stateFailures
+      action
+      hasFailures <- any resultItemIsFailure <$> gets stateResults
       let stopNow = fastFail && hasFailures
       unless stopNow (go actions)
+
+resultItemIsFailure :: (Path, Format.Item) -> Bool
+resultItemIsFailure = isFailure . Format.itemResult . snd
+  where
+    isFailure r = case r of
+      Format.Success{} -> False
+      Format.Pending{} -> False
+      Format.Failure{} -> True

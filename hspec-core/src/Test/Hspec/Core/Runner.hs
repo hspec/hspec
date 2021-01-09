@@ -208,7 +208,7 @@ runSpec_ config spec = do
 
     useColor <- doesUseColor h config
 
-    (total, failures) <- withHiddenCursor useColor h $ do
+    results <- withHiddenCursor useColor h $ do
       let
         formatConfig = FormatConfig {
           formatConfigHandle = h
@@ -225,8 +225,14 @@ runSpec_ config spec = do
         }
       runFormatter evalConfig filteredSpec
 
-    dumpFailureReport config seed qcArgs failures
-    return (Summary total (length failures))
+    let failures = filter resultItemIsFailure results
+
+    dumpFailureReport config seed qcArgs (map fst failures)
+
+    return Summary {
+      summaryExamples = length results
+    , summaryFailures = length failures
+    }
 
 specToEvalForest :: Config -> Spec -> IO [EvalTree]
 specToEvalForest config spec = do
