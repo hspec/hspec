@@ -14,11 +14,11 @@ jobs:
       - uses: sol/haskell-autotag@v1
         id: autotag
         with:
-          prefix:
+          prefix: null
 
       - run: cabal sdist hspec.cabal hspec-discover hspec-core
 
-      - uses: haskell-actions/hackage-publish@b88057d
+      - uses: haskell-actions/hackage-publish@v1.1
         with:
           hackageToken: ${{ secrets.HACKAGE_AUTH_TOKEN }}
           publish: true

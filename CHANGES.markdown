@@ -1,5 +1,6 @@
 ## Changes in 2.7.7
   - Add `aroundAll_` (see #255)
+  - Correctly handle pending for `afterAll` actions
 
 ## Changes in 2.7.6
   - Add `beforeAllWith` (see #447)
