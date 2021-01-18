@@ -498,7 +498,7 @@ spec = do
         ]
       mockCounter mock `shouldReturn` 4
 
-    it "reports exceptions in acquire-part" $ do
+    it "reports exceptions on acquire" $ do
       evalSpec $ do
         H.aroundAll_ (throwException <*) $ do
           H.it "foo" True
@@ -507,7 +507,7 @@ spec = do
       , item ["afterAll-hook"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
       ]
 
-    it "reports exceptions in cleanup-part" $ do
+    it "reports exceptions on release" $ do
       evalSpec $ do
         H.aroundAll_ (<* throwException) $ do
           H.it "foo" True

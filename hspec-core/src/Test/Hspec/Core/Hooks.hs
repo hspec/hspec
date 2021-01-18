@@ -107,29 +107,31 @@ modifyAroundAction action item@Item{itemExample = e} =
 -- | Wrap an action around the given spec.
 aroundAll_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
 aroundAll_ action spec = do
-  startCleanup <- runIO newEmptyMVar
+  allSpecItemsDone <- runIO newEmptyMVar
   workerRef <- runIO newEmptyMVar
   let
     acquire :: IO ()
     acquire = do
-      acquireDone <- newEmptyMVar
+      resource <- newEmptyMVar
       worker <- async $ do
         action $ do
-          signal acquireDone
-          waitFor startCleanup
+          signal resource
+          waitFor allSpecItemsDone
       putMVar workerRef worker
       unwrapExceptionsFromLinkedThread $ do
         link worker
-        waitFor acquireDone
-    cleanup :: IO ()
-    cleanup = signal startCleanup >> takeMVar workerRef >>= wait
-  beforeAll_ acquire $ afterAll_ cleanup spec
-  where
-    signal :: MVar () -> IO ()
-    signal = flip putMVar ()
+        waitFor resource
+    release :: IO ()
+    release = signal allSpecItemsDone >> takeMVar workerRef >>= wait
+  beforeAll_ acquire $ afterAll_ release spec
 
-    waitFor :: MVar () -> IO ()
-    waitFor = takeMVar
+unwrapExceptionsFromLinkedThread :: IO a -> IO a
+unwrapExceptionsFromLinkedThread = (`catch` \ (ExceptionInLinkedThread _ e) -> throwIO e)
 
-    unwrapExceptionsFromLinkedThread :: IO a -> IO a
-    unwrapExceptionsFromLinkedThread = (`catch` \ (ExceptionInLinkedThread _ e) -> throwIO e)
+type BinarySemaphore = MVar ()
+
+signal :: BinarySemaphore -> IO ()
+signal = flip putMVar ()
+
+waitFor :: BinarySemaphore -> IO ()
+waitFor = takeMVar
