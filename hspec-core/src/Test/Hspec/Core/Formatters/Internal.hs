@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP, GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Core.Formatters.Internal (
   FormatM
 , FormatConfig(..)
@@ -9,6 +9,9 @@ module Test.Hspec.Core.Formatters.Internal (
 , addFailMessage
 , finally_
 , formatterToFormat
+#ifdef TEST
+, overwriteWith
+#endif
 ) where
 
 import           Prelude ()
@@ -149,10 +152,18 @@ addFailMessage loc p m = modify $ \s -> s {stateFailMessages = FailureRecord loc
 getFailMessages :: FormatM [FailureRecord]
 getFailMessages = reverse `fmap` gets stateFailMessages
 
+overwriteWith :: String -> String -> String
+overwriteWith old new
+  | n == 0 = new
+  | otherwise = '\r' : new ++ replicate (n - length new) ' '
+  where
+    n = length old
+
 writeTransient :: String -> FormatM ()
-writeTransient s = do
-  write ("\r" ++ s)
-  modify $ \ state -> state {stateTransientOutput = s}
+writeTransient new = do
+  old <- gets stateTransientOutput
+  write $ old `overwriteWith` new
+  modify $ \ state -> state {stateTransientOutput = new}
   h <- getHandle
   liftIO $ IO.hFlush h
 

@@ -155,6 +155,7 @@ test-suite spec
       Test.Hspec.Core.ExampleSpec
       Test.Hspec.Core.FailureReportSpec
       Test.Hspec.Core.Formatters.DiffSpec
+      Test.Hspec.Core.Formatters.InternalSpec
       Test.Hspec.Core.FormattersSpec
       Test.Hspec.Core.HooksSpec
       Test.Hspec.Core.QuickCheckUtilSpec
