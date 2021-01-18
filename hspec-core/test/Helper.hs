@@ -18,6 +18,7 @@ module Helper (
 , ignoreExitCode
 , ignoreUserInterrupt
 , throwException
+, throwException_
 
 , withEnvironment
 , inTempDirectory
@@ -73,8 +74,11 @@ deriving instance Eq Format.Item
 instance Eq SomeException where
   (==) = exceptionEq
 
-throwException :: IO ()
+throwException :: IO a
 throwException = E.throwIO DivideByZero
+
+throwException_ :: IO ()
+throwException_ = throwException
 
 ignoreExitCode :: IO () -> IO ()
 ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()

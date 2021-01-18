@@ -14,8 +14,8 @@ import           Test.Hspec.Core.Runner.Eval
 
 import qualified Test.Hspec.Core.Hooks as H
 
-runSilent :: H.Spec -> IO ()
-runSilent = silence . H.hspec
+evalSpec_ :: H.Spec -> IO ()
+evalSpec_ = void . evalSpec
 
 evalSpec :: H.Spec -> IO [([String], Item)]
 evalSpec = fmap normalize . (H.specToEvalForest H.defaultConfig >=> runFormatter config)
@@ -47,7 +47,7 @@ spec = do
   describe "before" $ do
     it "runs an action before every spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.before (rec "before" >> return "value") $ do
+      evalSpec_ $ H.before (rec "before" >> return "value") $ do
         H.it "foo" $ \value -> do
           rec (value ++ " foo")
         H.it "bar" $ \value -> do
@@ -57,14 +57,14 @@ spec = do
     context "when used with a QuickCheck property" $ do
       it "runs action before every check of the property" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.before (rec "before" >> return "value") $ do
+        evalSpec_ $ H.before (rec "before" >> return "value") $ do
           H.it "foo" $ \value -> property $ \(_ :: Int) -> rec value
         retrieve `shouldReturn` (take 200 . cycle) ["before", "value"]
 
   describe "before_" $ do
     it "runs an action before every spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.before_ (rec "before") $ do
+      evalSpec_ $ H.before_ (rec "before") $ do
         H.it "foo" $ do
           rec "foo"
         H.it "bar" $ do
@@ -74,7 +74,7 @@ spec = do
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.before_ (rec "outer") $ H.before_ (rec "inner") $ do
+        evalSpec_ $ H.before_ (rec "outer") $ H.before_ (rec "inner") $ do
           H.it "foo" $ do
             rec "foo"
         retrieve `shouldReturn` ["outer", "inner", "foo"]
@@ -82,14 +82,14 @@ spec = do
     context "when used with a QuickCheck property" $ do
       it "runs action before every check of the property" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.before_ (rec "before") $ do
+        evalSpec_ $ H.before_ (rec "before") $ do
           H.it "foo" $ property $ \(_ :: Int) -> rec "foo"
         retrieve `shouldReturn` (take 200 . cycle) ["before", "foo"]
 
       context "when used multiple times" $ do
         it "is evaluated outside in" $ do
           (rec, retrieve) <- mkAppend
-          runSilent $ H.before_ (rec "outer") $ H.before_ (rec "inner") $ do
+          evalSpec_ $ H.before_ (rec "outer") $ H.before_ (rec "inner") $ do
             H.it "foo" $ property $ \(_ :: Int) -> rec "foo"
           retrieve `shouldReturn` (take 300 . cycle) ["outer", "inner", "foo"]
 
@@ -98,7 +98,7 @@ spec = do
       (rec, retrieve) <- mkAppend
       let action :: Int -> IO String
           action = return . show
-      runSilent $ H.before (return 23) $ H.beforeWith action $ do
+      evalSpec_ $ H.before (return 23) $ H.beforeWith action $ do
         H.it "foo" $ \value -> rec value
       retrieve `shouldReturn` ["23"]
 
@@ -114,7 +114,7 @@ spec = do
 
       (rec, retrieve) <- mkAppend
 
-      runSilent $ H.before (return 23) $ H.beforeWith action1 $ H.beforeWith action2 $ H.beforeWith action3 $ do
+      evalSpec_ $ H.before (return 23) $ H.beforeWith action1 $ H.beforeWith action2 $ H.beforeWith action3 $ do
         H.it "foo" $ \value -> rec value
 
       retrieve `shouldReturn` ["foo 24"]
@@ -122,7 +122,7 @@ spec = do
   describe "beforeAll" $ do
     it "runs an action before the first spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.beforeAll (rec "beforeAll" >> return "value") $ do
+      evalSpec_ $ H.beforeAll (rec "beforeAll" >> return "value") $ do
         H.it "foo" $ \value -> do
           rec $ "foo " ++ value
         H.it "bar" $ \value -> do
@@ -135,24 +135,27 @@ spec = do
 
     context "when specified action throws an exception" $ do
       it "sets subsequent spec items to pending" $ do
-        result <- silence . H.hspecResult $ H.beforeAll (throwIO (ErrorCall "foo")) $ do
+        evalSpec $ H.beforeAll throwException $ do
           H.it "foo" $ \n -> do
             n `shouldBe` (23 :: Int)
           H.it "bar" $ \n -> do
             n `shouldBe` 23
-        result `shouldBe` H.Summary {H.summaryExamples = 2, H.summaryFailures = 1}
+        `shouldReturn` [
+          item ["foo"] divideByZero
+        , item ["bar"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+        ]
 
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.beforeAll (rec "beforeAll" >> return "value") $ do
+        evalSpec_ $ H.beforeAll (rec "beforeAll" >> return "value") $ do
           return ()
         retrieve `shouldReturn` []
 
   describe "beforeAll_" $ do
     it "runs an action before the first spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.beforeAll_ (rec "beforeAll_") $ do
+      evalSpec_ $ H.beforeAll_ (rec "beforeAll_") $ do
         H.it "foo" $ do
           rec "foo"
         H.it "bar" $ do
@@ -166,7 +169,7 @@ spec = do
     context "when used multiple times" $ do
       it "is evaluated outside in" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.beforeAll_ (rec "outer") $ H.beforeAll_ (rec "inner") $ do
+        evalSpec_ $ H.beforeAll_ (rec "outer") $ H.beforeAll_ (rec "inner") $ do
           H.it "foo" $ do
             rec "foo"
           H.it "bar" $ do
@@ -183,7 +186,7 @@ spec = do
       (rec, retrieve) <- mkAppend
       let action :: Int -> IO String
           action = return . show
-      runSilent $ H.beforeAll (return 23) $ H.beforeAllWith action $ do
+      evalSpec_ $ H.beforeAll (return 23) $ H.beforeAllWith action $ do
         H.it "foo" $ \value -> rec value
       retrieve `shouldReturn` ["23"]
 
@@ -199,7 +202,7 @@ spec = do
 
       (rec, retrieve) <- mkAppend
 
-      runSilent $ H.beforeAll (return 23) $
+      evalSpec_ $ H.beforeAll (return 23) $
         H.beforeAllWith action1 $ H.beforeAllWith action2 $ H.beforeAllWith action3 $ do
           H.it "foo" $ \value -> rec value
 
@@ -207,7 +210,7 @@ spec = do
 
     it "runs an action before the first spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.beforeAll (return (23 :: Int)) $
+      evalSpec_ $ H.beforeAll (return (23 :: Int)) $
         H.beforeAllWith (\value -> rec "beforeAllWith" >> return (show value)) $ do
           H.it "foo" $ \value -> do
             rec $ "foo " ++ value
@@ -221,19 +224,22 @@ spec = do
 
     context "when specified action throws an exception" $ do
       it "sets subsequent spec items to pending" $ do
-        result <- silence . H.hspecResult $
-          H.beforeAll (return (23 :: Int)) $
-            H.beforeAllWith (\_ -> throwIO (ErrorCall "foo")) $ do
+        evalSpec $ do
+          H.beforeAll (return (23 :: Int)) $ do
+            H.beforeAllWith (\ _ -> throwException) $ do
               H.it "foo" $ \n -> do
                 n `shouldBe` (23 :: Int)
               H.it "bar" $ \n -> do
                 n `shouldBe` 23
-        result `shouldBe` H.Summary {H.summaryExamples = 2, H.summaryFailures = 1}
+        `shouldReturn` [
+          item ["foo"] divideByZero
+        , item ["bar"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+        ]
 
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.beforeAll (return (23 :: Int)) $
+        evalSpec_ $ H.beforeAll (return (23 :: Int)) $
           H.beforeAllWith (\_ -> rec "beforeAllWith" >> return "value") $ do
             return ()
         retrieve `shouldReturn` []
@@ -241,7 +247,7 @@ spec = do
   describe "after" $ do
     it "runs an action after every spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.before (rec "before" >> return "from before") $ H.after rec $ do
+      evalSpec_ $ H.before (rec "before" >> return "from before") $ H.after rec $ do
         H.it "foo" $ \_ -> do
           rec "foo"
         H.it "bar" $ \_ -> do
@@ -257,16 +263,16 @@ spec = do
 
     it "guarantees that action is run" $ do
       (rec, retrieve) <- mkAppend
-      silence . ignoreExitCode . H.hspec $ H.before (rec "before" >> return "from before") $ H.after rec $ do
+      evalSpec_ $ H.before (rec "before" >> return "from before") $ H.after rec $ do
         H.it "foo" $ \_ -> do
-          ioError $ userError "foo" :: IO ()
+          throwException_
           rec "foo"
       retrieve `shouldReturn` ["before", "from before"]
 
   describe "after_" $ do
     it "runs an action after every spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.after_ (rec "after") $ do
+      evalSpec_ $ H.after_ (rec "after") $ do
         H.it "foo" $ do
           rec "foo"
         H.it "bar" $ do
@@ -280,16 +286,16 @@ spec = do
 
     it "guarantees that action is run" $ do
       (rec, retrieve) <- mkAppend
-      silence . ignoreExitCode $ H.hspec $ H.after_ (rec "after") $ do
+      evalSpec_ $ H.after_ (rec "after") $ do
         H.it "foo" $ do
-          ioError $ userError "foo" :: IO ()
+          throwException_
           rec "foo"
       retrieve `shouldReturn` ["after"]
 
     context "when used multiple times" $ do
       it "is evaluated inside out" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.after_ (rec "after outer") $ H.after_ (rec "after inner") $ do
+        evalSpec_ $ H.after_ (rec "after outer") $ H.after_ (rec "after inner") $ do
           H.it "foo" $ do
             rec "foo"
         retrieve `shouldReturn` [
@@ -301,7 +307,7 @@ spec = do
   describe "afterAll" $ do
     it "runs an action after the last spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.before (rec "before" >> return "from before") $ H.afterAll rec $ do
+      evalSpec_ $ H.before (rec "before" >> return "from before") $ H.afterAll rec $ do
         H.it "foo" $ \_ -> do
           rec "foo"
         H.it "bar" $ \_ -> do
@@ -333,7 +339,7 @@ spec = do
   describe "afterAll_" $ do
     it "runs an action after the last spec item" $ do
       (rec, retrieve) <- mkAppend
-      runSilent $ H.before_ (rec "before") $ H.afterAll_ (rec "afterAll_") $ do
+      evalSpec_ $ H.before_ (rec "before") $ H.afterAll_ (rec "afterAll_") $ do
         H.it "foo" $ do
           rec "foo"
         H.it "bar" $ do
@@ -350,7 +356,7 @@ spec = do
     context "when used multiple times" $ do
       it "is evaluated inside out" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.afterAll_ (rec "after outer") $ H.afterAll_ (rec "after inner") $ do
+        evalSpec_ $ H.afterAll_ (rec "after outer") $ H.afterAll_ (rec "after inner") $ do
           H.it "foo" $ do
             rec "foo"
         retrieve `shouldReturn` [
@@ -362,7 +368,7 @@ spec = do
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
         (rec, retrieve) <- mkAppend
-        runSilent $ H.afterAll_ (rec "afterAll_") $ do
+        evalSpec_ $ H.afterAll_ (rec "afterAll_") $ do
           return ()
         retrieve `shouldReturn` []
 
@@ -399,7 +405,7 @@ spec = do
     it "wraps every spec item with an action" $ do
       (rec, retrieve) <- mkAppend
       let action e = rec "before" >> e "from around" >> rec "after"
-      runSilent $ H.around action $ do
+      evalSpec_ $ H.around action $ do
         H.it "foo" $ rec . ("foo " ++)
         H.it "bar" $ rec . ("bar " ++)
       retrieve `shouldReturn` [
@@ -415,7 +421,7 @@ spec = do
     it "wraps every spec item with an action" $ do
       (rec, retrieve) <- mkAppend
       let action e = rec "before" >> e >> rec "after"
-      runSilent $ H.around_ action $ do
+      evalSpec_ $ H.around_ action $ do
         H.it "foo" $ do
           rec "foo"
         H.it "bar" $ do
@@ -434,7 +440,7 @@ spec = do
         (rec, retrieve) <- mkAppend
         let actionOuter e = rec "before outer" >> e >> rec "after outer"
             actionInner e = rec "before inner" >> e >> rec "after inner"
-        runSilent $ H.around_ actionOuter $ H.around_ actionInner $ do
+        evalSpec_ $ H.around_ actionOuter $ H.around_ actionInner $ do
           H.it "foo" $ do
             rec "foo"
         retrieve `shouldReturn` [
@@ -447,18 +453,25 @@ spec = do
 
   describe "aroundWith" $ do
     it "wraps every spec item with an action" $ do
+      mock <- newMock
       (rec, retrieve) <- mkAppend
-      let action :: H.ActionWith String -> H.ActionWith Int
-          action e = e . show
-      runSilent $ H.before (return 23) $ H.aroundWith action $ do
+      let action = (. show)
+      evalSpec_ $ H.before (mockAction mock >> mockCounter mock) $ H.aroundWith action $ do
         H.it "foo" rec
-      retrieve `shouldReturn` ["23"]
+        H.it "bar" rec
+        H.it "baz" rec
+      retrieve `shouldReturn` [
+          "1"
+        , "2"
+        , "3"
+        ]
+      mockCounter mock `shouldReturn` 3
 
   describe "aroundAll_" $ do
     it "wraps an action around a spec" $ do
       (rec, retrieve) <- mkAppend
       let action inner = rec "before" *> inner <* rec "after"
-      _ <- evalSpec $ H.aroundAll_ action $ do
+      evalSpec_ $ H.aroundAll_ action $ do
         H.it "foo" $ rec "foo"
         H.it "bar" $ rec "bar"
       retrieve `shouldReturn` [
@@ -474,7 +487,7 @@ spec = do
           action = mockAction mock >> mockCounter mock
 
       (rec, retrieve) <- mkAppend
-      _ <- evalSpec $ H.before action $ H.aroundAll_ id $ do
+      evalSpec_ $ H.before action $ H.aroundAll_ id $ do
         H.it "foo" $ rec . show
         H.it "bar" $ rec . show
         H.it "baz" $ rec . show
