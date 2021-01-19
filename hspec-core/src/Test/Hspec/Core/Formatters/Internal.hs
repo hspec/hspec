@@ -97,8 +97,8 @@ data FormatConfig = FormatConfig {
 } deriving (Eq, Show)
 
 data FormatterState = FormatterState {
-  stateSuccessCount    :: Int
-, statePendingCount    :: Int
+  stateSuccessCount    :: !Int
+, statePendingCount    :: !Int
 , stateFailMessages    :: [FailureRecord]
 , stateCpuStartTime    :: Maybe Integer
 , stateStartTime       :: Seconds
