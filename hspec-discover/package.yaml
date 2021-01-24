@@ -47,6 +47,6 @@ tests:
       - test
     dependencies:
       - hspec-discover
-      - hspec-meta >= 2.3.2
+      - hspec-meta == 2.7.8
       - QuickCheck >= 2.7
     build-tools: hspec-meta:hspec-meta-discover
