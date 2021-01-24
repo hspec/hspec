@@ -1,0 +1,5 @@
+packages:
+  hspec-meta.cabal
+
+package hspec-meta
+  ghc-options: -Werror

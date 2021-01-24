@@ -1,0 +1,62 @@
+_: !include version.yaml
+
+name:             hspec-meta
+version: *version
+copyright:
+  - (c) 2011-2021 Simon Hengel
+  - (c) 2011-2012 Trystan Spangler
+  - (c) 2011 Greg Weber
+maintainer:       Simon Hengel <sol@typeful.net>
+category:         Testing
+stability:        experimental
+homepage:         http://hspec.github.io/
+synopsis:         A version of Hspec which is used to test Hspec itself
+description: |
+  A stable version of Hspec which is used to test the
+  in-development version of Hspec.
+
+extra-source-files:
+  - version.yaml
+
+github: hspec/hspec
+
+ghc-options: -Wall
+
+
+dependencies:
+  base: 4.*
+
+  QuickCheck: ">= 2.12"
+  transformers: ">= 0.2.2.0"
+  setenv:
+  deepseq:
+  random:
+  quickcheck-io:
+  ansi-terminal:
+  time:
+  call-stack:
+  filepath:
+  directory:
+  clock:
+  stm: ">= 2.2" # for asyc
+  array: # for Diff
+
+library:
+  source-dirs:
+    - src
+    - hspec-core/src
+    - hspec-core/vendor
+    - vendor/HUnit-1.6.2.0/src/
+    - vendor/hspec-expectations-0.8.2/src/
+  exposed-modules:
+    - Test.Hspec.Meta
+
+executables:
+  hspec-meta-discover:
+    source-dirs:
+      - hspec-discover/src
+      - hspec-discover/driver
+    main: hspec-discover.hs
+    dependencies:
+      - filepath
+      - directory
