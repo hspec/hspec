@@ -23,6 +23,7 @@ import           System.SetEnv
 import           System.Console.ANSI
 
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
+import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Formatters as H (silent)
@@ -425,7 +426,7 @@ spec = do
       it "shows colorized diffs" $ do
         r <- capture_ . ignoreExitCode . withArgs ["--diff", "--color"] . H.hspec $ do
           H.it "foo" $ do
-            23 `shouldBe` (42 :: Int)
+            23 `H.shouldBe` (42 :: Int)
         r `shouldContain` unlines [
             red ++ "       expected: " ++ reset ++ red ++ "42" ++ reset
           , red ++ "        but got: " ++ reset ++ green ++ "23" ++ reset
@@ -435,7 +436,7 @@ spec = do
       it "it does not show colorized diffs" $ do
         r <- capture_ . ignoreExitCode . withArgs ["--no-diff", "--color"] . H.hspec $ do
           H.it "foo" $ do
-            23 `shouldBe` (42 :: Int)
+            23 `H.shouldBe` (42 :: Int)
         r `shouldContain` unlines [
             red ++ "       expected: " ++ reset ++ "42"
           , red ++ "        but got: " ++ reset ++ "23"
