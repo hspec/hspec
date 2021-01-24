@@ -129,7 +129,7 @@ test-suite spec
     , filepath
     , haskell-lexer
     , hspec-expectations ==0.8.3.*
-    , hspec-meta ==2.10.5
+    , hspec-meta ==2.11.1
     , process
     , quickcheck-io >=0.2.0
     , random

@@ -4,6 +4,7 @@ set -o errexit
 
 runhaskell util/BumpVersion.hs $*
 
+hpack hspec-meta/package.yaml
 hpack package.yaml
 hpack hspec-core/package.yaml
 hpack hspec-discover/package.yaml

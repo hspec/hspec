@@ -1,0 +1,153 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           hspec-meta
+version:        2.11.1
+synopsis:       A version of Hspec which is used to test Hspec itself
+description:    A stable version of Hspec which is used to test the
+                in-development version of Hspec.
+category:       Testing
+stability:      experimental
+homepage:       https://hspec.github.io/
+bug-reports:    https://github.com/hspec/hspec/issues
+maintainer:     Simon Hengel <sol@typeful.net>
+copyright:      (c) 2011-2023 Simon Hengel,
+                (c) 2011-2012 Trystan Spangler,
+                (c) 2011 Greg Weber
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/hspec/hspec
+  subdir: hspec-meta
+
+library
+  exposed-modules:
+      Test.Hspec.Meta
+      Test.Hspec.Discover
+  other-modules:
+      Control.Concurrent.Async
+      Data.Algorithm.Diff
+      Test.Hspec
+      Test.Hspec.Formatters
+      Test.Hspec.QuickCheck
+      Test.Hspec.Runner
+      GetOpt.Declarative
+      GetOpt.Declarative.Environment
+      GetOpt.Declarative.Interpret
+      GetOpt.Declarative.Types
+      GetOpt.Declarative.Util
+      NonEmpty
+      Test.Hspec.Core.Clock
+      Test.Hspec.Core.Compat
+      Test.Hspec.Core.Config
+      Test.Hspec.Core.Config.Definition
+      Test.Hspec.Core.Config.Options
+      Test.Hspec.Core.Example
+      Test.Hspec.Core.Example.Location
+      Test.Hspec.Core.FailureReport
+      Test.Hspec.Core.Format
+      Test.Hspec.Core.Formatters
+      Test.Hspec.Core.Formatters.Diff
+      Test.Hspec.Core.Formatters.Internal
+      Test.Hspec.Core.Formatters.Pretty
+      Test.Hspec.Core.Formatters.Pretty.Parser
+      Test.Hspec.Core.Formatters.Pretty.Parser.Parser
+      Test.Hspec.Core.Formatters.Pretty.Unicode
+      Test.Hspec.Core.Formatters.V1
+      Test.Hspec.Core.Formatters.V1.Free
+      Test.Hspec.Core.Formatters.V1.Internal
+      Test.Hspec.Core.Formatters.V1.Monad
+      Test.Hspec.Core.Formatters.V2
+      Test.Hspec.Core.Hooks
+      Test.Hspec.Core.QuickCheck
+      Test.Hspec.Core.QuickCheckUtil
+      Test.Hspec.Core.Runner
+      Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Runner.JobQueue
+      Test.Hspec.Core.Runner.PrintSlowSpecItems
+      Test.Hspec.Core.Runner.Result
+      Test.Hspec.Core.Shuffle
+      Test.Hspec.Core.Spec
+      Test.Hspec.Core.Spec.Monad
+      Test.Hspec.Core.Timer
+      Test.Hspec.Core.Tree
+      Test.Hspec.Core.Util
+      Paths_hspec_meta
+  hs-source-dirs:
+      src
+      vendor
+      hspec/src
+      hspec-core/src
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
+  build-depends:
+      HUnit ==1.6.*
+    , QuickCheck >=2.13.1
+    , ansi-terminal >=0.6.2
+    , array
+    , base >=4.8.2.0 && <5
+    , call-stack >=0.2.0
+    , deepseq
+    , directory
+    , filepath
+    , haskell-lexer
+    , hspec-expectations ==0.8.3.*
+    , process
+    , quickcheck-io >=0.2.0
+    , random
+    , tf-random
+    , time
+    , transformers >=0.2.2.0
+  default-language: Haskell2010
+  if impl(ghc >= 8.4.1)
+    build-depends:
+        stm >=2.2
+  else
+    other-modules:
+        Control.Concurrent.STM.TMVar
+    hs-source-dirs:
+        vendor/stm-2.5.0.1/
+
+executable hspec-meta-discover
+  main-is: hspec-discover.hs
+  other-modules:
+      Test.Hspec.Discover.Config
+      Test.Hspec.Discover.Run
+      Test.Hspec.Discover.Sort
+      Paths_hspec_meta
+  hs-source-dirs:
+      hspec-discover/src
+      hspec-discover/driver
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
+  build-depends:
+      HUnit ==1.6.*
+    , QuickCheck >=2.13.1
+    , ansi-terminal >=0.6.2
+    , array
+    , base >=4.8.2.0 && <5
+    , call-stack >=0.2.0
+    , deepseq
+    , directory
+    , filepath
+    , haskell-lexer
+    , hspec-expectations ==0.8.3.*
+    , process
+    , quickcheck-io >=0.2.0
+    , random
+    , tf-random
+    , time
+    , transformers >=0.2.2.0
+  default-language: Haskell2010
+  if impl(ghc >= 8.4.1)
+    build-depends:
+        stm >=2.2
+  else
+    other-modules:
+        Control.Concurrent.STM.TMVar
+    hs-source-dirs:
+        vendor/stm-2.5.0.1/

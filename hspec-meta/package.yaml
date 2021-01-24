@@ -1,0 +1,31 @@
+<<: !include hspec-core/package.yaml
+
+name: hspec-meta
+github: hspec/hspec/hspec-meta
+synopsis: A version of Hspec which is used to test Hspec itself
+description: |
+  A stable version of Hspec which is used to test the
+  in-development version of Hspec.
+
+extra-source-files: []
+
+source-dirs: []
+
+library:
+  source-dirs:
+    - src
+    - vendor
+    - hspec/src
+    - hspec-core/src
+  exposed-modules:
+    - Test.Hspec.Meta
+    - Test.Hspec.Discover
+
+executables:
+  hspec-meta-discover:
+    source-dirs:
+      - hspec-discover/src
+      - hspec-discover/driver
+    main: hspec-discover.hs
+
+tests: {}
