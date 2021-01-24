@@ -8,7 +8,6 @@ module Test.Hspec.Discover {-# WARNING
 , hspecWithFormatter
 , postProcessSpec
 , describe
-, module Prelude
 ) where
 
 import           Test.Hspec.Core.Spec
