@@ -1,0 +1,136 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.5.
+--
+-- see: https://github.com/sol/hpack
+
+name:           hspec-meta
+version:        2.9.2
+synopsis:       A version of Hspec which is used to test Hspec itself
+description:    A stable version of Hspec which is used to test the
+                in-development version of Hspec.
+category:       Testing
+stability:      experimental
+homepage:       http://hspec.github.io/
+bug-reports:    https://github.com/hspec/hspec/issues
+maintainer:     Simon Hengel <sol@typeful.net>
+copyright:      (c) 2011-2021 Simon Hengel,
+                (c) 2011-2012 Trystan Spangler,
+                (c) 2011 Greg Weber
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    version.yaml
+
+source-repository head
+  type: git
+  location: https://github.com/hspec/hspec
+
+library
+  exposed-modules:
+      Test.Hspec.Meta
+      Test.Hspec.Discover
+  other-modules:
+      Test.Hspec
+      Test.Hspec.Formatters
+      Test.Hspec.QuickCheck
+      Test.Hspec.Runner
+      GetOpt.Declarative
+      GetOpt.Declarative.Environment
+      GetOpt.Declarative.Interpret
+      GetOpt.Declarative.Types
+      GetOpt.Declarative.Util
+      Test.Hspec.Core.Clock
+      Test.Hspec.Core.Compat
+      Test.Hspec.Core.Config
+      Test.Hspec.Core.Config.Definition
+      Test.Hspec.Core.Config.Options
+      Test.Hspec.Core.Example
+      Test.Hspec.Core.Example.Location
+      Test.Hspec.Core.FailureReport
+      Test.Hspec.Core.Format
+      Test.Hspec.Core.Formatters
+      Test.Hspec.Core.Formatters.Diff
+      Test.Hspec.Core.Formatters.Internal
+      Test.Hspec.Core.Formatters.V1
+      Test.Hspec.Core.Formatters.V1.Free
+      Test.Hspec.Core.Formatters.V1.Monad
+      Test.Hspec.Core.Formatters.V2
+      Test.Hspec.Core.Hooks
+      Test.Hspec.Core.QuickCheck
+      Test.Hspec.Core.QuickCheckUtil
+      Test.Hspec.Core.Runner
+      Test.Hspec.Core.Runner.Eval
+      Test.Hspec.Core.Runner.PrintSlowSpecItems
+      Test.Hspec.Core.Shuffle
+      Test.Hspec.Core.Spec
+      Test.Hspec.Core.Spec.Monad
+      Test.Hspec.Core.Timer
+      Test.Hspec.Core.Tree
+      Test.Hspec.Core.Util
+      Control.Concurrent.Async
+      Data.Algorithm.Diff
+      Text.Show.Unicode
+      Test.HUnit
+      Test.HUnit.Base
+      Test.HUnit.Lang
+      Test.HUnit.Terminal
+      Test.HUnit.Text
+      Test.Hspec.Expectations
+      Test.Hspec.Expectations.Contrib
+      Test.Hspec.Expectations.Matcher
+      Paths_hspec_meta
+  hs-source-dirs:
+      src
+      hspec-core/src
+      hspec-core/vendor
+      vendor/HUnit-1.6.2.0/src/
+      vendor/hspec-expectations-0.8.2/src/
+  ghc-options: -Wall
+  build-depends:
+      QuickCheck >=2.12
+    , ansi-terminal
+    , array
+    , base ==4.*
+    , call-stack
+    , clock
+    , deepseq
+    , directory
+    , filepath
+    , quickcheck-io
+    , random
+    , setenv
+    , stm >=2.2
+    , time
+    , transformers >=0.2.2.0
+  default-language: Haskell2010
+
+executable hspec-meta-discover
+  main-is: hspec-discover.hs
+  other-modules:
+      Test.Hspec.Discover.Config
+      Test.Hspec.Discover.Run
+      Test.Hspec.Discover.Sort
+      Paths_hspec_meta
+  hs-source-dirs:
+      hspec-discover/src
+      hspec-discover/driver
+  ghc-options: -Wall
+  build-depends:
+      QuickCheck >=2.12
+    , ansi-terminal
+    , array
+    , base ==4.*
+    , call-stack
+    , clock
+    , deepseq
+    , directory
+    , filepath
+    , quickcheck-io
+    , random
+    , setenv
+    , stm >=2.2
+    , time
+    , transformers >=0.2.2.0
+  default-language: Haskell2010
