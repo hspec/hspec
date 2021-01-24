@@ -1,0 +1,66 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.3.
+--
+-- see: https://github.com/sol/hpack
+
+name:                   HUnit
+version:                1.6.2.0
+license:                BSD3
+license-file:           LICENSE
+author:                 Dean Herington
+maintainer:             Simon Hengel <sol@typeful.net>
+stability:              stable
+homepage:               https://github.com/hspec/HUnit#readme
+bug-reports:            https://github.com/hspec/HUnit/issues
+category:               Testing
+synopsis:               A unit testing framework for Haskell
+description:            HUnit is a unit testing framework for Haskell, inspired by the
+                        JUnit tool for Java, see: <http://www.junit.org>.
+build-type:             Simple
+extra-source-files:
+  CHANGELOG.md
+  README.md
+
+source-repository head
+  type: git
+  location: https://github.com/hspec/HUnit
+
+library
+  hs-source-dirs:
+    src
+  build-depends:
+    base ==4.*,
+    call-stack >=0.3.0,
+    deepseq
+  exposed-modules:
+    Test.HUnit.Base
+    Test.HUnit.Lang
+    Test.HUnit.Terminal
+    Test.HUnit.Text
+    Test.HUnit
+  other-modules:
+    Paths_HUnit
+  default-language: Haskell2010
+  ghc-options: -Wall
+
+test-suite tests
+  type: exitcode-stdio-1.0
+  main-is: HUnitTests.hs
+  hs-source-dirs:
+    tests
+    examples
+  build-depends:
+    HUnit,
+    base ==4.*,
+    call-stack >=0.3.0,
+    deepseq,
+    filepath
+  other-modules:
+    HUnitTestBase
+    HUnitTestExtended
+    TerminalTest
+    Example
+    Paths_HUnit
+  default-language: Haskell2010
+  ghc-options: -Wall
