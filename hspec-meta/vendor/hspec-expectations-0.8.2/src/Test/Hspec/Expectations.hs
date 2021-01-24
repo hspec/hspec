@@ -61,17 +61,7 @@ import           Control.Monad (unless)
 
 import           Test.Hspec.Expectations.Matcher
 
-#if MIN_VERSION_HUnit(1,4,0)
 import           Data.CallStack (HasCallStack)
-#else
-#if MIN_VERSION_base(4,8,1)
-import qualified GHC.Stack as GHC
-type HasCallStack = (?loc :: GHC.CallStack)
-#else
-import GHC.Exts (Constraint)
-type HasCallStack = (() :: Constraint)
-#endif
-#endif
 
 type Expectation = Test.HUnit.Assertion
 

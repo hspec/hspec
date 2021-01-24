@@ -1,10 +1,14 @@
 packages:
+  hspec-meta
   hspec.cabal
   hspec-discover
   hspec-core
   hspec-contrib
   hspec-discover/example
   hspec-discover/integration-test
+
+package hspec-meta
+  ghc-options: -Werror
 
 package hspec
   ghc-options: -Werror
