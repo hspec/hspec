@@ -64,6 +64,8 @@ module Test.Hspec (
 , around
 , around_
 , aroundWith
+, aroundAll
+, aroundAllWith
 
 -- * Running a spec
 , hspec
