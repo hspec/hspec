@@ -43,6 +43,10 @@ formatterToFormat formatter config = Format {
 
 , formatProgress = \ path progress -> do
     interpret $ M.exampleProgress formatter path progress
+
+, formatItemStarted = \ path -> do
+    interpret $ M.exampleStarted formatter path
+
 , formatItemDone = \ path (Item loc _duration info result) -> do
     clearTransientOutput
     case result of

@@ -59,6 +59,9 @@ data Formatter = Formatter {
 -- | evaluated after each test group
 , exampleGroupDone :: FormatM ()
 
+-- | evaluated before each example
+, exampleStarted :: Path -> FormatM ()
+
 -- | used to notify the progress of the currently evaluated example
 , exampleProgress :: Path -> Progress -> FormatM ()
 

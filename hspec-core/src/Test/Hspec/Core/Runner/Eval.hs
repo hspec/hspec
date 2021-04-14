@@ -66,6 +66,16 @@ addResult path item = modify $ \ state -> state {stateResults = (path, item) : s
 getFormat :: Monad m => (Format m -> a) -> EvalM m a
 getFormat format = gets (format . evalConfigFormat . stateConfig)
 
+reportItem :: Monad m => Path -> Maybe Location -> EvalM m (Seconds, Result)  -> EvalM m ()
+reportItem path loc action = do
+  reportItemStarted path
+  action >>= reportResult path loc
+
+reportItemStarted :: Monad m => Path -> EvalM m ()
+reportItemStarted path = do
+  format <- getFormat formatItemStarted
+  lift (format path)
+
 reportItemDone :: Monad m => Path -> Format.Item -> EvalM m ()
 reportItemDone path item = do
   addResult path item
@@ -214,13 +224,13 @@ run specs = do
       r <- liftIO $ measure $ safeEvaluate (action >> return (Result "" Success))
       case r of
         (_, Result "" Success) -> return ()
-        _ -> reportResult path Nothing r
+        _ -> reportItem path Nothing (return r)
       where
         path = (groups, "afterAll-hook")
 
     evalItem :: [String] -> RunningItem m -> EvalM m ()
     evalItem groups (Item requirement loc action) = do
-      lift (action path) >>= reportResult path loc
+      reportItem path loc $ lift (action path)
       where
         path :: Path
         path = (groups, requirement)
