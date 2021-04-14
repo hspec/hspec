@@ -40,7 +40,8 @@ formatterToFormat formatter config = Format {
     return a
 , formatGroupStarted = \ (nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
 , formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
-, formatProgress = \ path progress -> when useColor $ do
+
+, formatProgress = \ path progress -> do
     interpret $ M.exampleProgress formatter path progress
 , formatItem = \ path (Item loc _duration info result) -> do
     clearTransientOutput
@@ -54,8 +55,7 @@ formatterToFormat formatter config = Format {
       Failure err -> do
         addFailMessage loc path err
         interpret $ M.exampleFailed formatter path info err
-} where
-    useColor = formatConfigUseColor config
+}
 
 interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {
@@ -161,11 +161,13 @@ overwriteWith old new
 
 writeTransient :: String -> FormatM ()
 writeTransient new = do
-  old <- gets stateTransientOutput
-  write $ old `overwriteWith` new
-  modify $ \ state -> state {stateTransientOutput = new}
-  h <- getHandle
-  liftIO $ IO.hFlush h
+  useColor <- getConfig formatConfigUseColor
+  when (useColor) $ do
+    old <- gets stateTransientOutput
+    write $ old `overwriteWith` new
+    modify $ \ state -> state {stateTransientOutput = new}
+    h <- getHandle
+    liftIO $ IO.hFlush h
 
 clearTransientOutput :: FormatM ()
 clearTransientOutput = do

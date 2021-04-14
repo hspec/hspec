@@ -56,11 +56,10 @@ data Formatter = Formatter {
 -- | evaluated before each test group
 , exampleGroupStarted :: [String] -> String -> FormatM ()
 
+-- | evaluated after each test group
 , exampleGroupDone :: FormatM ()
 
 -- | used to notify the progress of the currently evaluated example
---
--- /Note/: This is only called when interactive/color mode.
 , exampleProgress :: Path -> Progress -> FormatM ()
 
 -- | evaluated after each successful example
