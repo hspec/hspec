@@ -1,3 +1,6 @@
+## next
+  - Add `exampleStarted` to `Formatter` API
+
 ## Changes in 2.7.9
   - Re-export `aroundAll` and `aroundAllWith` in `Test.Hspec`
 

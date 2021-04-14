@@ -110,6 +110,7 @@ silent = Formatter {
   headerFormatter     = return ()
 , exampleGroupStarted = \_ _ -> return ()
 , exampleGroupDone    = return ()
+, exampleStarted      = \_ -> return ()
 , exampleProgress     = \_ _ -> return ()
 , exampleSucceeded    = \ _ _ -> return ()
 , exampleFailed       = \_ _ _ -> return ()
