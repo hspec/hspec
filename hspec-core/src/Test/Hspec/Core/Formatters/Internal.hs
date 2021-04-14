@@ -42,7 +42,7 @@ formatterToFormat formatter config = Format {
 , formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
 , formatProgress = \ path progress -> when useColor $ do
     interpret $ M.exampleProgress formatter path progress
-, formatItem = \ path (Item loc _duration info result) -> do
+, formatItemDone = \ path (Item loc _duration info result) -> do
     clearTransientOutput
     case result of
       Success -> do

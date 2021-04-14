@@ -33,5 +33,5 @@ data Format m = Format {
 , formatGroupStarted :: Path -> m ()
 , formatGroupDone :: Path -> m ()
 , formatProgress :: Path -> Progress -> m ()
-, formatItem :: Path -> Item -> m ()
+, formatItemDone :: Path -> Item -> m ()
 }
