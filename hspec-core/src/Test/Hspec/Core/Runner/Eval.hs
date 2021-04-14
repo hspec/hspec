@@ -66,10 +66,10 @@ addResult path item = modify $ \ state -> state {stateResults = (path, item) : s
 getFormat :: Monad m => (Format m -> a) -> EvalM m a
 getFormat format = gets (format . evalConfigFormat . stateConfig)
 
-reportItem :: Monad m => Path -> Format.Item -> EvalM m ()
-reportItem path item = do
+reportItemDone :: Monad m => Path -> Format.Item -> EvalM m ()
+reportItemDone path item = do
   addResult path item
-  format <- getFormat formatItem
+  format <- getFormat formatItemDone
   lift (format path item)
 
 failureItem :: Maybe Location -> Seconds -> String -> FailureReason -> Format.Item
@@ -79,10 +79,10 @@ reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Result) -> EvalM 
 reportResult path loc (duration, result) = do
   case result of
     Result info status -> case status of
-      Success -> reportItem path (Format.Item loc duration info Format.Success)
-      Pending loc_ reason -> reportItem path (Format.Item (loc_ <|> loc) duration info $ Format.Pending reason)
-      Failure loc_ err@(Error _ e) -> reportItem path (failureItem (loc_ <|> extractLocation e <|> loc) duration info err)
-      Failure loc_ err -> reportItem path (failureItem (loc_ <|> loc) duration info err)
+      Success -> reportItemDone path (Format.Item loc duration info Format.Success)
+      Pending loc_ reason -> reportItemDone path (Format.Item (loc_ <|> loc) duration info $ Format.Pending reason)
+      Failure loc_ err@(Error _ e) -> reportItemDone path (failureItem (loc_ <|> extractLocation e <|> loc) duration info err)
+      Failure loc_ err -> reportItemDone path (failureItem (loc_ <|> loc) duration info err)
 
 groupStarted :: Monad m => Path -> EvalM m ()
 groupStarted path = do
