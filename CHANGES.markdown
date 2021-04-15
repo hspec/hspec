@@ -1,4 +1,4 @@
-## next
+## Changes in 2.7.10
   - Add a new formatter (can be used with `--format checks`)
   - Add `exampleStarted` to `Formatter` API
 
