@@ -300,12 +300,16 @@ data Summary = Summary {
 
 instance Monoid Summary where
   mempty = Summary 0 0
-#if !MIN_VERSION_base(4,11,0)
-  (Summary x1 x2) `mappend` (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
-#else
+#if MIN_VERSION_base(4,11,0)
 instance Semigroup Summary where
-  (Summary x1 x2) <> (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
 #endif
+  (Summary x1 x2)
+#if MIN_VERSION_base(4,11,0)
+    <>
+#else
+    `mappend`
+#endif
+    (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
 
 randomizeForest :: Integer -> [Tree c a] -> [Tree c a]
 randomizeForest seed t = runST $ do
