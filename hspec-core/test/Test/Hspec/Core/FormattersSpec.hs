@@ -83,6 +83,7 @@ environment = Environment {
     (a, r) <- liftIO $ runWriterT action
     tell (colorize Info r) >> return a
 , environmentUseDiff = return True
+, environmentPrintTimes = return False
 , environmentExtraChunk = tell . return . Extra
 , environmentMissingChunk = tell . return . Missing
 , environmentLiftIO = liftIO
@@ -105,19 +106,19 @@ spec = do
 
     describe "exampleSucceeded" $ do
       it "marks succeeding examples with ." $ do
-        interpret (H.exampleSucceeded formatter undefined undefined) `shouldReturn` [
+        interpret (H.exampleSucceeded formatter undefined undefined undefined) `shouldReturn` [
             Succeeded "."
           ]
 
     describe "exampleFailed" $ do
       it "marks failing examples with F" $ do
-        interpret (H.exampleFailed formatter undefined undefined undefined) `shouldReturn` [
+        interpret (H.exampleFailed formatter undefined undefined undefined undefined) `shouldReturn` [
             Failed "F"
           ]
 
     describe "examplePending" $ do
       it "marks pending examples with ." $ do
-        interpret (H.examplePending formatter undefined undefined undefined) `shouldReturn` [
+        interpret (H.examplePending formatter undefined undefined undefined undefined) `shouldReturn` [
             Pending "."
           ]
 

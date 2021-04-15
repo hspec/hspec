@@ -47,18 +47,18 @@ formatterToFormat formatter config = Format {
 , formatItemStarted = \ path -> do
     interpret $ M.exampleStarted formatter path
 
-, formatItemDone = \ path (Item loc _duration info result) -> do
+, formatItemDone = \ path (Item loc duration info result) -> do
     clearTransientOutput
     case result of
       Success -> do
         increaseSuccessCount
-        interpret $ M.exampleSucceeded formatter path info
+        interpret $ M.exampleSucceeded formatter path duration info
       Pending reason -> do
         increasePendingCount
-        interpret $ M.examplePending formatter path info reason
+        interpret $ M.examplePending formatter path duration info reason
       Failure err -> do
         addFailMessage loc path err
-        interpret $ M.exampleFailed formatter path info err
+        interpret $ M.exampleFailed formatter path duration info err
 }
 
 interpret :: M.FormatM a -> FormatM a
@@ -67,6 +67,7 @@ interpret = interpretWith Environment {
 , environmentGetPendingCount = getPendingCount
 , environmentGetFailMessages = getFailMessages
 , environmentUsedSeed = usedSeed
+, environmentPrintTimes = gets (formatConfigPrintTimes . stateConfig)
 , environmentGetCPUTime = getCPUTime
 , environmentGetRealTime = getRealTime
 , environmentWrite = write
@@ -95,6 +96,7 @@ data FormatConfig = FormatConfig {
   formatConfigHandle :: Handle
 , formatConfigUseColor :: Bool
 , formatConfigUseDiff :: Bool
+, formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool
 , formatConfigPrintCpuTime :: Bool
 , formatConfigUsedSeed :: Integer

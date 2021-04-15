@@ -34,6 +34,8 @@ module Test.Hspec.Core.Formatters (
 , getFailMessages
 , usedSeed
 
+, printTimes
+
 , Seconds(..)
 , getCPUTime
 , getRealTime
@@ -87,6 +89,7 @@ import Test.Hspec.Core.Formatters.Monad (
   , getFailMessages
   , usedSeed
 
+  , printTimes
   , getCPUTime
   , getRealTime
 
@@ -109,13 +112,13 @@ import           Test.Hspec.Core.Formatters.Diff
 silent :: Formatter
 silent = Formatter {
   headerFormatter     = return ()
-, exampleGroupStarted = \_ _ -> return ()
+, exampleGroupStarted = \ _ _ -> return ()
 , exampleGroupDone    = return ()
-, exampleStarted      = \_ -> return ()
-, exampleProgress     = \_ _ -> return ()
-, exampleSucceeded    = \ _ _ -> return ()
-, exampleFailed       = \_ _ _ -> return ()
-, examplePending      = \_ _ _ -> return ()
+, exampleStarted      = \ _ -> return ()
+, exampleProgress     = \ _ _ -> return ()
+, exampleSucceeded    = \ _ _ _ -> return ()
+, exampleFailed       = \ _ _ _ _ -> return ()
+, examplePending      = \ _ _ _ _ -> return ()
 , failedFormatter     = return ()
 , footerFormatter     = return ()
 }
@@ -128,27 +131,35 @@ checks = specdoc {
 , exampleProgress = \(nesting, requirement) p -> do
     writeTransient $ indentationFor nesting ++ requirement ++ " [" ++ (formatProgress p) ++ "]"
 
-, exampleSucceeded = \(nesting, requirement) info -> do
-    writeResult nesting requirement info $ withSuccessColor $ write "✔"
+, exampleSucceeded = \(nesting, requirement) duration info -> do
+    writeResult nesting requirement duration info withSuccessColor "✔"
 
-, exampleFailed = \(nesting, requirement) info _ -> do
-    writeResult nesting requirement info $ withFailColor $ write "✘"
+, exampleFailed = \(nesting, requirement) duration info _ -> do
+    writeResult nesting requirement duration info withFailColor "✘"
 
-, examplePending = \(nesting, requirement) info reason -> do
-    writeResult nesting requirement info $ withPendingColor $ write "‐"
+, examplePending = \(nesting, requirement) duration info reason -> do
+    writeResult nesting requirement duration info withPendingColor "‐"
 
     withPendingColor $ do
       writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
 
-    writeResult :: [String] -> String -> String -> FormatM () -> FormatM ()
-    writeResult nesting requirement info action = do
+    writeResult :: [String] -> String -> Seconds -> String -> (FormatM () -> FormatM ()) -> String -> FormatM ()
+    writeResult nesting requirement (Seconds duration) info withColor symbol = do
+      shouldPrintTimes <- printTimes
       write $ indentationFor nesting ++ requirement ++ " ["
-      action
-      writeLine "]"
+      withColor $ write symbol
+      writeLine $ "]" ++ if shouldPrintTimes then times else ""
       forM_ (lines info) $ \ s ->
         writeLine $ indentationFor ("" : nesting) ++ s
+      where
+        dt :: Int
+        dt = floor (duration * 1000)
+
+        times
+          | dt == 0 = ""
+          | otherwise = " (" ++ show dt ++ "ms)"
 
     formatProgress (current, total)
       | total == 0 = show current
@@ -166,21 +177,15 @@ specdoc = silent {
 , exampleProgress = \_ p -> do
     writeTransient (formatProgress p)
 
-, exampleSucceeded = \(nesting, requirement) info -> withSuccessColor $ do
-    writeLine $ indentationFor nesting ++ requirement
-    forM_ (lines info) $ \ s ->
-      writeLine $ indentationFor ("" : nesting) ++ s
+, exampleSucceeded = \(nesting, requirement) duration info -> withSuccessColor $ do
+    writeResult nesting requirement duration info
 
-, exampleFailed = \(nesting, requirement) info _ -> withFailColor $ do
+, exampleFailed = \(nesting, requirement) duration info _ -> withFailColor $ do
     n <- getFailCount
-    writeLine $ indentationFor nesting ++ requirement ++ " FAILED [" ++ show n ++ "]"
-    forM_ (lines info) $ \ s ->
-      writeLine $ indentationFor ("" : nesting) ++ s
+    writeResult nesting (requirement ++ " FAILED [" ++ show n ++ "]") duration info
 
-, examplePending = \(nesting, requirement) info reason -> withPendingColor $ do
-    writeLine $ indentationFor nesting ++ requirement
-    forM_ (lines info) $ \ s ->
-      writeLine $ indentationFor ("" : nesting) ++ s
+, examplePending = \(nesting, requirement) duration info reason -> withPendingColor $ do
+    writeResult nesting requirement duration info
     writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
 
 , failedFormatter = defaultFailedFormatter
@@ -188,6 +193,20 @@ specdoc = silent {
 , footerFormatter = defaultFooter
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
+
+    writeResult nesting requirement (Seconds duration) info = do
+      shouldPrintTimes <- printTimes
+      writeLine $ indentationFor nesting ++ requirement ++ if shouldPrintTimes then times else ""
+      forM_ (lines info) $ \ s ->
+        writeLine $ indentationFor ("" : nesting) ++ s
+      where
+        dt :: Int
+        dt = floor (duration * 1000)
+
+        times
+          | dt == 0 = ""
+          | otherwise = " (" ++ show dt ++ "ms)"
+
     formatProgress (current, total)
       | total == 0 = show current
       | otherwise  = show current ++ "/" ++ show total
@@ -195,9 +214,9 @@ specdoc = silent {
 
 progress :: Formatter
 progress = silent {
-  exampleSucceeded = \_ _ -> withSuccessColor $ write "."
-, exampleFailed    = \_ _ _ -> withFailColor    $ write "F"
-, examplePending   = \_ _ _ -> withPendingColor $ write "."
+  exampleSucceeded = \_ _ _ -> withSuccessColor $ write "."
+, exampleFailed    = \_ _ _ _ -> withFailColor    $ write "F"
+, examplePending   = \_ _ _ _ -> withPendingColor $ write "."
 , failedFormatter  = defaultFailedFormatter
 , footerFormatter  = defaultFooter
 }

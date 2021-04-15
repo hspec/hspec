@@ -18,6 +18,7 @@ module Test.Hspec.Core.Formatters.Monad (
 , getFailMessages
 , usedSeed
 
+, printTimes
 , getCPUTime
 , getRealTime
 
@@ -66,13 +67,13 @@ data Formatter = Formatter {
 , exampleProgress :: Path -> Progress -> FormatM ()
 
 -- | evaluated after each successful example
-, exampleSucceeded :: Path -> String -> FormatM ()
+, exampleSucceeded :: Path -> Seconds -> String -> FormatM ()
 
 -- | evaluated after each failed example
-, exampleFailed :: Path -> String -> FailureReason -> FormatM ()
+, exampleFailed :: Path -> Seconds -> String -> FailureReason -> FormatM ()
 
 -- | evaluated after each pending example
-, examplePending :: Path -> String -> Maybe String -> FormatM ()
+, examplePending :: Path -> Seconds -> String -> Maybe String -> FormatM ()
 
 -- | evaluated after a test run
 , failedFormatter :: FormatM ()
@@ -92,6 +93,7 @@ data FormatF next =
   | GetPendingCount (Int -> next)
   | GetFailMessages ([FailureRecord] -> next)
   | UsedSeed (Integer -> next)
+  | PrintTimes (Bool -> next)
   | GetCPUTime (Maybe Seconds -> next)
   | GetRealTime (Seconds -> next)
   | Write String next
@@ -111,6 +113,7 @@ instance Functor FormatF where -- deriving this instance would require GHC >= 7.
     GetPendingCount next -> GetPendingCount (fmap f next)
     GetFailMessages next -> GetFailMessages (fmap f next)
     UsedSeed next -> UsedSeed (fmap f next)
+    PrintTimes next -> PrintTimes (fmap f next)
     GetCPUTime next -> GetCPUTime (fmap f next)
     GetRealTime next -> GetRealTime (fmap f next)
     Write s next -> Write s (f next)
@@ -134,6 +137,7 @@ data Environment m = Environment {
 , environmentGetPendingCount :: m Int
 , environmentGetFailMessages :: m [FailureRecord]
 , environmentUsedSeed :: m Integer
+, environmentPrintTimes :: m Bool
 , environmentGetCPUTime :: m (Maybe Seconds)
 , environmentGetRealTime :: m Seconds
 , environmentWrite :: String -> m ()
@@ -159,6 +163,7 @@ interpretWith Environment{..} = go
         GetPendingCount next -> environmentGetPendingCount >>= go . next
         GetFailMessages next -> environmentGetFailMessages >>= go . next
         UsedSeed next -> environmentUsedSeed >>= go . next
+        PrintTimes next -> environmentPrintTimes >>= go . next
         GetCPUTime next -> environmentGetCPUTime >>= go . next
         GetRealTime next -> environmentGetRealTime >>= go . next
         Write s next -> environmentWrite s >> go next
@@ -195,6 +200,11 @@ getFailMessages = liftF (GetFailMessages id)
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer
 usedSeed = liftF (UsedSeed id)
+
+-- | Return `True` if the user requested time reporting for individual spec
+-- items, `False` otherwise.
+printTimes :: FormatM Bool
+printTimes = liftF (PrintTimes id)
 
 -- | Get the used CPU time since the test run has been started.
 getCPUTime :: FormatM (Maybe Seconds)
