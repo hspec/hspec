@@ -8,6 +8,7 @@ module Test.Hspec.Core.Formatters (
 
 -- * Formatters
   silent
+, checks
 , specdoc
 , progress
 , failed_examples
@@ -118,6 +119,40 @@ silent = Formatter {
 , failedFormatter     = return ()
 , footerFormatter     = return ()
 }
+
+checks :: Formatter
+checks = specdoc {
+  exampleStarted = \(nesting, requirement) -> do
+    writeTransient $ indentationFor nesting ++ requirement ++ " [ ]"
+
+, exampleProgress = \(nesting, requirement) p -> do
+    writeTransient $ indentationFor nesting ++ requirement ++ " [" ++ (formatProgress p) ++ "]"
+
+, exampleSucceeded = \(nesting, requirement) info -> do
+    writeResult nesting requirement info $ withSuccessColor $ write "✔"
+
+, exampleFailed = \(nesting, requirement) info _ -> do
+    writeResult nesting requirement info $ withFailColor $ write "✘"
+
+, examplePending = \(nesting, requirement) info reason -> do
+    writeResult nesting requirement info $ withPendingColor $ write "‐"
+
+    withPendingColor $ do
+      writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+} where
+    indentationFor nesting = replicate (length nesting * 2) ' '
+
+    writeResult :: [String] -> String -> String -> FormatM () -> FormatM ()
+    writeResult nesting requirement info action = do
+      write $ indentationFor nesting ++ requirement ++ " ["
+      action
+      writeLine "]"
+      forM_ (lines info) $ \ s ->
+        writeLine $ indentationFor ("" : nesting) ++ s
+
+    formatProgress (current, total)
+      | total == 0 = show current
+      | otherwise  = show current ++ "/" ++ show total
 
 specdoc :: Formatter
 specdoc = silent {

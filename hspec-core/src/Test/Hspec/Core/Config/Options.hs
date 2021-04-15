@@ -159,7 +159,8 @@ formatterOptions = concat [
   where
     formatters :: [(String, Formatter)]
     formatters = [
-        ("specdoc", specdoc)
+        ("checks", checks)
+      , ("specdoc", specdoc)
       , ("progress", progress)
       , ("failed-examples", failed_examples)
       , ("silent", silent)
