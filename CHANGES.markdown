@@ -1,3 +1,6 @@
+## next
+  - Add --times to print times for individual spec items
+
 ## Changes in 2.7.10
   - Add a new formatter (can be used with `--format checks`)
   - Add `exampleStarted` to `Formatter` API

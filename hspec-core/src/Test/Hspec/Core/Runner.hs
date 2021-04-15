@@ -215,6 +215,7 @@ runSpec_ config spec = do
           formatConfigHandle = h
         , formatConfigUseColor = useColor
         , formatConfigUseDiff = configDiff config
+        , formatConfigPrintTimes = configTimes config
         , formatConfigHtmlOutput = configHtmlOutput config
         , formatConfigPrintCpuTime = configPrintCpuTime config
         , formatConfigUsedSeed =  seed

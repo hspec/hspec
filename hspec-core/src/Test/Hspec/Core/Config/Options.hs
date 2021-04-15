@@ -54,6 +54,7 @@ data Config = Config {
 , configSmallCheckDepth :: Int
 , configColorMode :: ColorMode
 , configDiff :: Bool
+, configTimes :: Bool
 , configFormatter :: Maybe Formatter
 , configHtmlOutput :: Bool
 , configOutputFile :: Either Handle FilePath
@@ -81,6 +82,7 @@ defaultConfig = Config {
 , configSmallCheckDepth = paramsSmallCheckDepth defaultParams
 , configColorMode = ColorAuto
 , configDiff = True
+, configTimes = False
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configOutputFile = Left stdout
@@ -154,6 +156,7 @@ formatterOptions = concat [
     [mkOption "f" "format" (Arg "FORMATTER" readFormatter setFormatter) helpForFormat]
   , mkFlag "color" setColor "colorize the output"
   , mkFlag "diff" setDiff "show colorized diffs"
+  , mkFlag "times" setTimes "report times for individual spec items"
   , [Option [] ["print-cpu-time"] (NoArg setPrintCpuTime) "include used CPU time in summary"]
   ]
   where
@@ -180,6 +183,9 @@ formatterOptions = concat [
 
     setDiff :: Bool -> Config -> Config
     setDiff v config = config {configDiff = v}
+
+    setTimes :: Bool -> Config -> Config
+    setTimes v config = config {configTimes = v}
 
     setPrintCpuTime = set $ \config -> config {configPrintCpuTime = True}
 
