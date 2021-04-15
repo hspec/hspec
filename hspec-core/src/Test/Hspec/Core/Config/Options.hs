@@ -12,7 +12,6 @@ module Test.Hspec.Core.Config.Options (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           System.IO
 import           System.Exit
 import           System.Console.GetOpt
 
@@ -57,7 +56,6 @@ data Config = Config {
 , configTimes :: Bool
 , configFormatter :: Maybe Formatter
 , configHtmlOutput :: Bool
-, configOutputFile :: Either Handle FilePath
 , configConcurrentJobs :: Maybe Int
 }
 
@@ -85,7 +83,6 @@ defaultConfig = Config {
 , configTimes = False
 , configFormatter = Nothing
 , configHtmlOutput = False
-, configOutputFile = Left stdout
 , configConcurrentJobs = Nothing
 }
 
@@ -273,17 +270,9 @@ undocumentedOptions = [
     -- undocumented for now, as we probably want to change this to produce a
     -- standalone HTML report in the future
   , Option []  ["html"]                    (NoArg setHtml)                    "produce HTML output"
-
-  , mkOption "o"  "out"                    (Arg "FILE" return setOutputFile)  "write output to a file instead of STDOUT"
-
-    -- now a noop
-  , Option "v" ["verbose"]                 (NoArg id)                         "do not suppress output to stdout when evaluating examples"
   ]
   where
     setHtml = set $ \config -> config {configHtmlOutput = True}
-
-    setOutputFile :: String -> Config -> Config
-    setOutputFile file c = c {configOutputFile = Right file}
 
 recognizedOptions :: [OptDescr (Result Maybe -> Result Maybe)]
 recognizedOptions = commandLineOptions ++ configFileOptions ++ undocumentedOptions

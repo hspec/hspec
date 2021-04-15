@@ -1,5 +1,7 @@
 ## next
   - Add --times to print times for individual spec items
+  - Remove `--verbose` option (this has been a noop since at least 2013)
+  - Remove `--out` option (use shell output redirection instead)
 
 ## Changes in 2.7.10
   - Add a new formatter (can be used with `--format checks`)
