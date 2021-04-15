@@ -1,4 +1,5 @@
 ## next
+  - Add a new formatter (can be used with `--format checks`)
   - Add `exampleStarted` to `Formatter` API
 
 ## Changes in 2.7.9
