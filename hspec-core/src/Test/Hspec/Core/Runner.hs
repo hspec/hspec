@@ -198,43 +198,42 @@ focusSpec config spec
 runSpec_ :: Config -> Spec -> IO Summary
 runSpec_ config spec = do
   filteredSpec <- specToEvalForest config spec
-  withHandle config $ \h -> do
-    let formatter = fromMaybe specdoc (configFormatter config)
-        seed = (fromJust . configQuickCheckSeed) config
-        qcArgs = configQuickCheckArgs config
+  let formatter = fromMaybe specdoc (configFormatter config)
+      seed = (fromJust . configQuickCheckSeed) config
+      qcArgs = configQuickCheckArgs config
 
-    concurrentJobs <- case configConcurrentJobs config of
-      Nothing -> getDefaultConcurrentJobs
-      Just n -> return n
+  concurrentJobs <- case configConcurrentJobs config of
+    Nothing -> getDefaultConcurrentJobs
+    Just n -> return n
 
-    useColor <- doesUseColor h config
+  useColor <- doesUseColor stdout config
 
-    results <- withHiddenCursor useColor h $ do
-      let
-        formatConfig = FormatConfig {
-          formatConfigHandle = h
-        , formatConfigUseColor = useColor
-        , formatConfigUseDiff = configDiff config
-        , formatConfigPrintTimes = configTimes config
-        , formatConfigHtmlOutput = configHtmlOutput config
-        , formatConfigPrintCpuTime = configPrintCpuTime config
-        , formatConfigUsedSeed =  seed
-        }
-        evalConfig = EvalConfig {
-          evalConfigFormat = formatterToFormat formatter formatConfig
-        , evalConfigConcurrentJobs = concurrentJobs
-        , evalConfigFastFail = configFastFail config
-        }
-      runFormatter evalConfig filteredSpec
+  results <- withHiddenCursor useColor stdout $ do
+    let
+      formatConfig = FormatConfig {
+        formatConfigHandle = stdout
+      , formatConfigUseColor = useColor
+      , formatConfigUseDiff = configDiff config
+      , formatConfigPrintTimes = configTimes config
+      , formatConfigHtmlOutput = configHtmlOutput config
+      , formatConfigPrintCpuTime = configPrintCpuTime config
+      , formatConfigUsedSeed =  seed
+      }
+      evalConfig = EvalConfig {
+        evalConfigFormat = formatterToFormat formatter formatConfig
+      , evalConfigConcurrentJobs = concurrentJobs
+      , evalConfigFastFail = configFastFail config
+      }
+    runFormatter evalConfig filteredSpec
 
-    let failures = filter resultItemIsFailure results
+  let failures = filter resultItemIsFailure results
 
-    dumpFailureReport config seed qcArgs (map fst failures)
+  dumpFailureReport config seed qcArgs (map fst failures)
 
-    return Summary {
-      summaryExamples = length results
-    , summaryFailures = length failures
-    }
+  return Summary {
+    summaryExamples = length results
+  , summaryFailures = length failures
+  }
 
 specToEvalForest :: Config -> Spec -> IO [EvalTree]
 specToEvalForest config spec = do
@@ -279,11 +278,6 @@ doesUseColor h c = case configColorMode c of
   ColorAuto  -> (&&) <$> hIsTerminalDevice h <*> (not <$> isDumb)
   ColorNever -> return False
   ColorAlways -> return True
-
-withHandle :: Config -> (Handle -> IO a) -> IO a
-withHandle c action = case configOutputFile c of
-  Left h -> action h
-  Right path -> withFile path WriteMode action
 
 rerunAll :: Config -> Maybe FailureReport -> Summary -> Bool
 rerunAll _ Nothing _ = False
