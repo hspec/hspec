@@ -1,12 +1,14 @@
 ## next
   - Add --times to print times for individual spec items
   - Add location information for failing afterAll-hooks
-  - Renamed:
-    - `headerFormatter` to `formatterHeader`
-    - `exampleGroupStarted` to `formatterGroupStarted`
-    - `exampleGroupDone` to `formatterGroupDone`
-    - `exampleStarted` to `formatterItemStarted`
-    - `exampleProgress` to `formatterProgress`
+  - Cleanup Formatter API:
+    - Merge `exampleSucceeded`, `examplePending` and `exampleFailed`.  The new
+      field is called `formatterItemDone`.
+    - Rename `headerFormatter` to `formatterHeader`
+    - Rename `exampleGroupStarted` to `formatterGroupStarted`
+    - Rename `exampleGroupDone` to `formatterGroupDone`
+    - Rename `exampleStarted` to `formatterItemStarted`
+    - Rename `exampleProgress` to `formatterProgress`
   - Remove `--verbose` option (this has been a noop since at least 2013)
   - Remove `--out` option (use shell output redirection instead)
 

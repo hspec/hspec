@@ -10,10 +10,12 @@ import           Control.Monad.Trans.Writer
 import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Spec as H
+import qualified Test.Hspec.Core.Spec as Spec
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Formatters as H
+import qualified Test.Hspec.Core.Formatters as Formatter
 import qualified Test.Hspec.Core.Formatters.Monad as H
-import           Test.Hspec.Core.Formatters.Monad hiding (interpretWith)
+import           Test.Hspec.Core.Formatters.Monad (FormatM, Environment(..))
 
 data ColorizedText =
     Plain String
@@ -92,33 +94,32 @@ environment = Environment {
 testSpec :: H.Spec
 testSpec = do
   H.describe "Example" $ do
-    H.it "success"    (H.Result "" H.Success)
-    H.it "fail 1"     (H.Result "" $ H.Failure Nothing $ H.Reason "fail message")
+    H.it "success"    (H.Result "" Spec.Success)
+    H.it "fail 1"     (H.Result "" $ Spec.Failure Nothing $ H.Reason "fail message")
     H.it "pending"    (H.pendingWith "pending message")
-    H.it "fail 2"     (H.Result "" $ H.Failure Nothing H.NoReason)
-    H.it "exceptions" (undefined :: H.Result)
-    H.it "fail 3"     (H.Result "" $ H.Failure Nothing H.NoReason)
+    H.it "fail 2"     (H.Result "" $ Spec.Failure Nothing H.NoReason)
+    H.it "exceptions" (undefined :: Spec.Result)
+    H.it "fail 3"     (H.Result "" $ Spec.Failure Nothing H.NoReason)
 
 spec :: Spec
 spec = do
   describe "progress" $ do
     let formatter = H.progress
+        item = Formatter.Item Nothing 0 ""
 
-    describe "exampleSucceeded" $ do
+    describe "formatterItemDone" $ do
       it "marks succeeding examples with ." $ do
-        interpret (H.exampleSucceeded formatter undefined undefined undefined) `shouldReturn` [
+        interpret (H.formatterItemDone formatter undefined (item Formatter.Success)) `shouldReturn` [
             Succeeded "."
           ]
 
-    describe "exampleFailed" $ do
       it "marks failing examples with F" $ do
-        interpret (H.exampleFailed formatter undefined undefined undefined undefined) `shouldReturn` [
+        interpret (H.formatterItemDone formatter undefined (item $ Formatter.Failure H.NoReason)) `shouldReturn` [
             Failed "F"
           ]
 
-    describe "examplePending" $ do
       it "marks pending examples with ." $ do
-        interpret (H.examplePending formatter undefined undefined undefined undefined) `shouldReturn` [
+        interpret (H.formatterItemDone formatter undefined (item $ Formatter.Pending Nothing)) `shouldReturn` [
             Pending "."
           ]
 
@@ -213,7 +214,7 @@ spec = do
       context "when actual/expected contain newlines" $ do
         let
           env = environment {
-            environmentGetFailMessages = return [FailureRecord Nothing ([], "") (ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
+            environmentGetFailMessages = return [H.FailureRecord Nothing ([], "") (H.ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
             }
         it "adds indentation" $ do
           (removeColors <$> interpretWith env action) `shouldReturn` unlines [
@@ -309,7 +310,7 @@ failed_examplesSpec formatter = do
     context "when a failed example has a source location" $ do
       it "includes that source location above the error message" $ do
         let loc = H.Location "test/FooSpec.hs" 23 4
-            addLoc e = e {H.itemLocation = Just loc}
+            addLoc e = e {Spec.itemLocation = Just loc}
         r <- runSpec $ H.mapSpecItem_ addLoc $ do
           H.it "foo" False
         r `shouldContain` ["  test/FooSpec.hs:23:4: ", "  1) foo"]

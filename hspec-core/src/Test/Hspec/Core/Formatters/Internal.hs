@@ -47,18 +47,13 @@ formatterToFormat formatter config = Format {
 , formatItemStarted = \ path -> do
     interpret $ M.formatterItemStarted formatter path
 
-, formatItemDone = \ path (Item loc duration info result) -> do
+, formatItemDone = \ path item -> do
     clearTransientOutput
-    case result of
-      Success -> do
-        increaseSuccessCount
-        interpret $ M.exampleSucceeded formatter path duration info
-      Pending reason -> do
-        increasePendingCount
-        interpret $ M.examplePending formatter path duration info reason
-      Failure err -> do
-        addFailMessage loc path err
-        interpret $ M.exampleFailed formatter path duration info err
+    case itemResult item of
+      Success {} -> increaseSuccessCount
+      Pending {} -> increasePendingCount
+      Failure err -> addFailMessage (itemLocation item) path err
+    interpret $ M.formatterItemDone formatter path item
 }
 
 interpret :: M.FormatM a -> FormatM a

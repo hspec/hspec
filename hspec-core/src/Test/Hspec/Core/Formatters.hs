@@ -21,6 +21,8 @@ module Test.Hspec.Core.Formatters (
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
 , Formatter (..)
+, Item(..)
+, Result(..)
 , FailureReason (..)
 , FormatM
 
@@ -77,6 +79,8 @@ import           Control.Exception
 -- their own formatters.
 import Test.Hspec.Core.Formatters.Monad (
     Formatter (..)
+  , Item(..)
+  , Result(..)
   , FailureReason (..)
   , FormatM
 
@@ -111,16 +115,14 @@ import           Test.Hspec.Core.Formatters.Diff
 
 silent :: Formatter
 silent = Formatter {
-  formatterHeader     = return ()
+  formatterHeader       = return ()
 , formatterGroupStarted = \ _ _ -> return ()
 , formatterGroupDone    = return ()
 , formatterProgress     = \ _ _ -> return ()
-, formatterItemStarted      = \ _ -> return ()
-, exampleSucceeded    = \ _ _ _ -> return ()
-, exampleFailed       = \ _ _ _ _ -> return ()
-, examplePending      = \ _ _ _ _ -> return ()
-, failedFormatter     = return ()
-, footerFormatter     = return ()
+, formatterItemStarted  = \ _ -> return ()
+, formatterItemDone     = \ _ _ -> return ()
+, failedFormatter       = return ()
+, footerFormatter       = return ()
 }
 
 checks :: Formatter
@@ -131,17 +133,16 @@ checks = specdoc {
 , formatterItemStarted = \(nesting, requirement) -> do
     writeTransient $ indentationFor nesting ++ requirement ++ " [ ]"
 
-, exampleSucceeded = \(nesting, requirement) duration info -> do
-    writeResult nesting requirement duration info withSuccessColor "✔"
-
-, exampleFailed = \(nesting, requirement) duration info _ -> do
-    writeResult nesting requirement duration info withFailColor "✘"
-
-, examplePending = \(nesting, requirement) duration info reason -> do
-    writeResult nesting requirement duration info withPendingColor "‐"
-
-    withPendingColor $ do
-      writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+, formatterItemDone = \ (nesting, requirement) item -> do
+    uncurry (writeResult nesting requirement (itemDuration item) (itemInfo item)) $ case itemResult item of
+      Success {} -> (withSuccessColor, "✔")
+      Pending {} -> (withPendingColor, "‐")
+      Failure {} -> (withFailColor, "✘")
+    case itemResult item of
+      Success {} -> return ()
+      Failure {} -> return ()
+      Pending reason -> withPendingColor $ do
+        writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
 
@@ -177,16 +178,19 @@ specdoc = silent {
 , formatterProgress = \_ p -> do
     writeTransient (formatProgress p)
 
-, exampleSucceeded = \(nesting, requirement) duration info -> withSuccessColor $ do
-    writeResult nesting requirement duration info
+, formatterItemDone = \(nesting, requirement) item -> do
+    let duration = itemDuration item
+        info = itemInfo item
 
-, exampleFailed = \(nesting, requirement) duration info _ -> withFailColor $ do
-    n <- getFailCount
-    writeResult nesting (requirement ++ " FAILED [" ++ show n ++ "]") duration info
-
-, examplePending = \(nesting, requirement) duration info reason -> withPendingColor $ do
-    writeResult nesting requirement duration info
-    writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+    case itemResult item of
+      Success -> withSuccessColor $ do
+        writeResult nesting requirement duration info
+      Pending reason -> withPendingColor $ do
+        writeResult nesting requirement duration info
+        writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+      Failure _ -> withFailColor $ do
+        n <- getFailCount
+        writeResult nesting (requirement ++ " FAILED [" ++ show n ++ "]") duration info
 
 , failedFormatter = defaultFailedFormatter
 
@@ -211,16 +215,13 @@ specdoc = silent {
       | total == 0 = show current
       | otherwise  = show current ++ "/" ++ show total
 
-
 progress :: Formatter
-progress = silent {
-  exampleSucceeded = \_ _ _ -> withSuccessColor $ write "."
-, exampleFailed    = \_ _ _ _ -> withFailColor    $ write "F"
-, examplePending   = \_ _ _ _ -> withPendingColor $ write "."
-, failedFormatter  = defaultFailedFormatter
-, footerFormatter  = defaultFooter
+progress = failed_examples {
+  formatterItemDone = \ _ item -> case itemResult item of
+    Success{} -> withSuccessColor $ write "."
+    Pending{} -> withPendingColor $ write "."
+    Failure{} -> withFailColor $ write "F"
 }
-
 
 failed_examples :: Formatter
 failed_examples   = silent {
