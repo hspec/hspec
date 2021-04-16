@@ -1,5 +1,6 @@
 ## next
   - Add --times to print times for individual spec items
+  - Add location information for failing afterAll-hooks
   - Remove `--verbose` option (this has been a noop since at least 2013)
   - Remove `--out` option (use shell output redirection instead)
 

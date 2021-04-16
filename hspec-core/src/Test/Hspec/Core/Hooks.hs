@@ -1,4 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
   before
@@ -21,6 +23,7 @@ module Test.Hspec.Core.Hooks (
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
+import           Data.CallStack
 
 import           Control.Exception (SomeException, finally, throwIO, try, catch)
 import           Control.Concurrent.MVar
@@ -88,11 +91,11 @@ around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
 around action = aroundWith $ \e () -> action e
 
 -- | Run a custom action after the last spec item.
-afterAll :: ActionWith a -> SpecWith a -> SpecWith a
-afterAll action spec = runIO (runSpecM spec) >>= fromSpecList . return . NodeWithCleanup action
+afterAll :: HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
+afterAll action spec = runIO (runSpecM spec) >>= fromSpecList . return . NodeWithCleanup location action
 
 -- | Run a custom action after the last spec item.
-afterAll_ :: IO () -> SpecWith a -> SpecWith a
+afterAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
 afterAll_ action = afterAll (\_ -> action)
 
 -- | Run a custom action before and/or after every spec item.
