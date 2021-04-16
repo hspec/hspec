@@ -67,6 +67,7 @@ environment = Environment {
   environmentGetSuccessCount = return 0
 , environmentGetPendingCount = return 0
 , environmentGetFailMessages = return []
+, environmentGetFinalCount = return 0
 , environmentUsedSeed = return 0
 , environmentGetCPUTime = return Nothing
 , environmentGetRealTime = return 0
@@ -280,6 +281,14 @@ spec = do
 
     context "same as failed_examples" $ do
       failed_examplesSpec formatter
+
+  describe "additional formatter features" $ do
+    describe "getFinalCount" $ do
+      let formatter = H.silent {H.footerFormatter = fmap show H.getFinalCount >>= H.writeLine}
+          runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
+      it "counts examples" $ do
+        result:_ <- runSpec testSpec
+        result `shouldBe` "6"
 
 failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do

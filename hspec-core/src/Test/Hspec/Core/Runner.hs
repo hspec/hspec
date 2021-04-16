@@ -201,6 +201,7 @@ runSpec_ config spec = do
   let formatter = fromMaybe specdoc (configFormatter config)
       seed = (fromJust . configQuickCheckSeed) config
       qcArgs = configQuickCheckArgs config
+      numberOfItems = countSpecItems filteredSpec
 
   concurrentJobs <- case configConcurrentJobs config of
     Nothing -> getDefaultConcurrentJobs
@@ -218,6 +219,7 @@ runSpec_ config spec = do
       , formatConfigHtmlOutput = configHtmlOutput config
       , formatConfigPrintCpuTime = configPrintCpuTime config
       , formatConfigUsedSeed =  seed
+      , formatConfigFinalCount = numberOfItems
       }
       evalConfig = EvalConfig {
         evalConfigFormat = formatterToFormat formatter formatConfig
@@ -309,3 +311,6 @@ randomizeForest :: Integer -> [Tree c a] -> [Tree c a]
 randomizeForest seed t = runST $ do
   ref <- newSTRef (mkStdGen $ fromIntegral seed)
   shuffleForest ref t
+
+countSpecItems :: [EvalTree] -> Int
+countSpecItems = getSum . foldMap (foldMap . const $ Sum 1)
