@@ -111,11 +111,11 @@ import           Test.Hspec.Core.Formatters.Diff
 
 silent :: Formatter
 silent = Formatter {
-  headerFormatter     = return ()
-, exampleGroupStarted = \ _ _ -> return ()
-, exampleGroupDone    = return ()
-, exampleStarted      = \ _ -> return ()
-, exampleProgress     = \ _ _ -> return ()
+  formatterHeader     = return ()
+, formatterGroupStarted = \ _ _ -> return ()
+, formatterGroupDone    = return ()
+, formatterProgress     = \ _ _ -> return ()
+, formatterItemStarted      = \ _ -> return ()
 , exampleSucceeded    = \ _ _ _ -> return ()
 , exampleFailed       = \ _ _ _ _ -> return ()
 , examplePending      = \ _ _ _ _ -> return ()
@@ -125,11 +125,11 @@ silent = Formatter {
 
 checks :: Formatter
 checks = specdoc {
-  exampleStarted = \(nesting, requirement) -> do
-    writeTransient $ indentationFor nesting ++ requirement ++ " [ ]"
-
-, exampleProgress = \(nesting, requirement) p -> do
+  formatterProgress = \(nesting, requirement) p -> do
     writeTransient $ indentationFor nesting ++ requirement ++ " [" ++ (formatProgress p) ++ "]"
+
+, formatterItemStarted = \(nesting, requirement) -> do
+    writeTransient $ indentationFor nesting ++ requirement ++ " [ ]"
 
 , exampleSucceeded = \(nesting, requirement) duration info -> do
     writeResult nesting requirement duration info withSuccessColor "✔"
@@ -168,13 +168,13 @@ checks = specdoc {
 specdoc :: Formatter
 specdoc = silent {
 
-  headerFormatter = do
+  formatterHeader = do
     writeLine ""
 
-, exampleGroupStarted = \nesting name -> do
+, formatterGroupStarted = \nesting name -> do
     writeLine (indentationFor nesting ++ name)
 
-, exampleProgress = \_ p -> do
+, formatterProgress = \_ p -> do
     writeTransient (formatProgress p)
 
 , exampleSucceeded = \(nesting, requirement) duration info -> withSuccessColor $ do

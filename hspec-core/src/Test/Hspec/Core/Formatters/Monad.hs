@@ -52,19 +52,19 @@ import           Test.Hspec.Core.Clock
 
 data Formatter = Formatter {
 
-  headerFormatter :: FormatM ()
+  formatterHeader :: FormatM ()
 
--- | evaluated before each test group
-, exampleGroupStarted :: [String] -> String -> FormatM ()
+-- | evaluated before each spec group
+, formatterGroupStarted :: [String] -> String -> FormatM ()
 
--- | evaluated after each test group
-, exampleGroupDone :: FormatM ()
-
--- | evaluated before each example
-, exampleStarted :: Path -> FormatM ()
+-- | evaluated after each spec group
+, formatterGroupDone :: FormatM ()
 
 -- | used to notify the progress of the currently evaluated example
-, exampleProgress :: Path -> Progress -> FormatM ()
+, formatterProgress :: Path -> Progress -> FormatM ()
+
+-- | evaluated before each spec item
+, formatterItemStarted :: Path -> FormatM ()
 
 -- | evaluated after each successful example
 , exampleSucceeded :: Path -> Seconds -> String -> FormatM ()
