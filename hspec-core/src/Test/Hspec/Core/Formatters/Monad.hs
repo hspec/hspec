@@ -13,6 +13,7 @@ module Test.Hspec.Core.Formatters.Monad (
 , getPendingCount
 , getFailCount
 , getTotalCount
+, getFinalCount
 
 , FailureRecord (..)
 , getFailMessages
@@ -92,6 +93,7 @@ data FormatF next =
     GetSuccessCount (Int -> next)
   | GetPendingCount (Int -> next)
   | GetFailMessages ([FailureRecord] -> next)
+  | GetFinalCount (Int -> next)
   | UsedSeed (Integer -> next)
   | PrintTimes (Bool -> next)
   | GetCPUTime (Maybe Seconds -> next)
@@ -112,6 +114,7 @@ instance Functor FormatF where -- deriving this instance would require GHC >= 7.
     GetSuccessCount next -> GetSuccessCount (fmap f next)
     GetPendingCount next -> GetPendingCount (fmap f next)
     GetFailMessages next -> GetFailMessages (fmap f next)
+    GetFinalCount next -> GetFinalCount (fmap f next)
     UsedSeed next -> UsedSeed (fmap f next)
     PrintTimes next -> PrintTimes (fmap f next)
     GetCPUTime next -> GetCPUTime (fmap f next)
@@ -136,6 +139,7 @@ data Environment m = Environment {
   environmentGetSuccessCount :: m Int
 , environmentGetPendingCount :: m Int
 , environmentGetFailMessages :: m [FailureRecord]
+, environmentGetFinalCount :: m Int
 , environmentUsedSeed :: m Integer
 , environmentPrintTimes :: m Bool
 , environmentGetCPUTime :: m (Maybe Seconds)
@@ -162,6 +166,7 @@ interpretWith Environment{..} = go
         GetSuccessCount next -> environmentGetSuccessCount >>= go . next
         GetPendingCount next -> environmentGetPendingCount >>= go . next
         GetFailMessages next -> environmentGetFailMessages >>= go . next
+        GetFinalCount next -> environmentGetFinalCount >>= go . next
         UsedSeed next -> environmentUsedSeed >>= go . next
         PrintTimes next -> environmentPrintTimes >>= go . next
         GetCPUTime next -> environmentGetCPUTime >>= go . next
@@ -192,6 +197,11 @@ getFailCount = length <$> getFailMessages
 -- | Get the total number of examples encountered so far.
 getTotalCount :: FormatM Int
 getTotalCount = sum <$> sequence [getSuccessCount, getFailCount, getPendingCount]
+
+-- | Get the number of spec items that will have been encountered when this run
+-- completes (if it is not terminated early).
+getFinalCount :: FormatM Int
+getFinalCount = liftF (GetFinalCount id)
 
 -- | Get the list of accumulated failure messages.
 getFailMessages :: FormatM [FailureRecord]

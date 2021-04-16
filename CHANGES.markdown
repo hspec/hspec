@@ -3,6 +3,7 @@
   - Add location information for failing afterAll-hooks
   - Remove `--verbose` option (this has been a noop since at least 2013)
   - Remove `--out` option (use shell output redirection instead)
+  - Add `getFinalCount` to `Formatter` API
 
 ## Changes in 2.7.10
   - Add a new formatter (can be used with `--format checks`)
