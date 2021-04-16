@@ -15,7 +15,8 @@ import           Test.Hspec.Core.Compat
 import           System.Exit
 import           System.Console.GetOpt
 
-import           Test.Hspec.Core.Formatters
+import           Test.Hspec.Core.Formatters (Formatter)
+import qualified Test.Hspec.Core.Formatters as Formatter
 import           Test.Hspec.Core.Config.Util
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
@@ -159,11 +160,11 @@ formatterOptions = concat [
   where
     formatters :: [(String, Formatter)]
     formatters = [
-        ("checks", checks)
-      , ("specdoc", specdoc)
-      , ("progress", progress)
-      , ("failed-examples", failed_examples)
-      , ("silent", silent)
+        ("checks", Formatter.checks)
+      , ("specdoc", Formatter.specdoc)
+      , ("progress", Formatter.progress)
+      , ("failed-examples", Formatter.failed_examples)
+      , ("silent", Formatter.silent)
       ]
 
     helpForFormat :: String

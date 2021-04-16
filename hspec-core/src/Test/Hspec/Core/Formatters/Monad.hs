@@ -6,6 +6,8 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Test.Hspec.Core.Formatters.Monad (
   Formatter (..)
+, Item(..)
+, Result(..)
 , FailureReason (..)
 , FormatM
 
@@ -45,10 +47,8 @@ import           Test.Hspec.Core.Compat
 import           Control.Monad.IO.Class
 
 import           Test.Hspec.Core.Formatters.Free
-import           Test.Hspec.Core.Example (FailureReason(..))
-import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Spec (Progress, Location)
 import           Test.Hspec.Core.Clock
+import           Test.Hspec.Core.Format
 
 data Formatter = Formatter {
 
@@ -66,14 +66,8 @@ data Formatter = Formatter {
 -- | evaluated before each spec item
 , formatterItemStarted :: Path -> FormatM ()
 
--- | evaluated after each successful example
-, exampleSucceeded :: Path -> Seconds -> String -> FormatM ()
-
--- | evaluated after each failed example
-, exampleFailed :: Path -> Seconds -> String -> FailureReason -> FormatM ()
-
--- | evaluated after each pending example
-, examplePending :: Path -> Seconds -> String -> Maybe String -> FormatM ()
+-- | evaluated after each spec item
+, formatterItemDone :: Path -> Item -> FormatM ()
 
 -- | evaluated after a test run
 , failedFormatter :: FormatM ()
