@@ -219,12 +219,12 @@ run specs = do
     , onLeafe = evalItem
     }
 
-    runCleanup :: [String] -> IO () -> EvalM m ()
-    runCleanup groups action = do
+    runCleanup :: Maybe Location -> [String] -> IO () -> EvalM m ()
+    runCleanup loc groups action = do
       r <- liftIO $ measure $ safeEvaluate (action >> return (Result "" Success))
       case r of
         (_, Result "" Success) -> return ()
-        _ -> reportItem path Nothing (return r)
+        _ -> reportItem path loc (return r)
       where
         path = (groups, "afterAll-hook")
 
@@ -238,7 +238,7 @@ run specs = do
 data FoldTree c a r = FoldTree {
   onGroupStarted :: Path -> r
 , onGroupDone :: Path -> r
-, onCleanup :: [String] -> c -> r
+, onCleanup :: Maybe Location -> [String] -> c -> r
 , onLeafe :: [String] -> a -> r
 }
 
@@ -251,10 +251,10 @@ foldTree FoldTree{..} = go []
         start = onGroupStarted path
         children = concatMap (go (group : rGroups)) xs
         done =  onGroupDone path
-    go rGroups (NodeWithCleanup action xs) = children ++ [cleanup]
+    go rGroups (NodeWithCleanup loc action xs) = children ++ [cleanup]
       where
         children = concatMap (go rGroups) xs
-        cleanup = onCleanup (reverse rGroups) action
+        cleanup = onCleanup loc (reverse rGroups) action
     go rGroups (Leaf a) = [onLeafe (reverse rGroups) a]
 
 sequenceActions :: Monad m => Bool -> [EvalM m ()] -> EvalM m ()

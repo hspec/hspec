@@ -32,8 +32,8 @@ spec = do
 
     it "recurses into NodeWithCleanup" $ do
       shuffleForest 1
-        [NodeWithCleanup () [NodeWithCleanup () [Leaf 1, Leaf 2, Leaf 3]]] `shouldBe`
-        [NodeWithCleanup () [NodeWithCleanup () [Leaf 2, Leaf 3, Leaf 1]]]
+        [NodeWithCleanup Nothing () [NodeWithCleanup Nothing () [Leaf 1, Leaf 2, Leaf 3]]] `shouldBe`
+        [NodeWithCleanup Nothing () [NodeWithCleanup Nothing () [Leaf 2, Leaf 3, Leaf 1]]]
 
   describe "shuffle" $ do
     it "shuffles a list" $ do
