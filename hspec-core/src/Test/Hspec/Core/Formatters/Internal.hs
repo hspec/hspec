@@ -34,18 +34,18 @@ import           Test.Hspec.Core.Clock
 formatterToFormat :: M.Formatter -> FormatConfig -> Format FormatM
 formatterToFormat formatter config = Format {
   formatRun = \action -> runFormatM config $ do
-    interpret (M.headerFormatter formatter)
+    interpret (M.formatterHeader formatter)
     a <- action `finally_` interpret (M.failedFormatter formatter)
     interpret (M.footerFormatter formatter)
     return a
-, formatGroupStarted = \ (nesting, name) -> interpret $ M.exampleGroupStarted formatter nesting name
-, formatGroupDone = \ _ -> interpret (M.exampleGroupDone formatter)
+, formatGroupStarted = \ (nesting, name) -> interpret $ M.formatterGroupStarted formatter nesting name
+, formatGroupDone = \ _ -> interpret (M.formatterGroupDone formatter)
 
 , formatProgress = \ path progress -> do
-    interpret $ M.exampleProgress formatter path progress
+    interpret $ M.formatterProgress formatter path progress
 
 , formatItemStarted = \ path -> do
-    interpret $ M.exampleStarted formatter path
+    interpret $ M.formatterItemStarted formatter path
 
 , formatItemDone = \ path (Item loc duration info result) -> do
     clearTransientOutput
