@@ -34,7 +34,14 @@ evalSpec = fmap normalize . (H.specToEvalForest H.defaultConfig >=> runFormatter
     , formatItemDone = \ _ _ -> return ()
     }
     normalize = map $ \ (path, item) -> (pathToList path, normalizeItem item)
-    normalizeItem item = item {itemLocation = Nothing, itemDuration = 0}
+    normalizeItem item = item {
+      itemLocation = Nothing
+    , itemDuration = 0
+    , itemResult = case itemResult item of
+        Success -> Success
+        Pending _  reason -> Pending Nothing reason
+        Failure _  reason -> Failure Nothing reason
+    }
     pathToList (xs, x) = xs ++ [x]
 
 mkAppend :: IO (String -> IO (), IO [String])
@@ -143,7 +150,7 @@ spec = do
             n `shouldBe` 23
         `shouldReturn` [
           item ["foo"] divideByZero
-        , item ["bar"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+        , item ["bar"] (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
         ]
 
     context "when used with an empty list of examples" $ do
@@ -234,7 +241,7 @@ spec = do
                 n `shouldBe` 23
         `shouldReturn` [
           item ["foo"] divideByZero
-        , item ["bar"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+        , item ["bar"] (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
         ]
 
     context "when used with an empty list of examples" $ do
@@ -380,7 +387,7 @@ spec = do
             H.it "foo" True
         `shouldReturn` [
           item ["foo"] Success
-        , item ["afterAll-hook"] (Pending Nothing)
+        , item ["afterAll-hook"] (Pending Nothing Nothing)
         ]
 
     context "when action throws an exception" $ do
@@ -521,7 +528,7 @@ spec = do
           H.it "foo" True
       `shouldReturn` [
         item ["foo"] divideByZero
-      , item ["afterAll-hook"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+      , item ["afterAll-hook"] (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
       ]
 
     it "reports exceptions on release" $ do
@@ -555,7 +562,7 @@ spec = do
           H.it "foo" H.pending
       `shouldReturn` [
         item ["foo"] divideByZero
-      , item ["afterAll-hook"] (Pending (Just "exception in beforeAll-hook (see previous failure)"))
+      , item ["afterAll-hook"] (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
       ]
 
     it "reports exceptions on release" $ do
@@ -569,7 +576,7 @@ spec = do
 
   where
     divideByZero :: Result
-    divideByZero = Failure (Error Nothing $ toException DivideByZero)
+    divideByZero = Failure Nothing (Error Nothing $ toException DivideByZero)
 
     item :: [String] -> Result -> ([String], Item)
     item path result = (path, Item Nothing 0 "" result)

@@ -1,5 +1,6 @@
 module Main (main, spec) where
 
+import Prelude
 import Test.Hspec.Core.Spec
 import Test.Hspec.Core.Runner
 import Test.Hspec.Expectations

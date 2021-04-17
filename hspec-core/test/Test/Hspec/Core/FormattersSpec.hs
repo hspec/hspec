@@ -115,12 +115,12 @@ spec = do
           ]
 
       it "marks failing examples with F" $ do
-        interpret (H.formatterItemDone formatter undefined (item $ Formatter.Failure H.NoReason)) `shouldReturn` [
+        interpret (H.formatterItemDone formatter undefined (item $ Formatter.Failure Nothing H.NoReason)) `shouldReturn` [
             Failed "F"
           ]
 
       it "marks pending examples with ." $ do
-        interpret (H.formatterItemDone formatter undefined (item $ Formatter.Pending Nothing)) `shouldReturn` [
+        interpret (H.formatterItemDone formatter undefined (item $ Formatter.Pending Nothing Nothing)) `shouldReturn` [
             Pending "."
           ]
 

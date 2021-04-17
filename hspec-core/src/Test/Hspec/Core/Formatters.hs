@@ -142,7 +142,7 @@ checks = specdoc {
     case itemResult item of
       Success {} -> return ()
       Failure {} -> return ()
-      Pending reason -> withPendingColor $ do
+      Pending _ reason -> withPendingColor $ do
         writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
@@ -186,10 +186,10 @@ specdoc = silent {
     case itemResult item of
       Success -> withSuccessColor $ do
         writeResult nesting requirement duration info
-      Pending reason -> withPendingColor $ do
+      Pending _ reason -> withPendingColor $ do
         writeResult nesting requirement duration info
         writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
-      Failure _ -> withFailColor $ do
+      Failure {} -> withFailColor $ do
         n <- getFailCount
         writeResult nesting (requirement ++ " FAILED [" ++ show n ++ "]") duration info
 
