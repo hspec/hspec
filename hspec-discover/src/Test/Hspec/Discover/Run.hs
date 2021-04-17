@@ -36,8 +36,7 @@ instance IsString ShowS where
   fromString = showString
 
 data Spec = Spec {
-  specFile :: FilePath
-, specModule :: String
+  specModule :: String
 } deriving (Eq, Show)
 
 run :: [String] -> IO ()
@@ -116,18 +115,18 @@ formatSpecs xs
 
 -- | Convert a spec to code.
 formatSpec :: Spec -> ShowS
-formatSpec (Spec file name) = "postProcessSpec " . shows file . " (describe " . shows name . " " . showString name . "Spec.spec)"
+formatSpec (Spec name) = "describe " . shows name . " " . showString name . "Spec.spec"
 
 findSpecs :: FilePath -> IO [Spec]
 findSpecs src = do
   let (dir, file) = splitFileName src
-  mapMaybe (fileToSpec dir) . filter (/= file) <$> getFilesRecursive dir
+  mapMaybe fileToSpec . filter (/= file) <$> getFilesRecursive dir
 
-fileToSpec :: FilePath -> FilePath -> Maybe Spec
-fileToSpec dir file = case reverse $ splitDirectories file of
+fileToSpec :: FilePath -> Maybe Spec
+fileToSpec file = case reverse $ splitDirectories file of
   x:xs -> case stripSuffix "Spec.hs" x <|> stripSuffix "Spec.lhs" x of
     Just name | isValidModuleName name && all isValidModuleName xs ->
-      Just . Spec (dir </> file) $ (intercalate "." . reverse) (name : xs)
+      Just . Spec $ (intercalate "." . reverse) (name : xs)
     _ -> Nothing
   _ -> Nothing
   where
