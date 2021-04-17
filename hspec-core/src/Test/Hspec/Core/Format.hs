@@ -27,8 +27,8 @@ data Item = Item {
 
 data Result =
     Success
-  | Pending (Maybe String)
-  | Failure FailureReason
+  | Pending (Maybe Location) (Maybe String)
+  | Failure (Maybe Location) FailureReason
   deriving Show
 
 data Format m = Format {

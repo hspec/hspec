@@ -52,7 +52,7 @@ formatterToFormat formatter config = Format {
     case itemResult item of
       Success {} -> increaseSuccessCount
       Pending {} -> increasePendingCount
-      Failure err -> addFailMessage (itemLocation item) path err
+      Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
     interpret $ M.formatterItemDone formatter path item
 }
 
