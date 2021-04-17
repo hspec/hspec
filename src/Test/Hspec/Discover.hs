@@ -11,8 +11,6 @@ module Test.Hspec.Discover {-# WARNING
 , module Prelude
 ) where
 
-import           Prelude hiding (mapM)
-
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Runner
 import           Test.Hspec.Formatters
