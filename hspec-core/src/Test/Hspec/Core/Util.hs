@@ -16,13 +16,13 @@ module Test.Hspec.Core.Util (
 , formatException
 ) where
 
-import           Data.List
+import           Prelude ()
+import           Test.Hspec.Core.Compat hiding (join)
+
 import           Data.Char (isSpace)
 import           GHC.IO.Exception
 import           Control.Exception
 import           Control.Concurrent.Async
-
-import           Test.Hspec.Core.Compat (showType)
 
 -- |
 -- @pluralize count singular@ pluralizes the given @singular@ word unless given

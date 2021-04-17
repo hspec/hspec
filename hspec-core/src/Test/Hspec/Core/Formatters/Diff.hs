@@ -13,7 +13,6 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Data.Char
-import           Data.List (stripPrefix)
 import           Data.Algorithm.Diff
 
 diff :: String -> String -> [Diff String]

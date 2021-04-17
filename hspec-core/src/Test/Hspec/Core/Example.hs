@@ -21,6 +21,9 @@ module Test.Hspec.Core.Example (
 , safeEvaluateExample
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Core.Compat
+
 import qualified Test.HUnit.Lang as HUnit
 
 import           Data.CallStack
@@ -36,7 +39,6 @@ import qualified Test.QuickCheck.Property as QCP
 
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Example.Location
 
 -- | A type class for examples

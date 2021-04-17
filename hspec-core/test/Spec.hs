@@ -1,5 +1,8 @@
 module Main where
 
+import           Prelude ()
+import           Helper
+
 import           Test.Hspec.Meta
 import           System.SetEnv
 import qualified All

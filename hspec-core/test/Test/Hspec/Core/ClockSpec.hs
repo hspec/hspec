@@ -1,5 +1,6 @@
 module Test.Hspec.Core.ClockSpec (spec) where
 
+import           Prelude ()
 import           Helper
 
 import           Test.Hspec.Core.Clock

@@ -1,5 +1,6 @@
 module Test.Hspec.Core.FailureReportSpec (spec) where
 
+import           Prelude ()
 import           Helper
 
 import           System.IO

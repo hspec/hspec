@@ -10,6 +10,9 @@ module Test.Hspec.Core.Format (
 , FailureReason(..)
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Core.Compat
+
 import           Test.Hspec.Core.Spec (Progress, Location(..))
 import           Test.Hspec.Core.Example (FailureReason(..))
 import           Test.Hspec.Core.Util (Path)

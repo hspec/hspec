@@ -14,7 +14,6 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Control.Exception
-import           Data.List
 import           Data.Char
 import           Data.Maybe
 import           GHC.IO.Exception

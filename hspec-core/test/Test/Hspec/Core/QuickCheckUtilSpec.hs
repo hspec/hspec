@@ -4,6 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Test.Hspec.Core.QuickCheckUtilSpec (spec) where
 
+import           Prelude ()
 import           Helper
 
 import qualified Test.QuickCheck.Property as QCP

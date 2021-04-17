@@ -8,6 +8,9 @@ module Test.Hspec.Core.Clock (
 , timeout
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Core.Compat
+
 import           Text.Printf
 import           System.Clock
 import           Control.Concurrent

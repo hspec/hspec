@@ -6,7 +6,7 @@
 #if __GLASGOW_HASKELL__ < 710
 {-# LANGUAGE DeriveDataTypeable #-}
 #endif
-{-# OPTIONS -Wall #-}
+{-# OPTIONS -Wall -fno-warn-implicit-prelude #-}
 
 -----------------------------------------------------------------------------
 -- |

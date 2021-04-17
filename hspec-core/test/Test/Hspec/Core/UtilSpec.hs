@@ -1,6 +1,8 @@
 module Test.Hspec.Core.UtilSpec (spec) where
 
+import           Prelude ()
 import           Helper
+
 import           Control.Concurrent
 import qualified Control.Exception as E
 

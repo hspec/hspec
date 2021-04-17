@@ -1,5 +1,6 @@
 module Test.Hspec.Core.Config.UtilSpec (spec) where
 
+import           Prelude ()
 import           Helper
 
 import           System.Console.GetOpt
