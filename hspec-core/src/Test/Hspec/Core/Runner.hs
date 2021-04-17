@@ -56,6 +56,7 @@ import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Shuffle
 
+import           Test.Hspec.Core.Runner.PrintSlowSpecItems
 import           Test.Hspec.Core.Runner.Eval
 
 applyFilterPredicates :: Config -> [EvalTree] -> [EvalTree]
@@ -221,8 +222,12 @@ runSpec_ config spec = do
       , formatConfigUsedSeed =  seed
       , formatConfigFinalCount = numberOfItems
       }
+
+    format <- maybe return printSlowSpecItems (configPrintSlowItems config) (formatterToFormat formatter formatConfig)
+
+    let
       evalConfig = EvalConfig {
-        evalConfigFormat = formatterToFormat formatter formatConfig
+        evalConfigFormat = format
       , evalConfigConcurrentJobs = concurrentJobs
       , evalConfigFastFail = configFastFail config
       }

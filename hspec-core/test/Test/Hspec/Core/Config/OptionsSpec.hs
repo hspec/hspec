@@ -53,6 +53,21 @@ spec = do
       it "sets configDiff to False" $ do
         configDiff <$> parseOptions [] Nothing ["--no-diff"] `shouldBe` Right False
 
+    context "with --print-slow-items" $ do
+      it "sets configPrintSlowItems to N" $ do
+        configPrintSlowItems <$> parseOptions [] Nothing ["--print-slow-items=5"] `shouldBe` Right (Just 5)
+
+      it "defaults N to 10" $ do
+        configPrintSlowItems <$> parseOptions [] Nothing ["--print-slow-items"] `shouldBe` Right (Just 10)
+
+      it "rejects invalid values" $ do
+        let msg = "my-spec: invalid argument `foo' for `--print-slow-items'\nTry `my-spec --help' for more information.\n"
+        void (parseOptions [] Nothing ["--print-slow-items=foo"]) `shouldBe` Left (ExitFailure 1, msg)
+
+      context "when N is 0" $ do
+        it "disables the option" $ do
+          configPrintSlowItems <$> parseOptions [] Nothing ["-p0"] `shouldBe` Right Nothing
+
     context "with --qc-max-success" $ do
       context "when given an invalid argument" $ do
         it "returns an error message" $ do

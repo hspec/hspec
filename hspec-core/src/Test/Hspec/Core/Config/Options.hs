@@ -35,6 +35,7 @@ data Config = Config {
 , configDryRun :: Bool
 , configFocusedOnly :: Bool
 , configFailOnFocused :: Bool
+, configPrintSlowItems :: Maybe Int
 , configPrintCpuTime :: Bool
 , configFastFail :: Bool
 , configRandomize :: Bool
@@ -66,6 +67,7 @@ defaultConfig = Config {
 , configDryRun = False
 , configFocusedOnly = False
 , configFailOnFocused = False
+, configPrintSlowItems = Nothing
 , configPrintCpuTime = False
 , configFastFail = False
 , configRandomize = False
@@ -133,6 +135,17 @@ mkOption shortcut name (Arg argName parser setter) help = Option shortcut [name]
       Just n -> Right (setter n `liftM` c)
       Nothing -> Left (InvalidArgument name input)
 
+printSlowItemsOption :: Monad m => OptDescr (Result m -> Result m)
+printSlowItemsOption = Option "p" [name] (OptArg arg "N") "print the N slowest spec items (default: 10)"
+  where
+    name = "print-slow-items"
+    setter v c = c {configPrintSlowItems = v}
+    arg = maybe (set (setter $ Just 10)) parseArg
+    parseArg input x = x >>= \ c -> case readMaybe input of
+      Just 0 -> Right (setter Nothing `liftM` c)
+      Just n -> Right (setter (Just n) `liftM` c)
+      Nothing -> Left (InvalidArgument name input)
+
 mkFlag :: Monad m => String -> (Bool -> Config -> Config) -> String -> [OptDescr (Result m -> Result m)]
 mkFlag name setter help = [
     Option [] [name] (NoArg $ set $ setter True) help
@@ -156,6 +169,7 @@ formatterOptions = concat [
   , mkFlag "diff" setDiff "show colorized diffs"
   , mkFlag "times" setTimes "report times for individual spec items"
   , [Option [] ["print-cpu-time"] (NoArg setPrintCpuTime) "include used CPU time in summary"]
+  , [printSlowItemsOption]
   ]
   where
     formatters :: [(String, Formatter)]
