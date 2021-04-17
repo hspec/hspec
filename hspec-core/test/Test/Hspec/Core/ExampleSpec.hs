@@ -3,7 +3,9 @@
 {-# LANGUAGE TypeFamilies #-}
 module Test.Hspec.Core.ExampleSpec (spec) where
 
+import           Prelude ()
 import           Helper
+
 import           Mock
 import           Control.Exception
 import           Test.HUnit (assertFailure, assertEqual)

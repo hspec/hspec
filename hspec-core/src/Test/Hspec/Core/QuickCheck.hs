@@ -7,6 +7,9 @@ module Test.Hspec.Core.QuickCheck (
 , modifyMaxShrinks
 ) where
 
+import           Prelude ()
+import           Test.Hspec.Core.Compat
+
 import           Test.QuickCheck
 import           Test.Hspec.Core.Spec
 

@@ -37,7 +37,7 @@ import           Control.Monad hiding (
 import           Data.Foldable
 import           Data.Traversable
 import           Data.Monoid
-import           Data.List (intercalate)
+import           Data.List (intercalate, stripPrefix, isInfixOf, inits, tails)
 
 import           Prelude hiding (
     all

@@ -1,5 +1,8 @@
 module Test.Hspec.Core.Config.Util where
 
+import           Prelude ()
+import           Test.Hspec.Core.Compat
+
 import           System.Console.GetOpt
 
 import           Test.Hspec.Core.Util

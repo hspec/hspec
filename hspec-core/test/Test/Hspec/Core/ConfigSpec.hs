@@ -1,6 +1,8 @@
 module Test.Hspec.Core.ConfigSpec (spec) where
 
+import           Prelude ()
 import           Helper
+
 import           System.Directory
 import           System.FilePath
 
