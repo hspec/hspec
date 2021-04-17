@@ -3,6 +3,7 @@
     `--format specdoc`)
   - Add --times to print times for individual spec items
   - Add location information for failing afterAll-hooks
+  - Use `-XNoImplicitPrelude` for `hspec-discover` generated test drivers
   - Cleanup Formatter API:
     - Merge `exampleSucceeded`, `examplePending` and `exampleFailed`.  The new
       field is called `formatterItemDone`.

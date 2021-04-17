@@ -59,6 +59,7 @@ run args_ = do
 mkSpecModule :: FilePath -> Config -> [Spec] -> String
 mkSpecModule src conf nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
+  . showString "{-# LANGUAGE NoImplicitPrelude #-}\n"
   . showString "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}\n"
   . showString ("module " ++ moduleName src conf ++" where\n")
   . importList nodes
