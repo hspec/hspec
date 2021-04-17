@@ -14,7 +14,7 @@ Hspec's distinctive features are:
 
 An example is worth a thousand words, so here we go:
 
-<pre><kbd class="shell-input">cabal update && cabal install --lib hspec hspec-contrib QuickCheck HUnit</kbd></pre>
+<pre><kbd class="shell-input">cabal update && cabal install --package-env=. --lib hspec hspec-contrib QuickCheck HUnit</kbd></pre>
 
 {% inline_example Example.hs %}
 
