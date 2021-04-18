@@ -16,6 +16,8 @@
   - Remove `--verbose` option (this has been a noop since at least 2013)
   - Remove `--out` option (use shell output redirection instead)
   - Add `getFinalCount` to `Formatter` API
+  - hspec-discover: Deprecate `--no-main` and `--formatter` (use
+    `--module-name` instead) (#196)
 
 ## Changes in 2.7.10
   - Add a new formatter (can be used with `--format checks`)
