@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveFunctor #-}
 module Test.Hspec.Core.FormattersSpec (spec) where
 
 import           Prelude ()
@@ -17,21 +19,21 @@ import qualified Test.Hspec.Core.Formatters as Formatter
 import qualified Test.Hspec.Core.Formatters.Monad as H
 import           Test.Hspec.Core.Formatters.Monad (FormatM, Environment(..))
 
-data ColorizedText =
-    Plain String
-  | Transient String
-  | Info String
-  | Succeeded String
-  | Failed String
-  | Pending String
-  | Extra String
-  | Missing String
-  deriving (Eq, Show)
+data Colorized a =
+    Plain a
+  | Transient a
+  | Info a
+  | Succeeded a
+  | Failed a
+  | Pending a
+  | Extra a
+  | Missing a
+  deriving (Functor, Eq, Show)
 
-instance IsString ColorizedText where
+instance IsString (Colorized String) where
   fromString = Plain
 
-removeColors :: [ColorizedText] -> String
+removeColors :: [Colorized String] -> String
 removeColors input = case input of
   Plain x : xs -> x ++ removeColors xs
   Transient _ : xs -> removeColors xs
@@ -43,7 +45,7 @@ removeColors input = case input of
   Missing x : xs -> x ++ removeColors xs
   [] -> ""
 
-simplify :: [ColorizedText] -> [ColorizedText]
+simplify :: [Colorized String] -> [Colorized String]
 simplify input = case input of
   Plain xs : Plain ys : zs -> simplify (Plain (xs ++ ys) : zs)
   Extra xs : Extra ys : zs -> simplify (Extra (xs ++ ys) : zs)
@@ -51,18 +53,18 @@ simplify input = case input of
   x : xs -> x : simplify xs
   [] -> []
 
-colorize :: (String -> ColorizedText) -> [ColorizedText] -> [ColorizedText]
+colorize :: (String -> Colorized String) -> [Colorized String] -> [Colorized String]
 colorize color input = case simplify input of
   Plain x : xs -> color x : xs
   xs -> xs
 
-interpret :: FormatM a -> IO [ColorizedText]
+interpret :: FormatM a -> IO [Colorized String]
 interpret = interpretWith environment
 
-interpretWith :: Environment (WriterT [ColorizedText] IO) -> FormatM a -> IO [ColorizedText]
+interpretWith :: Environment (WriterT [Colorized String] IO) -> FormatM a -> IO [Colorized String]
 interpretWith env = fmap simplify . execWriterT . H.interpretWith env
 
-environment :: Environment (WriterT [ColorizedText] IO)
+environment :: Environment (WriterT [Colorized String] IO)
 environment = Environment {
   environmentGetSuccessCount = return 0
 , environmentGetPendingCount = return 0

@@ -53,6 +53,7 @@ import           Test.Hspec.Core.Format
 
 data Formatter = Formatter {
 
+-- | evaluated before a test run
   formatterHeader :: FormatM ()
 
 -- | evaluated before each spec group
@@ -73,7 +74,7 @@ data Formatter = Formatter {
 -- | evaluated after a test run
 , failedFormatter :: FormatM ()
 
--- | evaluated after `failuresFormatter`
+-- | evaluated after `failedFormatter`
 , footerFormatter :: FormatM ()
 }
 
