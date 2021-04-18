@@ -52,6 +52,7 @@ data Config = Config {
 , configQuickCheckMaxSuccess :: Maybe Int
 , configQuickCheckMaxDiscardRatio :: Maybe Int
 , configQuickCheckMaxSize :: Maybe Int
+, configQuickCheckMaxShrinks :: Maybe Int
 , configSmallCheckDepth :: Int
 , configColorMode :: ColorMode
 , configDiff :: Bool
@@ -80,6 +81,7 @@ defaultConfig = Config {
 , configQuickCheckMaxSuccess = Nothing
 , configQuickCheckMaxDiscardRatio = Nothing
 , configQuickCheckMaxSize = Nothing
+, configQuickCheckMaxShrinks = Nothing
 , configSmallCheckDepth = paramsSmallCheckDepth defaultParams
 , configColorMode = ColorAuto
 , configDiff = True
@@ -106,11 +108,14 @@ setDepth n c = c {configSmallCheckDepth = n}
 setMaxSuccess :: Int -> Config -> Config
 setMaxSuccess n c = c {configQuickCheckMaxSuccess = Just n}
 
+setMaxDiscardRatio :: Int -> Config -> Config
+setMaxDiscardRatio n c = c {configQuickCheckMaxDiscardRatio = Just n}
+
 setMaxSize :: Int -> Config -> Config
 setMaxSize n c = c {configQuickCheckMaxSize = Just n}
 
-setMaxDiscardRatio :: Int -> Config -> Config
-setMaxDiscardRatio n c = c {configQuickCheckMaxDiscardRatio = Just n}
+setMaxShrinks :: Int -> Config -> Config
+setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 
 setSeed :: Integer -> Config -> Config
 setSeed n c = c {configQuickCheckSeed = Just n}
@@ -209,8 +214,9 @@ smallCheckOptions = [
 quickCheckOptions :: Monad m => [OptDescr (Result m -> Result m)]
 quickCheckOptions = [
     mkOption "a" "qc-max-success" (Arg "N" readMaybe setMaxSuccess) "maximum number of successful tests before a QuickCheck property succeeds"
-  , mkOption "" "qc-max-size" (Arg "N" readMaybe setMaxSize) "size to use for the biggest test cases"
   , mkOption "" "qc-max-discard" (Arg "N" readMaybe setMaxDiscardRatio) "maximum number of discarded tests per successful test before giving up"
+  , mkOption "" "qc-max-size" (Arg "N" readMaybe setMaxSize) "size to use for the biggest test cases"
+  , mkOption "" "qc-max-shrinks" (Arg "N" readMaybe setMaxShrinks) "maximum number of shrinks to perform before giving up (a value of 0 turns shrinking off)"
   , mkOption [] "seed" (Arg "N" readMaybe setSeed) "used seed for QuickCheck properties"
   ]
 

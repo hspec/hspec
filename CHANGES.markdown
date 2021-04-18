@@ -1,4 +1,5 @@
 ## next
+  - Add `--qc-max-shrinks` (see #380)
   - Use `checks` formatter by default (to restore the old behavior use
     `--format specdoc`)
   - Add `--times` to print times for individual spec items
