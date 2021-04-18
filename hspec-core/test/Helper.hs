@@ -31,7 +31,6 @@ module Helper (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.List
 import           Data.Char
 import           System.Environment (withArgs, getEnvironment)
 import           System.Exit

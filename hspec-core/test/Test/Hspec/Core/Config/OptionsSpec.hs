@@ -37,13 +37,13 @@ spec = do
       it "prints help" $ do
         help `shouldStartWith` ["Usage: my-spec [OPTION]..."]
 
-    context "with --no-color" $ do
-      it "sets configColorMode to ColorNever" $ do
-        configColorMode <$> parseOptions [] Nothing ["--no-color"] `shouldBe` Right ColorNever
-
     context "with --color" $ do
       it "sets configColorMode to ColorAlways" $ do
         configColorMode <$> parseOptions [] Nothing ["--color"] `shouldBe` Right ColorAlways
+
+    context "with --no-color" $ do
+      it "sets configColorMode to ColorNever" $ do
+        configColorMode <$> parseOptions [] Nothing ["--no-color"] `shouldBe` Right ColorNever
 
     context "with --diff" $ do
       it "sets configDiff to True" $ do
