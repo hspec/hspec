@@ -58,6 +58,7 @@ module Test.Hspec.Core.Formatters (
 , missingChunk
 
 -- ** Helpers
+, formatLocation
 , formatException
 ) where
 
@@ -147,7 +148,7 @@ checks = specdoc {
     indentationFor nesting = replicate (length nesting * 2) ' '
 
     writeResult :: [String] -> String -> Seconds -> String -> (FormatM () -> FormatM ()) -> String -> FormatM ()
-    writeResult nesting requirement (Seconds duration) info withColor symbol = do
+    writeResult nesting requirement duration info withColor symbol = do
       shouldPrintTimes <- printTimes
       write $ indentationFor nesting ++ requirement ++ " ["
       withColor $ write symbol
@@ -156,7 +157,7 @@ checks = specdoc {
         writeLine $ indentationFor ("" : nesting) ++ s
       where
         dt :: Int
-        dt = floor (duration * 1000)
+        dt = toMilliseconds duration
 
         times
           | dt == 0 = ""
@@ -259,7 +260,7 @@ defaultFailedFormatter = do
     formatFailure :: (Int, FailureRecord) -> FormatM ()
     formatFailure (n, FailureRecord mLoc path reason) = do
       forM_ mLoc $ \loc -> do
-        withInfoColor $ writeLine (formatLoc loc)
+        withInfoColor $ writeLine ("  " ++ formatLocation loc)
       write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
       case reason of
@@ -310,7 +311,6 @@ defaultFailedFormatter = do
         indent message = do
           forM_ (lines message) $ \line -> do
             writeLine (indentation ++ line)
-        formatLoc (Location file line column) = "  " ++ file ++ ":" ++ show line ++ ":" ++ show column ++ ": "
 
 defaultFooter :: FormatM ()
 defaultFooter = do
@@ -332,3 +332,6 @@ defaultFooter = do
       | pending /= 0 = withPendingColor
       | otherwise    = withSuccessColor
   c $ writeLine output
+
+formatLocation :: Location -> String
+formatLocation (Location file line column) = file ++ ":" ++ show line ++ ":" ++ show column ++ ": "

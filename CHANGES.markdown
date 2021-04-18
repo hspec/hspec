@@ -1,7 +1,7 @@
 ## next
   - Use `checks` formatter by default (to restore the old behavior use
     `--format specdoc`)
-  - Add --times to print times for individual spec items
+  - Add `--times` to print times for individual spec items
   - Add location information for failing afterAll-hooks
   - Use `-XNoImplicitPrelude` for `hspec-discover` generated test drivers
   - Cleanup Formatter API:

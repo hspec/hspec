@@ -5,15 +5,7 @@ module Test.Hspec.Core.Compat (
 , showFullType
 , readMaybe
 , lookupEnv
-, module Data.IORef
-
-, module Prelude
-, module Control.Applicative
-, module Control.Monad
-, module Data.Foldable
-, module Data.Traversable
-, module Data.Monoid
-, module Data.List
+, module Imports
 
 #if !MIN_VERSION_base(4,6,0)
 , modifyIORef'
@@ -22,10 +14,11 @@ module Test.Hspec.Core.Compat (
 , interruptible
 
 , guarded
+, sortOn
 ) where
 
-import           Control.Applicative
-import           Control.Monad hiding (
+import           Control.Applicative as Imports
+import           Control.Monad as Imports hiding (
     mapM
   , mapM_
   , forM
@@ -34,12 +27,15 @@ import           Control.Monad hiding (
   , sequence
   , sequence_
   )
-import           Data.Foldable
-import           Data.Traversable
-import           Data.Monoid
-import           Data.List (intercalate, stripPrefix, isInfixOf, inits, tails)
+import           Data.Foldable as Imports
+import           Data.Traversable as Imports
+import           Data.Monoid as Imports
+import           Data.List as Imports (stripPrefix, isPrefixOf, isInfixOf, intercalate, inits, tails, sortBy)
+#if MIN_VERSION_base(4,8,0)
+import           Data.List (sortOn)
+#endif
 
-import           Prelude hiding (
+import           Prelude as Imports hiding (
     all
   , and
   , any
@@ -67,8 +63,12 @@ import           Prelude hiding (
 
 import           Data.Typeable (Typeable, typeOf, typeRepTyCon)
 import           Text.Read
-import           Data.IORef
+import           Data.IORef as Imports
 import           System.Environment
+
+#if !MIN_VERSION_base(4,8,0)
+import           Data.Ord (comparing)
+#endif
 
 import           Data.Typeable (tyConModule, tyConName)
 import           Control.Concurrent
@@ -147,3 +147,9 @@ interruptible act = do
 
 guarded :: Alternative m => (a -> Bool) -> a -> m a
 guarded p a = if p a then pure a else empty
+
+#if !MIN_VERSION_base(4,8,0)
+sortOn :: Ord b => (a -> b) -> [a] -> [a]
+sortOn f =
+  map snd . sortBy (comparing fst) . map (\x -> let y = f x in y `seq` (y, x))
+#endif
