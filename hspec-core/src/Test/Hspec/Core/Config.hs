@@ -67,18 +67,22 @@ configQuickCheckArgs c = qcArgs
   where
     qcArgs = (
         maybe id setSeed (configQuickCheckSeed c)
-      . maybe id setMaxDiscardRatio (configQuickCheckMaxDiscardRatio c)
+      . maybe id setMaxShrinks (configQuickCheckMaxShrinks c)
       . maybe id setMaxSize (configQuickCheckMaxSize c)
+      . maybe id setMaxDiscardRatio (configQuickCheckMaxDiscardRatio c)
       . maybe id setMaxSuccess (configQuickCheckMaxSuccess c)) (paramsQuickCheckArgs defaultParams)
 
     setMaxSuccess :: Int -> QC.Args -> QC.Args
     setMaxSuccess n args = args {QC.maxSuccess = n}
 
+    setMaxDiscardRatio :: Int -> QC.Args -> QC.Args
+    setMaxDiscardRatio n args = args {QC.maxDiscardRatio = n}
+
     setMaxSize :: Int -> QC.Args -> QC.Args
     setMaxSize n args = args {QC.maxSize = n}
 
-    setMaxDiscardRatio :: Int -> QC.Args -> QC.Args
-    setMaxDiscardRatio n args = args {QC.maxDiscardRatio = n}
+    setMaxShrinks :: Int -> QC.Args -> QC.Args
+    setMaxShrinks n args = args {QC.maxShrinks = n}
 
     setSeed :: Integer -> QC.Args -> QC.Args
     setSeed n args = args {QC.replay = Just (mkGen (fromIntegral n), 0)}

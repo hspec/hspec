@@ -5,8 +5,9 @@ import           Helper
 
 import           System.Exit
 
-import qualified Test.Hspec.Core.Config.Options as Options
+import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Config.Options hiding (parseOptions)
+import qualified Test.Hspec.Core.Config.Options as Options
 
 fromLeft :: Either a b -> a
 fromLeft (Left a) = a
@@ -69,9 +70,16 @@ spec = do
           configPrintSlowItems <$> parseOptions [] Nothing ["-p0"] `shouldBe` Right Nothing
 
     context "with --qc-max-success" $ do
+      it "sets QuickCheck maxSuccess" $ do
+        maxSuccess . configQuickCheckArgs <$> (parseOptions [] Nothing ["--qc-max-success", "23"]) `shouldBe`  Right 23
+
       context "when given an invalid argument" $ do
         it "returns an error message" $ do
           fromLeft (parseOptions [] Nothing ["--qc-max-success", "foo"]) `shouldBe` (ExitFailure 1, "my-spec: invalid argument `foo' for `--qc-max-success'\nTry `my-spec --help' for more information.\n")
+
+    context "with --qc-max-shrinks" $ do
+      it "sets QuickCheck maxShrinks" $ do
+        maxShrinks . configQuickCheckArgs <$> (parseOptions [] Nothing ["--qc-max-shrinks", "23"]) `shouldBe`  Right 23
 
     context "with --depth" $ do
       it "sets depth parameter for SmallCheck" $ do
