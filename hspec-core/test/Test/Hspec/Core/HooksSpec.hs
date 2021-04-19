@@ -21,13 +21,9 @@ evalSpec :: H.Spec -> IO [([String], Item)]
 evalSpec = fmap normalize . (H.specToEvalForest H.defaultConfig >=> runFormatter config)
   where
     config = EvalConfig {
-      evalConfigFormat = format
+      evalConfigFormat = \ _ -> return ()
     , evalConfigConcurrentJobs = 1
     , evalConfigFastFail = False
-    }
-    format = Format {
-      formatRun = id
-    , formatEvent = \ _ -> return ()
     }
     normalize = map $ \ (path, item) -> (pathToList path, normalizeItem item)
     normalizeItem item = item {

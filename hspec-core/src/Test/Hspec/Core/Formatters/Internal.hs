@@ -7,7 +7,6 @@ module Test.Hspec.Core.Formatters.Internal (
 , increaseSuccessCount
 , increasePendingCount
 , addFailMessage
-, finally_
 , formatterToFormat
 #ifdef TEST
 , overwriteWith
@@ -19,7 +18,7 @@ import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
 import           System.IO (Handle, stdout)
-import           Control.Exception (AsyncException(..), bracket_, try, throwIO)
+import           Control.Exception (bracket_)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
@@ -31,26 +30,23 @@ import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWit
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 
-formatterToFormat :: M.Formatter -> FormatConfig -> Format
-formatterToFormat formatter config = Format {
-  formatRun = \action -> runFormatM config $ do
-    interpret (M.formatterHeader formatter)
-    a <- action `finally_` interpret (M.failedFormatter formatter)
+formatterToFormat :: M.Formatter -> FormatConfig -> IO Format
+formatterToFormat formatter config = monadic (runFormatM config) $ \ event -> case event of
+  Started -> interpret (M.formatterHeader formatter)
+  GroupStarted (nesting, name) -> interpret $ M.formatterGroupStarted formatter nesting name
+  GroupDone _ -> interpret (M.formatterGroupDone formatter)
+  Progress path progress -> interpret $ M.formatterProgress formatter path progress
+  ItemStarted path -> interpret $ M.formatterItemStarted formatter path
+  ItemDone path item -> do
+    clearTransientOutput
+    case itemResult item of
+      Success {} -> increaseSuccessCount
+      Pending {} -> increasePendingCount
+      Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
+    interpret $ M.formatterItemDone formatter path item
+  Done _ -> do
+    interpret (M.failedFormatter formatter)
     interpret (M.footerFormatter formatter)
-    return a
-, formatEvent = \ event -> case event of
-    GroupStarted (nesting, name) -> interpret $ M.formatterGroupStarted formatter nesting name
-    GroupDone _ -> interpret (M.formatterGroupDone formatter)
-    Progress path progress -> interpret $ M.formatterProgress formatter path progress
-    ItemStarted path -> interpret $ M.formatterItemStarted formatter path
-    ItemDone path item -> do
-      clearTransientOutput
-      case itemResult item of
-        Success {} -> increaseSuccessCount
-        Pending {} -> increasePendingCount
-        Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
-      interpret $ M.formatterItemDone formatter path item
-}
 
 interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {
@@ -250,22 +246,6 @@ diffColorize color cls s = withColor (SetColor layer Dull color) cls $ do
     layer
       | all isSpace s = Background
       | otherwise = Foreground
-
--- |
--- @finally_ actionA actionB@ runs @actionA@ and then @actionB@.  @actionB@ is
--- run even when a `UserInterrupt` occurs during @actionA@.
-finally_ :: FormatM a -> FormatM () -> FormatM a
-finally_ (FormatM actionA) (FormatM actionB) = FormatM . StateT $ \st -> do
-  r <- try (runStateT actionA st)
-  case r of
-    Left e -> do
-      when (e == UserInterrupt) $
-        runStateT actionB st >> return ()
-      throwIO e
-    Right (a, st_) -> do
-      runStateT actionB st_ >>= return . replaceValue a
-  where
-    replaceValue a (_, st) = (a, st)
 
 -- | Get the used CPU time since the test run has been started.
 getCPUTime :: FormatM (Maybe Seconds)

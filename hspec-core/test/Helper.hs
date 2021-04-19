@@ -14,6 +14,7 @@ module Helper (
 , noOpProgressCallback
 , captureLines
 , normalizeSummary
+, normalizeTimes
 
 , ignoreExitCode
 , ignoreUserInterrupt
@@ -96,6 +97,14 @@ normalizeSummary = map f
         | otherwise = x
     g x | isNumber x = '0'
         | otherwise  = x
+
+normalizeTimes :: [String] -> [String]
+normalizeTimes = map go
+  where
+    go xs = case xs of
+      [] -> []
+      '(' : y : ys | isNumber y, Just zs <- stripPrefix "ms)" $ dropWhile isNumber ys -> "(2ms)" ++ go zs
+      y : ys -> y : go ys
 
 defaultParams :: H.Params
 defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000}}

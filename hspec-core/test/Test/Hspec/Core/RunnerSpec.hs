@@ -211,6 +211,8 @@ spec = do
 #endif
           , "Randomized with seed 23"
           , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
           ]
 
       it "throws UserInterrupt" $ do
@@ -440,6 +442,25 @@ spec = do
         r `shouldContain` unlines [
             red ++ "       expected: " ++ reset ++ "42"
           , red ++ "        but got: " ++ reset ++ "23"
+          ]
+
+    context "with --print-slow-items" $ do
+      it "prints slow items" $ do
+        r <- captureLines . ignoreExitCode . withArgs ["--print-slow-items"] . H.hspec $ do
+          H.it "foo" $ threadDelay 2000
+        normalizeTimes (normalizeSummary r) `shouldBe` [
+            ""
+          , "foo [✔]"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 0 failures"
+          , ""
+          , "Slow spec items:"
+#if MIN_VERSION_base(4,8,1)
+          , "  test/Test/Hspec/Core/RunnerSpec.hs:450:11: /foo/ (2ms)"
+#else
+          , "  /foo/ (2ms)"
+#endif
           ]
 
     context "with --format" $ do

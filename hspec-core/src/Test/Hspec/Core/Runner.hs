@@ -225,7 +225,7 @@ runSpec_ config spec = do
 
       formatter = fromMaybe (formatterToFormat checks) (configFormat config <|> formatterToFormat <$> configFormatter config)
 
-    format <- maybe return printSlowSpecItems (configPrintSlowItems config) (formatter formatConfig)
+    format <- maybe id printSlowSpecItems (configPrintSlowItems config) <$> formatter formatConfig
 
     let
       evalConfig = EvalConfig {

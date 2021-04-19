@@ -32,7 +32,7 @@ import           Control.Concurrent.Async hiding (cancel)
 import           Control.Monad.IO.Class (liftIO)
 import qualified Control.Monad.IO.Class as M
 
-import           Control.Monad.Trans.State hiding (State, state)
+import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Class
 
 import           Test.Hspec.Core.Util
@@ -54,36 +54,40 @@ data EvalConfig = EvalConfig {
 , evalConfigFastFail :: Bool
 }
 
-data State m = State {
-  stateConfig :: EvalConfig
-, stateResults :: [(Path, Format.Item)]
-
-, formatRun :: forall a. m a -> IO a
-, formatEvent :: Format.Event -> m ()
+data Env = Env {
+  envConfig :: EvalConfig
+, envResults :: IORef [(Path, Format.Item)]
 }
 
-type EvalM m = StateT (State m) m
+formatEvent :: Format.Event -> EvalM ()
+formatEvent event = do
+  format <- asks $ evalConfigFormat . envConfig
+  liftIO $ format event
 
-addResult :: Monad m => Path -> Format.Item -> EvalM m ()
-addResult path item = modify $ \ state -> state {stateResults = (path, item) : stateResults state}
+type EvalM = ReaderT Env IO
 
-reportItem :: Monad m => Path -> Maybe Location -> EvalM m (Seconds, Result)  -> EvalM m ()
+addResult :: Path -> Format.Item -> EvalM ()
+addResult path item = do
+  ref <- asks envResults
+  liftIO $ modifyIORef ref ((path, item) :)
+
+getResults :: EvalM [(Path, Format.Item)]
+getResults = reverse <$> (asks envResults >>= liftIO . readIORef)
+
+reportItem :: Path -> Maybe Location -> EvalM (Seconds, Result)  -> EvalM ()
 reportItem path loc action = do
   reportItemStarted path
   action >>= reportResult path loc
 
-reportItemStarted :: Monad m => Path -> EvalM m ()
-reportItemStarted path = do
-  format <- gets formatEvent
-  lift (format $ Format.ItemStarted path)
+reportItemStarted :: Path -> EvalM ()
+reportItemStarted = formatEvent . Format.ItemStarted
 
-reportItemDone :: Monad m => Path -> Format.Item -> EvalM m ()
+reportItemDone :: Path -> Format.Item -> EvalM ()
 reportItemDone path item = do
   addResult path item
-  format <- gets formatEvent
-  lift (format $ Format.ItemDone path item)
+  formatEvent $ Format.ItemDone path item
 
-reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Result) -> EvalM m ()
+reportResult :: Path -> Maybe Location -> (Seconds, Result) -> EvalM ()
 reportResult path loc (duration, result) = do
   case result of
     Result info status -> reportItemDone path $ Format.Item loc duration info $ case status of
@@ -92,15 +96,11 @@ reportResult path loc (duration, result) = do
       Failure loc_ err@(Error _ e) -> Format.Failure (loc_ <|> extractLocation e) err
       Failure loc_ err             -> Format.Failure loc_ err
 
-groupStarted :: Monad m => Path -> EvalM m ()
-groupStarted path = do
-  format <- gets formatEvent
-  lift $ format (Format.GroupStarted path)
+groupStarted :: Path -> EvalM ()
+groupStarted = formatEvent . Format.GroupStarted
 
-groupDone :: Monad m => Path -> EvalM m ()
-groupDone path = do
-  format <- gets formatEvent
-  lift $ format (Format.GroupDone path)
+groupDone :: Path -> EvalM ()
+groupDone = formatEvent . Format.GroupDone
 
 data EvalItem = EvalItem {
   evalItemDescription :: String
@@ -113,32 +113,30 @@ type EvalTree = Tree (IO ()) EvalItem
 
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: EvalConfig -> [EvalTree] -> IO ([(Path, Format.Item)])
-runFormatter config = case evalConfigFormat config of
-  Format.Format{..} -> runFormatterWith State {
-    stateConfig = config
-  , stateResults = []
-  , formatRun = formatRun
-  , formatEvent = formatEvent
-  }
+runFormatter config specs = do
+  ref <- newIORef []
 
-runFormatterWith :: forall m. MonadIO m => State m -> [EvalTree] -> IO ([(Path, Format.Item)])
-runFormatterWith state specs = do
   let
     start = parallelizeTree (evalConfigConcurrentJobs config) specs
     cancel = cancelMany . concatMap toList . map (fmap fst)
+
   E.bracket start cancel $ \ runningSpecs -> do
     withTimer 0.05 $ \ timer -> do
-      r <- formatRun state $ do
-        flip execStateT state $
-          run $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs
-      return (reverse $ stateResults r)
-  where
-    config = stateConfig state
 
-    reportProgress :: IO Bool -> Path -> Progress -> m ()
+      format Format.Started
+      runReaderT (run $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs) (Env config ref) `E.finally` do
+        results <- reverse <$> readIORef ref
+        format (Format.Done results)
+
+      results <- reverse <$> readIORef ref
+      return results
+  where
+    format = evalConfigFormat config
+
     reportProgress timer path progress = do
-      r <- liftIO timer
-      when r (formatEvent state $ Format.Progress path progress)
+      r <- timer
+      when r $ do
+        format (Format.Progress path progress)
 
 cancelMany :: [Async a] -> IO ()
 cancelMany asyncs = do
@@ -210,12 +208,12 @@ runParallel Semaphore{..} action = do
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
-run :: forall m. MonadIO m => [RunningTree m] -> EvalM m ()
+run :: [RunningTree IO] -> EvalM ()
 run specs = do
-  fastFail <- gets (evalConfigFastFail . stateConfig)
+  fastFail <- asks (evalConfigFastFail . envConfig)
   sequenceActions fastFail (concatMap foldSpec specs)
   where
-    foldSpec :: RunningTree m -> [EvalM m ()]
+    foldSpec :: RunningTree IO -> [EvalM ()]
     foldSpec = foldTree FoldTree {
       onGroupStarted = groupStarted
     , onGroupDone = groupDone
@@ -223,7 +221,7 @@ run specs = do
     , onLeafe = evalItem
     }
 
-    runCleanup :: Maybe Location -> [String] -> IO () -> EvalM m ()
+    runCleanup :: Maybe Location -> [String] -> IO () -> EvalM ()
     runCleanup loc groups action = do
       r <- liftIO $ measure $ safeEvaluate (action >> return (Result "" Success))
       case r of
@@ -232,7 +230,7 @@ run specs = do
       where
         path = (groups, "afterAll-hook")
 
-    evalItem :: [String] -> RunningItem m -> EvalM m ()
+    evalItem :: [String] -> RunningItem IO -> EvalM ()
     evalItem groups (Item requirement loc action) = do
       reportItem path loc $ lift (action path)
       where
@@ -261,14 +259,14 @@ foldTree FoldTree{..} = go []
         cleanup = onCleanup loc (reverse rGroups) action
     go rGroups (Leaf a) = [onLeafe (reverse rGroups) a]
 
-sequenceActions :: Monad m => Bool -> [EvalM m ()] -> EvalM m ()
+sequenceActions :: Bool -> [EvalM ()] -> EvalM ()
 sequenceActions fastFail = go
   where
-    go :: Monad m => [EvalM m ()] -> EvalM m ()
+    go :: [EvalM ()] -> EvalM ()
     go [] = return ()
     go (action : actions) = do
       action
-      hasFailures <- any resultItemIsFailure <$> gets stateResults
+      hasFailures <- any resultItemIsFailure <$> getResults
       let stopNow = fastFail && hasFailures
       unless stopNow (go actions)
 
