@@ -16,7 +16,7 @@
     - Rename `exampleProgress` to `formatterProgress`
   - Remove `--verbose` option (this has been a noop since at least 2013)
   - Remove `--out` option (use shell output redirection instead)
-  - Add `getFinalCount` to `Formatter` API
+  - Add `getItemCount` to `Formatter` API
   - hspec-discover: Deprecate `--no-main` and `--formatter` (use
     `--module-name` instead) (#196)
 

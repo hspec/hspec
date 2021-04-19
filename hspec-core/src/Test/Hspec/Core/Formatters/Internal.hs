@@ -61,7 +61,7 @@ interpret = interpretWith Environment {
   environmentGetSuccessCount = getSuccessCount
 , environmentGetPendingCount = getPendingCount
 , environmentGetFailMessages = getFailMessages
-, environmentGetFinalCount = getFinalCount
+, environmentGetFinalCount = getItemCount
 , environmentUsedSeed = usedSeed
 , environmentPrintTimes = gets (formatConfigPrintTimes . stateConfig)
 , environmentGetCPUTime = getCPUTime
@@ -96,8 +96,7 @@ data FormatConfig = FormatConfig {
 , formatConfigHtmlOutput :: Bool
 , formatConfigPrintCpuTime :: Bool
 , formatConfigUsedSeed :: Integer
-, formatConfigFinalCount :: !Int
-  -- ^ this field is strict to prevent holding an extra reference to the spec
+, formatConfigItemCount :: Int
 } deriving (Eq, Show)
 
 data FormatterState = FormatterState {
@@ -158,8 +157,8 @@ getFailMessages = reverse `fmap` gets stateFailMessages
 
 -- | Get the number of spec items that will have been encountered when this run
 -- completes (if it is not terminated early).
-getFinalCount :: FormatM Int
-getFinalCount = getConfig formatConfigFinalCount
+getItemCount :: FormatM Int
+getItemCount = getConfig formatConfigItemCount
 
 overwriteWith :: String -> String -> String
 overwriteWith old new
