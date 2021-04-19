@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE BangPatterns #-}
 
 -- |
 -- Stability: provisional
@@ -202,7 +203,7 @@ runSpec_ config spec = do
   let formatter = fromMaybe checks (configFormatter config)
       seed = (fromJust . configQuickCheckSeed) config
       qcArgs = configQuickCheckArgs config
-      numberOfItems = countSpecItems filteredSpec
+      !numberOfItems = countSpecItems filteredSpec
 
   concurrentJobs <- case configConcurrentJobs config of
     Nothing -> getDefaultConcurrentJobs
@@ -220,7 +221,7 @@ runSpec_ config spec = do
       , formatConfigHtmlOutput = configHtmlOutput config
       , formatConfigPrintCpuTime = configPrintCpuTime config
       , formatConfigUsedSeed =  seed
-      , formatConfigFinalCount = numberOfItems
+      , formatConfigItemCount = numberOfItems
       }
 
     format <- maybe return printSlowSpecItems (configPrintSlowItems config) (formatterToFormat formatter formatConfig)
