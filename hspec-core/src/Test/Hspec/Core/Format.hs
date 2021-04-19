@@ -3,6 +3,7 @@
 module Test.Hspec.Core.Format (
   Format(..)
 , FormatConfig(..)
+, Event(..)
 , Progress
 , Path
 , Location(..)
@@ -37,12 +38,15 @@ data Result =
 
 data Format = forall m. (Functor m, Applicative m, MonadIO m) => Format {
   formatRun :: forall a. m a -> IO a
-, formatGroupStarted :: Path -> m ()
-, formatGroupDone :: Path -> m ()
-, formatProgress :: Path -> Progress -> m ()
-, formatItemStarted :: Path -> m ()
-, formatItemDone :: Path -> Item -> m ()
+, formatEvent :: Event -> m ()
 }
+
+data Event =
+    GroupStarted Path
+  | GroupDone Path
+  | Progress Path Progress
+  | ItemStarted Path
+  | ItemDone Path Item
 
 data FormatConfig = FormatConfig {
   formatConfigUseColor :: Bool

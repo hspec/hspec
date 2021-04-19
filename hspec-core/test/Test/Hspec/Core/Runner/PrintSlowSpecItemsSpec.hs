@@ -10,11 +10,7 @@ import           Test.Hspec.Core.Runner.PrintSlowSpecItems
 format :: Format
 format = Format {
   formatRun = id
-, formatGroupStarted = \ _ -> return ()
-, formatGroupDone = \ _ -> return ()
-, formatProgress = \ _ _ -> return ()
-, formatItemStarted = \ _ -> return ()
-, formatItemDone = \ _ _ -> return ()
+, formatEvent = \ _ -> return ()
 }
 
 location :: Location
@@ -38,9 +34,9 @@ spec = do
     it "prints slow spec items" $ do
       Format{..} <- printSlowSpecItems 2 format
       capture_ $ formatRun $ do
-        formatItemDone (["foo", "bar"], "one") item {itemDuration = 0.100}
-        formatItemDone (["foo", "bar"], "two") item {itemDuration = 0.500}
-        formatItemDone (["foo", "bar"], "thr") item {itemDuration = 0.050}
+        formatEvent $ ItemDone (["foo", "bar"], "one") item {itemDuration = 0.100}
+        formatEvent $ ItemDone (["foo", "bar"], "two") item {itemDuration = 0.500}
+        formatEvent $ ItemDone (["foo", "bar"], "thr") item {itemDuration = 0.050}
       `shouldReturn` unlines [
         ""
       , "Slow spec items:"
@@ -52,5 +48,5 @@ spec = do
       it "prints nothing" $ do
         Format{..} <- printSlowSpecItems 2 format
         capture_ $ formatRun $ do
-          formatItemDone (["foo", "bar"], "one") item {itemDuration = 0}
+          formatEvent $ ItemDone (["foo", "bar"], "one") item {itemDuration = 0}
         `shouldReturn` ""

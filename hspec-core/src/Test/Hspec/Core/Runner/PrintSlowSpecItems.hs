@@ -30,17 +30,16 @@ printSlowSpecItems_ slow n Format{..} = Format {
     unless (null xs) $ do
       putStrLn "\nSlow spec items:"
       mapM_ printSlowSpecItem xs
-, formatGroupStarted = formatGroupStarted
-, formatGroupDone = formatGroupDone
-, formatProgress = formatProgress
-, formatItemStarted = formatItemStarted
-, formatItemDone = \ path item -> do
-    let 
-      location = itemLocation item
-      duration = toMilliseconds (itemDuration item)
-    when (duration /= 0) $ do
-      liftIO $ modifyIORef slow (SlowItem{..}  :)
-    formatItemDone path item
+, formatEvent = \ event -> do
+    formatEvent event
+    case event of
+      ItemDone path item -> do
+        let
+          location = itemLocation item
+          duration = toMilliseconds (itemDuration item)
+        when (duration /= 0) $ do
+          liftIO $ modifyIORef slow (SlowItem{..}  :)
+      _ -> return ()
 }
 
 printSlowSpecItem :: SlowItem -> IO ()

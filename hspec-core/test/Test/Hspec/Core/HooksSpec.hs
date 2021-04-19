@@ -27,11 +27,7 @@ evalSpec = fmap normalize . (H.specToEvalForest H.defaultConfig >=> runFormatter
     }
     format = Format {
       formatRun = id
-    , formatGroupStarted = \ _ -> return ()
-    , formatGroupDone = \ _ -> return ()
-    , formatProgress = \ _ _ -> return ()
-    , formatItemStarted = \ _ -> return ()
-    , formatItemDone = \ _ _ -> return ()
+    , formatEvent = \ _ -> return ()
     }
     normalize = map $ \ (path, item) -> (pathToList path, normalizeItem item)
     normalizeItem item = item {

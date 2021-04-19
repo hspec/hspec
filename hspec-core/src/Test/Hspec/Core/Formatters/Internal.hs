@@ -38,22 +38,18 @@ formatterToFormat formatter config = Format {
     a <- action `finally_` interpret (M.failedFormatter formatter)
     interpret (M.footerFormatter formatter)
     return a
-, formatGroupStarted = \ (nesting, name) -> interpret $ M.formatterGroupStarted formatter nesting name
-, formatGroupDone = \ _ -> interpret (M.formatterGroupDone formatter)
-
-, formatProgress = \ path progress -> do
-    interpret $ M.formatterProgress formatter path progress
-
-, formatItemStarted = \ path -> do
-    interpret $ M.formatterItemStarted formatter path
-
-, formatItemDone = \ path item -> do
-    clearTransientOutput
-    case itemResult item of
-      Success {} -> increaseSuccessCount
-      Pending {} -> increasePendingCount
-      Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
-    interpret $ M.formatterItemDone formatter path item
+, formatEvent = \ event -> case event of
+    GroupStarted (nesting, name) -> interpret $ M.formatterGroupStarted formatter nesting name
+    GroupDone _ -> interpret (M.formatterGroupDone formatter)
+    Progress path progress -> interpret $ M.formatterProgress formatter path progress
+    ItemStarted path -> interpret $ M.formatterItemStarted formatter path
+    ItemDone path item -> do
+      clearTransientOutput
+      case itemResult item of
+        Success {} -> increaseSuccessCount
+        Pending {} -> increasePendingCount
+        Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
+      interpret $ M.formatterItemDone formatter path item
 }
 
 interpret :: M.FormatM a -> FormatM a
