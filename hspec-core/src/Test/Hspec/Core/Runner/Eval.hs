@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE RankNTypes #-}
 
 #if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
 -- Control.Concurrent.QSem is deprecated in base-4.6.0.*
@@ -37,7 +38,7 @@ import           Control.Monad.Trans.Class
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Tree(..), Progress, FailureReason(..), Result(..), ResultStatus(..), ProgressCallback)
 import           Test.Hspec.Core.Timer
-import           Test.Hspec.Core.Format (Format(..))
+import           Test.Hspec.Core.Format (Format)
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
@@ -47,24 +48,28 @@ import           Test.Hspec.Core.Example (safeEvaluate)
 type Monad m = (Functor m, Applicative m, M.Monad m)
 type MonadIO m = (Monad m, M.MonadIO m)
 
-data EvalConfig m = EvalConfig {
-  evalConfigFormat :: Format m
+data EvalConfig = EvalConfig {
+  evalConfigFormat :: Format
 , evalConfigConcurrentJobs :: Int
 , evalConfigFastFail :: Bool
 }
 
 data State m = State {
-  stateConfig :: EvalConfig m
+  stateConfig :: EvalConfig
 , stateResults :: [(Path, Format.Item)]
+
+, formatRun :: forall a. m a -> IO a
+, formatGroupStarted :: Path -> m ()
+, formatGroupDone :: Path -> m ()
+, formatProgress :: Path -> Progress -> m ()
+, formatItemStarted :: Path -> m ()
+, formatItemDone :: Path -> Format.Item -> m ()
 }
 
 type EvalM m = StateT (State m) m
 
 addResult :: Monad m => Path -> Format.Item -> EvalM m ()
 addResult path item = modify $ \ state -> state {stateResults = (path, item) : stateResults state}
-
-getFormat :: Monad m => (Format m -> a) -> EvalM m a
-getFormat format = gets (format . evalConfigFormat . stateConfig)
 
 reportItem :: Monad m => Path -> Maybe Location -> EvalM m (Seconds, Result)  -> EvalM m ()
 reportItem path loc action = do
@@ -73,13 +78,13 @@ reportItem path loc action = do
 
 reportItemStarted :: Monad m => Path -> EvalM m ()
 reportItemStarted path = do
-  format <- getFormat formatItemStarted
+  format <- gets formatItemStarted
   lift (format path)
 
 reportItemDone :: Monad m => Path -> Format.Item -> EvalM m ()
 reportItemDone path item = do
   addResult path item
-  format <- getFormat formatItemDone
+  format <- gets formatItemDone
   lift (format path item)
 
 reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Result) -> EvalM m ()
@@ -93,12 +98,12 @@ reportResult path loc (duration, result) = do
 
 groupStarted :: Monad m => Path -> EvalM m ()
 groupStarted path = do
-  format <- getFormat formatGroupStarted
+  format <- gets formatGroupStarted
   lift $ format path
 
 groupDone :: Monad m => Path -> EvalM m ()
 groupDone path = do
-  format <- getFormat formatGroupDone
+  format <- gets formatGroupDone
   lift $ format path
 
 data EvalItem = EvalItem {
@@ -110,28 +115,38 @@ data EvalItem = EvalItem {
 
 type EvalTree = Tree (IO ()) EvalItem
 
-runEvalM :: Monad m => EvalConfig m -> EvalM m () -> m (State m)
-runEvalM config action = execStateT action (State config [])
-
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: forall m. MonadIO m => EvalConfig m -> [EvalTree] -> IO ([(Path, Format.Item)])
-runFormatter config specs = do
+runFormatter :: EvalConfig -> [EvalTree] -> IO ([(Path, Format.Item)])
+runFormatter config = case evalConfigFormat config of
+  Format.Format{..} -> runFormatterWith State {
+    stateConfig = config
+  , stateResults = []
+  , formatRun = formatRun
+  , formatGroupStarted = formatGroupStarted
+  , formatGroupDone = formatGroupDone
+  , formatProgress = formatProgress
+  , formatItemStarted = formatItemStarted
+  , formatItemDone = formatItemDone
+  }
+
+runFormatterWith :: forall m. MonadIO m => State m -> [EvalTree] -> IO ([(Path, Format.Item)])
+runFormatterWith state specs = do
   let
     start = parallelizeTree (evalConfigConcurrentJobs config) specs
     cancel = cancelMany . concatMap toList . map (fmap fst)
   E.bracket start cancel $ \ runningSpecs -> do
     withTimer 0.05 $ \ timer -> do
-      state <- formatRun format $ do
-        runEvalM config $
+      r <- formatRun state $ do
+        flip execStateT state $
           run $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs
-      return (reverse $ stateResults state)
+      return (reverse $ stateResults r)
   where
-    format = evalConfigFormat config
+    config = stateConfig state
 
     reportProgress :: IO Bool -> Path -> Progress -> m ()
     reportProgress timer path progress = do
       r <- liftIO timer
-      when r (formatProgress format path progress)
+      when r (formatProgress state path progress)
 
 cancelMany :: [Async a] -> IO ()
 cancelMany asyncs = do

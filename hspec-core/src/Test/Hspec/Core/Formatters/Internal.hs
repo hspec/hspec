@@ -18,7 +18,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
-import           System.IO (Handle)
+import           System.IO (Handle, stdout)
 import           Control.Exception (AsyncException(..), bracket_, try, throwIO)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)
@@ -31,7 +31,7 @@ import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWit
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 
-formatterToFormat :: M.Formatter -> FormatConfig -> Format FormatM
+formatterToFormat :: M.Formatter -> FormatConfig -> Format
 formatterToFormat formatter config = Format {
   formatRun = \action -> runFormatM config $ do
     interpret (M.formatterHeader formatter)
@@ -88,17 +88,6 @@ modify :: (FormatterState -> FormatterState) -> FormatM ()
 modify f = FormatM $ do
   get >>= liftIO . (`modifyIORef'` f)
 
-data FormatConfig = FormatConfig {
-  formatConfigHandle :: Handle
-, formatConfigUseColor :: Bool
-, formatConfigUseDiff :: Bool
-, formatConfigPrintTimes :: Bool
-, formatConfigHtmlOutput :: Bool
-, formatConfigPrintCpuTime :: Bool
-, formatConfigUsedSeed :: Integer
-, formatConfigItemCount :: Int
-} deriving (Eq, Show)
-
 data FormatterState = FormatterState {
   stateSuccessCount    :: !Int
 , statePendingCount    :: !Int
@@ -113,7 +102,7 @@ getConfig :: (FormatConfig -> a) -> FormatM a
 getConfig f = gets (f . stateConfig)
 
 getHandle :: FormatM Handle
-getHandle = getConfig formatConfigHandle
+getHandle = return stdout
 
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer

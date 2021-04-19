@@ -1,4 +1,5 @@
 ## next
+  - Add new API for formatters `Test.Hspec.Core.Format`
   - Add `--qc-max-shrinks` (see #380)
   - Use `checks` formatter by default (to restore the old behavior use
     `--format specdoc`)

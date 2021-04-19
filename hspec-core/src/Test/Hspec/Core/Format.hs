@@ -1,6 +1,8 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ExistentialQuantification #-}
 module Test.Hspec.Core.Format (
   Format(..)
+, FormatConfig(..)
 , Progress
 , Path
 , Location(..)
@@ -12,6 +14,8 @@ module Test.Hspec.Core.Format (
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
+
+import           Control.Monad.IO.Class
 
 import           Test.Hspec.Core.Spec (Progress, Location(..))
 import           Test.Hspec.Core.Example (FailureReason(..))
@@ -31,7 +35,7 @@ data Result =
   | Failure (Maybe Location) FailureReason
   deriving Show
 
-data Format m = Format {
+data Format = forall m. (Functor m, Applicative m, MonadIO m) => Format {
   formatRun :: forall a. m a -> IO a
 , formatGroupStarted :: Path -> m ()
 , formatGroupDone :: Path -> m ()
@@ -39,3 +43,13 @@ data Format m = Format {
 , formatItemStarted :: Path -> m ()
 , formatItemDone :: Path -> Item -> m ()
 }
+
+data FormatConfig = FormatConfig {
+  formatConfigUseColor :: Bool
+, formatConfigUseDiff :: Bool
+, formatConfigPrintTimes :: Bool
+, formatConfigHtmlOutput :: Bool
+, formatConfigPrintCpuTime :: Bool
+, formatConfigUsedSeed :: Integer
+, formatConfigItemCount :: Int
+} deriving (Eq, Show)
