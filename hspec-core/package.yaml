@@ -50,6 +50,7 @@ library:
     - Test.Hspec.Core.Spec
     - Test.Hspec.Core.Hooks
     - Test.Hspec.Core.Runner
+    - Test.Hspec.Core.Format
     - Test.Hspec.Core.Formatters
     - Test.Hspec.Core.QuickCheck
     - Test.Hspec.Core.Util

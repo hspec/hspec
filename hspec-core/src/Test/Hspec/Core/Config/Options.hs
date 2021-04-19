@@ -15,6 +15,7 @@ import           Test.Hspec.Core.Compat
 import           System.Exit
 import           System.Console.GetOpt
 
+import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters (Formatter)
 import qualified Test.Hspec.Core.Formatters as Formatter
 import           Test.Hspec.Core.Config.Util
@@ -57,7 +58,8 @@ data Config = Config {
 , configColorMode :: ColorMode
 , configDiff :: Bool
 , configTimes :: Bool
-, configFormatter :: Maybe Formatter
+, configFormat :: Maybe (FormatConfig -> Format)
+, configFormatter :: Maybe Formatter -- ^ deprecated, use `configFormat` instead
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
 }
@@ -86,6 +88,7 @@ defaultConfig = Config {
 , configColorMode = ColorAuto
 , configDiff = True
 , configTimes = False
+, configFormat = Nothing
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
@@ -177,8 +180,8 @@ formatterOptions = concat [
   , [printSlowItemsOption]
   ]
   where
-    formatters :: [(String, Formatter)]
-    formatters = [
+    formatters :: [(String, FormatConfig -> Format)]
+    formatters = map (fmap Formatter.formatterToFormat) [
         ("checks", Formatter.checks)
       , ("specdoc", Formatter.specdoc)
       , ("progress", Formatter.progress)
@@ -189,11 +192,11 @@ formatterOptions = concat [
     helpForFormat :: String
     helpForFormat = "use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatters)
 
-    readFormatter :: String -> Maybe Formatter
+    readFormatter :: String -> Maybe (FormatConfig -> Format)
     readFormatter = (`lookup` formatters)
 
-    setFormatter :: Formatter -> Config -> Config
-    setFormatter f c = c {configFormatter = Just f}
+    setFormatter :: (FormatConfig -> Format) -> Config -> Config
+    setFormatter f c = c {configFormat = Just f}
 
     setColor :: Bool -> Config -> Config
     setColor v config = config {configColorMode = if v then ColorAlways else ColorNever}

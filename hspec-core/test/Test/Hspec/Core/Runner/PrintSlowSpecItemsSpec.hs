@@ -7,7 +7,7 @@ import           Helper
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Runner.PrintSlowSpecItems
 
-format :: Format IO
+format :: Format
 format = Format {
   formatRun = id
 , formatGroupStarted = \ _ -> return ()

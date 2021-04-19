@@ -200,7 +200,7 @@ focusSpec config spec
 runSpec_ :: Config -> Spec -> IO Summary
 runSpec_ config spec = do
   filteredSpec <- specToEvalForest config spec
-  let formatter = fromMaybe checks (configFormatter config)
+  let
       seed = (fromJust . configQuickCheckSeed) config
       qcArgs = configQuickCheckArgs config
       !numberOfItems = countSpecItems filteredSpec
@@ -214,17 +214,18 @@ runSpec_ config spec = do
   results <- withHiddenCursor useColor stdout $ do
     let
       formatConfig = FormatConfig {
-        formatConfigHandle = stdout
-      , formatConfigUseColor = useColor
+        formatConfigUseColor = useColor
       , formatConfigUseDiff = configDiff config
       , formatConfigPrintTimes = configTimes config
       , formatConfigHtmlOutput = configHtmlOutput config
       , formatConfigPrintCpuTime = configPrintCpuTime config
-      , formatConfigUsedSeed =  seed
+      , formatConfigUsedSeed = seed
       , formatConfigItemCount = numberOfItems
       }
 
-    format <- maybe return printSlowSpecItems (configPrintSlowItems config) (formatterToFormat formatter formatConfig)
+      formatter = fromMaybe (formatterToFormat checks) (configFormat config <|> formatterToFormat <$> configFormatter config)
+
+    format <- maybe return printSlowSpecItems (configPrintSlowItems config) (formatter formatConfig)
 
     let
       evalConfig = EvalConfig {

@@ -20,23 +20,27 @@ data SlowItem = SlowItem {
 , duration :: Int
 }
 
-printSlowSpecItems :: MonadIO m => Int -> Format m -> IO (Format m)
+printSlowSpecItems :: Int -> Format -> IO Format
 printSlowSpecItems n format = printSlowSpecItems_ <$> newIORef [] <*> pure n <*> pure format
 
-printSlowSpecItems_ :: MonadIO m => IORef [SlowItem] -> Int -> Format m -> Format m
-printSlowSpecItems_ slow n format@Format{..} = format {
-  formatItemDone = \ path item -> do
+printSlowSpecItems_ :: IORef [SlowItem] -> Int -> Format -> Format
+printSlowSpecItems_ slow n Format{..} = Format {
+  formatRun = \ action -> formatRun action <* do
+    xs <- take n . reverse . sortOn duration <$> readIORef slow
+    unless (null xs) $ do
+      putStrLn "\nSlow spec items:"
+      mapM_ printSlowSpecItem xs
+, formatGroupStarted = formatGroupStarted
+, formatGroupDone = formatGroupDone
+, formatProgress = formatProgress
+, formatItemStarted = formatItemStarted
+, formatItemDone = \ path item -> do
     let 
       location = itemLocation item
       duration = toMilliseconds (itemDuration item)
     when (duration /= 0) $ do
       liftIO $ modifyIORef slow (SlowItem{..}  :)
     formatItemDone path item
-, formatRun = \ action -> formatRun action <* do
-    xs <- take n . reverse . sortOn duration <$> readIORef slow
-    unless (null xs) $ do
-      putStrLn "\nSlow spec items:"
-      mapM_ printSlowSpecItem xs
 }
 
 printSlowSpecItem :: SlowItem -> IO ()

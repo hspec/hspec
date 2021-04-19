@@ -25,6 +25,7 @@ module Test.Hspec.Core.Formatters (
 , Result(..)
 , FailureReason (..)
 , FormatM
+, formatterToFormat
 
 -- ** Accessing the runner state
 , getSuccessCount
@@ -73,7 +74,7 @@ import           Text.Printf
 import           Control.Monad.IO.Class
 import           Control.Exception
 
--- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
+-- We use an explicit import list for "Test.Hspec.Formatters.Monad", to make
 -- sure, that we only use the public API to implement formatters.
 --
 -- Everything imported here has to be re-exported, so that users can implement
@@ -112,6 +113,7 @@ import Test.Hspec.Core.Formatters.Monad (
   , missingChunk
   )
 
+import           Test.Hspec.Core.Formatters.Internal (formatterToFormat)
 import           Test.Hspec.Core.Formatters.Diff
 
 silent :: Formatter
