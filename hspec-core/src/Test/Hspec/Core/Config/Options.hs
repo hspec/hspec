@@ -58,7 +58,7 @@ data Config = Config {
 , configColorMode :: ColorMode
 , configDiff :: Bool
 , configTimes :: Bool
-, configFormat :: Maybe (FormatConfig -> Format)
+, configFormat :: Maybe (FormatConfig -> IO Format)
 , configFormatter :: Maybe Formatter -- ^ deprecated, use `configFormat` instead
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
@@ -180,7 +180,7 @@ formatterOptions = concat [
   , [printSlowItemsOption]
   ]
   where
-    formatters :: [(String, FormatConfig -> Format)]
+    formatters :: [(String, FormatConfig -> IO Format)]
     formatters = map (fmap Formatter.formatterToFormat) [
         ("checks", Formatter.checks)
       , ("specdoc", Formatter.specdoc)
@@ -192,10 +192,10 @@ formatterOptions = concat [
     helpForFormat :: String
     helpForFormat = "use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatters)
 
-    readFormatter :: String -> Maybe (FormatConfig -> Format)
+    readFormatter :: String -> Maybe (FormatConfig -> IO Format)
     readFormatter = (`lookup` formatters)
 
-    setFormatter :: (FormatConfig -> Format) -> Config -> Config
+    setFormatter :: (FormatConfig -> IO Format) -> Config -> Config
     setFormatter f c = c {configFormat = Just f}
 
     setColor :: Bool -> Config -> Config

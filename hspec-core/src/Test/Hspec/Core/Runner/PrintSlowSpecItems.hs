@@ -11,7 +11,6 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Format
 
 import           Test.Hspec.Core.Clock
-import           Control.Monad.IO.Class
 import           Test.Hspec.Core.Formatters (formatLocation)
 
 data SlowItem = SlowItem {
@@ -20,27 +19,22 @@ data SlowItem = SlowItem {
 , duration :: Int
 }
 
-printSlowSpecItems :: Int -> Format -> IO Format
-printSlowSpecItems n format = printSlowSpecItems_ <$> newIORef [] <*> pure n <*> pure format
+printSlowSpecItems :: Int -> Format -> Format
+printSlowSpecItems n format event = do
+  format event
+  case event of
+    Done items -> do
+      let xs = slowItems n $ map toSlowItem items
+      unless (null xs) $ do
+        putStrLn "\nSlow spec items:"
+        mapM_ printSlowSpecItem xs
+    _ -> return ()
 
-printSlowSpecItems_ :: IORef [SlowItem] -> Int -> Format -> Format
-printSlowSpecItems_ slow n Format{..} = Format {
-  formatRun = \ action -> formatRun action <* do
-    xs <- take n . reverse . sortOn duration <$> readIORef slow
-    unless (null xs) $ do
-      putStrLn "\nSlow spec items:"
-      mapM_ printSlowSpecItem xs
-, formatEvent = \ event -> do
-    formatEvent event
-    case event of
-      ItemDone path item -> do
-        let
-          location = itemLocation item
-          duration = toMilliseconds (itemDuration item)
-        when (duration /= 0) $ do
-          liftIO $ modifyIORef slow (SlowItem{..}  :)
-      _ -> return ()
-}
+toSlowItem :: (Path, Item) -> SlowItem
+toSlowItem (path, item) = SlowItem (itemLocation item)  path (toMilliseconds $ itemDuration item)
+
+slowItems :: Int -> [SlowItem] -> [SlowItem]
+slowItems n = take n . reverse . sortOn duration . filter ((/= 0) . duration)
 
 printSlowSpecItem :: SlowItem -> IO ()
 printSlowSpecItem SlowItem{..} = do

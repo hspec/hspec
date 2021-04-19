@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ExistentialQuantification #-}
 module Test.Hspec.Core.Format (
-  Format(..)
+  Format
 , FormatConfig(..)
 , Event(..)
 , Progress
@@ -11,17 +11,22 @@ module Test.Hspec.Core.Format (
 , Item(..)
 , Result(..)
 , FailureReason(..)
+, monadic
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import           Control.Concurrent
+import           Control.Concurrent.Async (async)
 import           Control.Monad.IO.Class
 
 import           Test.Hspec.Core.Spec (Progress, Location(..))
 import           Test.Hspec.Core.Example (FailureReason(..))
 import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Clock
+import           Test.Hspec.Core.Clock (Seconds(..))
+
+type Format = Event -> IO ()
 
 data Item = Item {
   itemLocation :: Maybe Location
@@ -36,17 +41,15 @@ data Result =
   | Failure (Maybe Location) FailureReason
   deriving Show
 
-data Format = forall m. (Functor m, Applicative m, MonadIO m) => Format {
-  formatRun :: forall a. m a -> IO a
-, formatEvent :: Event -> m ()
-}
-
 data Event =
-    GroupStarted Path
+    Started
+  | GroupStarted Path
   | GroupDone Path
   | Progress Path Progress
   | ItemStarted Path
   | ItemDone Path Item
+  | Done [(Path, Item)]
+  deriving Show
 
 data FormatConfig = FormatConfig {
   formatConfigUseColor :: Bool
@@ -57,3 +60,38 @@ data FormatConfig = FormatConfig {
 , formatConfigUsedSeed :: Integer
 , formatConfigItemCount :: Int
 } deriving (Eq, Show)
+
+monadic :: MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
+monadic run format = do
+  mvar <- newEmptyMVar
+  done <- newEmptyMVar
+
+  let
+    putEvent :: Event -> IO ()
+    putEvent = putMVar mvar
+
+    takeEvent :: MonadIO m => m Event
+    takeEvent = liftIO $ takeMVar mvar
+
+    signal :: MonadIO m => m ()
+    signal = liftIO $ putMVar done ()
+
+    wait :: IO ()
+    wait = takeMVar done
+
+    go = do
+      event <- takeEvent
+      format event
+      case event of
+        Done {} -> return ()
+        _ -> do
+          signal
+          go
+
+  _ <- async $ do
+    run go
+    signal
+
+  return $ \ event -> do
+    putEvent event
+    wait

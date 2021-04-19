@@ -7,12 +7,6 @@ import           Helper
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Runner.PrintSlowSpecItems
 
-format :: Format
-format = Format {
-  formatRun = id
-, formatEvent = \ _ -> return ()
-}
-
 location :: Location
 location = Location {
   locationFile = "Foo.hs"
@@ -31,12 +25,13 @@ item = Item {
 spec :: Spec
 spec = do
   describe "printSlowSpecItems" $ do
+    let format = printSlowSpecItems 2 $ \ _ -> return ()
     it "prints slow spec items" $ do
-      Format{..} <- printSlowSpecItems 2 format
-      capture_ $ formatRun $ do
-        formatEvent $ ItemDone (["foo", "bar"], "one") item {itemDuration = 0.100}
-        formatEvent $ ItemDone (["foo", "bar"], "two") item {itemDuration = 0.500}
-        formatEvent $ ItemDone (["foo", "bar"], "thr") item {itemDuration = 0.050}
+      capture_ $ format $ Done [
+            ((["foo", "bar"], "one"), item {itemDuration = 0.100})
+          , ((["foo", "bar"], "two"), item {itemDuration = 0.500})
+          , ((["foo", "bar"], "thr"), item {itemDuration = 0.050})
+          ]
       `shouldReturn` unlines [
         ""
       , "Slow spec items:"
@@ -46,7 +41,5 @@ spec = do
 
     context "when there are no slow items" $ do
       it "prints nothing" $ do
-        Format{..} <- printSlowSpecItems 2 format
-        capture_ $ formatRun $ do
-          formatEvent $ ItemDone (["foo", "bar"], "one") item {itemDuration = 0}
+        capture_ $ format $ Done [((["foo", "bar"], "one"), item {itemDuration = 0})]
         `shouldReturn` ""
