@@ -59,11 +59,7 @@ data State m = State {
 , stateResults :: [(Path, Format.Item)]
 
 , formatRun :: forall a. m a -> IO a
-, formatGroupStarted :: Path -> m ()
-, formatGroupDone :: Path -> m ()
-, formatProgress :: Path -> Progress -> m ()
-, formatItemStarted :: Path -> m ()
-, formatItemDone :: Path -> Format.Item -> m ()
+, formatEvent :: Format.Event -> m ()
 }
 
 type EvalM m = StateT (State m) m
@@ -78,14 +74,14 @@ reportItem path loc action = do
 
 reportItemStarted :: Monad m => Path -> EvalM m ()
 reportItemStarted path = do
-  format <- gets formatItemStarted
-  lift (format path)
+  format <- gets formatEvent
+  lift (format $ Format.ItemStarted path)
 
 reportItemDone :: Monad m => Path -> Format.Item -> EvalM m ()
 reportItemDone path item = do
   addResult path item
-  format <- gets formatItemDone
-  lift (format path item)
+  format <- gets formatEvent
+  lift (format $ Format.ItemDone path item)
 
 reportResult :: Monad m => Path -> Maybe Location -> (Seconds, Result) -> EvalM m ()
 reportResult path loc (duration, result) = do
@@ -98,13 +94,13 @@ reportResult path loc (duration, result) = do
 
 groupStarted :: Monad m => Path -> EvalM m ()
 groupStarted path = do
-  format <- gets formatGroupStarted
-  lift $ format path
+  format <- gets formatEvent
+  lift $ format (Format.GroupStarted path)
 
 groupDone :: Monad m => Path -> EvalM m ()
 groupDone path = do
-  format <- gets formatGroupDone
-  lift $ format path
+  format <- gets formatEvent
+  lift $ format (Format.GroupDone path)
 
 data EvalItem = EvalItem {
   evalItemDescription :: String
@@ -122,11 +118,7 @@ runFormatter config = case evalConfigFormat config of
     stateConfig = config
   , stateResults = []
   , formatRun = formatRun
-  , formatGroupStarted = formatGroupStarted
-  , formatGroupDone = formatGroupDone
-  , formatProgress = formatProgress
-  , formatItemStarted = formatItemStarted
-  , formatItemDone = formatItemDone
+  , formatEvent = formatEvent
   }
 
 runFormatterWith :: forall m. MonadIO m => State m -> [EvalTree] -> IO ([(Path, Format.Item)])
@@ -146,7 +138,7 @@ runFormatterWith state specs = do
     reportProgress :: IO Bool -> Path -> Progress -> m ()
     reportProgress timer path progress = do
       r <- liftIO timer
-      when r (formatProgress state path progress)
+      when r (formatEvent state $ Format.Progress path progress)
 
 cancelMany :: [Async a] -> IO ()
 cancelMany asyncs = do
