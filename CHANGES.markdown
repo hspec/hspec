@@ -1,8 +1,6 @@
 ## next
   - Add new API for formatters `Test.Hspec.Core.Format`
   - Add `--qc-max-shrinks` (see #380)
-  - Use `checks` formatter by default (to restore the old behavior use
-    `--format specdoc`)
   - Add `--times` to print times for individual spec items
   - Add `--print-slow-items`
   - Add location information for failing afterAll-hooks

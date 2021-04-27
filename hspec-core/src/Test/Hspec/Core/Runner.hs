@@ -51,7 +51,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Config
-import           Test.Hspec.Core.Formatters (checks)
+import           Test.Hspec.Core.Formatters (specdoc)
 import           Test.Hspec.Core.Formatters.Internal
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
@@ -223,7 +223,7 @@ runSpec_ config spec = do
       , formatConfigItemCount = numberOfItems
       }
 
-      formatter = fromMaybe (formatterToFormat checks) (configFormat config <|> formatterToFormat <$> configFormatter config)
+      formatter = fromMaybe (formatterToFormat specdoc) (configFormat config <|> formatterToFormat <$> configFormatter config)
 
     format <- maybe id printSlowSpecItems (configPrintSlowItems config) <$> formatter formatConfig
 
