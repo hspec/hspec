@@ -193,7 +193,7 @@ spec = do
         r <- takeMVar mvar
         normalizeSummary r `shouldBe` [
             ""
-          , "foo [✘]"
+          , "foo FAILED [1]"
           , ""
           , "Failures:"
           , ""
@@ -236,8 +236,8 @@ spec = do
           H.it "bar" True
         normalizeSummary r `shouldBe` [
             ""
-          , "foo [✔]"
-          , "bar [✔]"
+          , "foo"
+          , "bar"
           , ""
           , "Finished in 0.0000 seconds"
           , "2 examples, 0 failures"
@@ -279,7 +279,7 @@ spec = do
           H.fit "bar" True
         normalizeSummary r `shouldBe` [
             ""
-          , "bar [✘]"
+          , "bar FAILED [1]"
           , ""
           , "Failures:"
           , ""
@@ -310,8 +310,8 @@ spec = do
           H.it "baz" False
         normalizeSummary r `shouldBe` [
             ""
-          , "foo [✔]"
-          , "bar [✘]"
+          , "foo"
+          , "bar FAILED [1]"
           , ""
           , "Failures:"
           , ""
@@ -359,7 +359,7 @@ spec = do
         normalizeSummary r `shouldBe` [
             ""
           , "foo"
-          , "  bar [✘]"
+          , "  bar FAILED [1]"
           , ""
           , "Failures:"
           , ""
@@ -450,7 +450,7 @@ spec = do
           H.it "foo" $ threadDelay 2000
         normalizeTimes (normalizeSummary r) `shouldBe` [
             ""
-          , "foo [✔]"
+          , "foo"
           , ""
           , "Finished in 0.0000 seconds"
           , "1 example, 0 failures"
@@ -534,17 +534,17 @@ spec = do
       it "marks successful examples with CSS class hspec-success" $ do
         r <- capture_ . withArgs ["--html"] . H.hspec $ do
           H.it "foo" True
-        r `shouldContain` "foo [<span class=\"hspec-success\">✔</span>]\n"
+        r `shouldContain` "<span class=\"hspec-success\">foo\n</span>"
 
       it "marks pending examples with CSS class hspec-pending" $ do
         r <- capture_ . withArgs ["--html"] . H.hspec $ do
           H.it "foo" H.pending
-        r `shouldContain` "foo [<span class=\"hspec-pending\">‐</span>]\n"
+        r `shouldContain` "<span class=\"hspec-pending\">foo"
 
       it "marks failed examples with CSS class hspec-failure" $ do
         r <- capture_ . ignoreExitCode . withArgs ["--html"] . H.hspec $ do
           H.it "foo" False
-        r `shouldContain` "foo [<span class=\"hspec-failure\">✘</span>]\n"
+        r `shouldContain` "<span class=\"hspec-failure\">foo"
 
   describe "hspecResult" $ do
     let
