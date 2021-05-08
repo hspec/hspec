@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP, GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Core.Formatters.Internal (
   FormatM
-, FormatConfig(..)
 , runFormatM
 , interpret
 , increaseSuccessCount

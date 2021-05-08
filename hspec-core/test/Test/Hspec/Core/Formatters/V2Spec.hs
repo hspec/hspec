@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveFunctor #-}
-module Test.Hspec.Core.FormattersSpec (spec) where
+module Test.Hspec.Core.Formatters.V2Spec (spec) where
 
 import           Prelude ()
 import           Helper
@@ -14,8 +14,8 @@ import qualified Control.Exception as E
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Spec as Spec
 import qualified Test.Hspec.Core.Runner as H
-import qualified Test.Hspec.Core.Formatters as H
-import qualified Test.Hspec.Core.Formatters as Formatter
+import qualified Test.Hspec.Core.Formatters.V2 as H
+import qualified Test.Hspec.Core.Formatters.V2 as Formatter
 import qualified Test.Hspec.Core.Formatters.Monad as H
 import           Test.Hspec.Core.Formatters.Monad (FormatM, Environment(..))
 
@@ -129,7 +129,7 @@ spec = do
   describe "specdoc" $ do
     let
       formatter = H.specdoc
-      runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
+      runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ H.formatterToFormat formatter}
 
     it "displays a header for each thing being described" $ do
       _:x:_ <- runSpec testSpec
@@ -287,14 +287,14 @@ spec = do
   describe "additional formatter features" $ do
     describe "getFinalCount" $ do
       let formatter = H.silent {H.footerFormatter = fmap show H.getFinalCount >>= H.writeLine}
-          runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
+          runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ H.formatterToFormat formatter}
       it "counts examples" $ do
         result:_ <- runSpec testSpec
         result `shouldBe` "6"
 
 failed_examplesSpec :: H.Formatter -> Spec
 failed_examplesSpec formatter = do
-  let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormatter = Just formatter}
+  let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ H.formatterToFormat formatter}
 
   context "displays a detailed list of failures" $ do
     it "prints all requirements that are not met" $ do

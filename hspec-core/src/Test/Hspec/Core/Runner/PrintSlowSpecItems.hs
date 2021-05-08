@@ -11,7 +11,7 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Format
 
 import           Test.Hspec.Core.Clock
-import           Test.Hspec.Core.Formatters (formatLocation)
+import           Test.Hspec.Core.Formatters.V2 (formatLocation)
 
 data SlowItem = SlowItem {
   location :: Maybe Location

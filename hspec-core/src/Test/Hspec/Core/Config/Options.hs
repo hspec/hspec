@@ -17,7 +17,7 @@ import           System.Console.GetOpt
 
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters (Formatter)
-import qualified Test.Hspec.Core.Formatters as Formatter
+import qualified Test.Hspec.Core.Formatters.V2 as Formatter
 import           Test.Hspec.Core.Config.Util
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
