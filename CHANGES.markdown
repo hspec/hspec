@@ -1,18 +1,11 @@
 ## next
+  - Add `Test.Hspec.Core.Formatters.V2`
   - Add new API for formatters `Test.Hspec.Core.Format`
   - Add `--qc-max-shrinks` (see #380)
   - Add `--times` to print times for individual spec items
   - Add `--print-slow-items`
   - Add location information for failing afterAll-hooks
   - Use `-XNoImplicitPrelude` for `hspec-discover` generated test drivers
-  - Cleanup Formatter API:
-    - Merge `exampleSucceeded`, `examplePending` and `exampleFailed`.  The new
-      field is called `formatterItemDone`.
-    - Rename `headerFormatter` to `formatterHeader`
-    - Rename `exampleGroupStarted` to `formatterGroupStarted`
-    - Rename `exampleGroupDone` to `formatterGroupDone`
-    - Rename `exampleStarted` to `formatterItemStarted`
-    - Rename `exampleProgress` to `formatterProgress`
   - Remove `--verbose` option (this has been a noop since at least 2013)
   - Remove `--out` option (use shell output redirection instead)
   - Add `getItemCount` to `Formatter` API

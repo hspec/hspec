@@ -1,11 +1,10 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE RecordWildCards #-}
 -- |
 -- Stability: experimental
 --
 -- This module contains formatters that can be used with
 -- `Test.Hspec.Core.Runner.hspecWith`.
-module Test.Hspec.Core.Formatters (
+module Test.Hspec.Core.Formatters.V2 (
 
 -- * Formatters
   silent
@@ -22,6 +21,8 @@ module Test.Hspec.Core.Formatters (
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
 , Formatter (..)
+, Item(..)
+, Result(..)
 , FailureReason (..)
 , FormatM
 , formatterToFormat
@@ -35,6 +36,8 @@ module Test.Hspec.Core.Formatters (
 , FailureRecord (..)
 , getFailMessages
 , usedSeed
+
+, printTimes
 
 , Seconds(..)
 , getCPUTime
@@ -56,6 +59,7 @@ module Test.Hspec.Core.Formatters (
 , missingChunk
 
 -- ** Helpers
+, formatLocation
 , formatException
 ) where
 
@@ -70,13 +74,16 @@ import           Text.Printf
 import           Control.Monad.IO.Class
 import           Control.Exception
 
--- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
+-- We use an explicit import list for "Test.Hspec.Formatters.Monad", to make
 -- sure, that we only use the public API to implement formatters.
 --
 -- Everything imported here has to be re-exported, so that users can implement
 -- their own formatters.
 import Test.Hspec.Core.Formatters.Monad (
-    FailureReason (..)
+    Formatter (..)
+  , Item(..)
+  , Result(..)
+  , FailureReason (..)
   , FormatM
 
   , getSuccessCount
@@ -88,6 +95,7 @@ import Test.Hspec.Core.Formatters.Monad (
   , getFailMessages
   , usedSeed
 
+  , printTimes
   , getCPUTime
   , getRealTime
 
@@ -105,103 +113,57 @@ import Test.Hspec.Core.Formatters.Monad (
   , missingChunk
   )
 
-import           Test.Hspec.Core.Spec (Progress)
-import           Test.Hspec.Core.Format (FormatConfig, Format, Item(..), Result(..))
-import qualified Test.Hspec.Core.Formatters.V2 as V2
-
+import           Test.Hspec.Core.Formatters.Internal (formatterToFormat)
 import           Test.Hspec.Core.Formatters.Diff
-
-formatterToFormat :: Formatter -> FormatConfig -> IO Format
-formatterToFormat Formatter{..} = V2.formatterToFormat V2.Formatter {
-  V2.formatterHeader = headerFormatter
-, V2.formatterGroupStarted = exampleGroupStarted
-, V2.formatterGroupDone = exampleGroupDone
-, V2.formatterProgress = exampleProgress
-, V2.formatterItemStarted = exampleStarted
-, V2.formatterItemDone = \ path item -> do
-    case itemResult item of
-      Success -> exampleSucceeded path (itemInfo item)
-      Pending _ reason -> examplePending path (itemInfo item) reason
-      Failure _ reason -> exampleFailed path (itemInfo item) reason
-, V2.failedFormatter = failedFormatter
-, V2.footerFormatter = footerFormatter
-}
-
-data Formatter = Formatter {
-
-  headerFormatter :: FormatM ()
-
--- | evaluated before each test group
-, exampleGroupStarted :: [String] -> String -> FormatM ()
-
--- | evaluated after each test group
-, exampleGroupDone :: FormatM ()
-
--- | evaluated before each example
-, exampleStarted :: Path -> FormatM ()
-
--- | used to notify the progress of the currently evaluated example
-, exampleProgress :: Path -> Progress -> FormatM ()
-
--- | evaluated after each successful example
-, exampleSucceeded :: Path -> String -> FormatM ()
-
--- | evaluated after each failed example
-, exampleFailed :: Path -> String -> FailureReason -> FormatM ()
-
--- | evaluated after each pending example
-, examplePending :: Path -> String -> Maybe String -> FormatM ()
-
--- | evaluated after a test run
-, failedFormatter :: FormatM ()
-
--- | evaluated after `failedFormatter`
-, footerFormatter :: FormatM ()
-}
 
 silent :: Formatter
 silent = Formatter {
-  headerFormatter     = return ()
-, exampleGroupStarted = \_ _ -> return ()
-, exampleGroupDone    = return ()
-, exampleStarted      = \_ -> return ()
-, exampleProgress     = \_ _ -> return ()
-, exampleSucceeded    = \ _ _ -> return ()
-, exampleFailed       = \_ _ _ -> return ()
-, examplePending      = \_ _ _ -> return ()
-, failedFormatter     = return ()
-, footerFormatter     = return ()
+  formatterHeader       = return ()
+, formatterGroupStarted = \ _ _ -> return ()
+, formatterGroupDone    = return ()
+, formatterProgress     = \ _ _ -> return ()
+, formatterItemStarted  = \ _ -> return ()
+, formatterItemDone     = \ _ _ -> return ()
+, failedFormatter       = return ()
+, footerFormatter       = return ()
 }
 
 checks :: Formatter
 checks = specdoc {
-  exampleStarted = \(nesting, requirement) -> do
-    writeTransient $ indentationFor nesting ++ requirement ++ " [ ]"
-
-, exampleProgress = \(nesting, requirement) p -> do
+  formatterProgress = \(nesting, requirement) p -> do
     writeTransient $ indentationFor nesting ++ requirement ++ " [" ++ (formatProgress p) ++ "]"
 
-, exampleSucceeded = \(nesting, requirement) info -> do
-    writeResult nesting requirement info $ withSuccessColor $ write "✔"
+, formatterItemStarted = \(nesting, requirement) -> do
+    writeTransient $ indentationFor nesting ++ requirement ++ " [ ]"
 
-, exampleFailed = \(nesting, requirement) info _ -> do
-    writeResult nesting requirement info $ withFailColor $ write "✘"
-
-, examplePending = \(nesting, requirement) info reason -> do
-    writeResult nesting requirement info $ withPendingColor $ write "‐"
-
-    withPendingColor $ do
-      writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+, formatterItemDone = \ (nesting, requirement) item -> do
+    uncurry (writeResult nesting requirement (itemDuration item) (itemInfo item)) $ case itemResult item of
+      Success {} -> (withSuccessColor, "✔")
+      Pending {} -> (withPendingColor, "‐")
+      Failure {} -> (withFailColor, "✘")
+    case itemResult item of
+      Success {} -> return ()
+      Failure {} -> return ()
+      Pending _ reason -> withPendingColor $ do
+        writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
 
-    writeResult :: [String] -> String -> String -> FormatM () -> FormatM ()
-    writeResult nesting requirement info action = do
+    writeResult :: [String] -> String -> Seconds -> String -> (FormatM () -> FormatM ()) -> String -> FormatM ()
+    writeResult nesting requirement duration info withColor symbol = do
+      shouldPrintTimes <- printTimes
       write $ indentationFor nesting ++ requirement ++ " ["
-      action
-      writeLine "]"
+      withColor $ write symbol
+      writeLine $ "]" ++ if shouldPrintTimes then times else ""
       forM_ (lines info) $ \ s ->
         writeLine $ indentationFor ("" : nesting) ++ s
+      where
+        dt :: Int
+        dt = toMilliseconds duration
+
+        times
+          | dt == 0 = ""
+          | otherwise = " (" ++ show dt ++ "ms)"
 
     formatProgress (current, total)
       | total == 0 = show current
@@ -210,51 +172,59 @@ checks = specdoc {
 specdoc :: Formatter
 specdoc = silent {
 
-  headerFormatter = do
+  formatterHeader = do
     writeLine ""
 
-, exampleGroupStarted = \nesting name -> do
+, formatterGroupStarted = \nesting name -> do
     writeLine (indentationFor nesting ++ name)
 
-, exampleProgress = \_ p -> do
+, formatterProgress = \_ p -> do
     writeTransient (formatProgress p)
 
-, exampleSucceeded = \(nesting, requirement) info -> withSuccessColor $ do
-    writeLine $ indentationFor nesting ++ requirement
-    forM_ (lines info) $ \ s ->
-      writeLine $ indentationFor ("" : nesting) ++ s
+, formatterItemDone = \(nesting, requirement) item -> do
+    let duration = itemDuration item
+        info = itemInfo item
 
-, exampleFailed = \(nesting, requirement) info _ -> withFailColor $ do
-    n <- getFailCount
-    writeLine $ indentationFor nesting ++ requirement ++ " FAILED [" ++ show n ++ "]"
-    forM_ (lines info) $ \ s ->
-      writeLine $ indentationFor ("" : nesting) ++ s
-
-, examplePending = \(nesting, requirement) info reason -> withPendingColor $ do
-    writeLine $ indentationFor nesting ++ requirement
-    forM_ (lines info) $ \ s ->
-      writeLine $ indentationFor ("" : nesting) ++ s
-    writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+    case itemResult item of
+      Success -> withSuccessColor $ do
+        writeResult nesting requirement duration info
+      Pending _ reason -> withPendingColor $ do
+        writeResult nesting requirement duration info
+        writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+      Failure {} -> withFailColor $ do
+        n <- getFailCount
+        writeResult nesting (requirement ++ " FAILED [" ++ show n ++ "]") duration info
 
 , failedFormatter = defaultFailedFormatter
 
 , footerFormatter = defaultFooter
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
+
+    writeResult nesting requirement (Seconds duration) info = do
+      shouldPrintTimes <- printTimes
+      writeLine $ indentationFor nesting ++ requirement ++ if shouldPrintTimes then times else ""
+      forM_ (lines info) $ \ s ->
+        writeLine $ indentationFor ("" : nesting) ++ s
+      where
+        dt :: Int
+        dt = floor (duration * 1000)
+
+        times
+          | dt == 0 = ""
+          | otherwise = " (" ++ show dt ++ "ms)"
+
     formatProgress (current, total)
       | total == 0 = show current
       | otherwise  = show current ++ "/" ++ show total
 
-
 progress :: Formatter
-progress = silent {
-  exampleSucceeded = \_ _ -> withSuccessColor $ write "."
-, exampleFailed    = \_ _ _ -> withFailColor    $ write "F"
-, examplePending   = \_ _ _ -> withPendingColor $ write "."
-, failedFormatter  = defaultFailedFormatter
-, footerFormatter  = defaultFooter
+progress = failed_examples {
+  formatterItemDone = \ _ item -> case itemResult item of
+    Success{} -> withSuccessColor $ write "."
+    Pending{} -> withPendingColor $ write "."
+    Failure{} -> withFailColor $ write "F"
 }
-
 
 failed_examples :: Formatter
 failed_examples   = silent {
@@ -292,7 +262,7 @@ defaultFailedFormatter = do
     formatFailure :: (Int, FailureRecord) -> FormatM ()
     formatFailure (n, FailureRecord mLoc path reason) = do
       forM_ mLoc $ \loc -> do
-        withInfoColor $ writeLine (formatLoc loc)
+        withInfoColor $ writeLine ("  " ++ formatLocation loc)
       write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
       case reason of
@@ -343,7 +313,6 @@ defaultFailedFormatter = do
         indent message = do
           forM_ (lines message) $ \line -> do
             writeLine (indentation ++ line)
-        formatLoc (Location file line column) = "  " ++ file ++ ":" ++ show line ++ ":" ++ show column ++ ": "
 
 defaultFooter :: FormatM ()
 defaultFooter = do
@@ -365,3 +334,6 @@ defaultFooter = do
       | pending /= 0 = withPendingColor
       | otherwise    = withSuccessColor
   c $ writeLine output
+
+formatLocation :: Location -> String
+formatLocation (Location file line column) = file ++ ":" ++ show line ++ ":" ++ show column ++ ": "
