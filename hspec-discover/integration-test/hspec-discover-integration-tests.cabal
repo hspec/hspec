@@ -54,6 +54,7 @@ test-suite with-io-formatter
   build-depends:
       base    == 4.*
     , hspec
+    , hspec-core
     , transformers
   default-language: Haskell2010
 
