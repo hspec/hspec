@@ -13,7 +13,7 @@ module Test.Hspec.Discover {-# WARNING
 
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Runner
-import           Test.Hspec.Formatters
+import           Test.Hspec.Core.Formatters.V1
 
 class IsFormatter a where
   toFormatter :: a -> IO Formatter
