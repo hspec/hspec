@@ -1,16 +1,18 @@
-## next
-  - Add `Test.Hspec.Core.Formatters.V2`
-  - Add new API for formatters `Test.Hspec.Core.Format`
-  - Add `--qc-max-shrinks` (see #380)
+## Changes in 2.8.0
   - Add `--times` to print times for individual spec items
   - Add `--print-slow-items`
-  - Add location information for failing afterAll-hooks
-  - Use `-XNoImplicitPrelude` for `hspec-discover` generated test drivers
-  - Remove `--verbose` option (this has been a noop since at least 2013)
-  - Remove `--out` option (use shell output redirection instead)
+  - Use `-XNoImplicitPrelude` and do not rely on `base` for `hspec-discover`
+    generated test drivers. This ensures full compatibility with custom
+    preludes.
+  - Add new APIs for formatters `Test.Hspec.Core.Format` and
+    `Test.Hspec.Core.Formatters.V2`
   - Add `getItemCount` to `Formatter` API
+  - Add `--qc-max-shrinks` (see #380)
+  - Add location information for failing `afterAll`-hooks
   - hspec-discover: Deprecate `--no-main` and `--formatter` (use
     `--module-name` instead) (#196)
+  - Remove `--verbose` option (this has been a noop since at least 2013)
+  - Remove `--out` option (use shell output redirection instead)
 
 ## Changes in 2.7.10
   - Add a new formatter (can be used with `--format checks`)

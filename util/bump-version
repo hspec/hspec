@@ -2,7 +2,7 @@
 set -o nounset
 set -o errexit
 
-runhaskell util/BumpVersion.hs
+runhaskell util/BumpVersion.hs $*
 
 hpack package.yaml
 hpack hspec-core/package.yaml
