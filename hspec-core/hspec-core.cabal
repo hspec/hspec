@@ -128,6 +128,7 @@ test-suite spec
       Test.Hspec.Core.Example.Location
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
+      Test.Hspec.Core.Formatters
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
