@@ -231,14 +231,6 @@ spec = do
             , ""
             , "  To rerun use: --match \"//\""
             , ""
-#if __GLASGOW_HASKELL__ == 800
-            , "WARNING:"
-            , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
-            , "  Source locations may not work as expected."
-            , ""
-            , "  Please consider upgrading GHC!"
-            , ""
-#endif
             , "Randomized with seed 0"
             , ""
             ]
