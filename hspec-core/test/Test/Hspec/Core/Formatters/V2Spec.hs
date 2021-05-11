@@ -211,8 +211,8 @@ spec = do
           , "2 examples, 0 failures"
           ]
 
-    describe "failedFormatter" $ do
-      let action = H.failedFormatter formatter
+    describe "formatterDone" $ do
+      let action = H.formatterDone formatter
 
       context "when actual/expected contain newlines" $ do
         let
@@ -244,16 +244,15 @@ spec = do
 #endif
             , "Randomized with seed 0"
             , ""
+            , "Finished in 0.0000 seconds"
+            , "1 example, 1 failure"
             ]
-
-    describe "footerFormatter" $ do
-      let action = H.footerFormatter formatter
 
       context "without failures" $ do
         let env = environment {environmentGetSuccessCount = return 1}
         it "shows summary in green if there are no failures" $ do
           interpretWith env action `shouldReturn` [
-              "Finished in 0.0000 seconds\n"
+              "\nFinished in 0.0000 seconds\n"
             , Succeeded "1 example, 0 failures\n"
             ]
 
@@ -261,23 +260,61 @@ spec = do
         let env = environment {environmentGetPendingCount = return 1}
         it "shows summary in yellow if there are pending examples" $ do
           interpretWith env action `shouldReturn` [
-              "Finished in 0.0000 seconds\n"
+             "\nFinished in 0.0000 seconds\n"
             , Pending "1 example, 0 failures, 1 pending\n"
             ]
 
       context "with failures" $ do
-        let env = environment {environmentGetFailMessages = return [undefined]}
+        let env = environment {environmentGetFailMessages = return [H.FailureRecord Nothing ([], "") H.NoReason]}
         it "shows summary in red" $ do
           interpretWith env action `shouldReturn` [
-              "Finished in 0.0000 seconds\n"
+              Plain $ unlines [
+              ""
+            , "Failures:"
+            , ""
+            , "  1) "
+            , ""
+            , "  To rerun use: --match \"//\""
+            , ""
+#if __GLASGOW_HASKELL__ == 800
+            , "WARNING:"
+            , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
+            , "  Source locations may not work as expected."
+            , ""
+            , "  Please consider upgrading GHC!"
+            , ""
+#endif
+            , "Randomized with seed 0"
+            , ""
+            , "Finished in 0.0000 seconds"
+            ]
             , Failed "1 example, 1 failure\n"
             ]
 
       context "with both failures and pending examples" $ do
-        let env = environment {environmentGetFailMessages = return [undefined], environmentGetPendingCount = return 1}
+        let env = environment {environmentGetFailMessages = return [H.FailureRecord Nothing ([], "") H.NoReason], environmentGetPendingCount = return 1}
         it "shows summary in red" $ do
           interpretWith env action `shouldReturn` [
-              "Finished in 0.0000 seconds\n"
+              Plain $ unlines [
+              ""
+            , "Failures:"
+            , ""
+            , "  1) "
+            , ""
+            , "  To rerun use: --match \"//\""
+            , ""
+#if __GLASGOW_HASKELL__ == 800
+            , "WARNING:"
+            , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
+            , "  Source locations may not work as expected."
+            , ""
+            , "  Please consider upgrading GHC!"
+            , ""
+#endif
+            , "Randomized with seed 0"
+            , ""
+            , "Finished in 0.0000 seconds"
+            ]
             , Failed "2 examples, 1 failure, 1 pending\n"
             ]
 
@@ -286,7 +323,7 @@ spec = do
 
   describe "additional formatter features" $ do
     describe "getFinalCount" $ do
-      let formatter = H.silent {H.footerFormatter = fmap show H.getFinalCount >>= H.writeLine}
+      let formatter = H.silent {H.formatterDone = fmap show H.getFinalCount >>= H.writeLine}
           runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ H.formatterToFormat formatter}
       it "counts examples" $ do
         result:_ <- runSpec testSpec

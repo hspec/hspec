@@ -54,13 +54,13 @@ import           Test.Hspec.Core.Format
 data Formatter = Formatter {
 
 -- | evaluated before a test run
-  formatterHeader :: FormatM ()
+  formatterStarted :: FormatM ()
 
 -- | evaluated before each spec group
-, formatterGroupStarted :: [String] -> String -> FormatM ()
+, formatterGroupStarted :: Path -> FormatM ()
 
 -- | evaluated after each spec group
-, formatterGroupDone :: FormatM ()
+, formatterGroupDone :: Path -> FormatM ()
 
 -- | used to notify the progress of the currently evaluated example
 , formatterProgress :: Path -> Progress -> FormatM ()
@@ -72,10 +72,7 @@ data Formatter = Formatter {
 , formatterItemDone :: Path -> Item -> FormatM ()
 
 -- | evaluated after a test run
-, failedFormatter :: FormatM ()
-
--- | evaluated after `failedFormatter`
-, footerFormatter :: FormatM ()
+, formatterDone :: FormatM ()
 }
 
 data FailureRecord = FailureRecord {

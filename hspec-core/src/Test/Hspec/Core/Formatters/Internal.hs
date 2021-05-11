@@ -1,4 +1,6 @@
-{-# LANGUAGE CPP, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE RecordWildCards #-}
 module Test.Hspec.Core.Formatters.Internal (
   FormatM
 , runFormatM
@@ -30,22 +32,20 @@ import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 
 formatterToFormat :: M.Formatter -> FormatConfig -> IO Format
-formatterToFormat formatter config = monadic (runFormatM config) $ \ event -> case event of
-  Started -> interpret (M.formatterHeader formatter)
-  GroupStarted (nesting, name) -> interpret $ M.formatterGroupStarted formatter nesting name
-  GroupDone _ -> interpret (M.formatterGroupDone formatter)
-  Progress path progress -> interpret $ M.formatterProgress formatter path progress
-  ItemStarted path -> interpret $ M.formatterItemStarted formatter path
+formatterToFormat M.Formatter{..} config = monadic (runFormatM config) $ \ event -> case event of
+  Started -> interpret formatterStarted
+  GroupStarted path -> interpret $ formatterGroupStarted path
+  GroupDone path -> interpret $ formatterGroupDone path
+  Progress path progress -> interpret $ formatterProgress path progress
+  ItemStarted path -> interpret $ formatterItemStarted path
   ItemDone path item -> do
     clearTransientOutput
     case itemResult item of
       Success {} -> increaseSuccessCount
       Pending {} -> increasePendingCount
       Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
-    interpret $ M.formatterItemDone formatter path item
-  Done _ -> do
-    interpret (M.failedFormatter formatter)
-    interpret (M.footerFormatter formatter)
+    interpret $ formatterItemDone path item
+  Done _ -> interpret formatterDone
 
 interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {

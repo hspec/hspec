@@ -56,6 +56,8 @@ library
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters
+      Test.Hspec.Core.Formatters.V1
+      Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
   other-modules:
@@ -71,8 +73,6 @@ library
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
-      Test.Hspec.Core.Formatters.V1
-      Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.PrintSlowSpecItems
