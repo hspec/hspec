@@ -275,16 +275,6 @@ defaultFailedFormatter = do
       formatFailure x
       writeLine ""
 
-#if __GLASGOW_HASKELL__ == 800
-    withFailColor $ do
-      writeLine "WARNING:"
-      writeLine "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
-      writeLine "  Source locations may not work as expected."
-      writeLine ""
-      writeLine "  Please consider upgrading GHC!"
-      writeLine ""
-#endif
-
     write "Randomized with seed " >> usedSeed >>= writeLine . show
     writeLine ""
   where

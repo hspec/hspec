@@ -201,14 +201,6 @@ spec = do
           , ""
           , "  To rerun use: --match \"/foo/\""
           , ""
-#if __GLASGOW_HASKELL__ == 800
-          , "WARNING:"
-          , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
-          , "  Source locations may not work as expected."
-          , ""
-          , "  Please consider upgrading GHC!"
-          , ""
-#endif
           , "Randomized with seed 23"
           , ""
           , "Finished in 0.0000 seconds"
@@ -288,14 +280,6 @@ spec = do
           , ""
           , "  To rerun use: --match \"/bar/\""
           , ""
-#if __GLASGOW_HASKELL__ == 800
-          , "WARNING:"
-          , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
-          , "  Source locations may not work as expected."
-          , ""
-          , "  Please consider upgrading GHC!"
-          , ""
-#endif
           , "Randomized with seed 23"
           , ""
           , "Finished in 0.0000 seconds"
@@ -319,14 +303,6 @@ spec = do
           , ""
           , "  To rerun use: --match \"/bar/\""
           , ""
-#if __GLASGOW_HASKELL__ == 800
-          , "WARNING:"
-          , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
-          , "  Source locations may not work as expected."
-          , ""
-          , "  Please consider upgrading GHC!"
-          , ""
-#endif
           , "Randomized with seed 23"
           , ""
           , "Finished in 0.0000 seconds"
@@ -367,14 +343,6 @@ spec = do
           , ""
           , "  To rerun use: --match \"/foo/bar/\""
           , ""
-#if __GLASGOW_HASKELL__ == 800
-          , "WARNING:"
-          , "  Your version of GHC is affected by https://ghc.haskell.org/trac/ghc/ticket/13285."
-          , "  Source locations may not work as expected."
-          , ""
-          , "  Please consider upgrading GHC!"
-          , ""
-#endif
           , "Randomized with seed 23"
           , ""
           , "Finished in 0.0000 seconds"
@@ -457,7 +425,7 @@ spec = do
           , ""
           , "Slow spec items:"
 #if MIN_VERSION_base(4,8,1)
-          , "  test/Test/Hspec/Core/RunnerSpec.hs:450:11: /foo/ (2ms)"
+          , "  test/Test/Hspec/Core/RunnerSpec.hs:418:11: /foo/ (2ms)"
 #else
           , "  /foo/ (2ms)"
 #endif
