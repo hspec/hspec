@@ -1,5 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ExistentialQuantification #-}
+-- |
+-- Stability: experimental
 module Test.Hspec.Core.Format (
   Format
 , FormatConfig(..)

@@ -118,14 +118,13 @@ import           Test.Hspec.Core.Formatters.Diff
 
 silent :: Formatter
 silent = Formatter {
-  formatterHeader       = return ()
-, formatterGroupStarted = \ _ _ -> return ()
-, formatterGroupDone    = return ()
+  formatterStarted      = return ()
+, formatterGroupStarted = \ _ -> return ()
+, formatterGroupDone    = \ _ -> return ()
 , formatterProgress     = \ _ _ -> return ()
 , formatterItemStarted  = \ _ -> return ()
 , formatterItemDone     = \ _ _ -> return ()
-, failedFormatter       = return ()
-, footerFormatter       = return ()
+, formatterDone         = return ()
 }
 
 checks :: Formatter
@@ -172,10 +171,10 @@ checks = specdoc {
 specdoc :: Formatter
 specdoc = silent {
 
-  formatterHeader = do
+  formatterStarted = do
     writeLine ""
 
-, formatterGroupStarted = \nesting name -> do
+, formatterGroupStarted = \ (nesting, name) -> do
     writeLine (indentationFor nesting ++ name)
 
 , formatterProgress = \_ p -> do
@@ -195,9 +194,7 @@ specdoc = silent {
         n <- getFailCount
         writeResult nesting (requirement ++ " FAILED [" ++ show n ++ "]") duration info
 
-, failedFormatter = defaultFailedFormatter
-
-, footerFormatter = defaultFooter
+, formatterDone = defaultFailedFormatter >> defaultFooter
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
 
@@ -228,8 +225,7 @@ progress = failed_examples {
 
 failed_examples :: Formatter
 failed_examples   = silent {
-  failedFormatter = defaultFailedFormatter
-, footerFormatter = defaultFooter
+  formatterDone = defaultFailedFormatter >> defaultFooter
 }
 
 defaultFailedFormatter :: FormatM ()

@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 -- |
--- Stability: experimental
+-- Stability: deprecated
 --
 -- This module contains formatters that can be used with
 -- `Test.Hspec.Core.Runner.hspecWith`.
@@ -113,9 +113,9 @@ import           Test.Hspec.Core.Formatters.Diff
 
 formatterToFormat :: Formatter -> FormatConfig -> IO Format
 formatterToFormat Formatter{..} = V2.formatterToFormat V2.Formatter {
-  V2.formatterHeader = headerFormatter
-, V2.formatterGroupStarted = exampleGroupStarted
-, V2.formatterGroupDone = exampleGroupDone
+  V2.formatterStarted = headerFormatter
+, V2.formatterGroupStarted = uncurry exampleGroupStarted
+, V2.formatterGroupDone = \ _ -> exampleGroupDone
 , V2.formatterProgress = exampleProgress
 , V2.formatterItemStarted = exampleStarted
 , V2.formatterItemDone = \ path item -> do
@@ -123,8 +123,7 @@ formatterToFormat Formatter{..} = V2.formatterToFormat V2.Formatter {
       Success -> exampleSucceeded path (itemInfo item)
       Pending _ reason -> examplePending path (itemInfo item) reason
       Failure _ reason -> exampleFailed path (itemInfo item) reason
-, V2.failedFormatter = failedFormatter
-, V2.footerFormatter = footerFormatter
+, V2.formatterDone = failedFormatter >> footerFormatter
 }
 
 data Formatter = Formatter {
