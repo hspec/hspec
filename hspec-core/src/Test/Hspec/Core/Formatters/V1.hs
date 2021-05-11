@@ -5,7 +5,7 @@
 --
 -- This module contains formatters that can be used with
 -- `Test.Hspec.Core.Runner.hspecWith`.
-module Test.Hspec.Core.Formatters (
+module Test.Hspec.Core.Formatters.V1 (
 
 -- * Formatters
   silent

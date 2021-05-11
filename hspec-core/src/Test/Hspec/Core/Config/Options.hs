@@ -16,8 +16,8 @@ import           System.Exit
 import           System.Console.GetOpt
 
 import           Test.Hspec.Core.Format (Format, FormatConfig)
-import           Test.Hspec.Core.Formatters (Formatter)
-import qualified Test.Hspec.Core.Formatters.V2 as Formatter
+import qualified Test.Hspec.Core.Formatters.V1 as V1
+import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.Config.Util
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
@@ -59,7 +59,7 @@ data Config = Config {
 , configDiff :: Bool
 , configTimes :: Bool
 , configFormat :: Maybe (FormatConfig -> IO Format)
-, configFormatter :: Maybe Formatter -- ^ deprecated, use `configFormat` instead
+, configFormatter :: Maybe V1.Formatter -- ^ deprecated, use `configFormat` instead
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
 }
@@ -181,12 +181,12 @@ formatterOptions = concat [
   ]
   where
     formatters :: [(String, FormatConfig -> IO Format)]
-    formatters = map (fmap Formatter.formatterToFormat) [
-        ("checks", Formatter.checks)
-      , ("specdoc", Formatter.specdoc)
-      , ("progress", Formatter.progress)
-      , ("failed-examples", Formatter.failed_examples)
-      , ("silent", Formatter.silent)
+    formatters = map (fmap V2.formatterToFormat) [
+        ("checks", V2.checks)
+      , ("specdoc", V2.specdoc)
+      , ("progress", V2.progress)
+      , ("failed-examples", V2.failed_examples)
+      , ("silent", V2.silent)
       ]
 
     helpForFormat :: String

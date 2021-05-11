@@ -52,8 +52,8 @@ import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (FormatConfig(..))
+import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
-import qualified Test.Hspec.Core.Formatters as V1
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Shuffle
