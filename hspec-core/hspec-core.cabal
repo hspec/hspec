@@ -71,6 +71,7 @@ library
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
+      Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
@@ -127,11 +128,11 @@ test-suite spec
       Test.Hspec.Core.Example.Location
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
-      Test.Hspec.Core.Formatters
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Free
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Monad
+      Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
@@ -160,6 +161,7 @@ test-suite spec
       Test.Hspec.Core.FailureReportSpec
       Test.Hspec.Core.Formatters.DiffSpec
       Test.Hspec.Core.Formatters.InternalSpec
+      Test.Hspec.Core.Formatters.V1Spec
       Test.Hspec.Core.Formatters.V2Spec
       Test.Hspec.Core.HooksSpec
       Test.Hspec.Core.QuickCheckUtilSpec

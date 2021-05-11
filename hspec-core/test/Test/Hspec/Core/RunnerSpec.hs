@@ -26,7 +26,7 @@ import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
-import qualified Test.Hspec.Core.Formatters as H (silent)
+import qualified Test.Hspec.Core.Formatters.V2 as V2
 import qualified Test.Hspec.Core.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
@@ -572,7 +572,7 @@ spec = do
       r `shouldBe` "Foo.Bar"
 
     it "can use a custom formatter" $ do
-      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormatter = Just H.silent} $ do
+      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ V2.formatterToFormat V2.silent} $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` ""
