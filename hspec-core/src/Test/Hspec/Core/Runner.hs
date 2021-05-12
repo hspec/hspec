@@ -30,6 +30,7 @@ module Test.Hspec.Core.Runner (
 #ifdef TEST
 , rerunAll
 , specToEvalForest
+, colorOutputSupported
 #endif
 ) where
 
@@ -210,7 +211,7 @@ runSpec_ config spec = do
     Nothing -> getDefaultConcurrentJobs
     Just n -> return n
 
-  useColor <- doesUseColor stdout config
+  useColor <- colorOutputSupported (configColorMode config) (hIsTerminalDevice stdout)
 
   results <- withHiddenCursor useColor stdout $ do
     let
@@ -283,11 +284,28 @@ withHiddenCursor useColor h
   | useColor  = E.bracket_ (hHideCursor h) (hShowCursor h)
   | otherwise = id
 
-doesUseColor :: Handle -> Config -> IO Bool
-doesUseColor h c = case configColorMode c of
-  ColorAuto  -> (&&) <$> hIsTerminalDevice h <*> (not <$> isDumb)
+colorOutputSupported :: ColorMode -> IO Bool -> IO Bool
+colorOutputSupported mode isTerminalDevice = case mode of
+  ColorAuto  -> (not <$> noColor ||^ isDumb) &&^ isTerminalDevice
   ColorNever -> return False
   ColorAlways -> return True
+
+noColor :: IO Bool
+noColor = lookupEnv "NO_COLOR" <&> (/= Nothing)
+
+isDumb :: IO Bool
+isDumb = lookupEnv "TERM" <&> (== Just "dumb")
+
+(||^) :: IO Bool -> IO Bool -> IO Bool
+(||^) a b = ifM a (pure True) b
+
+(&&^) :: IO Bool -> IO Bool -> IO Bool
+(&&^) a b = ifM a b (pure False)
+
+ifM :: IO Bool -> IO a -> IO a -> IO a
+ifM action true false = do
+  bool <- action
+  if bool then true else false
 
 rerunAll :: Config -> Maybe FailureReport -> Summary -> Bool
 rerunAll _ Nothing _ = False
@@ -296,9 +314,6 @@ rerunAll config (Just oldFailureReport) summary =
   && configRerun config
   && isSuccess summary
   && (not . null) (failureReportPaths oldFailureReport)
-
-isDumb :: IO Bool
-isDumb = maybe False (== "dumb") <$> lookupEnv "TERM"
 
 -- | Summary of a test run.
 data Summary = Summary {

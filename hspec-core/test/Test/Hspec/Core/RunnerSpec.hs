@@ -575,6 +575,27 @@ spec = do
         high <- readIORef highRef
         high `shouldBe` j
 
+  describe "colorOutputSupported" $ do
+    it "returns False" $ do
+      withEnvironment [] $ do
+        H.colorOutputSupported H.ColorAuto (return False) `shouldReturn` False
+
+    context "with a terminal device" $ do
+      let isTerminalDevice = return True
+      it "returns True" $ do
+        withEnvironment [] $ do
+          H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` True
+
+      context "when TERM=dumb" $ do
+        it "returns False" $ do
+          withEnvironment [("TERM", "dumb")] $ do
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` False
+
+      context "when NO_COLOR is set" $ do
+        it "returns False" $ do
+          withEnvironment [("NO_COLOR", "yes")] $ do
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` False
+
   describe "rerunAll" $ do
     let
       report = FailureReport 0 0 0 0 [([], "foo")]
