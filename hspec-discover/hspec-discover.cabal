@@ -22,10 +22,6 @@ description:      Automatically discover and run Hspec tests
                   <http://hspec.github.io/hspec-discover.html>
 extra-source-files:
     version.yaml
-    test-data/nested-spec/Foo/Bar/BazSpec.hs
-    test-data/nested-spec/Foo/BarSpec.hs
-    test-data/nested-spec/FooSpec.hs
-    test-data/empty-dir/Foo/Bar/Baz/.placeholder
 
 source-repository head
   type: git
@@ -82,6 +78,7 @@ test-suite spec
     , filepath
     , hspec-discover
     , hspec-meta ==2.7.8
+    , mockery
   build-tool-depends:
       hspec-meta:hspec-meta-discover
   default-language: Haskell2010
