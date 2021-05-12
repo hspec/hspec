@@ -10,12 +10,13 @@ module Test.Hspec.Discover.Run (
 -- exported for testing
 , Spec(..)
 , importList
-, fileToSpec
-, findSpecs
-, getFilesRecursive
 , driverWithFormatter
 , moduleNameFromId
 , pathToModule
+, Tree(..)
+, Forest(..)
+, Hook(..)
+, discover
 ) where
 import           Control.Monad
 import           Control.Applicative
@@ -35,9 +36,8 @@ import           Test.Hspec.Discover.Sort
 instance IsString ShowS where
   fromString = showString
 
-data Spec = Spec {
-  specModule :: String
-} deriving (Eq, Show)
+data Spec = Spec String | Hook String [Spec]
+  deriving (Eq, Show)
 
 run :: [String] -> IO ()
 run args_ = do
@@ -57,7 +57,7 @@ run args_ = do
       hPutStrLn stderr (usage name)
       exitFailure
 
-mkSpecModule :: FilePath -> Config -> [Spec] -> String
+mkSpecModule :: FilePath -> Config -> Maybe [Spec] -> String
 mkSpecModule src conf nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
   . showString "{-# LANGUAGE NoImplicitPrelude #-}\n"
@@ -99,41 +99,57 @@ moduleNameFromId :: String -> String
 moduleNameFromId = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse
 
 -- | Generate imports for a list of specs.
-importList :: [Spec] -> ShowS
-importList = foldr (.) "" . map f
+importList :: Maybe [Spec] -> ShowS
+importList = foldr (.) "" . map f . maybe [] moduleNames
   where
-    f :: Spec -> ShowS
-    f spec = "import qualified " . showString (specModule spec) . "Spec\n"
+    f :: String -> ShowS
+    f spec = "import qualified " . showString spec . "\n"
+
+moduleNames :: [Spec] -> [String]
+moduleNames = fromForest
+  where
+    fromForest :: [Spec] -> [String]
+    fromForest = concatMap fromTree
+
+    fromTree :: Spec -> [String]
+    fromTree tree = case tree of
+      Spec name -> [name ++ "Spec"]
+      Hook name forest -> name : fromForest forest
 
 -- | Combine a list of strings with (>>).
 sequenceS :: [ShowS] -> ShowS
 sequenceS = foldr (.) "" . intersperse " >> "
 
--- | Convert a list of specs to code.
-formatSpecs :: [Spec] -> ShowS
-formatSpecs xs
-  | null xs   = "return ()"
-  | otherwise = sequenceS (map formatSpec xs)
-
--- | Convert a spec to code.
-formatSpec :: Spec -> ShowS
-formatSpec (Spec name) = "describe " . shows name . " " . showString name . "Spec.spec"
-
-findSpecs :: FilePath -> IO [Spec]
-findSpecs src = do
-  let (dir, file) = splitFileName src
-  mapMaybe fileToSpec . filter (/= file) <$> getFilesRecursive dir
-
-fileToSpec :: FilePath -> Maybe Spec
-fileToSpec file = case reverse $ splitDirectories file of
-  x:xs -> case stripSuffix "Spec.hs" x <|> stripSuffix "Spec.lhs" x of
-    Just name | isValidModuleName name && all isValidModuleName xs ->
-      Just . Spec $ (intercalate "." . reverse) (name : xs)
-    _ -> Nothing
-  _ -> Nothing
+formatSpecs :: Maybe [Spec] -> ShowS
+formatSpecs specs = case specs of
+  Nothing -> "return ()"
+  Just xs -> fromForest xs
   where
-    stripSuffix :: Eq a => [a] -> [a] -> Maybe [a]
-    stripSuffix suffix str = reverse <$> stripPrefix (reverse suffix) (reverse str)
+    fromForest :: [Spec] -> ShowS
+    fromForest = sequenceS . map fromTree
+
+    fromTree :: Spec -> ShowS
+    fromTree tree = case tree of
+      Spec name -> "describe " . shows name . " " . showString name . "Spec.spec"
+      Hook name forest -> "(" . showString name . ".hook $ " . fromForest forest . ")"
+
+findSpecs :: FilePath -> IO (Maybe [Spec])
+findSpecs = fmap (fmap toSpecs) . discover
+
+toSpecs :: Forest -> [Spec]
+toSpecs = fromForest []
+  where
+    fromForest :: [String] -> Forest -> [Spec]
+    fromForest names (Forest WithHook xs) = [Hook (mkModule ("SpecHook" : names)) $ concatMap (fromTree names) xs]
+    fromForest names (Forest WithoutHook xs) = concatMap (fromTree names) xs
+
+    fromTree :: [String] -> Tree -> [Spec]
+    fromTree names spec = case spec of
+      Leaf name -> [Spec $ mkModule (name : names )]
+      Node name forest -> fromForest (name : names) forest
+
+    mkModule :: [String] -> String
+    mkModule = intercalate "." . reverse
 
 -- See `Cabal.Distribution.ModuleName` (http://git.io/bj34)
 isValidModuleName :: String -> Bool
@@ -143,13 +159,71 @@ isValidModuleName (c:cs) = isUpper c && all isValidModuleChar cs
 isValidModuleChar :: Char -> Bool
 isValidModuleChar c = isAlphaNum c || c == '_' || c == '\''
 
-getFilesRecursive :: FilePath -> IO [FilePath]
-getFilesRecursive baseDir = sortNaturally <$> go []
+data Tree = Leaf String | Node String Forest
+  deriving (Eq, Show)
 
+data Forest = Forest Hook [Tree]
+  deriving (Eq, Show)
+
+data Hook = WithHook | WithoutHook
+  deriving (Eq, Show)
+
+sortKey :: Tree -> (String, Int)
+sortKey tree = case tree of
+  Leaf name -> (name, 0)
+  Node name _ -> (name, 1)
+
+discover :: FilePath -> IO (Maybe Forest)
+discover src = (>>= filterSrc) <$> specForest dir
   where
-    go :: FilePath -> IO [FilePath]
-    go dir = do
-      c <- map (dir </>) . filter (`notElem` [".", ".."]) <$> getDirectoryContents (baseDir </> dir)
-      dirs <- filterM (doesDirectoryExist . (baseDir </>)) c >>= mapM go
-      files <- filterM (doesFileExist . (baseDir </>)) c
-      return (files ++ concat dirs)
+    filterSrc :: Forest -> Maybe Forest
+    filterSrc (Forest hook xs) = ensureForest hook $ maybe id (filter . (/=)) (toSpec file) xs
+
+    (dir, file) = splitFileName src
+
+specForest :: FilePath -> IO (Maybe Forest)
+specForest dir = do
+  files <- listDirectory dir
+  hook <- mkHook dir files
+  ensureForest hook . sortNaturallyBy sortKey . catMaybes <$> mapM toSpecTree files
+  where
+    toSpecTree :: FilePath -> IO (Maybe Tree)
+    toSpecTree name
+      | isValidModuleName name = do
+          doesDirectoryExist (dir </> name) `fallback` Nothing $ do
+            xs <- specForest (dir </> name)
+            return $ Node name <$> xs
+      | otherwise = do
+          doesFileExist (dir </> name) `fallback` Nothing $ do
+            return $ toSpec name
+
+mkHook :: FilePath -> [FilePath] -> IO Hook
+mkHook dir files
+  | "SpecHook.hs" `elem` files = do
+    doesFileExist (dir </> "SpecHook.hs") `fallback` WithoutHook $ do
+      return WithHook
+  | otherwise = return WithoutHook
+
+fallback :: IO Bool -> a -> IO a -> IO a
+fallback p def action = do
+  bool <- p
+  if bool then action else return def
+
+toSpec :: FilePath -> Maybe Tree
+toSpec file = Leaf <$> (spec >>= ensure isValidModuleName)
+  where
+    spec :: Maybe String
+    spec = stripSuffix "Spec.hs" file <|> stripSuffix "Spec.lhs" file
+
+    stripSuffix :: Eq a => [a] -> [a] -> Maybe [a]
+    stripSuffix suffix str = reverse <$> stripPrefix (reverse suffix) (reverse str)
+
+ensure :: (a -> Bool) -> a -> Maybe a
+ensure p a = guard (p a) >> Just a
+
+ensureForest :: Hook -> [Tree] -> Maybe Forest
+ensureForest hook = fmap (Forest hook) . ensure (not . null)
+
+listDirectory :: FilePath -> IO [FilePath]
+listDirectory path = filter f <$> getDirectoryContents path
+  where f filename = filename /= "." && filename /= ".."

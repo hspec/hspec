@@ -18,8 +18,6 @@ github: hspec/hspec/hspec-discover
 
 extra-source-files:
   - version.yaml
-  - test-data/**/*.hs
-  - test-data/**/.placeholder
 
 ghc-options: -Wall
 
@@ -49,4 +47,5 @@ tests:
       - hspec-discover
       - hspec-meta == 2.7.8
       - QuickCheck >= 2.7
+      - mockery
     build-tools: hspec-meta:hspec-meta-discover

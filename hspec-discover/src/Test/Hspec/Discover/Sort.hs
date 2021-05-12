@@ -1,5 +1,8 @@
+-- |
+-- /NOTE:/ This module is not meant for public consumption.  For user
+-- documentation look at http://hspec.github.io/hspec-discover.html.
 module Test.Hspec.Discover.Sort (
-  sortNaturally
+  sortNaturallyBy
 , NaturalSortKey
 , naturalSortKey
 ) where
@@ -9,8 +12,8 @@ import           Data.Char
 import           Data.List
 import           Data.Ord
 
-sortNaturally :: [String] -> [String]
-sortNaturally = sortBy (comparing naturalSortKey)
+sortNaturallyBy :: (a -> (String, Int)) -> [a] -> [a]
+sortNaturallyBy f = sortBy (comparing ((\ (k, t) -> (naturalSortKey k, t)) . f))
 
 data NaturalSortKey = NaturalSortKey [Chunk]
   deriving (Eq, Ord)

@@ -123,3 +123,24 @@ test-suite with-no-implicit-prelude
     , hspec
   default-extensions: NoImplicitPrelude
   default-language: Haskell2010
+
+test-suite with-spec-hook
+  build-tool-depends: hspec-discover:hspec-discover
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall
+  hs-source-dirs:
+      with-spec-hook
+  main-is:
+      Spec.hs
+  other-modules:
+      FooSpec
+      SpecHook
+      Foo.BarSpec
+      Foo.BazSpec
+      Foo.SpecHook
+  build-depends:
+      base    == 4.*
+    , hspec
+  default-language: Haskell2010

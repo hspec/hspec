@@ -1,15 +1,15 @@
-module Test.Hspec.Discover.SortSpec (main, spec) where
+module Test.Hspec.Discover.SortSpec (spec) where
 
 import           Helper
 import           Test.QuickCheck
 
 import           Test.Hspec.Discover.Sort
 
-main :: IO ()
-main = hspec spec
-
 shuffleAndSort :: [String] -> IO [String]
 shuffleAndSort xs = sortNaturally <$> generate (shuffle xs)
+
+sortNaturally :: [String] -> [String]
+sortNaturally = sortNaturallyBy $ \ name -> (name, 0)
 
 spec :: Spec
 spec = do
