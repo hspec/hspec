@@ -20,7 +20,7 @@ jobs:
         os:
           - ubuntu-16.04 # https://launchpad.net/~hvr/+archive/ubuntu/ghc?field.series_filter=xenial
         cabal:
-          - 3.2
+          - 3.4
         ghc:
           - 7.4.1
           - 7.4.2
@@ -53,6 +53,9 @@ jobs:
           - 8.8.4
           - 8.10.1
           - 8.10.2
+          - 8.10.3
+          - 8.10.4
+          - 9.0.1
     steps:
       - uses: actions/checkout@v2
       - uses: haskell/actions/setup@08fca952ff0302e4ff725a413e48733e4c9b4127
