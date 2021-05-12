@@ -15,6 +15,11 @@ import           Control.Monad as Imports hiding (
   , sequence_
   )
 import           Data.Foldable as Imports
+
+#if MIN_VERSION_base(4,11,0)
+import           Data.Functor as Imports
+#endif
+
 import           Data.Traversable as Imports
 import           Data.Monoid as Imports
 import           Data.List as Imports (
@@ -152,4 +157,10 @@ guarded p a = if p a then pure a else empty
 sortOn :: Ord b => (a -> b) -> [a] -> [a]
 sortOn f =
   map snd . sortBy (comparing fst) . map (\x -> let y = f x in y `seq` (y, x))
+#endif
+
+#if !MIN_VERSION_base(4,11,0)
+infixl 1 <&>
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+(<&>) = flip (<$>)
 #endif

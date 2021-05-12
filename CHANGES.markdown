@@ -1,3 +1,6 @@
+## Changes in 2.8.1
+  - Take the environment variable `NO_COLOR` into account
+
 ## Changes in 2.8.0
   - Add `--times` to print times for individual spec items
   - Add `--print-slow-items`
