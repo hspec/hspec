@@ -1,20 +1,7 @@
 {-# LANGUAGE CPP #-}
 module Test.Hspec.Core.Compat (
-  getDefaultConcurrentJobs
-, showType
-, showFullType
-, readMaybe
-, lookupEnv
-, module Imports
-
-#if !MIN_VERSION_base(4,6,0)
-, modifyIORef'
-, atomicWriteIORef
-#endif
-, interruptible
-
-, guarded
-, sortOn
+  module Imports
+, module Test.Hspec.Core.Compat
 ) where
 
 import           Control.Applicative as Imports
@@ -30,10 +17,18 @@ import           Control.Monad as Imports hiding (
 import           Data.Foldable as Imports
 import           Data.Traversable as Imports
 import           Data.Monoid as Imports
-import           Data.List as Imports (stripPrefix, isPrefixOf, isInfixOf, intercalate, inits, tails, sortBy)
+import           Data.List as Imports (
+    stripPrefix
+  , isPrefixOf
+  , isInfixOf
+  , intercalate
+  , inits
+  , tails
+  , sortBy
 #if MIN_VERSION_base(4,8,0)
-import           Data.List (sortOn)
+  , sortOn
 #endif
+  )
 
 import           Prelude as Imports hiding (
     all
@@ -62,9 +57,16 @@ import           Prelude as Imports hiding (
   )
 
 import           Data.Typeable (Typeable, typeOf, typeRepTyCon)
-import           Text.Read
 import           Data.IORef as Imports
+
+#if MIN_VERSION_base(4,6,0)
+import           Text.Read as Imports (readMaybe)
+import           System.Environment as Imports (lookupEnv)
+#else
+import           Text.Read
 import           System.Environment
+import qualified Text.ParserCombinators.ReadP as P
+#endif
 
 #if !MIN_VERSION_base(4,8,0)
 import           Data.Ord (comparing)
@@ -74,14 +76,12 @@ import           Data.Typeable (tyConModule, tyConName)
 import           Control.Concurrent
 
 #if MIN_VERSION_base(4,9,0)
-import           Control.Exception (interruptible)
+import           Control.Exception as Imports (interruptible)
 #else
 import           GHC.IO
 #endif
 
 #if !MIN_VERSION_base(4,6,0)
-import qualified Text.ParserCombinators.ReadP as P
-
 -- |Strict version of 'modifyIORef'
 modifyIORef' :: IORef a -> (a -> a) -> IO ()
 modifyIORef' ref f = do
