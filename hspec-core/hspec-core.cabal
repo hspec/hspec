@@ -38,7 +38,7 @@ library
     , ansi-terminal >=0.6.2
     , array
     , base >=4.5.0.0 && <5
-    , call-stack
+    , call-stack >=0.4.0
     , clock >=0.7.1
     , deepseq
     , directory
@@ -100,7 +100,7 @@ test-suite spec
     , ansi-terminal >=0.6.2
     , array
     , base >=4.5.0.0 && <5
-    , call-stack
+    , call-stack >=0.4.0
     , clock >=0.7.1
     , deepseq
     , directory
