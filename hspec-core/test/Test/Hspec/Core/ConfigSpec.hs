@@ -4,7 +4,6 @@ import           Prelude ()
 import           Helper
 
 import           System.Directory
-import           System.FilePath
 
 import           Test.Hspec.Core.Config
 

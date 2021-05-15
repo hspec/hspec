@@ -425,7 +425,7 @@ spec = do
           , ""
           , "Slow spec items:"
 #if MIN_VERSION_base(4,8,1)
-          , "  test/Test/Hspec/Core/RunnerSpec.hs:418:11: /foo/ (2ms)"
+          , "  test" </> "Test" </> "Hspec" </> "Core" </> "RunnerSpec.hs:418:11: /foo/ (2ms)"
 #else
           , "  /foo/ (2ms)"
 #endif

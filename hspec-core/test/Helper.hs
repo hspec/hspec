@@ -4,10 +4,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Helper (
-  module Test.Hspec.Meta
-, module Test.Hspec.Core.Compat
-, module Test.QuickCheck
-, module System.IO.Silently
+  module Imports
 , sleep
 , timeout
 , defaultParams
@@ -27,23 +24,25 @@ module Helper (
 , shouldUseArgs
 
 , removeLocations
+, fixForGhcIssue19236
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat
+import           Test.Hspec.Core.Compat as Imports
 
 import           Data.Char
 import           System.Environment (withArgs, getEnvironment)
 import           System.Exit
 import qualified Control.Exception as E
 import           Control.Exception
-import           System.IO.Silently
+import           System.IO.Silently as Imports
 import           System.SetEnv
 import           System.Directory
+import           System.FilePath as Imports
 import           System.IO.Temp
 
-import           Test.Hspec.Meta hiding (hspec, hspecResult, pending, pendingWith)
-import           Test.QuickCheck hiding (Result(..))
+import           Test.Hspec.Meta as Imports hiding (hspec, hspecResult, pending, pendingWith)
+import           Test.QuickCheck as Imports hiding (Result(..))
 import qualified Test.HUnit.Lang as HUnit
 
 import qualified Test.Hspec.Core.Spec as H
@@ -147,3 +146,6 @@ inTempDirectory action = withSystemTempDirectory "mockery" $ \path -> do
   bracket getCurrentDirectory setCurrentDirectory $ \_ -> do
     setCurrentDirectory path
     action
+
+fixForGhcIssue19236 :: FilePath -> FilePath
+fixForGhcIssue19236 = Imports.joinPath . splitDirectories
