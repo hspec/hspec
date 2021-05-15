@@ -1,9 +1,10 @@
 ## Changes in next
-  - Allow to extend the list of available formatters for `--format`
-  - Add `getExpectedTotalCount` to `Test.Hspec.Core.Formatters.V2`
-  - Rename `formatConfigItemCount` to `formatConfigExpectedTotalCount`
   - Use `checks` formatter by default (to restore the old behavior use
     `--format specdoc`)
+  - Allow to extend the list of available formatters for `--format`
+  - Add support for custom configs to `hspec-discover` (via `SpecConfig.hs`)
+  - Add `getExpectedTotalCount` to `Test.Hspec.Core.Formatters.V2`
+  - Rename `formatConfigItemCount` to `formatConfigExpectedTotalCount`
 
 ## Changes in 2.8.4
   - Better support for GHC 9.2.1
@@ -12,7 +13,7 @@
 
 ## Changes in 2.8.3
   - Better support for `--color=auto` on Windows
-  - Add support for spec hooks to `hspec-discover` (via `SpecHooks.hs`)
+  - Add support for spec hooks to `hspec-discover` (via `SpecHook.hs`)
   - Propagate exceptions from `Test.Hspec.Core.Format.monadic`
   - Re-export `aroundAll_` from `Test.Hspec`
 
