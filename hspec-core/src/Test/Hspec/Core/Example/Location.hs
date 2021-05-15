@@ -17,6 +17,7 @@ import           Control.Exception
 import           Data.Char
 import           Data.Maybe
 import           GHC.IO.Exception
+import           System.FilePath
 
 -- | @Location@ is used to represent source locations.
 data Location = Location {
@@ -26,13 +27,14 @@ data Location = Location {
 } deriving (Eq, Show, Read)
 
 extractLocation :: SomeException -> Maybe Location
-extractLocation e =
+extractLocation e = workaroundForIssue19236 <$> (
       locationFromErrorCall e
   <|> locationFromPatternMatchFail e
   <|> locationFromRecConError e
   <|> locationFromIOException e
   <|> locationFromNoMethodError e
   <|> locationFromAssertionFailed e
+  )
 
 locationFromNoMethodError :: SomeException -> Maybe Location
 locationFromNoMethodError e = case fromException e of
@@ -110,3 +112,6 @@ parseSourceSpan input = case breakColon input of
 
 breakColon :: String -> (String, String)
 breakColon = fmap (drop 1) . break (== ':')
+
+workaroundForIssue19236 :: Location -> Location -- https://gitlab.haskell.org/ghc/ghc/-/issues/19236
+workaroundForIssue19236 loc = loc {locationFile = joinPath . splitDirectories $ locationFile loc}
