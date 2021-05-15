@@ -144,3 +144,22 @@ test-suite with-spec-hook
       base    == 4.*
     , hspec
   default-language: Haskell2010
+
+test-suite with-config
+  build-tool-depends: hspec-discover:hspec-discover
+  type:
+      exitcode-stdio-1.0
+  ghc-options:
+      -Wall
+  hs-source-dirs:
+      with-config
+  main-is:
+      Spec.hs
+  other-modules:
+      FooSpec
+      SpecConfig
+  build-depends:
+      base    == 4.*
+    , hspec
+    , hspec-core
+  default-language: Haskell2010
