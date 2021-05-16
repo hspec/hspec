@@ -1,0 +1,50 @@
+Usage: spec [OPTION]...
+
+OPTIONS
+              --help              display this help and exit
+              --ignore-dot-hspec  do not read options from ~/.hspec and .hspec
+  -m PATTERN  --match=PATTERN     only run examples that match given PATTERN
+              --skip=PATTERN      skip examples that match given PATTERN
+
+RUNNER OPTIONS
+        --[no-]dry-run          pretend that everything passed; don't verify
+                                anything
+        --[no-]focused-only     do not run anything, unless there are focused
+                                spec items
+        --[no-]fail-on-focused  fail on focused spec items
+        --[no-]fail-fast        abort on first failure
+        --[no-]randomize        randomize execution order
+  -r    --rerun                 rerun all examples that failed in the previous
+                                test run (only works in combination with
+                                --failure-report or in GHCi)
+        --failure-report=FILE   read/write a failure report for use with --rerun
+        --rerun-all-on-success  run the whole test suite after a previously
+                                failing rerun succeeds for the first time (only
+                                works in combination with --rerun)
+  -j N  --jobs=N                run at most N parallelizable tests
+                                simultaneously (default: number of available
+                                processors)
+
+FORMATTER OPTIONS
+  -f FORMATTER  --format=FORMATTER      use a custom formatter; this can be one
+                                        of checks, specdoc, progress,
+                                        failed-examples or silent
+                --[no-]color            colorize the output
+                --[no-]diff             show colorized diffs
+                --[no-]times            report times for individual spec items
+                --print-cpu-time        include used CPU time in summary
+  -p[N]         --print-slow-items[=N]  print the N slowest spec items (default:
+                                        10)
+
+OPTIONS FOR QUICKCHECK
+  -a N  --qc-max-success=N  maximum number of successful tests before a
+                            QuickCheck property succeeds
+        --qc-max-discard=N  maximum number of discarded tests per successful
+                            test before giving up
+        --qc-max-size=N     size to use for the biggest test cases
+        --qc-max-shrinks=N  maximum number of shrinks to perform before giving
+                            up (a value of 0 turns shrinking off)
+        --seed=N            used seed for QuickCheck properties
+
+OPTIONS FOR SMALLCHECK
+    --depth=N  maximum depth of generated test values for SmallCheck properties
