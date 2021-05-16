@@ -1,11 +1,11 @@
-module Test.Hspec.Core.Config.UtilSpec (spec) where
+module GetOpt.Declarative.UtilSpec (spec) where
 
 import           Prelude ()
 import           Helper
 
 import           System.Console.GetOpt
 
-import           Test.Hspec.Core.Config.Util
+import           GetOpt.Declarative.Util
 
 spec :: Spec
 spec = do
@@ -29,7 +29,3 @@ spec = do
           ""
         , "    --[no-]color  some help"
         ]
-
-  describe "formatOrList" $ do
-    it "formats a list of or-options" $ do
-      formatOrList ["foo", "bar", "baz"] `shouldBe` "foo, bar or baz"

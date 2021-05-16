@@ -61,11 +61,15 @@ library
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
   other-modules:
+      GetOpt.Declarative
+      GetOpt.Declarative.Interpret
+      GetOpt.Declarative.Types
+      GetOpt.Declarative.Util
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
+      Test.Hspec.Core.Config.Definition
       Test.Hspec.Core.Config.Options
-      Test.Hspec.Core.Config.Util
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
       Test.Hspec.Core.FailureReport
@@ -119,11 +123,15 @@ test-suite spec
   build-tool-depends:
       hspec-meta:hspec-meta-discover
   other-modules:
+      GetOpt.Declarative
+      GetOpt.Declarative.Interpret
+      GetOpt.Declarative.Types
+      GetOpt.Declarative.Util
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
+      Test.Hspec.Core.Config.Definition
       Test.Hspec.Core.Config.Options
-      Test.Hspec.Core.Config.Util
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
       Test.Hspec.Core.FailureReport
@@ -150,12 +158,13 @@ test-suite spec
       Control.Concurrent.Async
       Data.Algorithm.Diff
       All
+      GetOpt.Declarative.UtilSpec
       Helper
       Mock
       Test.Hspec.Core.ClockSpec
       Test.Hspec.Core.CompatSpec
+      Test.Hspec.Core.Config.DefinitionSpec
       Test.Hspec.Core.Config.OptionsSpec
-      Test.Hspec.Core.Config.UtilSpec
       Test.Hspec.Core.ConfigSpec
       Test.Hspec.Core.Example.LocationSpec
       Test.Hspec.Core.ExampleSpec
