@@ -10,3 +10,7 @@ packages:
 
 extra-deps:
 - call-stack-0.4.0
+- github: hspec/hspec
+  commit: a9ac4cdcb928553d6ff734fd23109618e5f3d480
+  subdirs:
+    - hspec-meta
