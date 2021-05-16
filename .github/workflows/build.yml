@@ -16,46 +16,17 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-16.04 # https://launchpad.net/~hvr/+archive/ubuntu/ghc?field.series_filter=xenial
         cabal:
           - 3.4
         ghc:
-          - 7.4.1
-          - 7.4.2
-          - 7.6.1
-          - 7.6.2
-          - 7.6.3
-          - 7.8.1
-          - 7.8.2
-          - 7.8.3
-          - 7.8.4
-          - 7.10.1
-          - 7.10.2
-          - 7.10.3
-          - 8.0.1
-          - 8.0.2
-          - 8.2.1
-          - 8.2.2
-          - 8.4.1
-          - 8.4.2
-          - 8.4.3
-          - 8.4.4
-          - 8.6.1
-          - 8.6.2
-          - 8.6.3
-          - 8.6.4
-          - 8.6.5
-          - 8.8.1
-          - 8.8.2
-          - 8.8.3
-          - 8.8.4
-          - 8.10.1
-          - 8.10.2
-          - 8.10.3
-          - 8.10.4
           - 9.0.1
+        include:
+          - os: windows-latest
+            ghc: latest
     steps:
       - uses: actions/checkout@v2
       - uses: haskell/actions/setup@08fca952ff0302e4ff725a413e48733e4c9b4127

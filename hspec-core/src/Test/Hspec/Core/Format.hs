@@ -19,8 +19,10 @@ module Test.Hspec.Core.Format (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import           Control.Exception
 import           Control.Concurrent
 import           Control.Concurrent.Async (async)
+import qualified Control.Concurrent.Async as Async
 import           Control.Monad.IO.Class
 
 import           Test.Hspec.Core.Spec (Progress, Location(..))
@@ -63,6 +65,8 @@ data FormatConfig = FormatConfig {
 , formatConfigItemCount :: Int
 } deriving (Eq, Show)
 
+data Signal = Ok | NotOk SomeException
+
 monadic :: MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
 monadic run format = do
   mvar <- newEmptyMVar
@@ -75,10 +79,10 @@ monadic run format = do
     takeEvent :: MonadIO m => m Event
     takeEvent = liftIO $ takeMVar mvar
 
-    signal :: MonadIO m => m ()
-    signal = liftIO $ putMVar done ()
+    signal :: MonadIO m => Signal -> m ()
+    signal = liftIO . putMVar done
 
-    wait :: IO ()
+    wait :: IO Signal
     wait = takeMVar done
 
     go = do
@@ -87,13 +91,21 @@ monadic run format = do
       case event of
         Done {} -> return ()
         _ -> do
-          signal
+          signal Ok
           go
 
-  _ <- async $ do
-    run go
-    signal
+  t <- async $ do
+    (run go >> signal Ok) `catch` (signal . NotOk)
 
   return $ \ event -> do
-    putEvent event
-    wait
+    running <- Async.poll t
+    case running of
+      Just _ -> return ()
+      Nothing -> do
+        putEvent event
+        r <- wait
+        case r of
+          Ok -> return ()
+          NotOk err -> do
+            Async.wait t
+            throwIO err

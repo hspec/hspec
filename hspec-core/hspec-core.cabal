@@ -35,10 +35,10 @@ library
   build-depends:
       HUnit ==1.6.*
     , QuickCheck >=2.13.1
-    , ansi-terminal >=0.5
+    , ansi-terminal >=0.6.2
     , array
     , base >=4.5.0.0 && <5
-    , call-stack
+    , call-stack >=0.4.0
     , clock >=0.7.1
     , deepseq
     , directory
@@ -97,16 +97,16 @@ test-suite spec
   build-depends:
       HUnit ==1.6.*
     , QuickCheck >=2.14
-    , ansi-terminal >=0.5
+    , ansi-terminal >=0.6.2
     , array
     , base >=4.5.0.0 && <5
-    , call-stack
+    , call-stack >=0.4.0
     , clock >=0.7.1
     , deepseq
     , directory
     , filepath
     , hspec-expectations ==0.8.2.*
-    , hspec-meta ==2.7.8
+    , hspec-meta
     , process
     , quickcheck-io >=0.2.0
     , random
@@ -160,6 +160,7 @@ test-suite spec
       Test.Hspec.Core.Example.LocationSpec
       Test.Hspec.Core.ExampleSpec
       Test.Hspec.Core.FailureReportSpec
+      Test.Hspec.Core.FormatSpec
       Test.Hspec.Core.Formatters.DiffSpec
       Test.Hspec.Core.Formatters.InternalSpec
       Test.Hspec.Core.Formatters.V1Spec

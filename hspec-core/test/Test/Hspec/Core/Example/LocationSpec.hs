@@ -35,7 +35,7 @@ spec = do
     context "with pattern match failure in do expression" $ do
       context "in IO" $ do
         it "extracts Location" $ do
-          let location = Just $ Location __FILE__ (__LINE__ + 2) 13
+          let location = Just $ Location (fixForGhcIssue19236 __FILE__) (__LINE__ + 2) 13
           Left e <- try $ do
             Just n <- return Nothing
             return (n :: Int)
@@ -44,7 +44,7 @@ spec = do
 #if !MIN_VERSION_base(4,12,0)
       context "in Either" $ do
         it "extracts Location" $ do
-          let location = Just $ Location __FILE__ (__LINE__ + 4) 15
+          let location = Just $ Location (fixForGhcIssue19236 __FILE__) (__LINE__ + 4) 15
           let
             foo :: Either () ()
             foo = do
@@ -59,7 +59,7 @@ spec = do
         let
           location =
 #if MIN_VERSION_base(4,9,0)
-            Just $ Location __FILE__ (__LINE__ + 4) 34
+            Just $ Location (fixForGhcIssue19236 __FILE__) (__LINE__ + 4) 34
 #else
             Nothing
 #endif
@@ -70,13 +70,13 @@ spec = do
       context "with single-line source span" $ do
         it "extracts Location" $ do
           let
-            location = Just $ Location __FILE__ (__LINE__ + 1) 40
+            location = Just $ Location (fixForGhcIssue19236 __FILE__) (__LINE__ + 1) 40
           Left e <- try (evaluate (let Just n = Nothing in (n :: Int)))
           extractLocation e `shouldBe` location
 
       context "with multi-line source span" $ do
         it "extracts Location" $ do
-          let location = Just $ Location __FILE__ (__LINE__ + 1) 36
+          let location = Just $ Location (fixForGhcIssue19236 __FILE__) (__LINE__ + 1) 36
           Left e <- try (evaluate (case Nothing of
             Just n -> n :: Int
             ))
@@ -85,19 +85,19 @@ spec = do
     context "with RecConError" $ do
       it "extracts Location" $ do
         let
-          location = Just $ Location __FILE__ (__LINE__ + 1) 39
+          location = Just $ Location (fixForGhcIssue19236 __FILE__) (__LINE__ + 1) 39
         Left e <- try $ evaluate (age Person {name = "foo"})
         extractLocation e `shouldBe` location
 
     context "with NoMethodError" $ do
       it "extracts Location" $ do
         Left e <- try $ someMethod ()
-        extractLocation e `shouldBe` Just (Location __FILE__ 20 10)
+        extractLocation e `shouldBe` Just (Location (fixForGhcIssue19236 __FILE__) 20 10)
 
     context "with AssertionFailed" $ do
       it "extracts Location" $ do
         let
-          location = Just $ Location __FILE__ (__LINE__ + 1) 36
+          location = Just $ Location (fixForGhcIssue19236 __FILE__) (__LINE__ + 1) 36
         Left e <- try . evaluate $ assert False ()
         extractLocation e `shouldBe` location
 

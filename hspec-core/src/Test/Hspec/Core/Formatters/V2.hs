@@ -30,11 +30,11 @@ module Test.Hspec.Core.Formatters.V2 (
 -- ** Accessing the runner state
 , getSuccessCount
 , getPendingCount
-, getFailCount
+, getFailureCount
 , getTotalCount
 
 , FailureRecord (..)
-, getFailMessages
+, getFailureMessages
 , usedSeed
 
 , printTimes
@@ -52,7 +52,7 @@ module Test.Hspec.Core.Formatters.V2 (
 , withInfoColor
 , withSuccessColor
 , withPendingColor
-, withFailColor
+, withFailureColor
 
 , useDiff
 , extraChunk
@@ -88,11 +88,11 @@ import Test.Hspec.Core.Formatters.Monad (
 
   , getSuccessCount
   , getPendingCount
-  , getFailCount
+  , getFailureCount
   , getTotalCount
 
   , FailureRecord (..)
-  , getFailMessages
+  , getFailureMessages
   , usedSeed
 
   , printTimes
@@ -106,7 +106,7 @@ import Test.Hspec.Core.Formatters.Monad (
   , withInfoColor
   , withSuccessColor
   , withPendingColor
-  , withFailColor
+  , withFailureColor
 
   , useDiff
   , extraChunk
@@ -139,7 +139,7 @@ checks = specdoc {
     uncurry (writeResult nesting requirement (itemDuration item) (itemInfo item)) $ case itemResult item of
       Success {} -> (withSuccessColor, "✔")
       Pending {} -> (withPendingColor, "‐")
-      Failure {} -> (withFailColor, "✘")
+      Failure {} -> (withFailureColor, "✘")
     case itemResult item of
       Success {} -> return ()
       Failure {} -> return ()
@@ -190,8 +190,8 @@ specdoc = silent {
       Pending _ reason -> withPendingColor $ do
         writeResult nesting requirement duration info
         writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
-      Failure {} -> withFailColor $ do
-        n <- getFailCount
+      Failure {} -> withFailureColor $ do
+        n <- getFailureCount
         writeResult nesting (requirement ++ " FAILED [" ++ show n ++ "]") duration info
 
 , formatterDone = defaultFailedFormatter >> defaultFooter
@@ -220,7 +220,7 @@ progress = failed_examples {
   formatterItemDone = \ _ item -> case itemResult item of
     Success{} -> withSuccessColor $ write "."
     Pending{} -> withPendingColor $ write "."
-    Failure{} -> withFailColor $ write "F"
+    Failure{} -> withFailureColor $ write "F"
 }
 
 failed_examples :: Formatter
@@ -232,7 +232,7 @@ defaultFailedFormatter :: FormatM ()
 defaultFailedFormatter = do
   writeLine ""
 
-  failures <- getFailMessages
+  failures <- getFailureMessages
 
   unless (null failures) $ do
     writeLine "Failures:"
@@ -253,7 +253,7 @@ defaultFailedFormatter = do
       writeLine (formatRequirement path)
       case reason of
         NoReason -> return ()
-        Reason err -> withFailColor $ indent err
+        Reason err -> withFailureColor $ indent err
         ExpectedButGot preface expected actual -> do
           mapM_ indent preface
 
@@ -276,21 +276,21 @@ defaultFailedFormatter = do
               (xs, _ : ys) -> output (xs ++ "\n") >> write (indentation ++ "          ") >> indented output ys
 
             writeDiff chunks extra missing = do
-              withFailColor $ write (indentation ++ "expected: ")
+              withFailureColor $ write (indentation ++ "expected: ")
               forM_ chunks $ \ chunk -> case chunk of
                 Both a _ -> indented write a
                 First a -> indented extra a
                 Second _ -> return ()
               writeLine ""
 
-              withFailColor $ write (indentation ++ " but got: ")
+              withFailureColor $ write (indentation ++ " but got: ")
               forM_ chunks $ \ chunk -> case chunk of
                 Both a _ -> indented write a
                 First _ -> return ()
                 Second a -> indented missing a
               writeLine ""
 
-        Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
+        Error _ e -> withFailureColor . indent $ (("uncaught exception: " ++) . formatException) e
 
       writeLine ""
       writeLine ("  To rerun use: --match " ++ show (joinPath path))
@@ -307,7 +307,7 @@ defaultFooter = do
     <$> (printf "Finished in %1.4f seconds" <$> getRealTime)
     <*> (maybe "" (printf ", used %1.4f seconds of CPU time") <$> getCPUTime)
 
-  fails   <- getFailCount
+  fails   <- getFailureCount
   pending <- getPendingCount
   total   <- getTotalCount
 
@@ -316,7 +316,7 @@ defaultFooter = do
          pluralize total   "example"
       ++ ", " ++ pluralize fails "failure"
       ++ if pending == 0 then "" else ", " ++ show pending ++ " pending"
-    c | fails /= 0   = withFailColor
+    c | fails /= 0   = withFailureColor
       | pending /= 0 = withPendingColor
       | otherwise    = withSuccessColor
   c $ writeLine output

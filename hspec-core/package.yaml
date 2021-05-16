@@ -26,7 +26,7 @@ dependencies:
   - random
   - tf-random
   - setenv
-  - ansi-terminal >= 0.5
+  - ansi-terminal >= 0.6.2
   - clock >= 0.7.1
   - transformers >= 0.2.2.0
   - deepseq
@@ -34,7 +34,7 @@ dependencies:
   - QuickCheck >= 2.13.1
   - quickcheck-io >= 0.2.0
   - hspec-expectations == 0.8.2.*
-  - call-stack
+  - call-stack >= 0.4.0
   - directory
   - filepath
 
@@ -64,7 +64,7 @@ tests:
     source-dirs:
       - test
     dependencies:
-      - hspec-meta == 2.7.8
+      - hspec-meta
       - silently >= 1.2.4
       - QuickCheck >= 2.14
       - process
