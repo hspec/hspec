@@ -15,7 +15,7 @@ import           Test.Hspec.Core.Util (safeTry)
 import           System.IO
 import           System.Directory
 import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Config.Options (Config(..))
+import           Test.Hspec.Core.Config.Definition (Config(..))
 
 data FailureReport = FailureReport {
   failureReportSeed :: Integer

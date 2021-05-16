@@ -28,6 +28,10 @@ spec = do
     it "sets configColorMode to ColorAuto" $ do
       configColorMode <$> parseOptions [] Nothing [] `shouldBe` Right ColorAuto
 
+    context "when the same option is specified multiple times" $ do
+      it "gives later occurrences precedence" $ do
+        configColorMode <$> parseOptions [] Nothing ["--color", "--no-color"] `shouldBe` Right ColorNever
+
     context "with --help" $ do
       let Left (code, help) = Options.parseOptions defaultConfig "spec" [] Nothing ["--help"]
 
@@ -117,12 +121,16 @@ spec = do
           ]
           )
 
+      context "when the same option is specified multiple times" $ do
+        it "gives later occurrences precedence" $ do
+          configColorMode <$> parseOptions [("~/.hspec", ["--color", "--no-color"])] Nothing [] `shouldBe` Right ColorNever
+
     context "when given multiple config files" $ do
       it "gives later config files precedence" $ do
         configColorMode <$> parseOptions [("~/.hspec", ["--no-color"]), (".hspec", ["--color"])] Nothing [] `shouldBe` Right ColorAlways
 
-    context "when given an environment variable" $ do
-      it "uses options from environment variable" $ do
+    context "when given HSPEC_OPTIONS (deprecated)" $ do
+      it "uses options from HSPEC_OPTIONS" $ do
         configColorMode <$> parseOptions [] (Just ["--no-color"]) [] `shouldBe` Right ColorNever
 
       it "gives command-line options precedence" $ do

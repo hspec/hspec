@@ -1,4 +1,5 @@
-module Test.Hspec.Core.Config.Util where
+{-# LANGUAGE CPP #-}
+module GetOpt.Declarative.Util (mkUsageInfo, mapOptDescr) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
@@ -31,10 +32,16 @@ condenseNoOptions options = case options of
   x : xs -> x : condenseNoOptions xs
   [] -> []
 
-formatOrList :: [String] -> String
-formatOrList xs = case xs of
-  [] -> ""
-  x : ys -> (case ys of
-    [] -> x
-    _ : [] -> x ++ " or "
-    _ : _ : _ -> x ++ ", ") ++ formatOrList ys
+mapOptDescr :: (a -> b) -> OptDescr a -> OptDescr b
+#if MIN_VERSION_base(4,7,0)
+mapOptDescr = fmap
+#else
+mapOptDescr f opt = case opt of
+  Option short long arg help -> Option short long (mapArgDescr f arg) help
+
+mapArgDescr :: (a -> b) -> ArgDescr a -> ArgDescr b
+mapArgDescr f arg = case arg of
+  NoArg a -> NoArg (f a)
+  ReqArg parse name -> ReqArg (fmap f parse) name
+  OptArg parse name -> OptArg (fmap f parse) name
+#endif
