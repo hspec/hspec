@@ -1,3 +1,6 @@
+## Changes in next
+  - Propagate exceptions from `Test.Hspec.Core.Format.monadic`
+
 ## Changes in 2.8.2
   - Add `mapSubject` and `ignoreSubject`
 
