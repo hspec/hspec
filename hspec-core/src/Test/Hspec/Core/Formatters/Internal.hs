@@ -3,11 +3,6 @@
 {-# LANGUAGE RecordWildCards #-}
 module Test.Hspec.Core.Formatters.Internal (
   FormatM
-, runFormatM
-, interpret
-, increaseSuccessCount
-, increasePendingCount
-, addFailMessage
 , formatterToFormat
 #ifdef TEST
 , overwriteWith
@@ -43,7 +38,7 @@ formatterToFormat M.Formatter{..} config = monadic (runFormatM config) $ \ event
     case itemResult item of
       Success {} -> increaseSuccessCount
       Pending {} -> increasePendingCount
-      Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
+      Failure loc err -> addFailure (loc <|> itemLocation item) path err
     interpret $ formatterItemDone path item
   Done _ -> interpret formatterDone
 
@@ -51,7 +46,7 @@ interpret :: M.FormatM a -> FormatM a
 interpret = interpretWith Environment {
   environmentGetSuccessCount = getSuccessCount
 , environmentGetPendingCount = getPendingCount
-, environmentGetFailMessages = getFailMessages
+, environmentGetFailureMessages = getFailureMessages
 , environmentGetFinalCount = getItemCount
 , environmentUsedSeed = usedSeed
 , environmentPrintTimes = gets (formatConfigPrintTimes . stateConfig)
@@ -59,7 +54,7 @@ interpret = interpretWith Environment {
 , environmentGetRealTime = getRealTime
 , environmentWrite = write
 , environmentWriteTransient = writeTransient
-, environmentWithFailColor = withFailColor
+, environmentWithFailureColor = withFailureColor
 , environmentWithSuccessColor = withSuccessColor
 , environmentWithPendingColor = withPendingColor
 , environmentWithInfoColor = withInfoColor
@@ -128,12 +123,12 @@ getPendingCount :: FormatM Int
 getPendingCount = gets statePendingCount
 
 -- | Append to the list of accumulated failure messages.
-addFailMessage :: Maybe Location -> Path -> FailureReason -> FormatM ()
-addFailMessage loc p m = modify $ \s -> s {stateFailMessages = FailureRecord loc p m : stateFailMessages s}
+addFailure :: Maybe Location -> Path -> FailureReason -> FormatM ()
+addFailure loc p m = modify $ \s -> s {stateFailMessages = FailureRecord loc p m : stateFailMessages s}
 
 -- | Get the list of accumulated failure messages.
-getFailMessages :: FormatM [FailureRecord]
-getFailMessages = reverse `fmap` gets stateFailMessages
+getFailureMessages :: FormatM [FailureRecord]
+getFailureMessages = reverse `fmap` gets stateFailMessages
 
 -- | Get the number of spec items that will have been encountered when this run
 -- completes (if it is not terminated early).
@@ -172,8 +167,8 @@ write s = do
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.
-withFailColor :: FormatM a -> FormatM a
-withFailColor = withColor (SetColor Foreground Dull Red) "hspec-failure"
+withFailureColor :: FormatM a -> FormatM a
+withFailureColor = withColor (SetColor Foreground Dull Red) "hspec-failure"
 
 -- | Set output color to green, run given action, and finally restore the
 -- default color.

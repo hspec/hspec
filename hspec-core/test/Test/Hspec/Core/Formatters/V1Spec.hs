@@ -64,14 +64,14 @@ environment :: Environment (WriterT [ColorizedText] IO)
 environment = Environment {
   environmentGetSuccessCount = return 0
 , environmentGetPendingCount = return 0
-, environmentGetFailMessages = return []
+, environmentGetFailureMessages = return []
 , environmentGetFinalCount = return 0
 , environmentUsedSeed = return 0
 , environmentGetCPUTime = return Nothing
 , environmentGetRealTime = return 0
 , environmentWrite = tell . return . Plain
 , environmentWriteTransient = tell . return . Transient
-, environmentWithFailColor = \ action -> do
+, environmentWithFailureColor = \ action -> do
     (a, r) <- liftIO $ runWriterT action
     tell (colorize Failed r) >> return a
 , environmentWithSuccessColor = \ action -> do
@@ -214,7 +214,7 @@ spec = do
       context "when actual/expected contain newlines" $ do
         let
           env = environment {
-            environmentGetFailMessages = return [FailureRecord Nothing ([], "") (ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
+            environmentGetFailureMessages = return [FailureRecord Nothing ([], "") (ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird")]
             }
         it "adds indentation" $ do
           (removeColors <$> interpretWith env action) `shouldReturn` unlines [
@@ -255,7 +255,7 @@ spec = do
             ]
 
       context "with failures" $ do
-        let env = environment {environmentGetFailMessages = return [undefined]}
+        let env = environment {environmentGetFailureMessages = return [undefined]}
         it "shows summary in red" $ do
           interpretWith env action `shouldReturn` [
               "Finished in 0.0000 seconds\n"
@@ -263,7 +263,7 @@ spec = do
             ]
 
       context "with both failures and pending examples" $ do
-        let env = environment {environmentGetFailMessages = return [undefined], environmentGetPendingCount = return 1}
+        let env = environment {environmentGetFailureMessages = return [undefined], environmentGetPendingCount = return 1}
         it "shows summary in red" $ do
           interpretWith env action `shouldReturn` [
               "Finished in 0.0000 seconds\n"

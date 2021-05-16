@@ -13,12 +13,12 @@ module Test.Hspec.Core.Formatters.Monad (
 
 , getSuccessCount
 , getPendingCount
-, getFailCount
+, getFailureCount
 , getTotalCount
 , getFinalCount
 
 , FailureRecord (..)
-, getFailMessages
+, getFailureMessages
 , usedSeed
 
 , printTimes
@@ -32,7 +32,7 @@ module Test.Hspec.Core.Formatters.Monad (
 , withInfoColor
 , withSuccessColor
 , withPendingColor
-, withFailColor
+, withFailureColor
 
 , useDiff
 , extraChunk
@@ -40,6 +40,11 @@ module Test.Hspec.Core.Formatters.Monad (
 
 , Environment(..)
 , interpretWith
+
+-- deprecated
+, withFailColor
+, getFailCount
+, getFailMessages
 ) where
 
 import           Prelude ()
@@ -84,7 +89,7 @@ data FailureRecord = FailureRecord {
 data FormatF next =
     GetSuccessCount (Int -> next)
   | GetPendingCount (Int -> next)
-  | GetFailMessages ([FailureRecord] -> next)
+  | GetFailureMessages ([FailureRecord] -> next)
   | GetFinalCount (Int -> next)
   | UsedSeed (Integer -> next)
   | PrintTimes (Bool -> next)
@@ -92,7 +97,7 @@ data FormatF next =
   | GetRealTime (Seconds -> next)
   | Write String next
   | WriteTransient String next
-  | forall a. WithFailColor (FormatM a) (a -> next)
+  | forall a. WithFailureColor (FormatM a) (a -> next)
   | forall a. WithSuccessColor (FormatM a) (a -> next)
   | forall a. WithPendingColor (FormatM a) (a -> next)
   | forall a. WithInfoColor (FormatM a) (a -> next)
@@ -105,7 +110,7 @@ instance Functor FormatF where -- deriving this instance would require GHC >= 7.
   fmap f x = case x of
     GetSuccessCount next -> GetSuccessCount (fmap f next)
     GetPendingCount next -> GetPendingCount (fmap f next)
-    GetFailMessages next -> GetFailMessages (fmap f next)
+    GetFailureMessages next -> GetFailureMessages (fmap f next)
     GetFinalCount next -> GetFinalCount (fmap f next)
     UsedSeed next -> UsedSeed (fmap f next)
     PrintTimes next -> PrintTimes (fmap f next)
@@ -113,7 +118,7 @@ instance Functor FormatF where -- deriving this instance would require GHC >= 7.
     GetRealTime next -> GetRealTime (fmap f next)
     Write s next -> Write s (f next)
     WriteTransient s next -> WriteTransient s (f next)
-    WithFailColor action next -> WithFailColor action (fmap f next)
+    WithFailureColor action next -> WithFailureColor action (fmap f next)
     WithSuccessColor action next -> WithSuccessColor action (fmap f next)
     WithPendingColor action next -> WithPendingColor action (fmap f next)
     WithInfoColor action next -> WithInfoColor action (fmap f next)
@@ -130,7 +135,7 @@ instance MonadIO FormatM where
 data Environment m = Environment {
   environmentGetSuccessCount :: m Int
 , environmentGetPendingCount :: m Int
-, environmentGetFailMessages :: m [FailureRecord]
+, environmentGetFailureMessages :: m [FailureRecord]
 , environmentGetFinalCount :: m Int
 , environmentUsedSeed :: m Integer
 , environmentPrintTimes :: m Bool
@@ -138,7 +143,7 @@ data Environment m = Environment {
 , environmentGetRealTime :: m Seconds
 , environmentWrite :: String -> m ()
 , environmentWriteTransient :: String -> m ()
-, environmentWithFailColor :: forall a. m a -> m a
+, environmentWithFailureColor :: forall a. m a -> m a
 , environmentWithSuccessColor :: forall a. m a -> m a
 , environmentWithPendingColor :: forall a. m a -> m a
 , environmentWithInfoColor :: forall a. m a -> m a
@@ -157,7 +162,7 @@ interpretWith Environment{..} = go
       Free action -> case action of
         GetSuccessCount next -> environmentGetSuccessCount >>= go . next
         GetPendingCount next -> environmentGetPendingCount >>= go . next
-        GetFailMessages next -> environmentGetFailMessages >>= go . next
+        GetFailureMessages next -> environmentGetFailureMessages >>= go . next
         GetFinalCount next -> environmentGetFinalCount >>= go . next
         UsedSeed next -> environmentUsedSeed >>= go . next
         PrintTimes next -> environmentPrintTimes >>= go . next
@@ -165,7 +170,7 @@ interpretWith Environment{..} = go
         GetRealTime next -> environmentGetRealTime >>= go . next
         Write s next -> environmentWrite s >> go next
         WriteTransient s next -> environmentWriteTransient s >> go next
-        WithFailColor inner next -> environmentWithFailColor (go inner) >>= go . next
+        WithFailureColor inner next -> environmentWithFailureColor (go inner) >>= go . next
         WithSuccessColor inner next -> environmentWithSuccessColor (go inner) >>= go . next
         WithPendingColor inner next -> environmentWithPendingColor (go inner) >>= go . next
         WithInfoColor inner next -> environmentWithInfoColor (go inner) >>= go . next
@@ -183,12 +188,16 @@ getPendingCount :: FormatM Int
 getPendingCount = liftF (GetPendingCount id)
 
 -- | Get the number of failed examples encountered so far.
+getFailureCount :: FormatM Int
+getFailureCount = length <$> getFailureMessages
+
 getFailCount :: FormatM Int
-getFailCount = length <$> getFailMessages
+{-# DEPRECATED getFailCount "use `getFailureCount` instead" #-}
+getFailCount = getFailureCount
 
 -- | Get the total number of examples encountered so far.
 getTotalCount :: FormatM Int
-getTotalCount = sum <$> sequence [getSuccessCount, getFailCount, getPendingCount]
+getTotalCount = sum <$> sequence [getSuccessCount, getFailureCount, getPendingCount]
 
 -- | Get the number of spec items that will have been encountered when this run
 -- completes (if it is not terminated early).
@@ -196,8 +205,12 @@ getFinalCount :: FormatM Int
 getFinalCount = liftF (GetFinalCount id)
 
 -- | Get the list of accumulated failure messages.
+getFailureMessages :: FormatM [FailureRecord]
+getFailureMessages = liftF (GetFailureMessages id)
+
 getFailMessages :: FormatM [FailureRecord]
-getFailMessages = liftF (GetFailMessages id)
+{-# DEPRECATED getFailMessages "use `getFailureMessages` instead" #-}
+getFailMessages = getFailureMessages
 
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer
@@ -229,8 +242,12 @@ writeTransient s = liftF (WriteTransient s ())
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.
+withFailureColor :: FormatM a -> FormatM a
+withFailureColor s = liftF (WithFailureColor s id)
+
 withFailColor :: FormatM a -> FormatM a
-withFailColor s = liftF (WithFailColor s id)
+{-# DEPRECATED withFailColor "use `withFailureColor` instead" #-}
+withFailColor = withFailureColor
 
 -- | Set output color to green, run given action, and finally restore the
 -- default color.
