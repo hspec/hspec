@@ -31,12 +31,10 @@ module Test.Hspec.Core.Formatters.V2 (
 , getSuccessCount
 , getPendingCount
 , getFailureCount
-, getFailCount
 , getTotalCount
 
 , FailureRecord (..)
 , getFailureMessages
-, getFailMessages
 , usedSeed
 
 , printTimes
@@ -55,7 +53,6 @@ module Test.Hspec.Core.Formatters.V2 (
 , withSuccessColor
 , withPendingColor
 , withFailureColor
-, withFailColor
 
 , useDiff
 , extraChunk
@@ -92,12 +89,10 @@ import Test.Hspec.Core.Formatters.Monad (
   , getSuccessCount
   , getPendingCount
   , getFailureCount
-  , getFailCount
   , getTotalCount
 
   , FailureRecord (..)
   , getFailureMessages
-  , getFailMessages
   , usedSeed
 
   , printTimes
@@ -112,7 +107,6 @@ import Test.Hspec.Core.Formatters.Monad (
   , withSuccessColor
   , withPendingColor
   , withFailureColor
-  , withFailColor
 
   , useDiff
   , extraChunk

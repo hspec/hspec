@@ -40,11 +40,6 @@ module Test.Hspec.Core.Formatters.Monad (
 
 , Environment(..)
 , interpretWith
-
--- deprecated
-, withFailColor
-, getFailCount
-, getFailMessages
 ) where
 
 import           Prelude ()
@@ -191,10 +186,6 @@ getPendingCount = liftF (GetPendingCount id)
 getFailureCount :: FormatM Int
 getFailureCount = length <$> getFailureMessages
 
-getFailCount :: FormatM Int
-{-# DEPRECATED getFailCount "use `getFailureCount` instead" #-}
-getFailCount = getFailureCount
-
 -- | Get the total number of examples encountered so far.
 getTotalCount :: FormatM Int
 getTotalCount = sum <$> sequence [getSuccessCount, getFailureCount, getPendingCount]
@@ -207,10 +198,6 @@ getFinalCount = liftF (GetFinalCount id)
 -- | Get the list of accumulated failure messages.
 getFailureMessages :: FormatM [FailureRecord]
 getFailureMessages = liftF (GetFailureMessages id)
-
-getFailMessages :: FormatM [FailureRecord]
-{-# DEPRECATED getFailMessages "use `getFailureMessages` instead" #-}
-getFailMessages = getFailureMessages
 
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer
@@ -244,10 +231,6 @@ writeTransient s = liftF (WriteTransient s ())
 -- color.
 withFailureColor :: FormatM a -> FormatM a
 withFailureColor s = liftF (WithFailureColor s id)
-
-withFailColor :: FormatM a -> FormatM a
-{-# DEPRECATED withFailColor "use `withFailureColor` instead" #-}
-withFailColor = withFailureColor
 
 -- | Set output color to green, run given action, and finally restore the
 -- default color.
