@@ -1,3 +1,7 @@
+## Changes in next
+  - Better support for `--color=auto` on Windows
+  - Add support for spec hooks to `hspec-discover` (via `SpecHooks.hs`)
+
 ## Changes in 2.8.2
   - Add `mapSubject` and `ignoreSubject`
 
