@@ -160,6 +160,7 @@ test-suite spec
       Test.Hspec.Core.Example.LocationSpec
       Test.Hspec.Core.ExampleSpec
       Test.Hspec.Core.FailureReportSpec
+      Test.Hspec.Core.FormatSpec
       Test.Hspec.Core.Formatters.DiffSpec
       Test.Hspec.Core.Formatters.InternalSpec
       Test.Hspec.Core.Formatters.V1Spec
