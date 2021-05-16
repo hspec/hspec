@@ -29,14 +29,14 @@ spec = do
       configColorMode <$> parseOptions [] Nothing [] `shouldBe` Right ColorAuto
 
     context "with --help" $ do
-      let Left (code, output) = parseOptions [] Nothing ["--help"]
-          help = lines output
+      let Left (code, help) = Options.parseOptions defaultConfig "spec" [] Nothing ["--help"]
 
       it "returns ExitSuccess" $ do
         code `shouldBe` ExitSuccess
 
       it "prints help" $ do
-        help `shouldStartWith` ["Usage: my-spec [OPTION]..."]
+        expected <- readFile "help.txt"
+        help `shouldBe` expected
 
     context "with --color" $ do
       it "sets configColorMode to ColorAlways" $ do
