@@ -9,13 +9,14 @@ module Test.Hspec.Discover.Run (
 
 -- exported for testing
 , Spec(..)
-, importList
 , driverWithFormatter
 , moduleNameFromId
 , pathToModule
 , Tree(..)
 , Forest(..)
+, SpecForest(..)
 , Hook(..)
+, WithConfig(..)
 , discover
 ) where
 import           Control.Monad
@@ -39,6 +40,11 @@ instance IsString ShowS where
 data Spec = Spec String | Hook String [Spec]
   deriving (Eq, Show)
 
+data Specs = Specs {
+  specsConfig :: WithConfig
+, _specsList :: [Spec]
+}
+
 run :: [String] -> IO ()
 run args_ = do
   name <- getProgName
@@ -57,7 +63,7 @@ run args_ = do
       hPutStrLn stderr (usage name)
       exitFailure
 
-mkSpecModule :: FilePath -> Config -> Maybe [Spec] -> String
+mkSpecModule :: FilePath -> Config -> Maybe Specs -> String
 mkSpecModule src conf nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
   . showString "{-# LANGUAGE NoImplicitPrelude #-}\n"
@@ -71,11 +77,18 @@ mkSpecModule src conf nodes =
   . formatSpecs nodes
   ) "\n"
   where
+    config :: WithConfig
+    config = maybe WithoutConfig specsConfig nodes
+
     driver =
         case configNoMain conf of
-          False ->
-              showString "main :: IO ()\n"
-            . showString "main = hspec spec\n"
+          False -> case config of
+            WithConfig ->
+                showString "main :: IO ()\n"
+              . showString "main = SpecConfig.config defaultConfig >>= flip hspecWith spec\n"
+            WithoutConfig ->
+                showString "main :: IO ()\n"
+              . showString "main = hspec spec\n"
           True -> ""
 
 moduleName :: FilePath -> Config -> String
@@ -99,15 +112,19 @@ moduleNameFromId :: String -> String
 moduleNameFromId = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse
 
 -- | Generate imports for a list of specs.
-importList :: Maybe [Spec] -> ShowS
+importList :: Maybe Specs -> ShowS
 importList = foldr (.) "" . map f . maybe [] moduleNames
   where
     f :: String -> ShowS
     f spec = "import qualified " . showString spec . "\n"
 
-moduleNames :: [Spec] -> [String]
-moduleNames = fromForest
+moduleNames :: Specs -> [String]
+moduleNames (Specs config specs) = withConfig $ fromForest specs
   where
+    withConfig = case config of
+      WithConfig -> ("SpecConfig" :)
+      WithoutConfig -> id
+
     fromForest :: [Spec] -> [String]
     fromForest = concatMap fromTree
 
@@ -120,10 +137,10 @@ moduleNames = fromForest
 sequenceS :: [ShowS] -> ShowS
 sequenceS = foldr (.) "" . intersperse " >> "
 
-formatSpecs :: Maybe [Spec] -> ShowS
+formatSpecs :: Maybe Specs -> ShowS
 formatSpecs specs = case specs of
   Nothing -> "return ()"
-  Just xs -> fromForest xs
+  Just (Specs _ xs) -> fromForest xs
   where
     fromForest :: [Spec] -> ShowS
     fromForest = sequenceS . map fromTree
@@ -133,11 +150,11 @@ formatSpecs specs = case specs of
       Spec name -> "describe " . shows name . " " . showString name . "Spec.spec"
       Hook name forest -> "(" . showString name . ".hook $ " . fromForest forest . ")"
 
-findSpecs :: FilePath -> IO (Maybe [Spec])
+findSpecs :: FilePath -> IO (Maybe Specs)
 findSpecs = fmap (fmap toSpecs) . discover
 
-toSpecs :: Forest -> [Spec]
-toSpecs = fromForest []
+toSpecs :: SpecForest -> Specs
+toSpecs (SpecForest config specs) = Specs config $ fromForest [] specs
   where
     fromForest :: [String] -> Forest -> [Spec]
     fromForest names (Forest WithHook xs) = [Hook (mkModule ("SpecHook" : names)) $ concatMap (fromTree names) xs]
@@ -165,7 +182,13 @@ data Tree = Leaf String | Node String Forest
 data Forest = Forest Hook [Tree]
   deriving (Eq, Show)
 
+data SpecForest = SpecForest WithConfig Forest
+  deriving (Eq, Show)
+
 data Hook = WithHook | WithoutHook
+  deriving (Eq, Show)
+
+data WithConfig = WithConfig | WithoutConfig
   deriving (Eq, Show)
 
 sortKey :: Tree -> (String, Int)
@@ -173,36 +196,37 @@ sortKey tree = case tree of
   Leaf name -> (name, 0)
   Node name _ -> (name, 1)
 
-discover :: FilePath -> IO (Maybe Forest)
-discover src = (>>= filterSrc) <$> specForest dir
+discover :: FilePath -> IO (Maybe SpecForest)
+discover src = fmap (uncurry SpecForest) . (>>= filterSrc) <$> specForest dir
   where
-    filterSrc :: Forest -> Maybe Forest
-    filterSrc (Forest hook xs) = ensureForest hook $ maybe id (filter . (/=)) (toSpec file) xs
+    filterSrc :: (WithConfig, Forest) -> Maybe (WithConfig, Forest)
+    filterSrc (config, Forest hook xs) = ensureForest config hook $ maybe id (filter . (/=)) (toSpec file) xs
 
     (dir, file) = splitFileName src
 
-specForest :: FilePath -> IO (Maybe Forest)
+specForest :: FilePath -> IO (Maybe (WithConfig, Forest))
 specForest dir = do
   files <- listDirectory dir
-  hook <- mkHook dir files
-  ensureForest hook . sortNaturallyBy sortKey . catMaybes <$> mapM toSpecTree files
+
+  hook <- bool_ WithoutHook WithHook <$> hasFile "SpecHook.hs" dir files
+  config <- bool_ WithoutConfig WithConfig <$> hasFile "SpecConfig.hs" dir files
+
+  ensureForest config hook . sortNaturallyBy sortKey . catMaybes <$> mapM toSpecTree files
   where
     toSpecTree :: FilePath -> IO (Maybe Tree)
     toSpecTree name
       | isValidModuleName name = do
           doesDirectoryExist (dir </> name) `fallback` Nothing $ do
-            xs <- specForest (dir </> name)
+            xs <- fmap snd <$> specForest (dir </> name)
             return $ Node name <$> xs
       | otherwise = do
           doesFileExist (dir </> name) `fallback` Nothing $ do
             return $ toSpec name
 
-mkHook :: FilePath -> [FilePath] -> IO Hook
-mkHook dir files
-  | "SpecHook.hs" `elem` files = do
-    doesFileExist (dir </> "SpecHook.hs") `fallback` WithoutHook $ do
-      return WithHook
-  | otherwise = return WithoutHook
+hasFile :: FilePath -> FilePath -> [FilePath] -> IO Bool
+hasFile file dir files
+  | file `elem` files = doesFileExist (dir </> file)
+  | otherwise = return False
 
 fallback :: IO Bool -> a -> IO a -> IO a
 fallback p def action = do
@@ -221,9 +245,13 @@ toSpec file = Leaf <$> (spec >>= ensure isValidModuleName)
 ensure :: (a -> Bool) -> a -> Maybe a
 ensure p a = guard (p a) >> Just a
 
-ensureForest :: Hook -> [Tree] -> Maybe Forest
-ensureForest hook = fmap (Forest hook) . ensure (not . null)
+ensureForest :: WithConfig -> Hook -> [Tree] -> Maybe (WithConfig, Forest)
+ensureForest config hook = fmap ((,) config . Forest hook) . ensure (not . null)
 
 listDirectory :: FilePath -> IO [FilePath]
 listDirectory path = filter f <$> getDirectoryContents path
   where f filename = filename /= "." && filename /= ".."
+
+bool_ :: a -> a -> Bool -> a
+bool_ f _ False = f
+bool_ _ t True  = t

@@ -4,7 +4,6 @@ import           Helper
 import           Test.Mockery.Directory
 
 import           Test.Hspec.Discover.Run hiding (Spec)
-import qualified Test.Hspec.Discover.Run as Run
 
 spec :: Spec
 spec = do
@@ -61,6 +60,32 @@ spec = do
           ]
         ]
 
+    it "generates a test driver with config" $ do
+      touch "test/FooSpec.hs"
+      touch "test/Foo/Bar/BazSpec.hs"
+      touch "test/Foo/BarSpec.hs"
+      touch "test/SpecConfig.hs"
+      run ["test/Spec.hs", "", "out"]
+      readFile "out" `shouldReturn` unlines [
+          "{-# LINE 1 \"test/Spec.hs\" #-}"
+        , "{-# LANGUAGE NoImplicitPrelude #-}"
+        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
+        , "module Main where"
+        , "import qualified SpecConfig"
+        , "import qualified FooSpec"
+        , "import qualified Foo.BarSpec"
+        , "import qualified Foo.Bar.BazSpec"
+        , "import Test.Hspec.Discover"
+        , "main :: IO ()"
+        , "main = SpecConfig.config defaultConfig >>= flip hspecWith spec"
+        , "spec :: Spec"
+        , "spec = " ++ unwords [
+               "describe \"Foo\" FooSpec.spec"
+          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
+          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
+          ]
+        ]
+
     it "generates a test driver for an empty directory" $ do
       touch "test/Foo/Bar/Baz/.placeholder"
       run ["test/Spec.hs", "", "out"]
@@ -92,27 +117,20 @@ spec = do
     it "returns the module name of a fully qualified identifier" $ do
       moduleNameFromId "Some.Module.someId" `shouldBe` "Some.Module"
 
-  describe "importList" $ do
-    it "generates imports for a list of specs" $ do
-      importList (Just [Run.Spec "Foo", Run.Spec "Bar"]) "" `shouldBe` unlines [
-          "import qualified FooSpec"
-        , "import qualified BarSpec"
-        ]
-
   describe "discover" $ do
     it "discovers spec files" $ do
       inTempDirectory $ do
         touch "test/Spec.hs"
         touch "test/FooSpec.hs"
         touch "test/BarSpec.hs"
-        discover "test/Spec.hs" `shouldReturn` Just (Forest WithoutHook [Leaf "Bar", Leaf "Foo"])
+        discover "test/Spec.hs" `shouldReturn` Just (SpecForest WithoutConfig $ Forest WithoutHook [Leaf "Bar", Leaf "Foo"])
 
     it "discovers nested spec files" $ do
       inTempDirectory $ do
         touch "test/Spec.hs"
         touch "test/Foo/BarSpec.hs"
         touch "test/Foo/BazSpec.hs"
-        discover "test/Spec.hs" `shouldReturn` Just (Forest WithoutHook [Node "Foo" (Forest WithoutHook [Leaf "Bar", Leaf "Baz"])])
+        discover "test/Spec.hs" `shouldReturn` Just (SpecForest WithoutConfig $ Forest WithoutHook [Node "Foo" (Forest WithoutHook [Leaf "Bar", Leaf "Baz"])])
 
     it "discovers hooks" $ do
       inTempDirectory $ do
@@ -120,7 +138,7 @@ spec = do
         touch "test/FooSpec.hs"
         touch "test/BarSpec.hs"
         touch "test/SpecHook.hs"
-        discover "test/Spec.hs" `shouldReturn` Just (Forest WithHook [Leaf "Bar", Leaf "Foo"])
+        discover "test/Spec.hs" `shouldReturn` Just (SpecForest WithoutConfig $ Forest WithHook [Leaf "Bar", Leaf "Foo"])
 
     it "discovers nested hooks" $ do
       inTempDirectory $ do
@@ -128,7 +146,15 @@ spec = do
         touch "test/Foo/BarSpec.hs"
         touch "test/Foo/BazSpec.hs"
         touch "test/Foo/SpecHook.hs"
-        discover "test/Spec.hs" `shouldReturn` Just (Forest WithoutHook [Node "Foo" (Forest WithHook [Leaf "Bar", Leaf "Baz"])])
+        discover "test/Spec.hs" `shouldReturn` Just (SpecForest WithoutConfig $ Forest WithoutHook [Node "Foo" (Forest WithHook [Leaf "Bar", Leaf "Baz"])])
+
+    it "discovers spec config" $ do
+      inTempDirectory $ do
+        touch "test/Spec.hs"
+        touch "test/FooSpec.hs"
+        touch "test/BarSpec.hs"
+        touch "test/SpecConfig.hs"
+        discover "test/Spec.hs" `shouldReturn` Just (SpecForest WithConfig $ Forest WithoutHook [Leaf "Bar", Leaf "Foo"])
 
     it "ignores invalid module names" $ do
       inTempDirectory $ do
