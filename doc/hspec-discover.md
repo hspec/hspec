@@ -99,3 +99,55 @@ import qualified Spec
 main :: IO ()
 main = hspecWith defaultConfig {configFormatter = Just progress} Spec.spec
 ```
+
+## Spec hooks
+
+{% require 2.8.3 %}
+
+[Using hooks](writing-specs.html#using-hooks) shows how to use hooks to run
+custom `IO` actions before every spec item in a test module, or a subtree of
+spec items from that module.
+
+*Spec hooks* lift this concept to the level of test suites.
+
+`hspec-discover` looks for files that are named `SpecHook.hs`.  Hooks defined
+in these files are applied to the test suite as a whole, or to a subtree of it.
+
+ * Spec hooks have to be placed into the same directory as the test driver, or
+   into a subdirectory.
+ * The name of a spec hook file has to be `SpecHook.hs`; the module name has to
+   match the file name.
+ * Each spec hook file has to export a top-level binding `hook` of type `SpecWith a -> SpecWith b`.
+
+
+Here is an example that shows how this can be utilized to:
+
+ - Silence log messages for the whole test suite
+ - Open a database connection for all tests defined under `Database.Models`
+
+```haskell
+-- file test/Spec.hs
+{-# OPTIONS_GHC -F -pgmF hspec-discover #-}
+```
+
+```haskell
+-- file test/SpecHook.hs
+module SpecHook where
+
+import           Test.Hspec
+import           System.Logging.Facade.Sink
+
+hook :: Spec -> Spec
+hook = aroundAll_ (withLogSink $ \ _ -> return ())
+```
+
+```haskell
+-- file test/Database/Models/SpecHook.hs
+module Database.Models.SpecHook where
+
+import           Test.Hspec
+import           System.Logging.Facade.Sink
+
+hook :: SpecWith Connection -> Spec
+hook = around withConnection
+```
