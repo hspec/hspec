@@ -2,6 +2,7 @@
   - Better support for `--color=auto` on Windows
   - Add support for spec hooks to `hspec-discover` (via `SpecHooks.hs`)
   - Propagate exceptions from `Test.Hspec.Core.Format.monadic`
+  - Re-export `aroundAll_` from `Test.Hspec`
 
 ## Changes in 2.8.2
   - Add `mapSubject` and `ignoreSubject`
@@ -30,7 +31,7 @@
   - Add `exampleStarted` to `Formatter` API
 
 ## Changes in 2.7.9
-  - Re-export `aroundAll` and `aroundAllWith` in `Test.Hspec`
+  - Re-export `aroundAll` and `aroundAllWith` from `Test.Hspec`
 
 ## Changes in 2.7.8
   - Add `aroundAll` / `aroundAllWith` (see #255)
