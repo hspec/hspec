@@ -2,6 +2,7 @@
 {-# LANGUAGE ViewPatterns #-}
 module Test.Hspec.Core.Formatters.Diff (
   Diff (..)
+, smartDiff
 , diff
 #ifdef TEST
 , partition
@@ -10,6 +11,7 @@ module Test.Hspec.Core.Formatters.Diff (
 ) where
 
 import           Prelude ()
+import           Control.Arrow
 import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Char
@@ -17,6 +19,15 @@ import qualified Data.Algorithm.Diff as Diff
 
 data Diff = First String | Second String | Both String
   deriving (Eq, Show)
+
+smartDiff :: Bool -> String -> String -> [Diff]
+smartDiff unicode expected actual = case (readMaybe expected, readMaybe actual) of
+  (Just expected_, Just actual_) | shouldParseBack expected_ && shouldParseBack actual_ -> diff expected_ actual_
+  _ -> diff expected actual
+  where
+    shouldParseBack = (&&) <$> all isSafe <*> isMultiLine
+    isMultiLine = lines >>> length >>> (> 1)
+    isSafe c = (unicode || isAscii c) && (not $ isControl c) || c == '\n'
 
 diff :: String -> String -> [Diff]
 diff expected actual = map (toDiff . fmap concat) $ Diff.getGroupedDiff (partition expected) (partition actual)

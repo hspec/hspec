@@ -2,18 +2,34 @@
 module Test.Hspec.Core.Formatters.DiffSpec (spec) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat
-
-import           Helper
+import           Helper hiding (First)
 import           Data.Char
 
-import           Test.Hspec.Core.Formatters.Diff
+import           Test.Hspec.Core.Formatters.Diff as Diff
 
 dropQuotes :: String -> String
 dropQuotes = init . tail
 
 spec :: Spec
 spec = do
+  describe "smartDiff" $ do
+    it "parses back multi-line string literals" $ do
+      smartDiff True (show "foo\nbar\nbaz\n") (show "foo\nbaz\n") `shouldBe` [Both "foo\n", First "bar\n", Both "baz\n"]
+
+    it "does not parse back string literals that contain control characters" $ do
+      smartDiff True (show "foo\n\tbar\nbaz\n") (show "foo\n\tbaz\n") `shouldBe` [Both "\"foo\\n\\t", First "bar\\n", Both "baz\\n\""]
+
+    it "does not parse back string literals that span a single line" $ do
+      smartDiff True (show "foo\n") (show "bar\n") `shouldBe` [Both "\"", First "foo", Second "bar", Both "\\n\""]
+
+    context "when unicode is True" $ do
+      it "parses back string literals that contain unicode" $ do
+        smartDiff True (show "foo\n\955\nbaz\n") (show "foo\nbaz\n") `shouldBe` [Both "foo\n", First "\955\n", Both "baz\n"]
+
+    context "when unicode is False" $ do
+      it "does not parse back string literals that contain unicode" $ do
+        smartDiff False (show "foo\n\955\nbaz\n") (show "foo\nbaz\n") `shouldBe` [Both "\"foo\\n", First "\\955\\n", Both "baz\\n\""]
+
   describe "partition" $ do
     context "with a single shown Char" $ do
       it "never partitions a character escape" $ do

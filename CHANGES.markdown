@@ -1,3 +1,6 @@
+## Changes in next
+  - Show multi-line diffs for string literals
+
 ## Changes in 2.9.1
   - Recover unicode from `ExpectedButGot`
   - Preserve unicode in `To rerun use: --match ...` output
