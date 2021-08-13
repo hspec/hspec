@@ -64,11 +64,18 @@ module Test.Hspec.Core.Formatters.V2 (
 -- ** Helpers
 , formatLocation
 , formatException
+
+#ifdef TEST
+, Chunk(..)
+, ColorChunk(..)
+, indentChunks
+#endif
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (First)
 
+import           Data.Char
 import           Data.Maybe
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
@@ -277,7 +284,7 @@ defaultFailedFormatter = do
           let threshold = 2 :: Seconds
 
           mchunks <- liftIO $ if b
-            then timeout threshold (evaluate $ diff expected actual)
+            then timeout threshold (evaluate $ smartDiff unicode expected actual)
             else return Nothing
 
           case mchunks of
@@ -286,10 +293,6 @@ defaultFailedFormatter = do
             Nothing -> do
               writeDiff [First expected, Second actual] write write
           where
-            indented output text = case break (== '\n') text of
-              (xs, "") -> output xs
-              (xs, _ : ys) -> output (xs ++ "\n") >> write (indentation ++ "          ") >> indented output ys
-
             writeDiff chunks extra missing = do
               writeChunks "expected: " (expectedChunks chunks) extra
               writeChunks " but got: " (actualChunks chunks) missing
@@ -297,10 +300,12 @@ defaultFailedFormatter = do
             writeChunks :: String -> [Chunk] -> (String -> FormatM ()) -> FormatM ()
             writeChunks pre chunks colorize = do
               withFailColor $ write (indentation ++ pre)
-              forM_ chunks $ \ chunk -> case chunk of
-                Original a -> indented write a
-                Modified a -> indented colorize a
+              forM_ (indentChunks indentation_ chunks) $ \ chunk -> case chunk of
+                PlainChunk a -> write a
+                ColorChunk a -> colorize a
               writeLine ""
+              where
+                indentation_ = indentation ++ replicate (length pre) ' '
 
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
 
@@ -328,6 +333,37 @@ actualChunks = mapMaybe $ \ chunk -> case chunk of
   Both a -> Just $ Original a
   First _ -> Nothing
   Second a -> Just $ Modified a
+
+data ColorChunk = PlainChunk String | ColorChunk String
+  deriving (Eq, Show)
+
+indentChunks :: String -> [Chunk] -> [ColorChunk]
+indentChunks indentation = concatMap $ \ chunk -> case chunk of
+  Original y -> [indentOriginal indentation y]
+  Modified y -> indentModified indentation y
+
+indentOriginal :: String -> String -> ColorChunk
+indentOriginal indentation = PlainChunk . go
+  where
+    go text = case break (== '\n') text of
+      (xs, _ : ys) -> xs ++ "\n" ++ indentation ++ go ys
+      (xs, "") -> xs
+
+indentModified :: String -> String -> [ColorChunk]
+indentModified indentation = go
+  where
+    go text = case text of
+      "\n" -> [PlainChunk "\n", ColorChunk indentation]
+      '\n' : ys@('\n' : _) -> PlainChunk "\n" : ColorChunk indentation : go ys
+      _ -> case break (== '\n') text of
+        (xs, _ : ys) -> segment xs ++ PlainChunk ('\n' : indentation) : go ys
+        (xs, "") -> segment xs
+
+    segment xs = case span isSpace $ reverse xs of
+      ("", "") -> []
+      ("", _) -> [ColorChunk xs]
+      (_, "") -> [ColorChunk xs]
+      (ys, zs) -> [ColorChunk (reverse zs), ColorChunk (reverse ys)]
 
 defaultFooter :: FormatM ()
 defaultFooter = do

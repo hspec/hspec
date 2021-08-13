@@ -38,9 +38,42 @@ runSpecWith formatter = captureLines . H.hspecWithResult H.defaultConfig {H.conf
 
 spec :: Spec
 spec = do
-  let item = ItemDone ([], "") . Item Nothing 0 ""
+  describe "indentChunks" $ do
+    context "with Original" $ do
+      it "does not indent single-line input" $ do
+        indentChunks "  " [Original "foo"] `shouldBe` [PlainChunk "foo"]
+
+      it "indents multi-line input" $ do
+        indentChunks "  " [Original "foo\nbar\nbaz\n"] `shouldBe` [PlainChunk "foo\n  bar\n  baz\n  "]
+
+    context "with Modified" $ do
+      it "returns the empty list on empty input" $ do
+        indentChunks "  " [Modified ""] `shouldBe` []
+
+      it "does not indent single-line input" $ do
+        indentChunks "  " [Modified "foo"] `shouldBe` [ColorChunk "foo"]
+
+      it "indents multi-line input" $ do
+        indentChunks "  " [Modified "foo\nbar\nbaz\n"] `shouldBe` [ColorChunk "foo", PlainChunk "\n  ", ColorChunk "bar", PlainChunk "\n  ", ColorChunk "baz", PlainChunk "\n  "]
+
+      it "colorizes whitespace-only input" $ do
+        indentChunks "  " [Modified "  "] `shouldBe` [ColorChunk "  "]
+
+      it "colorizes whitespace-only lines" $ do
+        indentChunks "  " [Modified "foo\n  \n"] `shouldBe` [ColorChunk "foo", PlainChunk "\n  ", ColorChunk "  ", PlainChunk "\n  "]
+
+      it "colorizes whitespace at the end of the input" $ do
+        indentChunks "  " [Modified "foo\n  "] `shouldBe` [ColorChunk "foo", PlainChunk "\n  ", ColorChunk "  "]
+
+      it "splits off whitespace-only segments at the end of a line so that they get colorized" $ do
+        indentChunks "  " [Modified "foo  \n"] `shouldBe` [ColorChunk "foo", ColorChunk "  ", PlainChunk "\n  "]
+
+      context "with empty lines" $ do
+        it "colorizes indentation" $ do
+          indentChunks "  " [Original "foo", Modified "\n\n", Original "bar"] `shouldBe` [PlainChunk "foo", PlainChunk "\n", ColorChunk "  ", PlainChunk "\n", ColorChunk "  ", PlainChunk "bar"]
 
   describe "progress" $ do
+    let item = ItemDone ([], "") . Item Nothing 0 ""
     describe "formatterItemDone" $ do
       it "marks succeeding examples with ." $ do
         formatter <- formatterToFormat progress formatConfig
