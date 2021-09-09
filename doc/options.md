@@ -73,7 +73,7 @@ or
 
 {% require 2.4.3 %}
 
-Hspec reads options from the environment variabe `HSPEC_OPTIONS`:
+Hspec reads options from the environment variable `HSPEC_OPTIONS`:
 
 <pre><kbd class="shell-input">HSPEC_OPTIONS="--format=progress" cabal test --show-details=direct</kbd></pre>
 
