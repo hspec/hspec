@@ -326,7 +326,7 @@ defaultFailedFormatter = do
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
 
       writeLine ""
-      writeLine ("  To rerun use: --match " ++ show (joinPath path))
+      writeLine ("  To rerun use: --match " ++ ['"'] ++ joinPath path ++ ['"'])
       where
         indentation = "       "
         indent message = do
