@@ -55,6 +55,8 @@ jobs:
           cabal-version: ${{ matrix.cabal }}
           ghc-version: ${{ matrix.ghc }}
 
+      - run: ghc --version
+
       - uses: sol/run-haskell-tests@v1
 
       - name: Run regression tests
