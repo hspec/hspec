@@ -49,6 +49,7 @@ jobs:
           - 9.0.1
     steps:
       - uses: actions/checkout@v2
+        # - uses: haskell/actions/setup@v1
       - uses: haskell/actions/setup@08fca952ff0302e4ff725a413e48733e4c9b4127
         with:
           cabal-version: ${{ matrix.cabal }}
