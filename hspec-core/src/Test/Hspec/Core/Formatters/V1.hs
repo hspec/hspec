@@ -67,6 +67,7 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
+import           Text.Show.Unicode (ushow)
 import           Control.Monad.IO.Class
 import           Control.Exception
 
@@ -203,8 +204,8 @@ checks = specdoc {
         writeLine $ indentationFor ("" : nesting) ++ s
 
     formatProgress (current, total)
-      | total == 0 = show current
-      | otherwise  = show current ++ "/" ++ show total
+      | total == 0 = ushow current
+      | otherwise  = ushow current ++ "/" ++ ushow total
 
 specdoc :: Formatter
 specdoc = silent {
@@ -225,7 +226,7 @@ specdoc = silent {
 
 , exampleFailed = \(nesting, requirement) info _ -> withFailColor $ do
     n <- getFailCount
-    writeLine $ indentationFor nesting ++ requirement ++ " FAILED [" ++ show n ++ "]"
+    writeLine $ indentationFor nesting ++ requirement ++ " FAILED [" ++ ushow n ++ "]"
     forM_ (lines info) $ \ s ->
       writeLine $ indentationFor ("" : nesting) ++ s
 
@@ -241,8 +242,8 @@ specdoc = silent {
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
     formatProgress (current, total)
-      | total == 0 = show current
-      | otherwise  = show current ++ "/" ++ show total
+      | total == 0 = ushow current
+      | otherwise  = ushow current ++ "/" ++ ushow total
 
 
 progress :: Formatter
@@ -275,14 +276,14 @@ defaultFailedFormatter = do
       formatFailure x
       writeLine ""
 
-    write "Randomized with seed " >> usedSeed >>= writeLine . show
+    write "Randomized with seed " >> usedSeed >>= writeLine . ushow
     writeLine ""
   where
     formatFailure :: (Int, FailureRecord) -> FormatM ()
     formatFailure (n, FailureRecord mLoc path reason) = do
       forM_ mLoc $ \loc -> do
         withInfoColor $ writeLine (formatLoc loc)
-      write ("  " ++ show n ++ ") ")
+      write ("  " ++ ushow n ++ ") ")
       writeLine (formatRequirement path)
       case reason of
         NoReason -> return ()
@@ -326,13 +327,13 @@ defaultFailedFormatter = do
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
 
       writeLine ""
-      writeLine ("  To rerun use: --match " ++ show (joinPath path))
+      writeLine ("  To rerun use: --match " ++ ushow (joinPath path))
       where
         indentation = "       "
         indent message = do
           forM_ (lines message) $ \line -> do
             writeLine (indentation ++ line)
-        formatLoc (Location file line column) = "  " ++ file ++ ":" ++ show line ++ ":" ++ show column ++ ": "
+        formatLoc (Location file line column) = "  " ++ file ++ ":" ++ ushow line ++ ":" ++ ushow column ++ ": "
 
 defaultFooter :: FormatM ()
 defaultFooter = do
@@ -349,7 +350,7 @@ defaultFooter = do
     output =
          pluralize total   "example"
       ++ ", " ++ pluralize fails "failure"
-      ++ if pending == 0 then "" else ", " ++ show pending ++ " pending"
+      ++ if pending == 0 then "" else ", " ++ ushow pending ++ " pending"
     c | fails /= 0   = withFailColor
       | pending /= 0 = withPendingColor
       | otherwise    = withSuccessColor

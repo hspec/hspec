@@ -37,6 +37,7 @@ dependencies:
   - call-stack
   - directory
   - filepath
+  - unicode-show
 
   - stm >= 2.2 # for asyc
   - array # for Diff
