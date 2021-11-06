@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP #-}
 module Test.Hspec.Core.Clock (
   Seconds(..)
 , toMilliseconds
@@ -13,9 +14,14 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Text.Printf
-import           System.Clock
 import           Control.Concurrent
 import qualified System.Timeout as System
+
+#if MIN_VERSION_base(4,11,0)
+import qualified GHC.Clock as GHC
+#else
+import           Data.Time.Clock.POSIX
+#endif
 
 newtype Seconds = Seconds Double
   deriving (Eq, Show, Ord, Num, Fractional, PrintfArg)
@@ -27,9 +33,13 @@ toMicroseconds :: Seconds -> Int
 toMicroseconds (Seconds s) = floor (s * 1000000)
 
 getMonotonicTime :: IO Seconds
+#if MIN_VERSION_base(4,11,0)
+getMonotonicTime = Seconds <$> GHC.getMonotonicTime
+#else
 getMonotonicTime = do
-  t <- getTime Monotonic
-  return $ Seconds ((fromIntegral . toNanoSecs $ t) / 1000000000)
+  t <- getPOSIXTime
+  return $ Seconds (realToFrac t)
+#endif
 
 measure :: IO a -> IO (Seconds, a)
 measure action = do

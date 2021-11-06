@@ -40,7 +40,6 @@ library
     , array
     , base >=4.5.0.0 && <5
     , call-stack >=0.2.0
-    , clock >=0.7.1
     , deepseq
     , directory
     , filepath
@@ -49,6 +48,7 @@ library
     , random
     , setenv
     , tf-random
+    , time
     , transformers >=0.2.2.0
   exposed-modules:
       Test.Hspec.Core.Spec
@@ -125,7 +125,6 @@ test-suite spec
     , base >=4.5.0.0 && <5
     , base-orphans
     , call-stack >=0.2.0
-    , clock >=0.7.1
     , deepseq
     , directory
     , filepath
@@ -138,6 +137,7 @@ test-suite spec
     , silently >=1.2.4
     , temporary
     , tf-random
+    , time
     , transformers >=0.2.2.0
   build-tool-depends:
       hspec-meta:hspec-meta-discover
