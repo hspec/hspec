@@ -1,2 +1,2 @@
-:set -DTEST -isrc -ivendor -itest -optP-include -optPdist/build/autogen/cabal_macros.h
+:set -DTEST -isrc -ivendor -itest
 :set -fwarn-implicit-prelude
