@@ -1,3 +1,6 @@
+## Changes in next
+  - Do not depend on `clock`
+
 ## Changes in 2.10.1
   - Support for GHC 9.4.1
   - Generated modules now include an export list
