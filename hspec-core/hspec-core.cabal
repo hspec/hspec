@@ -62,6 +62,7 @@ library
       Test.Hspec.Core.Util
   other-modules:
       GetOpt.Declarative
+      GetOpt.Declarative.Environment
       GetOpt.Declarative.Interpret
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
@@ -124,6 +125,7 @@ test-suite spec
       hspec-meta:hspec-meta-discover
   other-modules:
       GetOpt.Declarative
+      GetOpt.Declarative.Environment
       GetOpt.Declarative.Interpret
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
@@ -158,6 +160,7 @@ test-suite spec
       Control.Concurrent.Async
       Data.Algorithm.Diff
       All
+      GetOpt.Declarative.EnvironmentSpec
       GetOpt.Declarative.UtilSpec
       Helper
       Mock

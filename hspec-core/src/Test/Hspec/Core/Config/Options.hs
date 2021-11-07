@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Test.Hspec.Core.Config.Options (
   ConfigFile
 , envVarName
@@ -42,17 +43,31 @@ ignoreConfigFile config args = do
       Right c -> return (configIgnoreConfigFile c)
       _ -> return False
 
-parseOptions :: Config -> String -> [ConfigFile] -> Maybe EnvVar -> [String] -> Either (ExitCode, String) Config
-parseOptions config prog configFiles envVar args = do
+parseOptions :: Config -> String -> [ConfigFile] -> Maybe EnvVar -> [(String, String)] -> [String] -> Either (ExitCode, String) ([String], Config)
+parseOptions config prog configFiles envVar env args = do
       foldM (parseFileOptions prog) config configFiles
   >>= maybe return (parseEnvVarOptions prog) envVar
-  >>= parseCommandLineOptions prog args
+  >>= parseEnvironmentOptions env
+  >>= traverseTuple (parseCommandLineOptions prog args)
+
+traverseTuple :: Applicative f => (a -> f b) -> (c, a) -> f (c, b)
+#if MIN_VERSION_base(4,7,0)
+traverseTuple = traverse
+#else
+traverseTuple f (c, a) = (,) c <$> f a
+#endif
 
 parseCommandLineOptions :: String -> [String] -> Config -> Either (ExitCode, String) Config
 parseCommandLineOptions prog args config = case Declarative.parseCommandLineOptions commandLineOptions prog args config of
   Success c -> Right c
   Help message -> Left (ExitSuccess, message)
   Failure message -> Left (ExitFailure 1, message)
+
+parseEnvironmentOptions :: [(String, String)] -> Config -> Either (ExitCode, String) ([String], Config)
+parseEnvironmentOptions env config = case Declarative.parseEnvironmentOptions "HSPEC" env config (concatMap snd commandLineOptions) of
+  (warnings, c) -> Right (map formatWarning warnings, c)
+  where
+    formatWarning (Declarative.InvalidValue name value) = "invalid value `" ++ value ++ "' for environment variable " ++ name
 
 parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
 parseFileOptions prog config (name, args) =
