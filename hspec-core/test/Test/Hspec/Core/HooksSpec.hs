@@ -23,7 +23,7 @@ evalSpec = fmap normalize . (H.specToEvalForest H.defaultConfig >=> runFormatter
     config = EvalConfig {
       evalConfigFormat = \ _ -> return ()
     , evalConfigConcurrentJobs = 1
-    , evalConfigFastFail = False
+    , evalConfigFailFast = False
     }
     normalize = map $ \ (path, item) -> (pathToList path, normalizeItem item)
     normalizeItem item = item {

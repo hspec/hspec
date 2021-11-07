@@ -234,7 +234,7 @@ runSpec_ config spec = do
       evalConfig = EvalConfig {
         evalConfigFormat = format
       , evalConfigConcurrentJobs = concurrentJobs
-      , evalConfigFastFail = configFastFail config
+      , evalConfigFailFast = configFailFast config
       }
     runFormatter evalConfig filteredSpec
 

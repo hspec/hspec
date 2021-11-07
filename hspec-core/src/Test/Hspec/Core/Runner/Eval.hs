@@ -51,7 +51,7 @@ type MonadIO m = (Monad m, M.MonadIO m)
 data EvalConfig = EvalConfig {
   evalConfigFormat :: Format
 , evalConfigConcurrentJobs :: Int
-, evalConfigFastFail :: Bool
+, evalConfigFailFast :: Bool
 }
 
 data Env = Env {
@@ -210,7 +210,7 @@ replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
 run :: [RunningTree IO] -> EvalM ()
 run specs = do
-  fastFail <- asks (evalConfigFastFail . envConfig)
+  fastFail <- asks (evalConfigFailFast . envConfig)
   sequenceActions fastFail (concatMap foldSpec specs)
   where
     foldSpec :: RunningTree IO -> [EvalM ()]
