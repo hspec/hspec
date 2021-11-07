@@ -24,7 +24,7 @@ import           System.IO.Error
 import           System.Exit
 import           System.FilePath
 import           System.Directory
-import           System.Environment (getProgName)
+import           System.Environment (getProgName, getEnvironment)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
@@ -118,10 +118,13 @@ readConfig opts_ args = do
     case ignore of
       True -> return []
       False -> readConfigFiles
-  envVar <- fmap words <$> lookupEnv envVarName
-  case parseOptions opts_ prog configFiles envVar args of
+  env <- getEnvironment
+  let envVar = words <$> lookup envVarName env
+  case parseOptions opts_ prog configFiles envVar env args of
     Left (err, msg) -> exitWithMessage err msg
-    Right opts -> return opts
+    Right (warnings, opts) -> do
+      mapM_ (hPutStrLn stderr) warnings
+      return opts
 
 readFailureReportOnRerun :: Config -> IO (Maybe FailureReport)
 readFailureReportOnRerun config
