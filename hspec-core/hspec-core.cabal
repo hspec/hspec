@@ -31,7 +31,7 @@ library
   hs-source-dirs:
       src
       vendor
-  ghc-options: -Wall
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
     , QuickCheck >=2.13.1
@@ -97,7 +97,7 @@ test-suite spec
       src
       vendor
       test
-  ghc-options: -Wall
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   cpp-options: -DTEST
   build-depends:
       HUnit ==1.6.*
