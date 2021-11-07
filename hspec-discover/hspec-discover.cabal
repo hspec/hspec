@@ -31,7 +31,7 @@ source-repository head
 library
   hs-source-dirs:
       src
-  ghc-options: -Wall
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       base ==4.*
     , directory
@@ -46,7 +46,7 @@ library
   default-language: Haskell2010
 
 executable hspec-discover
-  ghc-options: -Wall
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   hs-source-dirs:
       driver
   main-is: hspec-discover.hs
@@ -61,7 +61,7 @@ executable hspec-discover
 
 test-suite spec
   type: exitcode-stdio-1.0
-  ghc-options: -Wall
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   hs-source-dirs:
       test
   main-is: Spec.hs

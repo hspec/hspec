@@ -19,7 +19,7 @@ github: hspec/hspec/hspec-discover
 extra-source-files:
   - version.yaml
 
-ghc-options: -Wall
+ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
 dependencies:
   - base == 4.*
