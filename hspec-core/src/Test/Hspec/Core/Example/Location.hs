@@ -76,7 +76,11 @@ locationFromIOException e = case fromException e of
 
 fromPatternMatchFailureInDoExpression :: String -> Maybe Location
 fromPatternMatchFailureInDoExpression input =
+#if MIN_VERSION_base(4,16,0)
+  stripPrefix "Pattern match failure in 'do' block at " input >>= parseSourceSpan
+#else
   stripPrefix "Pattern match failure in do expression at " input >>= parseSourceSpan
+#endif
 
 parseCallStack :: String -> Maybe Location
 parseCallStack input = case reverse (lines input) of
