@@ -1,3 +1,6 @@
+## Changes in next
+  - Allow to extend the list of available formatters for --format
+
 ## Changes in 2.8.4
   - Better support for GHC 9.2.1
   - Support for setting options by individual environment variables, e.g.
