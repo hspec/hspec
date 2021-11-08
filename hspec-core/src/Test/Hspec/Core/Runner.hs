@@ -230,7 +230,7 @@ runSpec_ config spec = do
       , formatConfigExpectedTotalCount = numberOfItems
       }
 
-      formatter = fromMaybe (V2.formatterToFormat V2.specdoc) (configFormat config <|> V1.formatterToFormat <$> configFormatter config)
+      formatter = fromMaybe (V2.formatterToFormat V2.checks) (configFormat config <|> V1.formatterToFormat <$> configFormatter config)
 
     format <- maybe id printSlowSpecItems (configPrintSlowItems config) <$> formatter formatConfig
 
