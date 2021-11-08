@@ -36,6 +36,7 @@ module Test.Hspec.Core.Spec (
 
 -- * Internal representation of a spec tree
 , module Test.Hspec.Core.Tree
+, focusForest
 ) where
 
 import           Prelude ()

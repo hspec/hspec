@@ -18,7 +18,7 @@ evalSpec_ :: H.Spec -> IO ()
 evalSpec_ = void . evalSpec
 
 evalSpec :: H.Spec -> IO [([String], Item)]
-evalSpec = fmap normalize . (H.specToEvalForest H.defaultConfig >=> runFormatter config)
+evalSpec = fmap normalize . (fmap (H.specToEvalForest H.defaultConfig) . H.runSpecM >=> runFormatter config)
   where
     config = EvalConfig {
       evalConfigFormat = \ _ -> return ()
