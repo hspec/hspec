@@ -33,7 +33,7 @@ library
       src
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
-      base ==4.*
+      base >=4.5.0.0 && <5
     , directory
     , filepath
   exposed: False
@@ -51,7 +51,7 @@ executable hspec-discover
       driver
   main-is: hspec-discover.hs
   build-depends:
-      base ==4.*
+      base >=4.5.0.0 && <5
     , directory
     , filepath
     , hspec-discover
@@ -73,7 +73,7 @@ test-suite spec
       Paths_hspec_discover
   build-depends:
       QuickCheck >=2.7
-    , base ==4.*
+    , base >=4.5.0.0 && <5
     , directory
     , filepath
     , hspec-discover
