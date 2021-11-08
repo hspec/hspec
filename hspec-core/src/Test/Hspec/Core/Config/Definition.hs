@@ -58,6 +58,7 @@ data Config = Config {
 , configColorMode :: ColorMode
 , configDiff :: Bool
 , configTimes :: Bool
+, configAvailableFormatters :: [(String, FormatConfig -> IO Format)]
 , configFormat :: Maybe (FormatConfig -> IO Format)
 , configFormatter :: Maybe V1.Formatter -- ^ deprecated, use `configFormat` instead
 , configHtmlOutput :: Bool
@@ -88,6 +89,13 @@ defaultConfig = Config {
 , configColorMode = ColorAuto
 , configDiff = True
 , configTimes = False
+, configAvailableFormatters = map (fmap V2.formatterToFormat) [
+    ("checks", V2.checks)
+  , ("specdoc", V2.specdoc)
+  , ("progress", V2.progress)
+  , ("failed-examples", V2.failed_examples)
+  , ("silent", V2.silent)
+  ]
 , configFormat = Nothing
 , configFormatter = Nothing
 , configHtmlOutput = False
@@ -112,8 +120,8 @@ undocumented opt = opt {optionDocumented = False}
 argument :: String -> (String -> Maybe a) -> (a -> Config -> Config) -> OptionSetter Config
 argument name parser setter = Arg name $ \ input c -> flip setter c <$> parser input
 
-formatterOptions :: [Option Config]
-formatterOptions = [
+formatterOptions :: [(String, FormatConfig -> IO Format)] -> [Option Config]
+formatterOptions formatters = [
     mkOption "format" (Just 'f') (argument "FORMATTER" readFormatter setFormatter) helpForFormat
   , mkFlag "color" setColor "colorize the output"
   , mkFlag "diff" setDiff "show colorized diffs"
@@ -127,15 +135,6 @@ formatterOptions = [
   ]
   where
     setHtml config = config {configHtmlOutput = True}
-
-    formatters :: [(String, FormatConfig -> IO Format)]
-    formatters = map (fmap V2.formatterToFormat) [
-        ("checks", V2.checks)
-      , ("specdoc", V2.specdoc)
-      , ("progress", V2.progress)
-      , ("failed-examples", V2.failed_examples)
-      , ("silent", V2.silent)
-      ]
 
     helpForFormat :: String
     helpForFormat = "use a custom formatter; this can be one of " ++ (formatOrList $ map fst formatters)

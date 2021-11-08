@@ -11,6 +11,7 @@ import           Test.Hspec.Core.Compat
 
 import           System.Exit
 
+import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Config.Definition
 import qualified GetOpt.Declarative as Declarative
 import           GetOpt.Declarative.Interpret (parse, interpretOptions, ParseResult(..))
@@ -21,15 +22,15 @@ type EnvVar = [String]
 envVarName :: String
 envVarName = "HSPEC_OPTIONS"
 
-commandLineOptions :: [(String, [Declarative.Option Config])]
-commandLineOptions =
+commandLineOptions :: [(String, FormatConfig -> IO Format)] -> [(String, [Declarative.Option Config])]
+commandLineOptions formatters =
     ("OPTIONS", commandLineOnlyOptions)
-  : otherOptions
+  : otherOptions formatters
 
-otherOptions :: [(String, [Declarative.Option Config])]
-otherOptions = [
+otherOptions :: [(String, FormatConfig -> IO Format)] -> [(String, [Declarative.Option Config])]
+otherOptions formatters = [
     ("RUNNER OPTIONS", runnerOptions)
-  , ("FORMATTER OPTIONS", formatterOptions)
+  , ("FORMATTER OPTIONS", formatterOptions formatters)
   , ("OPTIONS FOR QUICKCHECK", quickCheckOptions)
   , ("OPTIONS FOR SMALLCHECK", smallCheckOptions)
   ]
@@ -58,15 +59,18 @@ traverseTuple f (c, a) = (,) c <$> f a
 #endif
 
 parseCommandLineOptions :: String -> [String] -> Config -> Either (ExitCode, String) Config
-parseCommandLineOptions prog args config = case Declarative.parseCommandLineOptions commandLineOptions prog args config of
+parseCommandLineOptions prog args config = case Declarative.parseCommandLineOptions (commandLineOptions formatters) prog args config of
   Success c -> Right c
   Help message -> Left (ExitSuccess, message)
   Failure message -> Left (ExitFailure 1, message)
+  where
+    formatters = configAvailableFormatters config
 
 parseEnvironmentOptions :: [(String, String)] -> Config -> Either (ExitCode, String) ([String], Config)
-parseEnvironmentOptions env config = case Declarative.parseEnvironmentOptions "HSPEC" env config (concatMap snd commandLineOptions) of
+parseEnvironmentOptions env config = case Declarative.parseEnvironmentOptions "HSPEC" env config (concatMap snd $ commandLineOptions formatters) of
   (warnings, c) -> Right (map formatWarning warnings, c)
   where
+    formatters = configAvailableFormatters config
     formatWarning (Declarative.InvalidValue name value) = "invalid value `" ++ value ++ "' for environment variable " ++ name
 
 parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
@@ -83,7 +87,9 @@ parseOtherOptions prog source args config = case parse (interpretOptions options
   Left err -> failure err
   where
     options :: [Declarative.Option Config]
-    options = filter Declarative.optionDocumented $ concatMap snd otherOptions
+    options = filter Declarative.optionDocumented $ concatMap snd (otherOptions formatters)
+
+    formatters = configAvailableFormatters config
 
     failure err = Left (ExitFailure 1, prog ++ ": " ++ message)
       where
