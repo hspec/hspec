@@ -43,6 +43,7 @@ import           Data.Maybe
 import           System.IO
 import           System.Environment (getArgs, withArgs)
 import           System.Exit
+import           Control.Arrow
 import qualified Control.Exception as E
 import           System.Random
 import           Control.Monad.ST
@@ -155,7 +156,10 @@ hspecWithResult config spec = getArgs >>= readConfig config >>= doNotLeakCommand
 --   >>= `evaluateSummary`
 -- @
 runSpec :: Spec -> Config -> IO Summary
-runSpec spec c_ = do
+runSpec spec config = runSpecM spec >>= runSpecForest config
+
+runSpecForest :: Config -> [SpecTree ()] -> IO Summary
+runSpecForest c_ spec = do
   oldFailureReport <- readFailureReportOnRerun c_
 
   c <- ensureSeed (applyFailureReport oldFailureReport c_)
@@ -172,12 +176,15 @@ runSpec spec c_ = do
     then rerunAllMode c oldFailureReport
     else normalMode c
   where
-    normalMode c = runSpec_ c spec
+    normalMode c = runSpecForest_ c spec
     rerunAllMode c oldFailureReport = do
-      summary <- runSpec_ c spec
+      summary <- runSpecForest_ c spec
       if rerunAll c oldFailureReport summary
-        then runSpec spec c_
+        then runSpecForest c_ spec
         else return summary
+
+runSpecForest_ :: Config -> [SpecTree ()] -> IO Summary
+runSpecForest_ config spec = runEvalTree config (specToEvalForest config spec)
 
 failFocused :: Item a -> Item a
 failFocused item = item {itemExample = example}
@@ -192,23 +199,22 @@ failFocused item = item {itemExample = example}
             Failure{} -> status
       | otherwise = itemExample item
 
-failFocusedItems :: Config -> Spec -> Spec
+failFocusedItems :: Config -> [SpecTree a] -> [SpecTree a]
 failFocusedItems config spec
-  | configFailOnFocused config = mapSpecItem_ failFocused spec
+  | configFailOnFocused config = map (fmap failFocused) spec
   | otherwise = spec
 
-focusSpec :: Config -> Spec -> Spec
+focusSpec :: Config -> [SpecTree a] -> [SpecTree a]
 focusSpec config spec
   | configFocusedOnly config = spec
-  | otherwise = focus spec
+  | otherwise = focusForest spec
 
-runSpec_ :: Config -> Spec -> IO Summary
-runSpec_ config spec = do
-  filteredSpec <- specToEvalForest config spec
+runEvalTree :: Config -> [EvalTree] -> IO Summary
+runEvalTree config spec = do
   let
       seed = (fromJust . configQuickCheckSeed) config
       qcArgs = configQuickCheckArgs config
-      !numberOfItems = countSpecItems filteredSpec
+      !numberOfItems = countSpecItems spec
 
   concurrentJobs <- case configConcurrentJobs config of
     Nothing -> getDefaultConcurrentJobs
@@ -241,7 +247,7 @@ runSpec_ config spec = do
       , evalConfigConcurrentJobs = concurrentJobs
       , evalConfigFailFast = configFailFast config
       }
-    runFormatter evalConfig filteredSpec
+    runFormatter evalConfig spec
 
   let failures = filter resultItemIsFailure results
 
@@ -252,16 +258,21 @@ runSpec_ config spec = do
   , summaryFailures = length failures
   }
 
-specToEvalForest :: Config -> Spec -> IO [EvalTree]
-specToEvalForest config spec = do
-  let
+specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
+specToEvalForest config =
+      failFocusedItems config
+  >>> focusSpec config
+  >>> toEvalForest params
+  >>> applyDryRun config
+  >>> applyFilterPredicates config
+  >>> pruneForest
+  >>> randomize
+  where
     seed = (fromJust . configQuickCheckSeed) config
-    focusedSpec = focusSpec config (failFocusedItems config spec)
     params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
     randomize
       | configRandomize config = randomizeForest seed
       | otherwise = id
-  randomize . pruneForest . applyFilterPredicates config . applyDryRun config . toEvalForest params <$> runSpecM focusedSpec
 
 toEvalForest :: Params -> [SpecTree ()] -> [EvalTree]
 toEvalForest params = bimapForest withUnit toEvalItem . filterForest itemIsFocused
