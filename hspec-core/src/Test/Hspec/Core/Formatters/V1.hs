@@ -65,7 +65,7 @@ import           Test.Hspec.Core.Compat hiding (First)
 import           Data.Maybe
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
-import           Test.Hspec.Core.Spec (Location(..))
+import           Test.Hspec.Core.Example (Location(..))
 import           Text.Printf
 import           Control.Monad.IO.Class
 import           Control.Exception
