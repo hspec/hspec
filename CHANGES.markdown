@@ -26,7 +26,7 @@
 
 ## Changes in 2.8.3
   - Better support for `--color=auto` on Windows
-  - Add support for spec hooks to `hspec-discover` (via `SpecHooks.hs`)
+  - Add support for spec hooks to `hspec-discover` (via `SpecHook.hs`)
   - Propagate exceptions from `Test.Hspec.Core.Format.monadic`
   - Re-export `aroundAll_` from `Test.Hspec`
 

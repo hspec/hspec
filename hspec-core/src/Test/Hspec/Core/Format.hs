@@ -25,8 +25,7 @@ import           Control.Concurrent.Async (async)
 import qualified Control.Concurrent.Async as Async
 import           Control.Monad.IO.Class
 
-import           Test.Hspec.Core.Spec (Progress, Location(..))
-import           Test.Hspec.Core.Example (FailureReason(..))
+import           Test.Hspec.Core.Example (Progress, Location(..), FailureReason(..))
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Clock (Seconds(..))
 
