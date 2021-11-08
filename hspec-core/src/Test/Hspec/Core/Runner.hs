@@ -5,8 +5,33 @@
 -- Stability: provisional
 module Test.Hspec.Core.Runner (
 -- * Running a spec
+{- |
+To run a spec `hspec` performs a sequence of steps:
+
+1. Evaluate a `Spec` to a forest of `SpecTree`s
+1. Read config values from the command-line, config files and the process environment
+1. Execute each spec item of the forest and report results to `stdout`
+1. Exit with `exitFailure` if at least on spec item fails
+
+The four primitives `evalSpec`, `readConfig`, `runSpecForest` and
+`evaluateSummary` each perform one of these steps respectively.
+
+`hspec` is defined in terms of these primitives:
+
+@
+hspec = `evalSpec` `defaultConfig` >=> \ (config, spec) ->
+      `getArgs`
+  >>= `readConfig` config
+  >>= `withArgs` [] . `runSpecForest` spec
+  >>= `evaluateSummary`
+@
+
+If you need more control over how a spec is run use these primitives individually.
+
+-}
   hspec
-, runSpec
+, evalSpec
+, runSpecForest
 
 -- * Config
 , Config (..)
@@ -23,10 +48,11 @@ module Test.Hspec.Core.Runner (
 , evaluateSummary
 
 -- * Legacy
--- | The following primitives are deprecated.  Use `runSpec` instead.
+-- | The following primitives are deprecated.  Use `runSpecForest` instead.
 , hspecWith
 , hspecResult
 , hspecWithResult
+, runSpec
 
 #ifdef TEST
 , rerunAll
@@ -95,14 +121,28 @@ applyDryRun c
 -- Exit with `exitFailure` if at least one spec item fails.
 --
 -- /Note/: `hspec` handles command-line options and reads config files.  This
--- is not always desired.  Use `runSpec` if you need more control over these
--- aspects.
+-- is not always desirable.  Use `evalSpec` and `runSpecForest` if you need
+-- more control over these aspects.
 hspec :: Spec -> IO ()
-hspec spec =
+hspec = evalSpec defaultConfig >=> \ (config, spec) ->
       getArgs
-  >>= readConfig defaultConfig
-  >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+  >>= readConfig config
+  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
   >>= evaluateSummary
+
+-- |
+-- Evaluate a `Spec` to a forest of `SpecTree`s.  This does not execute any
+-- spec items, but it does run any IO that is used during spec construction
+-- time (see `runIO`).
+--
+-- A `Spec` may modify a `Config` through `modifyConfig`.  These modifications
+-- are applied to the given config (the first argument).
+--
+-- @since 2.10.0
+evalSpec :: Config -> SpecWith a -> IO (Config, [SpecTree a])
+evalSpec config spec = do
+  (Endo f, forest) <- runSpecM spec
+  return (f config, forest)
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
@@ -116,7 +156,7 @@ ensureSeed c = case configQuickCheckSeed c of
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Spec -> IO ()
-hspecWith config spec = getArgs >>= readConfig config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec >>= evaluateSummary
+hspecWith defaults = hspecWithResult defaults >=> evaluateSummary
 
 -- | `True` if the given `Summary` indicates that there were no
 -- failures, `False` otherwise.
@@ -134,7 +174,7 @@ evaluateSummary summary = unless (isSuccess summary) exitFailure
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecResult :: Spec -> IO Summary
-hspecResult spec = getArgs >>= readConfig defaultConfig >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+hspecResult = hspecWithResult defaultConfig
 
 -- | Run given spec with custom options and returns a summary of the test run.
 --
@@ -142,24 +182,32 @@ hspecResult spec = getArgs >>= readConfig defaultConfig >>= doNotLeakCommandLine
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult config spec = getArgs >>= readConfig config >>= doNotLeakCommandLineArgumentsToExamples . runSpec spec
+hspecWithResult defaults = evalSpec defaults >=> \ (config, spec) ->
+      getArgs
+  >>= readConfig config
+  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
 
 -- |
--- `runSpec` is the most basic primitive to run a spec. `hspec` is defined in
--- terms of @runSpec@:
+-- /Note/: `runSpec` is deprecated. It ignores any modifications applied
+-- through `modifyConfig`.  Use `evalSpec` and `runSpecForest` instead.
+runSpec :: Spec -> Config -> IO Summary
+runSpec spec config = evalSpec defaultConfig spec >>= flip runSpecForest config . snd
+
+-- |
+-- `runSpecForest` is the most basic primitive to run a spec. `hspec` is
+-- defined in terms of @runSpecForest@:
 --
 -- @
--- hspec spec =
+-- hspec = `evalSpec` `defaultConfig` >=> \ (config, spec) ->
 --       `getArgs`
---   >>= `readConfig` `defaultConfig`
---   >>= `withArgs` [] . runSpec spec
+--   >>= `readConfig` config
+--   >>= `withArgs` [] . runSpecForest spec
 --   >>= `evaluateSummary`
 -- @
-runSpec :: Spec -> Config -> IO Summary
-runSpec spec config = runSpecM spec >>= runSpecForest config
-
-runSpecForest :: Config -> [SpecTree ()] -> IO Summary
-runSpecForest c_ spec = do
+--
+-- @since 2.10.0
+runSpecForest :: [SpecTree ()] -> Config -> IO Summary
+runSpecForest spec c_ = do
   oldFailureReport <- readFailureReportOnRerun c_
 
   c <- ensureSeed (applyFailureReport oldFailureReport c_)
@@ -180,7 +228,7 @@ runSpecForest c_ spec = do
     rerunAllMode c oldFailureReport = do
       summary <- runSpecForest_ c spec
       if rerunAll c oldFailureReport summary
-        then runSpecForest c_ spec
+        then runSpecForest spec c_
         else return summary
 
 runSpecForest_ :: Config -> [SpecTree ()] -> IO Summary
