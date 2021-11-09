@@ -178,7 +178,7 @@ spec = do
         , "2 examples, 0 failures"
         ]
 
-    it "displays a row for each successfull, failed, or pending example" $ do
+    it "displays a row for each successful, failed, or pending example" $ do
       r <- runSpec testSpec
       r `shouldSatisfy` any (== "  fail 1 FAILED [1]")
       r `shouldSatisfy` any (== "  success")
