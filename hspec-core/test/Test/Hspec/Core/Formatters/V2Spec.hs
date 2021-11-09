@@ -13,7 +13,6 @@ import qualified Test.Hspec.Core.Spec as Spec
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Formatters.V2
-import qualified Test.Hspec.Core.Formatters.Monad as H
 
 testSpec :: H.Spec
 testSpec = do
@@ -190,15 +189,7 @@ spec = do
     context "same as failed_examples" $ do
       failed_examplesSpec specdoc
 
-  describe "additional formatter features" $ do
-    describe "getFinalCount" $ do
-      let formatter = silent {H.formatterDone = fmap show H.getFinalCount >>= H.writeLine}
-          runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ formatterToFormat formatter}
-      it "counts examples" $ do
-        result:_ <- runSpec testSpec
-        result `shouldBe` "6"
-
-failed_examplesSpec :: H.Formatter -> Spec
+failed_examplesSpec :: Formatter -> Spec
 failed_examplesSpec formatter = do
   let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ formatterToFormat formatter}
 

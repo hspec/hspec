@@ -2,13 +2,41 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards #-}
 module Test.Hspec.Core.Formatters.Internal (
-  FormatM
-, runFormatM
-, interpret
-, increaseSuccessCount
-, increasePendingCount
-, addFailMessage
+  Formatter(..)
+, Item(..)
+, Result(..)
+, FailureReason (..)
+, FormatM
 , formatterToFormat
+
+, getSuccessCount
+, getPendingCount
+, getFailCount
+, getTotalCount
+
+, FailureRecord (..)
+, getFailMessages
+, usedSeed
+
+, printTimes
+, getCPUTime
+, getRealTime
+
+, write
+, writeLine
+, writeTransient
+
+, withInfoColor
+, withSuccessColor
+, withPendingColor
+, withFailColor
+
+, useDiff
+, extraChunk
+, missingChunk
+
+, freeFormatterToFormat
+
 #ifdef TEST
 , overwriteWith
 #endif
@@ -31,8 +59,68 @@ import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWit
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 
-formatterToFormat :: M.Formatter -> FormatConfig -> IO Format
-formatterToFormat M.Formatter{..} config = monadic (runFormatM config) $ \ event -> case event of
+data Formatter = Formatter {
+-- | evaluated before a test run
+  formatterStarted :: FormatM ()
+
+-- | evaluated before each spec group
+, formatterGroupStarted :: Path -> FormatM ()
+
+-- | evaluated after each spec group
+, formatterGroupDone :: Path -> FormatM ()
+
+-- | used to notify the progress of the currently evaluated example
+, formatterProgress :: Path -> Progress -> FormatM ()
+
+-- | evaluated before each spec item
+, formatterItemStarted :: Path -> FormatM ()
+
+-- | evaluated after each spec item
+, formatterItemDone :: Path -> Item -> FormatM ()
+
+-- | evaluated after a test run
+, formatterDone :: FormatM ()
+}
+
+formatterToFormat :: Formatter -> FormatConfig -> IO Format
+formatterToFormat Formatter{..} config = monadic (runFormatM config) $ \ event -> case event of
+  Started -> formatterStarted
+  GroupStarted path -> formatterGroupStarted path
+  GroupDone path -> formatterGroupDone path
+  Progress path progress -> formatterProgress path progress
+  ItemStarted path -> formatterItemStarted path
+  ItemDone path item -> do
+    clearTransientOutput
+    case itemResult item of
+      Success {} -> increaseSuccessCount
+      Pending {} -> increasePendingCount
+      Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
+    formatterItemDone path item
+  Done _ -> formatterDone
+
+-- | Get the number of failed examples encountered so far.
+getFailCount :: FormatM Int
+getFailCount = length <$> getFailMessages
+
+-- | Return `True` if the user requested colorized diffs, `False` otherwise.
+useDiff :: FormatM Bool
+useDiff = getConfig formatConfigUseDiff
+
+-- | The same as `write`, but adds a newline character.
+writeLine :: String -> FormatM ()
+writeLine s = write s >> write "\n"
+
+-- | Return `True` if the user requested time reporting for individual spec
+-- items, `False` otherwise.
+printTimes :: FormatM Bool
+printTimes = gets (formatConfigPrintTimes . stateConfig)
+
+-- | Get the total number of examples encountered so far.
+getTotalCount :: FormatM Int
+getTotalCount = sum <$> sequence [getSuccessCount, getFailCount, getPendingCount]
+
+freeFormatterToFormat :: M.Formatter -> FormatConfig -> IO Format
+freeFormatterToFormat M.Formatter{..} config = monadic (runFormatM config) $ \ event -> case event of
   Started -> interpret formatterStarted
   GroupStarted path -> interpret $ formatterGroupStarted path
   GroupDone path -> interpret $ formatterGroupDone path
@@ -52,7 +140,7 @@ interpret = interpretWith Environment {
   environmentGetSuccessCount = getSuccessCount
 , environmentGetPendingCount = getPendingCount
 , environmentGetFailMessages = getFailMessages
-, environmentGetFinalCount = getItemCount
+, environmentGetFinalCount = getFinalCount
 , environmentUsedSeed = usedSeed
 , environmentPrintTimes = gets (formatConfigPrintTimes . stateConfig)
 , environmentGetCPUTime = getCPUTime
@@ -137,8 +225,8 @@ getFailMessages = reverse `fmap` gets stateFailMessages
 
 -- | Get the number of spec items that will have been encountered when this run
 -- completes (if it is not terminated early).
-getItemCount :: FormatM Int
-getItemCount = getConfig formatConfigItemCount
+getFinalCount :: FormatM Int
+getFinalCount = getConfig formatConfigItemCount
 
 overwriteWith :: String -> String -> String
 overwriteWith old new
@@ -219,8 +307,8 @@ withColor_ color (FormatM action) = do
 -- | Output given chunk in red.
 extraChunk :: String -> FormatM ()
 extraChunk s = do
-  useDiff <- getConfig formatConfigUseDiff
-  case useDiff of
+  diff <- getConfig formatConfigUseDiff
+  case diff of
     True -> extra s
     False -> write s
   where
@@ -230,8 +318,8 @@ extraChunk s = do
 -- | Output given chunk in green.
 missingChunk :: String -> FormatM ()
 missingChunk s = do
-  useDiff <- getConfig formatConfigUseDiff
-  case useDiff of
+  diff <- getConfig formatConfigUseDiff
+  case diff of
     True -> missing s
     False -> write s
   where

@@ -79,12 +79,13 @@ import           Control.Exception
 --
 -- Everything imported here has to be re-exported, so that users can implement
 -- their own formatters.
-import Test.Hspec.Core.Formatters.Monad (
-    Formatter (..)
+import Test.Hspec.Core.Formatters.Internal (
+    Formatter(..)
   , Item(..)
   , Result(..)
   , FailureReason (..)
   , FormatM
+  , formatterToFormat
 
   , getSuccessCount
   , getPendingCount
@@ -113,7 +114,6 @@ import Test.Hspec.Core.Formatters.Monad (
   , missingChunk
   )
 
-import           Test.Hspec.Core.Formatters.Internal (formatterToFormat)
 import           Test.Hspec.Core.Formatters.Diff
 
 silent :: Formatter
