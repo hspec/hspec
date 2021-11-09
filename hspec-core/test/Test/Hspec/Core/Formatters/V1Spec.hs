@@ -12,8 +12,8 @@ import qualified Control.Exception as E
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Formatters.V1 as H
-import qualified Test.Hspec.Core.Formatters.Monad as H (interpretWith)
-import           Test.Hspec.Core.Formatters.Monad (FormatM, Environment(..), FailureRecord(..), FailureReason(..))
+import qualified Test.Hspec.Core.Formatters.V1.Monad as H (interpretWith)
+import           Test.Hspec.Core.Formatters.V1.Monad (FormatM, Environment(..), FailureRecord(..), FailureReason(..))
 
 data ColorizedText =
     Plain String
