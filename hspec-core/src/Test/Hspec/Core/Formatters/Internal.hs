@@ -13,6 +13,7 @@ module Test.Hspec.Core.Formatters.Internal (
 , getPendingCount
 , getFailCount
 , getTotalCount
+, getExpectedTotalCount
 
 , FailureRecord (..)
 , getFailMessages
@@ -140,7 +141,6 @@ interpret = interpretWith Environment {
   environmentGetSuccessCount = getSuccessCount
 , environmentGetPendingCount = getPendingCount
 , environmentGetFailMessages = getFailMessages
-, environmentGetFinalCount = getFinalCount
 , environmentUsedSeed = usedSeed
 , environmentPrintTimes = gets (formatConfigPrintTimes . stateConfig)
 , environmentGetCPUTime = getCPUTime
@@ -225,8 +225,8 @@ getFailMessages = reverse `fmap` gets stateFailMessages
 
 -- | Get the number of spec items that will have been encountered when this run
 -- completes (if it is not terminated early).
-getFinalCount :: FormatM Int
-getFinalCount = getConfig formatConfigItemCount
+getExpectedTotalCount :: FormatM Int
+getExpectedTotalCount = getConfig formatConfigExpectedTotalCount
 
 overwriteWith :: String -> String -> String
 overwriteWith old new

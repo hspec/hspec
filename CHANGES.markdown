@@ -1,5 +1,7 @@
 ## Changes in next
-  - Allow to extend the list of available formatters for --format
+  - Allow to extend the list of available formatters for `--format`
+  - Add `getExpectedTotalCount` to `Test.Hspec.Core.Formatters.V2`
+  - Rename `formatConfigItemCount` to `formatConfigExpectedTotalCount`
 
 ## Changes in 2.8.4
   - Better support for GHC 9.2.1

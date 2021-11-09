@@ -32,6 +32,7 @@ module Test.Hspec.Core.Formatters.V2 (
 , getPendingCount
 , getFailCount
 , getTotalCount
+, getExpectedTotalCount
 
 , FailureRecord (..)
 , getFailMessages
@@ -91,6 +92,7 @@ import Test.Hspec.Core.Formatters.Internal (
   , getPendingCount
   , getFailCount
   , getTotalCount
+  , getExpectedTotalCount
 
   , FailureRecord (..)
   , getFailMessages
