@@ -107,23 +107,25 @@ import Test.Hspec.Core.Formatters.Monad (
 
 import           Test.Hspec.Core.Spec (Progress)
 import           Test.Hspec.Core.Format (FormatConfig, Format, Item(..), Result(..))
-import qualified Test.Hspec.Core.Formatters.V2 as V2
+
+import           Test.Hspec.Core.Formatters.Internal (freeFormatterToFormat)
+import qualified Test.Hspec.Core.Formatters.Monad as Free
 
 import           Test.Hspec.Core.Formatters.Diff
 
 formatterToFormat :: Formatter -> FormatConfig -> IO Format
-formatterToFormat Formatter{..} = V2.formatterToFormat V2.Formatter {
-  V2.formatterStarted = headerFormatter
-, V2.formatterGroupStarted = uncurry exampleGroupStarted
-, V2.formatterGroupDone = \ _ -> exampleGroupDone
-, V2.formatterProgress = exampleProgress
-, V2.formatterItemStarted = exampleStarted
-, V2.formatterItemDone = \ path item -> do
+formatterToFormat Formatter{..} = freeFormatterToFormat Free.Formatter {
+  Free.formatterStarted = headerFormatter
+, Free.formatterGroupStarted = uncurry exampleGroupStarted
+, Free.formatterGroupDone = \ _ -> exampleGroupDone
+, Free.formatterProgress = exampleProgress
+, Free.formatterItemStarted = exampleStarted
+, Free.formatterItemDone = \ path item -> do
     case itemResult item of
       Success -> exampleSucceeded path (itemInfo item)
       Pending _ reason -> examplePending path (itemInfo item) reason
       Failure _ reason -> exampleFailed path (itemInfo item) reason
-, V2.formatterDone = failedFormatter >> footerFormatter
+, Free.formatterDone = failedFormatter >> footerFormatter
 }
 
 data Formatter = Formatter {
