@@ -75,8 +75,9 @@ import           Control.Exception
 --
 -- Everything imported here has to be re-exported, so that users can implement
 -- their own formatters.
-import Test.Hspec.Core.Formatters.Monad (
-    FailureReason (..)
+import Test.Hspec.Core.Formatters.V1.Monad (
+    Formatter(..)
+  , FailureReason(..)
   , FormatM
 
   , getSuccessCount
@@ -84,7 +85,7 @@ import Test.Hspec.Core.Formatters.Monad (
   , getFailCount
   , getTotalCount
 
-  , FailureRecord (..)
+  , FailureRecord(..)
   , getFailMessages
   , usedSeed
 
@@ -105,59 +106,49 @@ import Test.Hspec.Core.Formatters.Monad (
   , missingChunk
   )
 
-import           Test.Hspec.Core.Spec (Progress)
-import           Test.Hspec.Core.Format (FormatConfig, Format, Item(..), Result(..))
-
-import           Test.Hspec.Core.Formatters.Internal (freeFormatterToFormat)
-import qualified Test.Hspec.Core.Formatters.Monad as Free
+import           Test.Hspec.Core.Format (FormatConfig, Format)
 
 import           Test.Hspec.Core.Formatters.Diff
+import qualified Test.Hspec.Core.Formatters.V2 as V2
+import           Test.Hspec.Core.Formatters.V1.Monad (Item(..), Result(..), Environment(..), interpretWith)
 
 formatterToFormat :: Formatter -> FormatConfig -> IO Format
-formatterToFormat Formatter{..} = freeFormatterToFormat Free.Formatter {
-  Free.formatterStarted = headerFormatter
-, Free.formatterGroupStarted = uncurry exampleGroupStarted
-, Free.formatterGroupDone = \ _ -> exampleGroupDone
-, Free.formatterProgress = exampleProgress
-, Free.formatterItemStarted = exampleStarted
-, Free.formatterItemDone = \ path item -> do
+formatterToFormat = V2.formatterToFormat . legacyFormatterToFormatter
+
+legacyFormatterToFormatter :: Formatter -> V2.Formatter
+legacyFormatterToFormatter Formatter{..} = V2.Formatter {
+  V2.formatterStarted = interpret headerFormatter
+, V2.formatterGroupStarted = interpret . uncurry exampleGroupStarted
+, V2.formatterGroupDone = interpret . const exampleGroupDone
+, V2.formatterProgress = \ path -> interpret . exampleProgress path
+, V2.formatterItemStarted = interpret . exampleStarted
+, V2.formatterItemDone = \ path item -> interpret $ do
     case itemResult item of
       Success -> exampleSucceeded path (itemInfo item)
       Pending _ reason -> examplePending path (itemInfo item) reason
       Failure _ reason -> exampleFailed path (itemInfo item) reason
-, Free.formatterDone = failedFormatter >> footerFormatter
+, V2.formatterDone = interpret $ failedFormatter >> footerFormatter
 }
 
-data Formatter = Formatter {
-
-  headerFormatter :: FormatM ()
-
--- | evaluated before each test group
-, exampleGroupStarted :: [String] -> String -> FormatM ()
-
--- | evaluated after each test group
-, exampleGroupDone :: FormatM ()
-
--- | evaluated before each example
-, exampleStarted :: Path -> FormatM ()
-
--- | used to notify the progress of the currently evaluated example
-, exampleProgress :: Path -> Progress -> FormatM ()
-
--- | evaluated after each successful example
-, exampleSucceeded :: Path -> String -> FormatM ()
-
--- | evaluated after each failed example
-, exampleFailed :: Path -> String -> FailureReason -> FormatM ()
-
--- | evaluated after each pending example
-, examplePending :: Path -> String -> Maybe String -> FormatM ()
-
--- | evaluated after a test run
-, failedFormatter :: FormatM ()
-
--- | evaluated after `failedFormatter`
-, footerFormatter :: FormatM ()
+interpret :: FormatM a -> V2.FormatM a
+interpret = interpretWith Environment {
+  environmentGetSuccessCount = V2.getSuccessCount
+, environmentGetPendingCount = V2.getPendingCount
+, environmentGetFailMessages = V2.getFailMessages
+, environmentUsedSeed = V2.usedSeed
+, environmentPrintTimes = V2.printTimes
+, environmentGetCPUTime = V2.getCPUTime
+, environmentGetRealTime = V2.getRealTime
+, environmentWrite = V2.write
+, environmentWriteTransient = V2.writeTransient
+, environmentWithFailColor = V2.withFailColor
+, environmentWithSuccessColor = V2.withSuccessColor
+, environmentWithPendingColor = V2.withPendingColor
+, environmentWithInfoColor = V2.withInfoColor
+, environmentUseDiff = V2.useDiff
+, environmentExtraChunk = V2.extraChunk
+, environmentMissingChunk = V2.missingChunk
+, environmentLiftIO = liftIO
 }
 
 silent :: Formatter

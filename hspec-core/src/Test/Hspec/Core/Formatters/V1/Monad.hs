@@ -4,8 +4,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE ExistentialQuantification #-}
-module Test.Hspec.Core.Formatters.Monad (
-  Formatter (..)
+module Test.Hspec.Core.Formatters.V1.Monad (
+  Formatter(..)
 , Item(..)
 , Result(..)
 , FailureReason (..)
@@ -46,32 +46,40 @@ import           Test.Hspec.Core.Compat
 
 import           Control.Monad.IO.Class
 
-import           Test.Hspec.Core.Formatters.Free
+import           Test.Hspec.Core.Formatters.V1.Free
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Format
 
 data Formatter = Formatter {
 
--- | evaluated before a test run
-  formatterStarted :: FormatM ()
+  headerFormatter :: FormatM ()
 
--- | evaluated before each spec group
-, formatterGroupStarted :: Path -> FormatM ()
+-- | evaluated before each test group
+, exampleGroupStarted :: [String] -> String -> FormatM ()
 
--- | evaluated after each spec group
-, formatterGroupDone :: Path -> FormatM ()
+-- | evaluated after each test group
+, exampleGroupDone :: FormatM ()
+
+-- | evaluated before each example
+, exampleStarted :: Path -> FormatM ()
 
 -- | used to notify the progress of the currently evaluated example
-, formatterProgress :: Path -> Progress -> FormatM ()
+, exampleProgress :: Path -> Progress -> FormatM ()
 
--- | evaluated before each spec item
-, formatterItemStarted :: Path -> FormatM ()
+-- | evaluated after each successful example
+, exampleSucceeded :: Path -> String -> FormatM ()
 
--- | evaluated after each spec item
-, formatterItemDone :: Path -> Item -> FormatM ()
+-- | evaluated after each failed example
+, exampleFailed :: Path -> String -> FailureReason -> FormatM ()
+
+-- | evaluated after each pending example
+, examplePending :: Path -> String -> Maybe String -> FormatM ()
 
 -- | evaluated after a test run
-, formatterDone :: FormatM ()
+, failedFormatter :: FormatM ()
+
+-- | evaluated after `failedFormatter`
+, footerFormatter :: FormatM ()
 }
 
 data FailureRecord = FailureRecord {

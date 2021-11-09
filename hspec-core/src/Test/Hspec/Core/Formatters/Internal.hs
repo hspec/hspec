@@ -5,7 +5,7 @@ module Test.Hspec.Core.Formatters.Internal (
   Formatter(..)
 , Item(..)
 , Result(..)
-, FailureReason (..)
+, FailureReason(..)
 , FormatM
 , formatterToFormat
 
@@ -15,7 +15,7 @@ module Test.Hspec.Core.Formatters.Internal (
 , getTotalCount
 , getExpectedTotalCount
 
-, FailureRecord (..)
+, FailureRecord(..)
 , getFailMessages
 , usedSeed
 
@@ -36,8 +36,6 @@ module Test.Hspec.Core.Formatters.Internal (
 , extraChunk
 , missingChunk
 
-, freeFormatterToFormat
-
 #ifdef TEST
 , overwriteWith
 #endif
@@ -55,8 +53,7 @@ import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
 import qualified System.CPUTime as CPUTime
 
-import qualified Test.Hspec.Core.Formatters.Monad as M
-import           Test.Hspec.Core.Formatters.Monad (Environment(..), interpretWith, FailureRecord(..))
+import           Test.Hspec.Core.Formatters.V1.Monad (FailureRecord(..))
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 
@@ -119,43 +116,6 @@ printTimes = gets (formatConfigPrintTimes . stateConfig)
 -- | Get the total number of examples encountered so far.
 getTotalCount :: FormatM Int
 getTotalCount = sum <$> sequence [getSuccessCount, getFailCount, getPendingCount]
-
-freeFormatterToFormat :: M.Formatter -> FormatConfig -> IO Format
-freeFormatterToFormat M.Formatter{..} config = monadic (runFormatM config) $ \ event -> case event of
-  Started -> interpret formatterStarted
-  GroupStarted path -> interpret $ formatterGroupStarted path
-  GroupDone path -> interpret $ formatterGroupDone path
-  Progress path progress -> interpret $ formatterProgress path progress
-  ItemStarted path -> interpret $ formatterItemStarted path
-  ItemDone path item -> do
-    clearTransientOutput
-    case itemResult item of
-      Success {} -> increaseSuccessCount
-      Pending {} -> increasePendingCount
-      Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
-    interpret $ formatterItemDone path item
-  Done _ -> interpret formatterDone
-
-interpret :: M.FormatM a -> FormatM a
-interpret = interpretWith Environment {
-  environmentGetSuccessCount = getSuccessCount
-, environmentGetPendingCount = getPendingCount
-, environmentGetFailMessages = getFailMessages
-, environmentUsedSeed = usedSeed
-, environmentPrintTimes = gets (formatConfigPrintTimes . stateConfig)
-, environmentGetCPUTime = getCPUTime
-, environmentGetRealTime = getRealTime
-, environmentWrite = write
-, environmentWriteTransient = writeTransient
-, environmentWithFailColor = withFailColor
-, environmentWithSuccessColor = withSuccessColor
-, environmentWithPendingColor = withPendingColor
-, environmentWithInfoColor = withInfoColor
-, environmentUseDiff = gets (formatConfigUseDiff . stateConfig)
-, environmentExtraChunk = extraChunk
-, environmentMissingChunk = missingChunk
-, environmentLiftIO = liftIO
-}
 
 -- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a

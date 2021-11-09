@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor #-}
-module Test.Hspec.Core.Formatters.Free where
+module Test.Hspec.Core.Formatters.V1.Free where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
