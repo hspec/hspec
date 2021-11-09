@@ -11,6 +11,7 @@ module Test.Hspec.Core.Runner (
 -- * Config
 , Config (..)
 , ColorMode (..)
+, UnicodeMode(..)
 , Path
 , defaultConfig
 , configAddFilter
@@ -31,6 +32,7 @@ module Test.Hspec.Core.Runner (
 , rerunAll
 , specToEvalForest
 , colorOutputSupported
+, unicodeOutputSupported
 #endif
 ) where
 
@@ -213,11 +215,13 @@ runSpec_ config spec = do
     Just n -> return n
 
   useColor <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
+  outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
   results <- withHiddenCursor useColor stdout $ do
     let
       formatConfig = FormatConfig {
         formatConfigUseColor = useColor
+      , formatConfigOutputUnicode = outputUnicode
       , formatConfigUseDiff = configDiff config
       , formatConfigPrintTimes = configTimes config
       , formatConfigHtmlOutput = configHtmlOutput config
@@ -290,6 +294,12 @@ colorOutputSupported mode isTerminalDevice = case mode of
   ColorAuto  -> (&&) <$> (not <$> noColor) <*> isTerminalDevice
   ColorNever -> return False
   ColorAlways -> return True
+
+unicodeOutputSupported :: UnicodeMode -> Handle -> IO Bool
+unicodeOutputSupported mode h = case mode of
+  UnicodeAuto -> (== Just "UTF-8") . fmap show <$> hGetEncoding h
+  UnicodeNever -> return False
+  UnicodeAlways -> return True
 
 noColor :: IO Bool
 noColor = lookupEnv "NO_COLOR" <&> (/= Nothing)

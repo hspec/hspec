@@ -55,6 +55,8 @@ module Test.Hspec.Core.Formatters.V2 (
 , withPendingColor
 , withFailColor
 
+, outputUnicode
+
 , useDiff
 , extraChunk
 , missingChunk
@@ -111,6 +113,8 @@ import Test.Hspec.Core.Formatters.Internal (
   , withPendingColor
   , withFailColor
 
+  , outputUnicode
+
   , useDiff
   , extraChunk
   , missingChunk
@@ -138,10 +142,12 @@ checks = specdoc {
     writeTransient $ indentationFor nesting ++ requirement ++ " [ ]"
 
 , formatterItemDone = \ (nesting, requirement) item -> do
+    unicode <- outputUnicode
+    let fallback a b = if unicode then a else b
     uncurry (writeResult nesting requirement (itemDuration item) (itemInfo item)) $ case itemResult item of
-      Success {} -> (withSuccessColor, "✔")
-      Pending {} -> (withPendingColor, "‐")
-      Failure {} -> (withFailColor, "✘")
+      Success {} -> (withSuccessColor, fallback "✔" "v")
+      Pending {} -> (withPendingColor, fallback "‐" "-")
+      Failure {} -> (withFailColor,    fallback "✘" "x")
     case itemResult item of
       Success {} -> return ()
       Failure {} -> return ()

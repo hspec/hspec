@@ -32,6 +32,8 @@ module Test.Hspec.Core.Formatters.Internal (
 , withPendingColor
 , withFailColor
 
+, outputUnicode
+
 , useDiff
 , extraChunk
 , missingChunk
@@ -103,6 +105,10 @@ getFailCount = length <$> getFailMessages
 -- | Return `True` if the user requested colorized diffs, `False` otherwise.
 useDiff :: FormatM Bool
 useDiff = getConfig formatConfigUseDiff
+
+-- | Return `True` if the user requested unicode output, `False` otherwise.
+outputUnicode :: FormatM Bool
+outputUnicode = getConfig formatConfigOutputUnicode
 
 -- | The same as `write`, but adds a newline character.
 writeLine :: String -> FormatM ()

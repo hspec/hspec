@@ -12,7 +12,7 @@ module Test.Hspec.Core.RunnerSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           System.IO (stderr)
+import           System.IO
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import           Control.Concurrent
@@ -590,6 +590,30 @@ spec = do
         it "returns False" $ do
           withEnvironment [("NO_COLOR", "yes")] $ do
             H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` False
+
+  describe "colorOutputSupported" $ do
+    context "with UnicodeAlways" $ do
+      it "returns True" $ do
+        H.unicodeOutputSupported H.UnicodeAlways undefined `shouldReturn` True
+
+    context "with UnicodeNever" $ do
+      it "returns False" $ do
+        H.unicodeOutputSupported H.UnicodeNever undefined `shouldReturn` False
+
+    context "with UnicodeAuto" $ do
+      context "when file encoding is UTF-8" $ do
+        it "returns True" $ do
+          inTempDirectory $ do
+            withFile "foo" WriteMode $ \ h -> do
+              hSetEncoding h utf8
+              H.unicodeOutputSupported H.UnicodeAuto h `shouldReturn` True
+
+      context "when file encoding is not UTF-8" $ do
+        it "returns False" $ do
+          inTempDirectory $ do
+            withFile "foo" WriteMode $ \ h -> do
+              hSetEncoding h latin1
+              H.unicodeOutputSupported H.UnicodeAuto h `shouldReturn` False
 
   describe "rerunAll" $ do
     let
