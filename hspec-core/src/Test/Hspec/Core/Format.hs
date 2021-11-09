@@ -57,6 +57,7 @@ data Event =
 
 data FormatConfig = FormatConfig {
   formatConfigUseColor :: Bool
+, formatConfigOutputUnicode :: Bool
 , formatConfigUseDiff :: Bool
 , formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool

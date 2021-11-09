@@ -30,6 +30,7 @@ FORMATTER OPTIONS
                                         of checks, specdoc, progress,
                                         failed-examples or silent
                 --[no-]color            colorize the output
+                --[no-]unicode          output unicode
                 --[no-]diff             show colorized diffs
                 --[no-]times            report times for individual spec items
                 --print-cpu-time        include used CPU time in summary

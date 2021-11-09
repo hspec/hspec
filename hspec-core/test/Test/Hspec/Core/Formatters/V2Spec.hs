@@ -28,6 +28,7 @@ testSpec = do
 formatConfig :: FormatConfig
 formatConfig = FormatConfig {
   formatConfigUseColor = False
+, formatConfigOutputUnicode = True
 , formatConfigUseDiff = True
 , formatConfigPrintTimes = False
 , formatConfigHtmlOutput = False
@@ -59,6 +60,33 @@ spec = do
         formatter <- formatterToFormat progress formatConfig
         captureLines (formatter . item $ Pending Nothing Nothing)
           `shouldReturn` ["."]
+
+  describe "checks" $ do
+    let
+      formatter = checks
+      config = H.defaultConfig { H.configFormat = Just $ formatterToFormat formatter }
+
+    it "" $ do
+      r <- captureLines . H.hspecWithResult config $ do
+        H.it "foo" True
+      normalizeSummary r `shouldBe` [
+          ""
+        , "foo [✔]"
+        , ""
+        , "Finished in 0.0000 seconds"
+        , "1 example, 0 failures"
+        ]
+
+    it "" $ do
+      r <- captureLines . H.hspecWithResult config { H.configUnicodeMode = H.UnicodeNever } $ do
+        H.it "foo" True
+      normalizeSummary r `shouldBe` [
+          ""
+        , "foo [v]"
+        , ""
+        , "Finished in 0.0000 seconds"
+        , "1 example, 0 failures"
+        ]
 
   describe "specdoc" $ do
 

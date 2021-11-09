@@ -2,6 +2,7 @@
 module Test.Hspec.Core.Config.Definition (
   Config(..)
 , ColorMode(..)
+, UnicodeMode(..)
 , filterOr
 , defaultConfig
 
@@ -31,6 +32,9 @@ import           GetOpt.Declarative
 data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
 
+data UnicodeMode = UnicodeAuto | UnicodeNever | UnicodeAlways
+  deriving (Eq, Show)
+
 data Config = Config {
   configIgnoreConfigFile :: Bool
 , configDryRun :: Bool
@@ -56,6 +60,7 @@ data Config = Config {
 , configQuickCheckMaxShrinks :: Maybe Int
 , configSmallCheckDepth :: Int
 , configColorMode :: ColorMode
+, configUnicodeMode :: UnicodeMode
 , configDiff :: Bool
 , configTimes :: Bool
 , configAvailableFormatters :: [(String, FormatConfig -> IO Format)]
@@ -87,6 +92,7 @@ defaultConfig = Config {
 , configQuickCheckMaxShrinks = Nothing
 , configSmallCheckDepth = paramsSmallCheckDepth defaultParams
 , configColorMode = ColorAuto
+, configUnicodeMode = UnicodeAuto
 , configDiff = True
 , configTimes = False
 , configAvailableFormatters = map (fmap V2.formatterToFormat) [
@@ -124,6 +130,7 @@ formatterOptions :: [(String, FormatConfig -> IO Format)] -> [Option Config]
 formatterOptions formatters = [
     mkOption "format" (Just 'f') (argument "FORMATTER" readFormatter setFormatter) helpForFormat
   , mkFlag "color" setColor "colorize the output"
+  , mkFlag "unicode" setUnicode "output unicode"
   , mkFlag "diff" setDiff "show colorized diffs"
   , mkFlag "times" setTimes "report times for individual spec items"
   , mkOptionNoArg "print-cpu-time" Nothing setPrintCpuTime "include used CPU time in summary"
@@ -147,6 +154,9 @@ formatterOptions formatters = [
 
     setColor :: Bool -> Config -> Config
     setColor v config = config {configColorMode = if v then ColorAlways else ColorNever}
+
+    setUnicode :: Bool -> Config -> Config
+    setUnicode v config = config {configUnicodeMode = if v then UnicodeAlways else UnicodeNever}
 
     setDiff :: Bool -> Config -> Config
     setDiff v config = config {configDiff = v}
