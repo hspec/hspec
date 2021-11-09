@@ -65,7 +65,6 @@ environment = Environment {
   environmentGetSuccessCount = return 0
 , environmentGetPendingCount = return 0
 , environmentGetFailMessages = return []
-, environmentGetFinalCount = return 0
 , environmentUsedSeed = return 0
 , environmentGetCPUTime = return Nothing
 , environmentGetRealTime = return 0

@@ -223,7 +223,7 @@ runSpec_ config spec = do
       , formatConfigHtmlOutput = configHtmlOutput config
       , formatConfigPrintCpuTime = configPrintCpuTime config
       , formatConfigUsedSeed = seed
-      , formatConfigItemCount = numberOfItems
+      , formatConfigExpectedTotalCount = numberOfItems
       }
 
       formatter = fromMaybe (V2.formatterToFormat V2.specdoc) (configFormat config <|> V1.formatterToFormat <$> configFormatter config)

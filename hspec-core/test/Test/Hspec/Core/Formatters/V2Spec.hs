@@ -33,8 +33,11 @@ formatConfig = FormatConfig {
 , formatConfigHtmlOutput = False
 , formatConfigPrintCpuTime = False
 , formatConfigUsedSeed = 0
-, formatConfigItemCount = 0
+, formatConfigExpectedTotalCount = 0
 }
+
+runSpecWith :: Formatter -> H.Spec -> IO [String]
+runSpecWith formatter = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ formatterToFormat formatter}
 
 spec :: Spec
 spec = do
@@ -58,8 +61,8 @@ spec = do
           `shouldReturn` ["."]
 
   describe "specdoc" $ do
-    let
-      runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ formatterToFormat specdoc}
+
+    let runSpec = runSpecWith specdoc
 
     it "displays a header for each thing being described" $ do
       _:x:_ <- runSpec testSpec
@@ -189,9 +192,16 @@ spec = do
     context "same as failed_examples" $ do
       failed_examplesSpec specdoc
 
+  describe "getExpectedTotalCount" $ do
+    let formatter = silent { formatterStarted = fmap show getExpectedTotalCount >>= writeLine }
+        runSpec = runSpecWith formatter
+    it "returns the total number of spec items" $ do
+      result:_ <- runSpec testSpec
+      result `shouldBe` "6"
+
 failed_examplesSpec :: Formatter -> Spec
 failed_examplesSpec formatter = do
-  let runSpec = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ formatterToFormat formatter}
+  let runSpec = runSpecWith formatter
 
   context "displays a detailed list of failures" $ do
     it "prints all requirements that are not met" $ do

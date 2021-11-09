@@ -62,7 +62,7 @@ data FormatConfig = FormatConfig {
 , formatConfigHtmlOutput :: Bool
 , formatConfigPrintCpuTime :: Bool
 , formatConfigUsedSeed :: Integer
-, formatConfigItemCount :: Int
+, formatConfigExpectedTotalCount :: Int
 } deriving (Eq, Show)
 
 data Signal = Ok | NotOk SomeException
