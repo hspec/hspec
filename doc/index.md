@@ -12,7 +12,7 @@ Hspec's distinctive features are:
  * parallel test execution
  * automatic discovery of test files
 
-An example is worth a thousand words, so here we go:
+Here is an example for the impatient:
 
 <pre><kbd class="shell-input">cabal update && cabal install --package-env=. --lib hspec hspec-contrib QuickCheck HUnit</kbd></pre>
 
