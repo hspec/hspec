@@ -4,8 +4,6 @@ module Test.Hspec.Discover {-# WARNING
   #-} (
   Spec
 , hspec
-, hspecWith
-, defaultConfig
 , IsFormatter (..)
 , hspecWithFormatter
 , postProcessSpec
