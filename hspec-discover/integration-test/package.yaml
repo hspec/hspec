@@ -52,3 +52,7 @@ tests:
   with-spec-hook:
     source-dirs: with-spec-hook
     main: Spec.hs
+
+  with-config:
+    source-dirs: with-config
+    main: Spec.hs

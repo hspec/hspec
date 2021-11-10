@@ -23,6 +23,23 @@ test-suite empty
     , hspec
   default-language: Haskell2010
 
+test-suite with-config
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      FooSpec
+      SpecConfig
+      Paths_hspec_discover_integration_tests
+  hs-source-dirs:
+      with-config
+  ghc-options: -Wall
+  build-tool-depends:
+      hspec-discover:hspec-discover
+  build-depends:
+      base ==4.*
+    , hspec
+  default-language: Haskell2010
+
 test-suite with-formatter
   type: exitcode-stdio-1.0
   main-is: Spec.hs

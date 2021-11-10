@@ -1,0 +1,1 @@
+  - Add support for custom configs to `hspec-discover` (via `SpecConfig.hs`)
