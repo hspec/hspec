@@ -1,4 +1,4 @@
-jekyll=tinc exec bundle exec jekyll
+jekyll=bundle exec jekyll
 
 all:
 	$(jekyll) build
@@ -20,7 +20,8 @@ watch-less: less
 
 setup:
 	bundle install
-	tinc
+	rm -f .ghc.environment.*
+	cabal install HUnit QuickCheck .. ../hspec-contrib/ --lib --package-env .
 
 clean:
 	-rm -rf _site

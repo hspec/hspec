@@ -146,7 +146,11 @@ hook = aroundAll_ (withLogSink $ \ _ -> return ())
 module Database.Models.SpecHook where
 
 import           Test.Hspec
-import           System.Logging.Facade.Sink
+
+data Connection
+
+withConnection :: (Connection -> IO a) -> IO a
+withConnection = undefined
 
 hook :: SpecWith Connection -> Spec
 hook = around withConnection
