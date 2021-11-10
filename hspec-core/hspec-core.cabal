@@ -105,6 +105,7 @@ test-suite spec
     , ansi-terminal >=0.6.2
     , array
     , base >=4.5.0.0 && <5
+    , base-orphans
     , call-stack
     , clock >=0.7.1
     , deepseq
