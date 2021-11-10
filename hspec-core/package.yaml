@@ -69,4 +69,5 @@ tests:
       - QuickCheck >= 2.14
       - process
       - temporary
+      - base-orphans
     build-tools: hspec-meta:hspec-meta-discover

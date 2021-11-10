@@ -54,9 +54,7 @@ import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureR
 import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
 
-#if !MIN_VERSION_base(4,7,0)
-deriving instance Eq ErrorCall
-#endif
+import           Data.Orphans()
 
 exceptionEq :: E.SomeException -> E.SomeException -> Bool
 exceptionEq a b
