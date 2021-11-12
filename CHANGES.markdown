@@ -1,9 +1,12 @@
 ## Changes in next
-  - Allow to extend the list of available formatters for `--format`
-  - Add `getExpectedTotalCount` to `Test.Hspec.Core.Formatters.V2`
-  - Rename `formatConfigItemCount` to `formatConfigExpectedTotalCount`
+  - Add ASCII fallbacks to "checks" formatter (fixes #512)
   - Use `checks` formatter by default (to restore the old behavior use
     `--format specdoc`)
+  - Allow to extend the list of available formatters for `--format`
+    (`configAvailableFormatters`)
+  - Add `getExpectedTotalCount` to `Test.Hspec.Core.Formatters.V2`
+  - Rename `formatConfigItemCount` to `formatConfigExpectedTotalCount`
+  - Rename `configFastFail` to `configFailFast`
 
 ## Changes in 2.8.5
   - hspec-core: Include help.txt in package tarball (close #568)
