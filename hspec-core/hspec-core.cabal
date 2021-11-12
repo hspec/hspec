@@ -15,6 +15,7 @@ maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
 extra-source-files:
     version.yaml
+    help.txt
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues

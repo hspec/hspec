@@ -17,7 +17,9 @@ homepage: http://hspec.github.io/
 
 github: hspec/hspec/hspec-core
 
-extra-source-files: version.yaml
+extra-source-files:
+  - version.yaml
+  - help.txt
 
 ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
