@@ -5,6 +5,10 @@
   - Use `checks` formatter by default (to restore the old behavior use
     `--format specdoc`)
 
+## Changes in 2.8.5
+  - hspec-core: Include help.txt in package tarball (close #568)
+  - hspec-discover: Require base >=4.5.0.0 (fixes #554)
+
 ## Changes in 2.8.4
   - Better support for GHC 9.2.1
   - Support for setting options by individual environment variables, e.g.
