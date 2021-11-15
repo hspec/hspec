@@ -74,6 +74,7 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
+import           Text.Show.Unicode (ushow)
 import           Control.Monad.IO.Class
 import           Control.Exception
 
@@ -301,7 +302,10 @@ defaultFailedFormatter = do
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
 
       writeLine ""
-      writeLine ("  To rerun use: --match " ++ show (joinPath path))
+
+      unicode <- outputUnicode
+      let path_ = (if unicode then ushow else show) (joinPath path)
+      writeLine ("  To rerun use: --match " ++ path_)
       where
         indentation = "       "
         indent message = do

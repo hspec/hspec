@@ -1,4 +1,7 @@
 ## Changes in next
+  - Preserve unicode in `To rerun use: --match ...` output
+
+## Changes in 2.9.0
   - Add ASCII fallbacks to "checks" formatter (fixes #512)
   - Use `checks` formatter by default (to restore the old behavior use
     `--format specdoc`)
