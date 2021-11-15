@@ -49,7 +49,9 @@ import qualified Text.Show.Unicode
 
 module Text.Show.Unicode (ushow, uprint, ushowWith, uprintWith) where
 
-import           Control.Applicative          ((<|>))
+import           Prelude ()
+import           Test.Hspec.Core.Compat hiding (many)
+
 import           Data.Char                    (isAscii, isPrint)
 import           Text.ParserCombinators.ReadP
 import           Text.Read.Lex                (lexChar)
