@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.5.
 --
 -- see: https://github.com/sol/hpack
 
@@ -88,6 +88,7 @@ library
       Test.Hspec.Core.Tree
       Control.Concurrent.Async
       Data.Algorithm.Diff
+      Text.Show.Unicode
       Paths_hspec_core
   default-language: Haskell2010
 
@@ -161,6 +162,7 @@ test-suite spec
       Test.Hspec.Core.Util
       Control.Concurrent.Async
       Data.Algorithm.Diff
+      Text.Show.Unicode
       All
       GetOpt.Declarative.EnvironmentSpec
       GetOpt.Declarative.UtilSpec
