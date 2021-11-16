@@ -1,4 +1,5 @@
 ## Changes in next
+  - Recover unicode from `ExpectedButGot`
   - Preserve unicode in `To rerun use: --match ...` output
 
 ## Changes in 2.9.0
