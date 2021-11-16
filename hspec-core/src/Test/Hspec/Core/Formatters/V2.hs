@@ -74,7 +74,7 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
-import           Text.Show.Unicode (ushow)
+import           Text.Show.Unicode (ushow, urecover)
 import           Control.Monad.IO.Class
 import           Control.Exception
 
@@ -256,6 +256,7 @@ defaultFailedFormatter = do
   where
     formatFailure :: (Int, FailureRecord) -> FormatM ()
     formatFailure (n, FailureRecord mLoc path reason) = do
+      unicode <- outputUnicode
       forM_ mLoc $ \loc -> do
         withInfoColor $ writeLine ("  " ++ formatLocation loc)
       write ("  " ++ show n ++ ") ")
@@ -263,7 +264,12 @@ defaultFailedFormatter = do
       case reason of
         NoReason -> return ()
         Reason err -> withFailColor $ indent err
-        ExpectedButGot preface expected actual -> do
+        ExpectedButGot preface expected_ actual_ -> do
+          let
+            recover = if unicode then urecover else id
+            expected = recover expected_
+            actual = recover actual_
+
           mapM_ indent preface
 
           b <- useDiff
@@ -303,7 +309,6 @@ defaultFailedFormatter = do
 
       writeLine ""
 
-      unicode <- outputUnicode
       let path_ = (if unicode then ushow else show) (joinPath path)
       writeLine ("  To rerun use: --match " ++ path_)
       where

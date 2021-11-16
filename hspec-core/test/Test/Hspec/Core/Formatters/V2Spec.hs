@@ -1,7 +1,3 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE DeriveFunctor #-}
 module Test.Hspec.Core.Formatters.V2Spec (spec) where
 
 import           Prelude ()
@@ -173,6 +169,25 @@ spec = do
           ]
 
     describe "formatterDone" $ do
+      it "recovers unicode from ExpectedButGot" $ do
+        formatter <- formatterToFormat progress formatConfig { formatConfigOutputUnicode = True }
+        _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Failure Nothing $ ExpectedButGot Nothing (show "\955") (show "\956")
+        (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
+            ""
+          , "Failures:"
+          , ""
+          , "  1) "
+          , "       expected: \"λ\""
+          , "        but got: \"μ\""
+          , ""
+          , "  To rerun use: --match \"//\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
+          ]
+
       context "when actual/expected contain newlines" $ do
         it "adds indentation" $ do
           formatter <- formatterToFormat progress formatConfig

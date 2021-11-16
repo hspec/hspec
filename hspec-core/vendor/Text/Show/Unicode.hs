@@ -47,7 +47,7 @@ import qualified Text.Show.Unicode
 
 -}
 
-module Text.Show.Unicode (ushow, uprint, ushowWith, uprintWith) where
+module Text.Show.Unicode (ushow, uprint, urecover, ushowWith, uprintWith, urecoverWith) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (many)
@@ -97,7 +97,16 @@ lexCharAndConsumeEmpties = lexChar <* consumeEmpties
 -- with the character it represents, for any Unicode printable characters except backslash, single and double quotation marks.
 -- If something fails, fallback to standard 'show'.
 ushow :: Show a => a -> String
-ushow = ushowWith (\c -> isPrint c && not (isAscii c))
+ushow = ushowWith shouldRecover
+
+-- | Replace Haskell character literals with the character it represents, for
+-- any Unicode printable characters except backslash, single and double
+-- quotation marks.
+urecover :: String -> String
+urecover = urecoverWith shouldRecover
+
+shouldRecover :: Char -> Bool
+shouldRecover c = isPrint c && not (isAscii c)
 
 -- | A version of 'print' that uses 'ushow'.
 uprint :: Show a => a -> IO ()
@@ -106,7 +115,12 @@ uprint = putStrLn . ushow
 -- | Show the input, and then replace character literals
 -- with the character itself, for characters that satisfy the given predicate.
 ushowWith :: Show a => (Char -> Bool) -> a -> String
-ushowWith p x = go ("", "") $ readP_to_S (many $ recoverChar p) (show x)
+ushowWith p = urecoverWith p . show
+
+-- | Replace character literals with the character itself, for characters that
+-- satisfy the given predicate.
+urecoverWith :: (Char -> Bool) -> String -> String
+urecoverWith p = go ("", "") . readP_to_S (many $ recoverChar p)
   where
     go :: Replacement -> [([Replacement], String)] -> String
     go _  []            = ""
