@@ -32,4 +32,4 @@ jobs:
 
       - run: ghc --version
       - run: cabal --version
-      - uses: sol/run-haskell-tests@v1
+      - run: (cd hspec-core && cabal build .)
