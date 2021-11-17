@@ -3,12 +3,7 @@ name: build
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  schedule:
-    - cron: 0 0 * * *
+      - hspec-meta
 
 jobs:
   build:
@@ -75,16 +70,3 @@ jobs:
           cabal install --lib --package-env test/regression/issue-270/
           test/regression/issue-270/run.sh
         if: startsWith(matrix.ghc, '8.') && matrix.ghc != '8.0.1'
-
-  success:
-    needs: build
-    runs-on: ubuntu-latest
-    if: always() # this is required as GitHub considers "skipped" jobs as "passed" when checking branch protection rules
-
-    steps:
-      - run: exit 1
-        if: needs.build.result != 'success'
-
-      - uses: actions/checkout@v3
-      - name: Check for trailing whitespace
-        run: '! git grep -I "\s\+$"'
