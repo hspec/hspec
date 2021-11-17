@@ -37,15 +37,4 @@ jobs:
       - shell: bash
         run: cabal update
 
-      - shell: bash
-        run: cabal configure --enable-tests --enable-benchmarks # NOTE: --enable-tests is necessary due to https://github.com/haskell/cabal/issues/5079
-
-      - shell: bash
-        run: cabal build all
-
-      - shell: bash
-        run: cabal test all --test-show-details=direct
-        env:
-          HSPEC_OPTIONS: --color
-
-      - run: (cd hspec-core && cabal build .)
+      - run: (cd hspec-core && cabal build --enable-tests .)
