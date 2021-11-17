@@ -78,7 +78,7 @@ test-suite spec
     , filepath
     , hspec-discover
     , hspec-meta ==2.9.0.1
-    , mockery
+    , mockery >=0.3.5
   build-tool-depends:
       hspec-meta:hspec-meta-discover
   default-language: Haskell2010
