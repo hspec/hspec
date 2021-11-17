@@ -32,4 +32,10 @@ jobs:
 
       - run: ghc --version
       - run: cabal --version
+
+
+      - shell: bash
+        run: cabal update
+
+
       - run: (cd hspec-core && cabal build .)
