@@ -113,7 +113,7 @@ test-suite spec
     , directory
     , filepath
     , hspec-expectations ==0.8.2.*
-    , hspec-meta ==2.7.8
+    , hspec-meta ==2.9.0.1
     , process
     , quickcheck-io >=0.2.0
     , random
