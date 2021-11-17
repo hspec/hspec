@@ -47,5 +47,5 @@ tests:
       - hspec-discover
       - hspec-meta == 2.9.0.1
       - QuickCheck >= 2.7
-      - mockery
+      - mockery >= 0.3.5
     build-tools: hspec-meta:hspec-meta-discover
