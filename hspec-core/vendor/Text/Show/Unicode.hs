@@ -50,12 +50,17 @@ import qualified Text.Show.Unicode
 module Text.Show.Unicode (ushow, uprint, urecover, ushowWith, uprintWith, urecoverWith) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat hiding (many)
+import           Test.Hspec.Core.Compat hiding (many, (<*>), (*>), (<*))
 
 import           Data.Char                    (isAscii, isPrint)
 import           Text.ParserCombinators.ReadP
 import           Text.Read.Lex                (lexChar)
 import qualified Data.List                     as L
+
+infixl 4 <*
+
+(<*) :: Monad m => m a -> m b -> m a
+(<*) = flip (>>)
 
 -- Represents a replaced character using its literal form and its escaped form.
 type Replacement = (String, String)
