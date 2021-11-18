@@ -37,4 +37,4 @@ jobs:
       - shell: bash
         run: cabal update
 
-      - run: (cd hspec-core && cabal build .)
+      - run: (cd hspec-core && cabal build --enable-tests .)
