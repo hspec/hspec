@@ -11,7 +11,7 @@ module Test.Hspec.Core.Util (
 , formatRequirement
 , filterPredicate
 
--- * Working with exception
+-- * Working with exceptions
 , safeTry
 , formatException
 ) where
