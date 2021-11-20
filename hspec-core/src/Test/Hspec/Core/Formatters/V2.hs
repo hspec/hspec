@@ -291,18 +291,15 @@ defaultFailedFormatter = do
               (xs, _ : ys) -> output (xs ++ "\n") >> write (indentation ++ "          ") >> indented output ys
 
             writeDiff chunks extra missing = do
-              withFailColor $ write (indentation ++ "expected: ")
-              forM_ chunks $ \ chunk -> case chunk of
-                Both a -> indented write a
-                First a -> indented extra a
-                Second _ -> return ()
-              writeLine ""
+              writeChunks "expected: " (expectedChunks chunks) extra
+              writeChunks " but got: " (actualChunks chunks) missing
 
-              withFailColor $ write (indentation ++ " but got: ")
+            writeChunks :: String -> [Chunk] -> (String -> FormatM ()) -> FormatM ()
+            writeChunks pre chunks colorize = do
+              withFailColor $ write (indentation ++ pre)
               forM_ chunks $ \ chunk -> case chunk of
-                Both a -> indented write a
-                First _ -> return ()
-                Second a -> indented missing a
+                Original a -> indented write a
+                Modified a -> indented colorize a
               writeLine ""
 
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
@@ -316,6 +313,21 @@ defaultFailedFormatter = do
         indent message = do
           forM_ (lines message) $ \line -> do
             writeLine (indentation ++ line)
+
+data Chunk = Original String | Modified String
+  deriving (Eq, Show)
+
+expectedChunks :: [Diff] -> [Chunk]
+expectedChunks = mapMaybe $ \ chunk -> case chunk of
+  Both a -> Just $ Original a
+  First a -> Just $ Modified a
+  Second _ -> Nothing
+
+actualChunks :: [Diff] -> [Chunk]
+actualChunks = mapMaybe $ \ chunk -> case chunk of
+  Both a -> Just $ Original a
+  First _ -> Nothing
+  Second a -> Just $ Modified a
 
 defaultFooter :: FormatM ()
 defaultFooter = do
