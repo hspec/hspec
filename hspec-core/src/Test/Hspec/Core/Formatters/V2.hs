@@ -293,14 +293,14 @@ defaultFailedFormatter = do
             writeDiff chunks extra missing = do
               withFailColor $ write (indentation ++ "expected: ")
               forM_ chunks $ \ chunk -> case chunk of
-                Both a _ -> indented write a
+                Both a -> indented write a
                 First a -> indented extra a
                 Second _ -> return ()
               writeLine ""
 
               withFailColor $ write (indentation ++ " but got: ")
               forM_ chunks $ \ chunk -> case chunk of
-                Both a _ -> indented write a
+                Both a -> indented write a
                 First _ -> return ()
                 Second a -> indented missing a
               writeLine ""
