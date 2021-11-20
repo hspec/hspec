@@ -10,17 +10,27 @@ module Test.Hspec.Core.Formatters.Diff (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat
+import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Char
-import           Data.Algorithm.Diff
+import qualified Data.Algorithm.Diff as Diff
 
-diff :: String -> String -> [Diff String]
-diff expected actual = map (fmap concat) $ getGroupedDiff (partition expected) (partition actual)
+data Diff = First String | Second String | Both String
+  deriving (Eq, Show)
+
+diff :: String -> String -> [Diff]
+diff expected actual = map (toDiff . fmap concat) $ Diff.getGroupedDiff (partition expected) (partition actual)
+
+toDiff :: Diff.Diff String -> Diff
+toDiff d = case d of
+  Diff.First xs -> First xs
+  Diff.Second xs -> Second xs
+  Diff.Both xs _ -> Both xs
 
 partition :: String -> [String]
 partition = filter (not . null) . mergeBackslashes . breakList isAlphaNum
   where
+    mergeBackslashes :: [String] -> [String]
     mergeBackslashes xs = case xs of
       ['\\'] : (splitEscape -> Just (escape, ys)) : zs -> ("\\" ++ escape) : ys : mergeBackslashes zs
       z : zs -> z : mergeBackslashes zs
