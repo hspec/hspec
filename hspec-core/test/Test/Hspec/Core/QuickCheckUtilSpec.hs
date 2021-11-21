@@ -2,6 +2,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Test.Hspec.Core.QuickCheckUtilSpec (spec) where
 
 import           Prelude ()
