@@ -131,6 +131,7 @@ import Test.Hspec.Core.Formatters.Internal (
   )
 
 import           Test.Hspec.Core.Formatters.Diff
+import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 
 silent :: Formatter
 silent = Formatter {
@@ -277,7 +278,7 @@ defaultFailedFormatter = do
           pretty <- prettyPrint
           let
             (expected, actual)
-              | pretty = recover unicode expected_ actual_
+              | pretty = pretty2 unicode expected_ actual_
               | otherwise = (expected_, actual_)
 
           mapM_ indent preface

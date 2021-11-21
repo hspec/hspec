@@ -2,41 +2,21 @@
 {-# LANGUAGE ViewPatterns #-}
 module Test.Hspec.Core.Formatters.Diff (
   Diff (..)
-, recover
 , diff
 #ifdef TEST
-, recoverString
 , partition
 , breakList
 #endif
 ) where
 
 import           Prelude ()
-import           Control.Arrow
 import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Char
 import qualified Data.Algorithm.Diff as Diff
-import           Text.Show.Unicode (urecover)
 
 data Diff = First String | Second String | Both String
   deriving (Eq, Show)
-
-recover :: Bool -> String -> String -> (String, String)
-recover unicode expected actual = case (recoverString unicode expected, recoverString unicode actual) of
-  (Just expected_, Just actual_) -> (expected_, actual_)
-  _ -> (rec expected, rec actual)
-  where
-    rec = if unicode then urecover else id
-
-recoverString :: Bool -> String -> Maybe String
-recoverString unicode input = case readMaybe input of
-  Just r | shouldParseBack r -> Just r
-  _ -> Nothing
-  where
-    shouldParseBack = (&&) <$> all isSafe <*> isMultiLine
-    isMultiLine = lines >>> length >>> (> 1)
-    isSafe c = (unicode || isAscii c) && (not $ isControl c) || c == '\n'
 
 diff :: String -> String -> [Diff]
 diff expected actual = map (toDiff . fmap concat) $ Diff.getGroupedDiff (partition expected) (partition actual)

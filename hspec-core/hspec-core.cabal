@@ -51,6 +51,10 @@ library
     , stm >=2.2
     , tf-random
     , transformers >=0.2.2.0
+  if impl(ghc >= 8.2.1)
+    build-depends:
+        ghc
+      , ghc-boot-th
   exposed-modules:
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
@@ -77,6 +81,9 @@ library
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Internal
+      Test.Hspec.Core.Formatters.Pretty
+      Test.Hspec.Core.Formatters.Pretty.Parser
+      Test.Hspec.Core.Formatters.Pretty.Parser.Types
       Test.Hspec.Core.Formatters.V1.Free
       Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.QuickCheckUtil
@@ -124,6 +131,10 @@ test-suite spec
     , temporary
     , tf-random
     , transformers >=0.2.2.0
+  if impl(ghc >= 8.2.1)
+    build-depends:
+        ghc
+      , ghc-boot-th
   build-tool-depends:
       hspec-meta:hspec-meta-discover
   other-modules:
@@ -144,6 +155,9 @@ test-suite spec
       Test.Hspec.Core.Formatters
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Internal
+      Test.Hspec.Core.Formatters.Pretty
+      Test.Hspec.Core.Formatters.Pretty.Parser
+      Test.Hspec.Core.Formatters.Pretty.Parser.Types
       Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V1.Free
       Test.Hspec.Core.Formatters.V1.Monad
@@ -179,6 +193,8 @@ test-suite spec
       Test.Hspec.Core.FormatSpec
       Test.Hspec.Core.Formatters.DiffSpec
       Test.Hspec.Core.Formatters.InternalSpec
+      Test.Hspec.Core.Formatters.Pretty.ParserSpec
+      Test.Hspec.Core.Formatters.PrettySpec
       Test.Hspec.Core.Formatters.V1Spec
       Test.Hspec.Core.Formatters.V2Spec
       Test.Hspec.Core.HooksSpec
