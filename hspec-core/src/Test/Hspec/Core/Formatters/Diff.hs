@@ -2,9 +2,10 @@
 {-# LANGUAGE ViewPatterns #-}
 module Test.Hspec.Core.Formatters.Diff (
   Diff (..)
-, smartDiff
+, recover
 , diff
 #ifdef TEST
+, recoverString
 , partition
 , breakList
 #endif
@@ -16,14 +17,22 @@ import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Char
 import qualified Data.Algorithm.Diff as Diff
+import           Text.Show.Unicode (urecover)
 
 data Diff = First String | Second String | Both String
   deriving (Eq, Show)
 
-smartDiff :: Bool -> String -> String -> [Diff]
-smartDiff unicode expected actual = case (readMaybe expected, readMaybe actual) of
-  (Just expected_, Just actual_) | shouldParseBack expected_ && shouldParseBack actual_ -> diff expected_ actual_
-  _ -> diff expected actual
+recover :: Bool -> String -> String -> (String, String)
+recover unicode expected actual = case (recoverString unicode expected, recoverString unicode actual) of
+  (Just expected_, Just actual_) -> (expected_, actual_)
+  _ -> (rec expected, rec actual)
+  where
+    rec = if unicode then urecover else id
+
+recoverString :: Bool -> String -> Maybe String
+recoverString unicode input = case readMaybe input of
+  Just r | shouldParseBack r -> Just r
+  _ -> Nothing
   where
     shouldParseBack = (&&) <$> all isSafe <*> isMultiLine
     isMultiLine = lines >>> length >>> (> 1)

@@ -3,6 +3,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 {-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -O0 #-}
 module Test.Hspec.Core.Example.LocationSpec (spec) where
 
@@ -92,7 +93,7 @@ spec = do
     context "with NoMethodError" $ do
       it "extracts Location" $ do
         Left e <- try $ someMethod ()
-        extractLocation e `shouldBe` Just (Location __FILE__ 20 10)
+        extractLocation e `shouldBe` Just (Location __FILE__ 21 10)
 
     context "with AssertionFailed" $ do
       it "extracts Location" $ do

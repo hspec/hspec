@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module GetOpt.Declarative.EnvironmentSpec (spec) where
 
 import           Prelude ()

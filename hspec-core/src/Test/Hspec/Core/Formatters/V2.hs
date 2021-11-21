@@ -81,7 +81,7 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
-import           Text.Show.Unicode (ushow, urecover)
+import           Text.Show.Unicode (ushow)
 import           Control.Monad.IO.Class
 import           Control.Exception
 
@@ -273,9 +273,7 @@ defaultFailedFormatter = do
         Reason err -> withFailColor $ indent err
         ExpectedButGot preface expected_ actual_ -> do
           let
-            recover = if unicode then urecover else id
-            expected = recover expected_
-            actual = recover actual_
+            (expected, actual) = recover unicode expected_ actual_
 
           mapM_ indent preface
 
@@ -284,7 +282,7 @@ defaultFailedFormatter = do
           let threshold = 2 :: Seconds
 
           mchunks <- liftIO $ if b
-            then timeout threshold (evaluate $ smartDiff unicode expected actual)
+            then timeout threshold (evaluate $ diff expected actual)
             else return Nothing
 
           case mchunks of

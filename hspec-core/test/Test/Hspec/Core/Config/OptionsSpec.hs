@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Test.Hspec.Core.Config.OptionsSpec (spec) where
 
 import           Prelude ()

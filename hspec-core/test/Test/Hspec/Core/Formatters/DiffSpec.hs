@@ -12,23 +12,33 @@ dropQuotes = init . tail
 
 spec :: Spec
 spec = do
-  describe "smartDiff" $ do
+  describe "recover" $ do
+    context "with single-line string literals" $ do
+      context "with --unicode" $ do
+        it "recovers unicode" $ do
+          recover True (show "foo\955bar") (show "foo-bar") `shouldBe` ("\"foo\955bar\"", "\"foo-bar\"")
+
+      context "with --no-unicode" $ do
+        it "does not recover unicode" $ do
+          recover False (show "foo\955bar") (show "foo-bar") `shouldBe` ("\"foo\\955bar\"", "\"foo-bar\"")
+
+  describe "recoverString" $ do
     it "parses back multi-line string literals" $ do
-      smartDiff True (show "foo\nbar\nbaz\n") (show "foo\nbaz\n") `shouldBe` [Both "foo\n", First "bar\n", Both "baz\n"]
+      recoverString True (show "foo\nbar\nbaz\n") `shouldBe` Just "foo\nbar\nbaz\n"
 
     it "does not parse back string literals that contain control characters" $ do
-      smartDiff True (show "foo\n\tbar\nbaz\n") (show "foo\n\tbaz\n") `shouldBe` [Both "\"foo\\n\\t", First "bar\\n", Both "baz\\n\""]
+      recoverString True (show "foo\n\tbar\nbaz\n") `shouldBe` Nothing
 
     it "does not parse back string literals that span a single line" $ do
-      smartDiff True (show "foo\n") (show "bar\n") `shouldBe` [Both "\"", First "foo", Second "bar", Both "\\n\""]
+      recoverString True (show "foo\n") `shouldBe` Nothing
 
     context "when unicode is True" $ do
       it "parses back string literals that contain unicode" $ do
-        smartDiff True (show "foo\n\955\nbaz\n") (show "foo\nbaz\n") `shouldBe` [Both "foo\n", First "\955\n", Both "baz\n"]
+        recoverString True (show "foo\n\955\nbaz\n") `shouldBe` Just "foo\n\955\nbaz\n"
 
     context "when unicode is False" $ do
       it "does not parse back string literals that contain unicode" $ do
-        smartDiff False (show "foo\n\955\nbaz\n") (show "foo\nbaz\n") `shouldBe` [Both "\"foo\\n", First "\\955\\n", Both "baz\\n\""]
+        recoverString False (show "foo\n\955\nbaz\n") `shouldBe` Nothing
 
   describe "partition" $ do
     context "with a single shown Char" $ do
