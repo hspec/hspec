@@ -12,34 +12,6 @@ dropQuotes = init . tail
 
 spec :: Spec
 spec = do
-  describe "recover" $ do
-    context "with single-line string literals" $ do
-      context "with --unicode" $ do
-        it "recovers unicode" $ do
-          recover True (show "foo\955bar") (show "foo-bar") `shouldBe` ("\"foo\955bar\"", "\"foo-bar\"")
-
-      context "with --no-unicode" $ do
-        it "does not recover unicode" $ do
-          recover False (show "foo\955bar") (show "foo-bar") `shouldBe` ("\"foo\\955bar\"", "\"foo-bar\"")
-
-  describe "recoverString" $ do
-    it "parses back multi-line string literals" $ do
-      recoverString True (show "foo\nbar\nbaz\n") `shouldBe` Just "foo\nbar\nbaz\n"
-
-    it "does not parse back string literals that contain control characters" $ do
-      recoverString True (show "foo\n\tbar\nbaz\n") `shouldBe` Nothing
-
-    it "does not parse back string literals that span a single line" $ do
-      recoverString True (show "foo\n") `shouldBe` Nothing
-
-    context "when unicode is True" $ do
-      it "parses back string literals that contain unicode" $ do
-        recoverString True (show "foo\n\955\nbaz\n") `shouldBe` Just "foo\n\955\nbaz\n"
-
-    context "when unicode is False" $ do
-      it "does not parse back string literals that contain unicode" $ do
-        recoverString False (show "foo\n\955\nbaz\n") `shouldBe` Nothing
-
   describe "partition" $ do
     context "with a single shown Char" $ do
       it "never partitions a character escape" $ do
