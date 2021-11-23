@@ -100,7 +100,7 @@ spec = do
       formatter = checks
       config = H.defaultConfig { H.configFormat = Just $ formatterToFormat formatter }
 
-    it "" $ do
+    it "prints unicode check marks" $ do
       r <- captureLines . H.hspecWithResult config $ do
         H.it "foo" True
       normalizeSummary r `shouldBe` [
@@ -111,7 +111,7 @@ spec = do
         , "1 example, 0 failures"
         ]
 
-    it "" $ do
+    it "uses ASCII as a fallback" $ do
       r <- captureLines . H.hspecWithResult config { H.configUnicodeMode = H.UnicodeNever } $ do
         H.it "foo" True
       normalizeSummary r `shouldBe` [
