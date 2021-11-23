@@ -26,6 +26,7 @@ formatConfig = FormatConfig {
   formatConfigUseColor = False
 , formatConfigOutputUnicode = True
 , formatConfigUseDiff = True
+, formatConfigPrettyPrint = True
 , formatConfigPrintTimes = False
 , formatConfigHtmlOutput = False
 , formatConfigPrintCpuTime = False

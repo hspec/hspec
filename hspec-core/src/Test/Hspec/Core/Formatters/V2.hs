@@ -58,6 +58,7 @@ module Test.Hspec.Core.Formatters.V2 (
 , outputUnicode
 
 , useDiff
+, prettyPrint
 , extraChunk
 , missingChunk
 
@@ -124,6 +125,7 @@ import Test.Hspec.Core.Formatters.Internal (
   , outputUnicode
 
   , useDiff
+  , prettyPrint
   , extraChunk
   , missingChunk
   )
@@ -272,8 +274,11 @@ defaultFailedFormatter = do
         NoReason -> return ()
         Reason err -> withFailColor $ indent err
         ExpectedButGot preface expected_ actual_ -> do
+          pretty <- prettyPrint
           let
-            (expected, actual) = recover unicode expected_ actual_
+            (expected, actual)
+              | pretty = recover unicode expected_ actual_
+              | otherwise = (expected_, actual_)
 
           mapM_ indent preface
 

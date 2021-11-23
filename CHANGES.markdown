@@ -1,5 +1,5 @@
 ## Changes in next
-  - Show multi-line diffs for string literals
+  - Show multi-line diffs for string literals (disable with `--no-pretty`)
 
 ## Changes in 2.9.1
   - Recover unicode from `ExpectedButGot`
