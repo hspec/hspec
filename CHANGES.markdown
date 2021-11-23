@@ -1,4 +1,4 @@
-## Changes in next
+## Changes in 2.9.2
   - Show multi-line diffs for string literals (disable with `--no-pretty`)
 
 ## Changes in 2.9.1
