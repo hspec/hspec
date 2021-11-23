@@ -48,7 +48,6 @@ import           System.Random
 import           Control.Monad.ST
 import           Data.STRef
 
-import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util (Path)
@@ -288,6 +287,12 @@ withHiddenCursor :: Bool -> Handle -> IO a -> IO a
 withHiddenCursor useColor h
   | useColor  = E.bracket_ (hHideCursor h) (hShowCursor h)
   | otherwise = id
+
+hHideCursor :: Handle -> IO ()
+hHideCursor h = hPutStr h "\ESC[?25l"
+
+hShowCursor :: Handle -> IO ()
+hShowCursor h = hPutStr h "\ESC[?25h"
 
 colorOutputSupported :: ColorMode -> IO Bool -> IO Bool
 colorOutputSupported mode isTerminalDevice = case mode of

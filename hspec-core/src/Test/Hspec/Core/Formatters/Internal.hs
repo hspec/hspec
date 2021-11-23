@@ -50,7 +50,6 @@ import           Test.Hspec.Core.Compat
 import qualified System.IO as IO
 import           System.IO (Handle, stdout)
 import           Control.Exception (bracket_)
-import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
@@ -232,33 +231,48 @@ write s = do
 -- | Set output color to red, run given action, and finally restore the default
 -- color.
 withFailColor :: FormatM a -> FormatM a
-withFailColor = withColor (SetColor Foreground Dull Red) "hspec-failure"
+withFailColor = withColor red "hspec-failure"
 
 -- | Set output color to green, run given action, and finally restore the
 -- default color.
 withSuccessColor :: FormatM a -> FormatM a
-withSuccessColor = withColor (SetColor Foreground Dull Green) "hspec-success"
+withSuccessColor = withColor green "hspec-success"
 
 -- | Set output color to yellow, run given action, and finally restore the
 -- default color.
 withPendingColor :: FormatM a -> FormatM a
-withPendingColor = withColor (SetColor Foreground Dull Yellow) "hspec-pending"
+withPendingColor = withColor yellow "hspec-pending"
 
 -- | Set output color to cyan, run given action, and finally restore the
 -- default color.
 withInfoColor :: FormatM a -> FormatM a
-withInfoColor = withColor (SetColor Foreground Dull Cyan) "hspec-info"
+withInfoColor = withColor cyan "hspec-info"
 
 -- | Set a color, run an action, and finally reset colors.
-withColor :: SGR -> String -> FormatM a -> FormatM a
+withColor :: String -> String -> FormatM a -> FormatM a
 withColor color cls action = do
   produceHTML <- getConfig formatConfigHtmlOutput
   (if produceHTML then htmlSpan cls else withColor_ color) action
 
+red :: String
+red = "\ESC[31m"
+
+green :: String
+green = "\ESC[32m"
+
+yellow :: String
+yellow = "\ESC[33m"
+
+cyan :: String
+cyan = "\ESC[36m"
+
+reset :: String
+reset = "\ESC[0m"
+
 htmlSpan :: String -> FormatM a -> FormatM a
 htmlSpan cls action = write ("<span class=\"" ++ cls ++ "\">") *> action <* write "</span>"
 
-withColor_ :: SGR -> FormatM a -> FormatM a
+withColor_ :: String -> FormatM a -> FormatM a
 withColor_ color (FormatM action) = do
   useColor <- getConfig formatConfigUseColor
   h <- getHandle
@@ -267,10 +281,10 @@ withColor_ color (FormatM action) = do
     bracket_
 
       -- set color
-      (when useColor $ hSetSGR h [color])
+      (when useColor $ IO.hPutStr h color)
 
       -- reset colors
-      (when useColor $ hSetSGR h [Reset])
+      (when useColor $ IO.hPutStr h reset)
 
       -- run action
       (runStateT action st)
@@ -297,8 +311,24 @@ missingChunk s = do
     missing :: String-> FormatM ()
     missing = diffColorize Green "hspec-success"
 
+data Color = Red | Green
+data Layer = Foreground | Background
+
+setColor :: Layer -> Color -> String
+setColor layer color = case (layer, color) of
+  (Foreground, Red) -> red
+  (Foreground, Green) -> green
+  (Background, Red) -> bgRed
+  (Background, Green) -> bgGreen
+
+bgRed :: String
+bgRed = "\ESC[41m"
+
+bgGreen :: String
+bgGreen = "\ESC[42m"
+
 diffColorize :: Color -> String -> String-> FormatM ()
-diffColorize color cls s = withColor (SetColor layer Dull color) cls $ do
+diffColorize color cls s = withColor (setColor layer color) cls $ do
   write s
   where
     layer

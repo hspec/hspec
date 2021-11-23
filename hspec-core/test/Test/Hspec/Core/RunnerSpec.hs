@@ -20,7 +20,6 @@ import qualified Control.Exception as E
 import           Control.Concurrent.Async
 import           Mock
 import           System.SetEnv
-import           System.Console.ANSI
 
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Expectations as H
@@ -398,8 +397,8 @@ spec = do
           H.it "foo" $ do
             23 `H.shouldBe` (42 :: Int)
         r `shouldContain` unlines [
-            red ++ "       expected: " ++ reset ++ red ++ "42" ++ reset
-          , red ++ "        but got: " ++ reset ++ green ++ "23" ++ reset
+            red "       expected: " ++ red "42"
+          , red "        but got: " ++ green "23"
           ]
 
     context "with --no-diff" $ do
@@ -408,8 +407,8 @@ spec = do
           H.it "foo" $ do
             23 `H.shouldBe` (42 :: Int)
         r `shouldContain` unlines [
-            red ++ "       expected: " ++ reset ++ "42"
-          , red ++ "        but got: " ++ reset ++ "23"
+            red "       expected: " ++ "42"
+          , red "        but got: " ++ "23"
           ]
 
     context "with --print-slow-items" $ do
@@ -425,7 +424,7 @@ spec = do
           , ""
           , "Slow spec items:"
 #if MIN_VERSION_base(4,8,1)
-          , "  test/Test/Hspec/Core/RunnerSpec.hs:418:11: /foo/ (2ms)"
+          , "  test/Test/Hspec/Core/RunnerSpec.hs:417:11: /foo/ (2ms)"
 #else
           , "  /foo/ (2ms)"
 #endif
@@ -649,6 +648,11 @@ spec = do
       it "returns False" $ do
         H.rerunAll config (Just report) summary {H.summaryFailures = 1} `shouldBe` False
   where
-    green  = setSGRCode [SetColor Foreground Dull Green]
-    red    = setSGRCode [SetColor Foreground Dull Red]
-    reset  = setSGRCode [Reset]
+    red :: String -> String
+    red xs = "\ESC[31m" <> xs <> reset
+
+    green :: String -> String
+    green xs = "\ESC[32m" <> xs <> reset
+
+    reset :: String
+    reset = "\ESC[0m"
