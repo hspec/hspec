@@ -586,6 +586,11 @@ spec = do
         withEnvironment [] $ do
           H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` True
 
+      context "when TERM=dumb" $ do
+        it "returns False" $ do
+          withEnvironment [("TERM", "dumb")] $ do
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` False
+
       context "when NO_COLOR is set" $ do
         it "returns False" $ do
           withEnvironment [("NO_COLOR", "yes")] $ do

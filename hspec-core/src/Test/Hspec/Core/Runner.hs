@@ -47,7 +47,6 @@ import qualified Control.Exception as E
 import           System.Random
 import           Control.Monad.ST
 import           Data.STRef
-import           System.Console.ANSI (hSupportsANSI)
 
 import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
@@ -214,7 +213,7 @@ runSpec_ config spec = do
     Nothing -> getDefaultConcurrentJobs
     Just n -> return n
 
-  useColor <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
+  useColor <- colorOutputSupported (configColorMode config) (hIsTerminalDevice stdout)
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
   results <- withHiddenCursor useColor stdout $ do
@@ -292,7 +291,7 @@ withHiddenCursor useColor h
 
 colorOutputSupported :: ColorMode -> IO Bool -> IO Bool
 colorOutputSupported mode isTerminalDevice = case mode of
-  ColorAuto  -> (&&) <$> (not <$> noColor) <*> isTerminalDevice
+  ColorAuto  -> (not <$> noColor ||^ isDumb) &&^ isTerminalDevice
   ColorNever -> return False
   ColorAlways -> return True
 
@@ -304,6 +303,20 @@ unicodeOutputSupported mode h = case mode of
 
 noColor :: IO Bool
 noColor = lookupEnv "NO_COLOR" <&> (/= Nothing)
+
+isDumb :: IO Bool
+isDumb = lookupEnv "TERM" <&> (== Just "dumb")
+
+(||^) :: IO Bool -> IO Bool -> IO Bool
+(||^) a b = ifM a (pure True) b
+
+(&&^) :: IO Bool -> IO Bool -> IO Bool
+(&&^) a b = ifM a b (pure False)
+
+ifM :: IO Bool -> IO a -> IO a -> IO a
+ifM action true false = do
+  bool <- action
+  if bool then true else false
 
 rerunAll :: Config -> Maybe FailureReport -> Summary -> Bool
 rerunAll _ Nothing _ = False
