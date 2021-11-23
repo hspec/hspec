@@ -32,6 +32,7 @@ FORMATTER OPTIONS
                 --[no-]color            colorize the output
                 --[no-]unicode          output unicode
                 --[no-]diff             show colorized diffs
+                --[no-]pretty           try to pretty-print diff values
                 --[no-]times            report times for individual spec items
                 --print-cpu-time        include used CPU time in summary
   -p[N]         --print-slow-items[=N]  print the N slowest spec items (default:

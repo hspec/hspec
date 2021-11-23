@@ -62,6 +62,7 @@ data Config = Config {
 , configColorMode :: ColorMode
 , configUnicodeMode :: UnicodeMode
 , configDiff :: Bool
+, configPrettyPrint :: Bool
 , configTimes :: Bool
 , configAvailableFormatters :: [(String, FormatConfig -> IO Format)]
 , configFormat :: Maybe (FormatConfig -> IO Format)
@@ -94,6 +95,7 @@ defaultConfig = Config {
 , configColorMode = ColorAuto
 , configUnicodeMode = UnicodeAuto
 , configDiff = True
+, configPrettyPrint = True
 , configTimes = False
 , configAvailableFormatters = map (fmap V2.formatterToFormat) [
     ("checks", V2.checks)
@@ -132,6 +134,7 @@ formatterOptions formatters = [
   , mkFlag "color" setColor "colorize the output"
   , mkFlag "unicode" setUnicode "output unicode"
   , mkFlag "diff" setDiff "show colorized diffs"
+  , mkFlag "pretty" setPretty "try to pretty-print diff values"
   , mkFlag "times" setTimes "report times for individual spec items"
   , mkOptionNoArg "print-cpu-time" Nothing setPrintCpuTime "include used CPU time in summary"
   , printSlowItemsOption
@@ -160,6 +163,9 @@ formatterOptions formatters = [
 
     setDiff :: Bool -> Config -> Config
     setDiff v config = config {configDiff = v}
+
+    setPretty :: Bool -> Config -> Config
+    setPretty v config = config {configPrettyPrint = v}
 
     setTimes :: Bool -> Config -> Config
     setTimes v config = config {configTimes = v}

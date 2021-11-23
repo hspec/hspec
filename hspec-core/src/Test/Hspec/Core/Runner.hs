@@ -223,6 +223,7 @@ runSpec_ config spec = do
         formatConfigUseColor = useColor
       , formatConfigOutputUnicode = outputUnicode
       , formatConfigUseDiff = configDiff config
+      , formatConfigPrettyPrint = configPrettyPrint config
       , formatConfigPrintTimes = configTimes config
       , formatConfigHtmlOutput = configHtmlOutput config
       , formatConfigPrintCpuTime = configPrintCpuTime config

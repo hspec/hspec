@@ -59,6 +59,7 @@ data FormatConfig = FormatConfig {
   formatConfigUseColor :: Bool
 , formatConfigOutputUnicode :: Bool
 , formatConfigUseDiff :: Bool
+, formatConfigPrettyPrint :: Bool
 , formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool
 , formatConfigPrintCpuTime :: Bool
