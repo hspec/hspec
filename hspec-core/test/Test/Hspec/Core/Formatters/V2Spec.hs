@@ -204,7 +204,7 @@ spec = do
 
     describe "formatterDone" $ do
       it "recovers unicode from ExpectedButGot" $ do
-        formatter <- formatterToFormat progress formatConfig { formatConfigOutputUnicode = True }
+        formatter <- formatterToFormat failed_examples formatConfig { formatConfigOutputUnicode = True }
         _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Failure Nothing $ ExpectedButGot Nothing (show "\955") (show "\956")
         (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
             ""
@@ -224,7 +224,7 @@ spec = do
 
       context "when actual/expected contain newlines" $ do
         it "adds indentation" $ do
-          formatter <- formatterToFormat progress formatConfig
+          formatter <- formatterToFormat failed_examples formatConfig
           _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Failure Nothing $ ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird"
           (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
               ""
@@ -248,7 +248,7 @@ spec = do
 
       context "without failures" $ do
         it "shows summary in green if there are no failures" $ do
-          formatter <- formatterToFormat progress formatConfig
+          formatter <- formatterToFormat failed_examples formatConfig
           _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Success
           (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
               ""
@@ -258,7 +258,7 @@ spec = do
 
       context "with pending examples" $ do
         it "shows summary in yellow if there are pending examples" $ do
-          formatter <- formatterToFormat progress formatConfig
+          formatter <- formatterToFormat failed_examples formatConfig
           _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Pending Nothing Nothing
           (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
               ""
