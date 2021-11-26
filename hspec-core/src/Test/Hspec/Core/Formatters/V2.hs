@@ -82,7 +82,7 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec (Location(..))
 import           Text.Printf
-import           Text.Show.Unicode (ushow)
+import           Test.Hspec.Core.Formatters.Pretty.Unicode (ushow)
 import           Control.Monad.IO.Class
 import           Control.Exception
 

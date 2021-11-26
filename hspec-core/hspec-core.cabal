@@ -84,6 +84,7 @@ library
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Formatters.Pretty.Parser.Types
+      Test.Hspec.Core.Formatters.Pretty.Unicode
       Test.Hspec.Core.Formatters.V1.Free
       Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.QuickCheckUtil
@@ -95,7 +96,6 @@ library
       Test.Hspec.Core.Tree
       Control.Concurrent.Async
       Data.Algorithm.Diff
-      Text.Show.Unicode
       Paths_hspec_core
   default-language: Haskell2010
 
@@ -158,6 +158,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Formatters.Pretty.Parser.Types
+      Test.Hspec.Core.Formatters.Pretty.Unicode
       Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V1.Free
       Test.Hspec.Core.Formatters.V1.Monad
@@ -176,7 +177,6 @@ test-suite spec
       Test.Hspec.Core.Util
       Control.Concurrent.Async
       Data.Algorithm.Diff
-      Text.Show.Unicode
       All
       GetOpt.Declarative.EnvironmentSpec
       GetOpt.Declarative.UtilSpec
@@ -194,6 +194,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.DiffSpec
       Test.Hspec.Core.Formatters.InternalSpec
       Test.Hspec.Core.Formatters.Pretty.ParserSpec
+      Test.Hspec.Core.Formatters.Pretty.UnicodeSpec
       Test.Hspec.Core.Formatters.PrettySpec
       Test.Hspec.Core.Formatters.V1Spec
       Test.Hspec.Core.Formatters.V2Spec
