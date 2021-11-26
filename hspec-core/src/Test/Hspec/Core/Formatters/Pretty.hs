@@ -17,20 +17,24 @@ import           Data.String
 import           Data.List (intersperse)
 import qualified Text.Show as Show
 
-import           Test.Hspec.Core.Formatters.Pretty.Unicode (ushow)
+import           Test.Hspec.Core.Formatters.Pretty.Unicode
 import           Test.Hspec.Core.Formatters.Pretty.Parser
 
 pretty2 :: Bool -> String -> String -> (String, String)
 pretty2 unicode expected actual = case (recoverString unicode expected, recoverString unicode actual) of
   (Just expected_, Just actual_) -> (expected_, actual_)
-  _ -> case (pretty expected, pretty actual) of
+  _ -> case (pretty unicode expected, pretty unicode actual) of
     (Just expected_, Just actual_) -> (expected_, actual_)
+#if __GLASGOW_HASKELL__ >= 802
+    _ -> (expected, actual)
+#else
     _ -> (rec expected, rec actual)
   where
     rec = if unicode then urecover else id
 
     urecover :: String -> String
     urecover xs = maybe xs ushow $ readMaybe xs
+#endif
 
 recoverString :: Bool -> String -> Maybe String
 recoverString unicode input = case readMaybe input of
@@ -41,16 +45,17 @@ recoverString unicode input = case readMaybe input of
     isMultiLine = lines >>> length >>> (> 1)
     isSafe c = (unicode || isAscii c) && (not $ isControl c) || c == '\n'
 
-pretty :: String -> Maybe String
-pretty = parseExpression >=> render_
+pretty :: Bool -> String -> Maybe String
+pretty unicode = parseExpression >=> render_
   where
     render_ :: Expression -> Maybe String
-    render_ expr = guard (shouldParseBack expr) >> Just (renderExpression expr)
+    render_ expr = guard (shouldParseBack expr) >> Just (renderExpression unicode expr)
 
     shouldParseBack :: Expression -> Bool
     shouldParseBack = go
       where
         go expr = case expr of
+          Literal (String _) -> True
           Literal _ -> False
           Id _ -> False
           App (Id _) e -> go e
@@ -87,12 +92,12 @@ shows = Builder . Show.shows
 instance IsString Builder where
   fromString = Builder . showString
 
-renderExpression :: Expression -> String
-renderExpression = runBuilder . render
+renderExpression :: Bool -> Expression -> String
+renderExpression unicode = runBuilder . render
   where
     renderLiteral lit = case lit of
       Char c -> shows c
-      String str -> shows str
+      String str -> if unicode then Builder $ ushows str else shows str
       Integer n -> shows n
       Rational n -> shows n
 

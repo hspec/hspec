@@ -42,7 +42,7 @@ spec = do
     let person = Person "Joe" 23
 
     it "pretty-prints records" $ do
-      pretty (show person) `shouldBe` just [
+      pretty True (show person) `shouldBe` just [
           "Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
@@ -50,7 +50,7 @@ spec = do
         ]
 
     it "pretty-prints Just-values" $ do
-      pretty (show $ Just person) `shouldBe` just [
+      pretty True (show $ Just person) `shouldBe` just [
           "Just (Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
@@ -58,7 +58,7 @@ spec = do
         ]
 
     it "pretty-prints tuples" $ do
-      pretty (show (person, 23 :: Int)) `shouldBe` just [
+      pretty True (show (person, 23 :: Int)) `shouldBe` just [
           "(Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
@@ -66,25 +66,49 @@ spec = do
         ]
 
     it "pretty-prints lists" $ do
-      pretty (show [Just person, Nothing]) `shouldBe` just [
+      pretty True (show [Just person, Nothing]) `shouldBe` just [
           "[Just (Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
         , "}), Nothing]"
         ]
 
+    context "with --unicode" $ do
+      it "retains unicode characters in record fields" $ do
+        pretty True (show $ Person "λ-Joe" 23) `shouldBe` just [
+            "Person {"
+          , "  personName = \"λ-Joe\","
+          , "  personAge = 23"
+          , "}"
+          ]
+
+      it "retains unicode characters in list elements" $ do
+        pretty True (show ["foo", "λ", "bar"]) `shouldBe` just ["[\"foo\", \"λ\", \"bar\"]"]
+
+    context "with --no-unicode" $ do
+      it "does not retain unicode characters in record fields" $ do
+        pretty False (show $ Person "λ-Joe" 23) `shouldBe` just [
+            "Person {"
+          , "  personName = \"\\955-Joe\","
+          , "  personAge = 23"
+          , "}"
+          ]
+
+      it "does not retain unicode characters in list elements" $ do
+        pretty False (show ["foo", "λ", "bar"]) `shouldBe` just ["[\"foo\", \"\\955\", \"bar\"]"]
+
     context "with input that looks like a list" $ do
       it "it returns Nothing" $ do
-        pretty "[23,42]" `shouldBe` Nothing
+        pretty True "[23,42]" `shouldBe` Nothing
 
     context "with input that looks like a tuple" $ do
       it "it returns Nothing" $ do
-        pretty "(23,42)" `shouldBe` Nothing
+        pretty True "(23,42)" `shouldBe` Nothing
 
     context "with input that looks like function applications" $ do
       it "it returns Nothing" $ do
         let input = unlines ["foo", "bar", "baz"]
-        pretty input `shouldBe` Nothing
+        pretty True input `shouldBe` Nothing
   where
 #if __GLASGOW_HASKELL__ >= 802
     just = Just . intercalate "\n"
