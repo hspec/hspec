@@ -17,7 +17,7 @@ import           Data.String
 import           Data.List (intersperse)
 import qualified Text.Show as Show
 
-import           Text.Show.Unicode (urecover)
+import           Test.Hspec.Core.Formatters.Pretty.Unicode (ushow)
 import           Test.Hspec.Core.Formatters.Pretty.Parser
 
 pretty2 :: Bool -> String -> String -> (String, String)
@@ -28,6 +28,9 @@ pretty2 unicode expected actual = case (recoverString unicode expected, recoverS
     _ -> (rec expected, rec actual)
   where
     rec = if unicode then urecover else id
+
+    urecover :: String -> String
+    urecover xs = maybe xs ushow $ readMaybe xs
 
 recoverString :: Bool -> String -> Maybe String
 recoverString unicode input = case readMaybe input of
