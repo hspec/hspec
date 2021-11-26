@@ -40,7 +40,6 @@ dependencies:
   - directory
   - filepath
 
-  - stm >= 2.2 # for asyc
   - array # for Diff
 
 when:
@@ -53,7 +52,18 @@ source-dirs:
   - src
   - vendor
 
+_common:
+  - &stm
+    when:
+      condition: impl(ghc >= 8.4.1)
+      then:
+        dependencies: stm >= 2.2
+      else:
+        source-dirs: vendor/stm-2.5.0.1/
+        other-modules: Control.Concurrent.STM.TMVar
+
 library:
+  <<: *stm
   exposed-modules:
     - Test.Hspec.Core.Spec
     - Test.Hspec.Core.Hooks
@@ -67,6 +77,7 @@ library:
 
 tests:
   spec:
+    <<: *stm
     cpp-options: -DTEST
     main: Spec.hs
     source-dirs:

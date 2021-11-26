@@ -195,7 +195,7 @@ module Control.Concurrent.Async (
 
   ) where
 
-import Control.Concurrent.STM
+import Control.Concurrent.STM.TMVar
 import Control.Exception
 import Control.Concurrent
 import qualified Data.Foldable as F

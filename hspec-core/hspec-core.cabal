@@ -48,13 +48,20 @@ library
     , quickcheck-io >=0.2.0
     , random
     , setenv
-    , stm >=2.2
     , tf-random
     , transformers >=0.2.2.0
   if impl(ghc >= 8.2.1)
     build-depends:
         ghc
       , ghc-boot-th
+  if impl(ghc >= 8.4.1)
+    build-depends:
+        stm >=2.2
+  else
+    other-modules:
+        Control.Concurrent.STM.TMVar
+    hs-source-dirs:
+        vendor/stm-2.5.0.1/
   exposed-modules:
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
@@ -127,7 +134,6 @@ test-suite spec
     , random
     , setenv
     , silently >=1.2.4
-    , stm >=2.2
     , temporary
     , tf-random
     , transformers >=0.2.2.0
@@ -135,6 +141,14 @@ test-suite spec
     build-depends:
         ghc
       , ghc-boot-th
+  if impl(ghc >= 8.4.1)
+    build-depends:
+        stm >=2.2
+  else
+    other-modules:
+        Control.Concurrent.STM.TMVar
+    hs-source-dirs:
+        vendor/stm-2.5.0.1/
   build-tool-depends:
       hspec-meta:hspec-meta-discover
   other-modules:
