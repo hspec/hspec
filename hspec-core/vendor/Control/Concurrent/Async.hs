@@ -6,7 +6,7 @@
 #if __GLASGOW_HASKELL__ < 710
 {-# LANGUAGE DeriveDataTypeable #-}
 #endif
-{-# OPTIONS -Wall -fno-warn-implicit-prelude #-}
+{-# OPTIONS -Wall #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -24,65 +24,123 @@
 -- "Control.Concurrent".  The main additional functionality it
 -- provides is the ability to wait for the return value of a thread,
 -- but the interface also provides some additional safety and
--- robustness over using threads and @MVar@ directly.
+-- robustness over using 'forkIO' threads and @MVar@ directly.
+--
+-- == High-level API
+--
+-- @async@'s high-level API spawns /lexically scoped/ threads,
+-- ensuring the following key poperties that make it safer to use
+-- than using plain 'forkIO':
+--
+-- 1. No exception is swallowed (waiting for results propagates exceptions).
+-- 2. No thread is leaked (left running unintentionally).
+--
+-- (This is done using the 'Control.Exception.bracket' pattern to work in presence
+-- of synchornous and asynchronous exceptions.)
+--
+-- __Most practical/production code should only use the high-level API__.
 --
 -- The basic type is @'Async' a@, which represents an asynchronous
 -- @IO@ action that will return a value of type @a@, or die with an
--- exception.  An @Async@ corresponds to a thread, and its 'ThreadId'
--- can be obtained with 'asyncThreadId', although that should rarely
--- be necessary.
+-- exception.  An 'Async' is a wrapper around a low-level 'forkIO' thread.
+--
+-- The fundamental function to spawn threads with the high-level API is
+-- 'withAsync'.
 --
 -- For example, to fetch two web pages at the same time, we could do
 -- this (assuming a suitable @getURL@ function):
 --
--- >    do a1 <- async (getURL url1)
--- >       a2 <- async (getURL url2)
--- >       page1 <- wait a1
--- >       page2 <- wait a2
--- >       ...
+-- > withAsync (getURL url1) $ \a1 -> do
+-- >   withAsync (getURL url2) $ \a2 -> do
+-- >     page1 <- wait a1
+-- >     page2 <- wait a2
+-- >     ...
 --
--- where 'async' starts the operation in a separate thread, and
--- 'wait' waits for and returns the result.  If the operation
--- throws an exception, then that exception is re-thrown by
--- 'wait'.  This is one of the ways in which this library
--- provides some additional safety: it is harder to accidentally
--- forget about exceptions thrown in child threads.
+-- where 'withAsync' starts the operation in a separate thread, and
+-- 'wait' waits for and returns the result.
 --
--- A slight improvement over the previous example is this:
+-- * If the operation throws an exception, then that exception is re-thrown
+--   by 'wait'. This ensures property (1): No exception is swallowed.
+-- * If an exception bubbles up through a 'withAsync', then the 'Async'
+--   it spawned is 'cancel'ed. This ensures property (2): No thread is leaked.
 --
--- >       withAsync (getURL url1) $ \a1 -> do
--- >       withAsync (getURL url2) $ \a2 -> do
--- >       page1 <- wait a1
--- >       page2 <- wait a2
--- >       ...
+-- Often we do not care to work manually with 'Async' handles like
+-- @a1@ and @a2@. Instead, we want to express high-level objectives like
+-- performing two or more tasks concurrently, and waiting for one or all
+-- of them to finish.
+--
+-- For example, the pattern of performing two IO actions concurrently and
+-- waiting for both their results is packaged up in a combinator 'concurrently',
+-- so we can further shorten the above example to:
+--
+-- > (page1, page2) <- concurrently (getURL url1) (getURL url2)
+-- > ...
+--
+-- The section __/High-level utilities/__ covers the most
+-- common high-level objectives, including:
+--
+-- * Waiting for 2 results ('concurrently').
+-- * Waiting for many results ('mapConcurrently' / 'forConcurrently').
+-- * Waiting for the first of 2 results ('race').
+-- * Waiting for arbitrary nestings of "all of /N/" and "the first of /N/"
+--   results with the 'Concurrently' newtype and its 'Applicative' and
+--   'Alternative' instances.
+--
+-- Click here to scroll to that section:
+-- "Control.Concurrent.Async#high-level-utilities".
+--
+-- == Low-level API
+--
+-- Some use cases require parallelism that is not lexically scoped.
+--
+-- For those, the low-level function 'async' can be used as a direct
+-- equivalent of 'forkIO':
+--
+-- > -- Do NOT use this code in production, it has a flaw (explained below).
+-- > do
+-- >   a1 <- async (getURL url1)
+-- >   a2 <- async (getURL url2)
+-- >   page1 <- wait a1
+-- >   page2 <- wait a2
+-- >   ...
+--
+-- In contrast to 'withAsync', this code has a problem.
+--
+-- It still fulfills property (1) in that an exception arising from
+-- @getUrl@ will be re-thrown by 'wait', but it does not fulfill
+-- property (2).
+-- Consider the case when the first 'wait' throws an exception; then the
+-- second 'wait' will not happen, and the second 'async' may be left
+-- running in the background, possibly indefinitely.
 --
 -- 'withAsync' is like 'async', except that the 'Async' is
 -- automatically killed (using 'uninterruptibleCancel') if the
--- enclosing IO operation returns before it has completed.  Consider
--- the case when the first 'wait' throws an exception; then the second
--- 'Async' will be automatically killed rather than being left to run
--- in the background, possibly indefinitely.  This is the second way
--- that the library provides additional safety: using 'withAsync'
--- means we can avoid accidentally leaving threads running.
+-- enclosing IO operation returns before it has completed.
 -- Furthermore, 'withAsync' allows a tree of threads to be built, such
 -- that children are automatically killed if their parents die for any
 -- reason.
 --
--- The pattern of performing two IO actions concurrently and waiting
--- for their results is packaged up in a combinator 'concurrently', so
--- we can further shorten the above example to:
+-- If you need to use the low-level API, ensure that you gurantee
+-- property (2) by other means, such as 'link'ing asyncs that need
+-- to die together, and protecting against asynchronous exceptions
+-- using 'Control.Exception.bracket', 'Control.Exception.mask',
+-- or other functions from "Control.Exception".
 --
--- >       (page1, page2) <- concurrently (getURL url1) (getURL url2)
--- >       ...
+-- == Miscellaneous
 --
 -- The 'Functor' instance can be used to change the result of an
 -- 'Async'.  For example:
 --
--- > ghci> a <- async (return 3)
--- > ghci> wait a
--- > 3
--- > ghci> wait (fmap (+1) a)
+-- > ghci> withAsync (return 3) (\a -> wait (fmap (+1) a))
 -- > 4
+--
+-- === Resource exhaustion
+--
+-- As with all concurrent programming, keep in mind that while
+-- Haskell's cooperative ("green") multithreading carries low overhead,
+-- spawning too many of them at the same time may lead to resource exhaustion
+-- (of memory, file descriptors, or other limited resources), given that the
+-- actions running in the threads consume these resources.
 
 -----------------------------------------------------------------------------
 
@@ -90,8 +148,8 @@ module Control.Concurrent.Async (
 
     -- * Asynchronous actions
     Async,
-    -- ** Spawning
-    async, asyncBound, asyncOn, asyncWithUnmask, asyncOnWithUnmask,
+
+    -- * High-level API
 
     -- ** Spawning with automatic 'cancel'ation
     withAsync, withAsyncBound, withAsyncOn, withAsyncWithUnmask,
@@ -101,25 +159,7 @@ module Control.Concurrent.Async (
     wait, poll, waitCatch, asyncThreadId,
     cancel, uninterruptibleCancel, cancelWith, AsyncCancelled(..),
 
-    -- ** STM operations
-    waitSTM, pollSTM, waitCatchSTM,
-
-    -- ** Waiting for multiple 'Async's
-    waitAny, waitAnyCatch, waitAnyCancel, waitAnyCatchCancel,
-    waitEither, waitEitherCatch, waitEitherCancel, waitEitherCatchCancel,
-    waitEither_,
-    waitBoth,
-
-    -- ** Waiting for multiple 'Async's in STM
-    waitAnySTM, waitAnyCatchSTM,
-    waitEitherSTM, waitEitherCatchSTM,
-    waitEitherSTM_,
-    waitBothSTM,
-
-    -- ** Linking
-    link, link2, ExceptionInLinkedThread(..),
-
-    -- * Convenient utilities
+    -- ** #high-level-utilities# High-level utilities
     race, race_,
     concurrently, concurrently_,
     mapConcurrently, forConcurrently,
@@ -127,6 +167,31 @@ module Control.Concurrent.Async (
     replicateConcurrently, replicateConcurrently_,
     Concurrently(..),
     compareAsyncs,
+
+    -- ** Specialised operations
+
+    -- *** STM operations
+    waitSTM, pollSTM, waitCatchSTM,
+
+    -- *** Waiting for multiple 'Async's
+    waitAny, waitAnyCatch, waitAnyCancel, waitAnyCatchCancel,
+    waitEither, waitEitherCatch, waitEitherCancel, waitEitherCatchCancel,
+    waitEither_,
+    waitBoth,
+
+    -- *** Waiting for multiple 'Async's in STM
+    waitAnySTM, waitAnyCatchSTM,
+    waitEitherSTM, waitEitherCatchSTM,
+    waitEitherSTM_,
+    waitBothSTM,
+
+    -- * Low-level API
+
+    -- ** Spawning (low-level API)
+    async, asyncBound, asyncOn, asyncWithUnmask, asyncOnWithUnmask,
+
+    -- ** Linking
+    link, linkOnly, link2, link2Only, ExceptionInLinkedThread(..),
 
   ) where
 
@@ -146,9 +211,10 @@ import Data.Traversable
 #if __GLASGOW_HASKELL__ < 710
 import Data.Typeable
 #endif
-#if MIN_VERSION_base(4,9,0) && !MIN_VERSION_base(4,13,0)
+#if MIN_VERSION_base(4,9,0)
 import Data.Semigroup (Semigroup((<>)))
 #endif
+import Data.Hashable (Hashable(hashWithSalt))
 
 import Data.IORef
 
@@ -178,14 +244,22 @@ instance Eq (Async a) where
 instance Ord (Async a) where
   Async a _ `compare` Async b _  =  a `compare` b
 
+instance Hashable (Async a) where
+  hashWithSalt salt (Async a _) = hashWithSalt salt a
+
 instance Functor Async where
   fmap f (Async a w) = Async a (fmap (fmap f) w)
 
--- | Compare two 'Async's that may have different types
+-- | Compare two Asyncs that may have different types by their 'ThreadId'.
 compareAsyncs :: Async a -> Async b -> Ordering
 compareAsyncs (Async t1 _) (Async t2 _) = compare t1 t2
 
 -- | Spawn an asynchronous action in a separate thread.
+--
+-- Like for 'forkIO', the action may be left running unintentinally
+-- (see module-level documentation for details).
+--
+-- __Use 'withAsync' style functions wherever you can instead!__
 async :: IO a -> IO (Async a)
 async = inline asyncUsing rawForkIO
 
@@ -226,7 +300,7 @@ asyncUsing doFork = \action -> do
 --
 -- > withAsync action inner = mask $ \restore -> do
 -- >   a <- async (restore action)
--- >   restore inner `finally` uninterruptibleCancel a
+-- >   restore (inner a) `finally` uninterruptibleCancel a
 --
 -- This is a useful variant of 'async' that ensures an @Async@ is
 -- never left running unintentionally.
@@ -285,7 +359,10 @@ withAsyncUsing doFork = \action inner -> do
 --
 {-# INLINE wait #-}
 wait :: Async a -> IO a
-wait = atomically . waitSTM
+wait = tryAgain . atomically . waitSTM
+  where
+    -- See: https://github.com/simonmar/async/issues/14
+    tryAgain f = f `catch` \BlockedIndefinitelyOnSTM -> f
 
 -- | Wait for an asynchronous action to complete, and return either
 -- @Left e@ if the action raised an exception @e@, or @Right a@ if it
@@ -509,7 +586,10 @@ waitEitherCancel left right =
 --
 {-# INLINE waitBoth #-}
 waitBoth :: Async a -> Async b -> IO (a,b)
-waitBoth left right = atomically (waitBothSTM left right)
+waitBoth left right = tryAgain $ atomically (waitBothSTM left right)
+  where
+    -- See: https://github.com/simonmar/async/issues/14
+    tryAgain f = f `catch` \BlockedIndefinitelyOnSTM -> f
 
 -- | A version of 'waitBoth' that can be used inside an STM transaction.
 --
@@ -533,8 +613,12 @@ data ExceptionInLinkedThread =
 #endif
 
 instance Show ExceptionInLinkedThread where
-  show (ExceptionInLinkedThread (Async t _) e) =
-    "ExceptionInLinkedThread " ++ show t ++ " " ++ show e
+  showsPrec p (ExceptionInLinkedThread (Async t _) e) =
+    showParen (p >= 11) $
+      showString "ExceptionInLinkedThread " .
+      showsPrec 11 t .
+      showString " " .
+      showsPrec 11 e
 
 instance Exception ExceptionInLinkedThread where
 #if __GLASGOW_HASKELL__ >= 708
@@ -555,9 +639,10 @@ link = linkOnly (not . isCancel)
 
 -- | Link the given @Async@ to the current thread, such that if the
 -- @Async@ raises an exception, that exception will be re-thrown in
--- the current thread.  The supplied predicate determines which
--- exceptions in the target thread should be propagated to the source
--- thread.
+-- the current thread, wrapped in 'ExceptionInLinkedThread'.
+--
+-- The supplied predicate determines which exceptions in the target
+-- thread should be propagated to the source thread.
 --
 linkOnly
   :: (SomeException -> Bool)  -- ^ return 'True' if the exception
@@ -584,6 +669,13 @@ linkOnly shouldThrow a = do
 link2 :: Async a -> Async b -> IO ()
 link2 = link2Only (not . isCancel)
 
+-- | Link two @Async@s together, such that if either raises an
+-- exception, the same exception is re-thrown in the other @Async@,
+-- wrapped in 'ExceptionInLinkedThread'.
+--
+-- The supplied predicate determines which exceptions in the target
+-- thread should be propagated to the source thread.
+--
 link2Only :: (SomeException -> Bool) -> Async a -> Async b -> IO ()
 link2Only shouldThrow left@(Async tl _)  right@(Async tr _) =
   void $ forkRepeat $ do
@@ -628,6 +720,11 @@ race_ :: IO a -> IO b -> IO ()
 -- >   waitBoth a b
 concurrently :: IO a -> IO b -> IO (a,b)
 
+-- | 'concurrently', but ignore the result values
+--
+-- @since 2.1.1
+concurrently_ :: IO a -> IO b -> IO ()
+
 #define USE_ASYNC_VERSIONS 0
 
 #if USE_ASYNC_VERSIONS
@@ -637,15 +734,14 @@ race left right =
   withAsync right $ \b ->
   waitEither a b
 
-race_ left right =
-  withAsync left $ \a ->
-  withAsync right $ \b ->
-  waitEither_ a b
+race_ left right = void $ race left right
 
 concurrently left right =
   withAsync left $ \a ->
   withAsync right $ \b ->
   waitBoth a b
+
+concurrently_ left right = void $ concurrently left right
 
 #else
 
@@ -725,9 +821,19 @@ concurrently' left right collect = do
         stop
         return r
 
+concurrently_ left right = concurrently' left right (collect 0)
+  where
+    collect 2 _ = return ()
+    collect i m = do
+        e <- m
+        case e of
+            Left ex -> throwIO ex
+            Right _ -> collect (i + 1 :: Int) m
+
+
 #endif
 
--- | maps an @IO@-performing function over any @Traversable@ data
+-- | Maps an 'IO'-performing function over any 'Traversable' data
 -- type, performing all the @IO@ actions concurrently, and returning
 -- the original data structure with the arguments replaced by the
 -- results.
@@ -739,6 +845,10 @@ concurrently' left right collect = do
 --
 -- > pages <- mapConcurrently getURL ["url1", "url2", "url3"]
 --
+-- Take into account that @async@ will try to immediately spawn a thread
+-- for each element of the @Traversable@, so running this on large
+-- inputs without care may lead to resource exhaustion (of memory,
+-- file descriptors, or other limited resources).
 mapConcurrently :: Traversable t => (a -> IO b) -> t a -> IO (t b)
 mapConcurrently f = runConcurrently . traverse (Concurrently . f)
 
@@ -750,28 +860,15 @@ mapConcurrently f = runConcurrently . traverse (Concurrently . f)
 forConcurrently :: Traversable t => t a -> (a -> IO b) -> IO (t b)
 forConcurrently = flip mapConcurrently
 
--- | `mapConcurrently_` is `mapConcurrently` with the return value discarded,
--- just like @mapM_
+-- | `mapConcurrently_` is `mapConcurrently` with the return value discarded;
+-- a concurrent equivalent of 'mapM_'.
 mapConcurrently_ :: F.Foldable f => (a -> IO b) -> f a -> IO ()
 mapConcurrently_ f = runConcurrently . F.foldMap (Concurrently . void . f)
 
--- | `forConcurrently_` is `forConcurrently` with the return value discarded,
--- just like @forM_
+-- | `forConcurrently_` is `forConcurrently` with the return value discarded;
+-- a concurrent equivalent of 'forM_'.
 forConcurrently_ :: F.Foldable f => f a -> (a -> IO b) -> IO ()
 forConcurrently_ = flip mapConcurrently_
-
--- | 'concurrently', but ignore the result values
---
--- @since 2.1.1
-concurrently_ :: IO a -> IO b -> IO ()
-concurrently_ left right = concurrently' left right (collect 0)
-  where
-    collect 2 _ = return ()
-    collect i m = do
-        e <- m
-        case e of
-            Left ex -> throwIO ex
-            Right _ -> collect (i + 1 :: Int) m
 
 -- | Perform the action in the given number of threads.
 --
@@ -861,10 +958,10 @@ tryAll = try
 -- exception handler.
 {-# INLINE rawForkIO #-}
 rawForkIO :: IO () -> IO ThreadId
-rawForkIO action = IO $ \ s ->
+rawForkIO (IO action) = IO $ \ s ->
    case (fork# action s) of (# s1, tid #) -> (# s1, ThreadId tid #)
 
 {-# INLINE rawForkOn #-}
 rawForkOn :: Int -> IO () -> IO ThreadId
-rawForkOn (I# cpu) action = IO $ \ s ->
+rawForkOn (I# cpu) (IO action) = IO $ \ s ->
    case (forkOn# cpu action s) of (# s1, tid #) -> (# s1, ThreadId tid #)
