@@ -106,6 +106,7 @@ renderExpression unicode = runBuilder . render
       Literal lit -> renderLiteral lit
       Id name -> fromString name
       App a b -> render a <> " " <> render b
+      Parentheses e@Record{} -> render e
       Parentheses e -> "(" <> render e <> ")"
       Tuple xs -> "(" <> intercalate ", " (map render xs) <> ")"
       List xs -> "[" <> intercalate ", " (map render xs) <> "]"
