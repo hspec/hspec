@@ -51,10 +51,10 @@ spec = do
 
     it "pretty-prints Just-values" $ do
       pretty True (show $ Just person) `shouldBe` just [
-          "Just (Person {"
+          "Just Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
-        , "})"
+        , "}"
         ]
 
     it "pretty-prints tuples" $ do
@@ -67,10 +67,10 @@ spec = do
 
     it "pretty-prints lists" $ do
       pretty True (show [Just person, Nothing]) `shouldBe` just [
-          "[Just (Person {"
+          "[Just Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
-        , "}), Nothing]"
+        , "}, Nothing]"
         ]
 
     context "with --unicode" $ do
