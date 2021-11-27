@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.5.
+-- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 
@@ -121,7 +121,7 @@ test-suite spec
     , directory
     , filepath
     , hspec-expectations ==0.8.2.*
-    , hspec-meta ==2.9.0.1
+    , hspec-meta ==2.9.2
     , process
     , quickcheck-io >=0.2.0
     , random
