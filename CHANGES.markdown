@@ -1,3 +1,6 @@
+## Changes in 2.9.3
+  - Pretty-print Haskell values in failure messages
+
 ## Changes in 2.9.2
   - Show multi-line diffs for string literals (disable with `--no-pretty`)
 
