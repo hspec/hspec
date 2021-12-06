@@ -95,7 +95,7 @@ around action = aroundWith $ \e () -> action e
 
 -- | Run a custom action after the last spec item.
 afterAll :: HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
-afterAll action spec = runIO (runSpecM spec) >>= fromSpecList . return . NodeWithCleanup location action
+afterAll action = mapSpecForest (return . NodeWithCleanup location action)
 
 -- | Run a custom action after the last spec item.
 afterAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a

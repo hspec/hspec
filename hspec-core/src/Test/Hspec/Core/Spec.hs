@@ -53,7 +53,7 @@ import           Test.Hspec.Core.Spec.Monad
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a
-describe label spec = runIO (runSpecM spec) >>= fromSpecList . return . specGroup label
+describe label = mapSpecForest (return . specGroup label)
 
 -- | @context@ is an alias for `describe`.
 context :: HasCallStack => String -> SpecWith a -> SpecWith a
@@ -103,13 +103,12 @@ xspecify = xit
 --
 -- Applying `focus` to a spec with focused spec items has no effect.
 focus :: SpecWith a -> SpecWith a
-focus spec = do
-  xs <- runIO (runSpecM spec)
-  let
-    ys
-      | any (any itemIsFocused) xs = xs
-      | otherwise = bimapForest id (\ item -> item {itemIsFocused = True}) xs
-  fromSpecList ys
+focus = mapSpecForest focusForest
+
+focusForest :: [SpecTree a] -> [SpecTree a]
+focusForest xs
+  | any (any itemIsFocused) xs = xs
+  | otherwise = bimapForest id (\ item -> item {itemIsFocused = True}) xs
 
 -- | @fit@ is an alias for @fmap focus . it@
 fit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
