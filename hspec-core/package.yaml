@@ -83,7 +83,7 @@ tests:
     source-dirs:
       - test
     dependencies:
-      - hspec-meta == 2.9.2
+      - hspec-meta == 2.9.3
       - silently >= 1.2.4
       - QuickCheck >= 2.14
       - process
