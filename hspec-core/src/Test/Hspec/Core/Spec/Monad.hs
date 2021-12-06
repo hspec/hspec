@@ -9,6 +9,7 @@ module Test.Hspec.Core.Spec.Monad (
 , fromSpecList
 , runIO
 
+, mapSpecForest
 , mapSpecItem
 , mapSpecItem_
 , modifyParams
