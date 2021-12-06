@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:             hspec-discover
-version:          2.9.2
+version:          2.9.3
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2012-2021 Simon Hengel
