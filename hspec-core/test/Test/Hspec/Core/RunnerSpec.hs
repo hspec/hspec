@@ -416,6 +416,18 @@ spec = do
           ]
 #endif
 
+      it "uses custom pretty-print functions" $ do
+        let pretty _ _ _ = ("foo", "bar")
+
+        r <- capture_ . ignoreExitCode . withArgs ["--pretty"] . H.hspec $ do
+          H.modifyConfig $ \ c -> c { H.configPrettyPrintFunction = pretty }
+          H.it "foo" $ do
+            23 `H.shouldBe` (42 :: Int)
+        r `shouldContain` unlines [
+            "       expected: foo"
+          , "        but got: bar"
+          ]
+
     context "with --no-pretty" $ do
       it "does not pretty-prints Haskell values" $ do
         r <- capture_ . ignoreExitCode . withArgs ["--no-pretty"] . H.hspec $ do
