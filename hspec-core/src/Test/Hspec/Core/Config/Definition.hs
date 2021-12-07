@@ -22,6 +22,7 @@ import           Test.Hspec.Core.Compat
 
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
+import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.Util
@@ -63,6 +64,7 @@ data Config = Config {
 , configUnicodeMode :: UnicodeMode
 , configDiff :: Bool
 , configPrettyPrint :: Bool
+, configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
 , configTimes :: Bool
 , configAvailableFormatters :: [(String, FormatConfig -> IO Format)]
 , configFormat :: Maybe (FormatConfig -> IO Format)
@@ -96,6 +98,7 @@ defaultConfig = Config {
 , configUnicodeMode = UnicodeAuto
 , configDiff = True
 , configPrettyPrint = True
+, configPrettyPrintFunction = pretty2
 , configTimes = False
 , configAvailableFormatters = map (fmap V2.formatterToFormat) [
     ("checks", V2.checks)
