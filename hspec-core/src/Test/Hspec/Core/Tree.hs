@@ -37,7 +37,7 @@ data Tree c a =
   | Leaf a
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
--- | A tree is used to represent a spec internally.  The tree is parametrize
+-- | A tree is used to represent a spec internally.  The tree is parameterized
 -- over the type of cleanup actions and the type of the actual spec items.
 type SpecTree a = Tree (ActionWith a) (Item a)
 
