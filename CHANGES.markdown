@@ -1,3 +1,6 @@
+## Changes in 2.9.4
+  - Compatibility with GHCJS (see #599)
+
 ## Changes in 2.9.3
   - Pretty-print Haskell values in failure messages
 
