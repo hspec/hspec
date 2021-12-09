@@ -7,6 +7,7 @@ import           Helper
 import           Mock
 
 import           Control.Exception
+import           Control.Arrow
 
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Spec as H
@@ -18,8 +19,9 @@ import qualified Test.Hspec.Core.Hooks as H
 evalSpec_ :: H.Spec -> IO ()
 evalSpec_ = void . evalSpec
 
+
 evalSpec :: H.Spec -> IO [([String], Item)]
-evalSpec = fmap normalize . (fmap (H.specToEvalForest H.defaultConfig) . H.runSpecM >=> runFormatter config)
+evalSpec = fmap normalize . (toEvalForest >=> runFormatter config)
   where
     config = EvalConfig {
       evalConfigFormat = \ _ -> return ()
@@ -36,6 +38,9 @@ evalSpec = fmap normalize . (fmap (H.specToEvalForest H.defaultConfig) . H.runSp
         Failure _  reason -> Failure Nothing reason
     }
     pathToList (xs, x) = xs ++ [x]
+
+toEvalForest :: H.SpecWith () -> IO [EvalTree]
+toEvalForest = fmap (uncurry H.specToEvalForest . first (($ H.defaultConfig) . appEndo)) . H.runSpecM
 
 mkAppend :: IO (String -> IO (), IO [String])
 mkAppend = do
