@@ -13,6 +13,8 @@ module Test.Hspec.Core.Spec.Monad (
 , mapSpecItem
 , mapSpecItem_
 , modifyParams
+
+, modifyConfig
 ) where
 
 import           Prelude ()
@@ -25,21 +27,32 @@ import           Control.Monad.IO.Class (liftIO)
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
 
+import           Test.Hspec.Core.Config.Definition (Config)
+
 type Spec = SpecWith ()
 
 type SpecWith a = SpecM a ()
 
+-- |
+-- @since 2.10.0
+modifyConfig :: (Config -> Config) -> SpecWith a
+modifyConfig f = SpecM $ tell (Endo f, mempty)
+
 -- | A writer monad for `SpecTree` forests
-newtype SpecM a r = SpecM (WriterT [SpecTree a] IO r)
+newtype SpecM a r = SpecM (WriterT (Endo Config, [SpecTree a]) IO r)
   deriving (Functor, Applicative, Monad)
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
-runSpecM :: SpecWith a -> IO [SpecTree a]
+runSpecM :: SpecWith a -> IO (Endo Config, [SpecTree a])
 runSpecM (SpecM specs) = execWriterT specs
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
+fromSpecForest :: (Endo Config, [SpecTree a]) -> SpecWith a
+fromSpecForest = SpecM . tell
+
+-- | Create a `Spec` from a forest of `SpecTree`s.
 fromSpecList :: [SpecTree a] -> SpecWith a
-fromSpecList = SpecM . tell
+fromSpecList = fromSpecForest . (,) mempty
 
 -- | Run an IO action while constructing the spec tree.
 --
@@ -53,7 +66,7 @@ runIO :: IO r -> SpecM a r
 runIO = SpecM . liftIO
 
 mapSpecForest :: ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
-mapSpecForest f (SpecM specs) = SpecM (mapWriterT (fmap (second f)) specs)
+mapSpecForest f (SpecM specs) = SpecM (mapWriterT (fmap (fmap (second f))) specs)
 
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem g f = mapSpecForest (bimapForest g f)
