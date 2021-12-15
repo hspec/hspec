@@ -103,7 +103,7 @@ afterAll action = aroundAllWith (\ hook a -> hook a >> action a)
 
 -- | Run a custom action after the last spec item.
 afterAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
-afterAll_ action = mapSpecForest (return . NodeWithCleanup location action)
+afterAll_ action = mapSpecForest (return . NodeWithCleanup callSite action)
 
 -- | Run a custom action before and/or after every spec item.
 around_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a

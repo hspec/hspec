@@ -336,9 +336,10 @@ spec = do
       it "reports a failure" $ do
         evalSpec $ H.before (return "from before") $ H.afterAll (\_ -> throwException) $ do
           H.it "foo" $ \a -> a `shouldBe` "from before"
+          H.it "bar" $ \a -> a `shouldBe` "from before"
         `shouldReturn` [
           item ["foo"] Success
-        , item ["afterAll-hook"] divideByZero
+        , item ["bar"] $ divideByZeroIn "afterAll"
         ]
 
   describe "afterAll_" $ do
@@ -381,9 +382,10 @@ spec = do
         evalSpec $ do
           H.afterAll_ H.pending $ do
             H.it "foo" True
+            H.it "bar" True
         `shouldReturn` [
           item ["foo"] Success
-        , item ["afterAll-hook"] (Pending Nothing Nothing)
+        , item ["bar"] (Pending Nothing Nothing)
         ]
 
     context "when action throws an exception" $ do
@@ -391,9 +393,10 @@ spec = do
         evalSpec $ do
           H.afterAll_ throwException $ do
             H.it "foo" True
+            H.it "bar" True
         `shouldReturn` [
           item ["foo"] Success
-        , item ["afterAll-hook"] divideByZero
+        , item ["bar"] $ divideByZeroIn "afterAll_"
         ]
 
     context "when action is successful" $ do
@@ -532,9 +535,10 @@ spec = do
       evalSpec $ do
         H.aroundAll_ (<* throwException) $ do
           H.it "foo" True
+          H.it "bar" True
       `shouldReturn` [
         item ["foo"] Success
-      , item ["afterAll-hook"] divideByZero
+      , item ["bar"] $ divideByZeroIn "aroundAll_"
       ]
 
   describe "aroundAllWith" $ do
@@ -565,9 +569,10 @@ spec = do
       evalSpec $ do
         H.aroundAllWith (\ action () -> action () <* throwException) $ do
           H.it "foo" True
+          H.it "bar" True
       `shouldReturn` [
         item ["foo"] Success
-      , item ["afterAll-hook"] divideByZero
+      , item ["bar"] $ divideByZeroIn "aroundAllWith"
       ]
 
   describe "decompose" $ do
@@ -596,6 +601,13 @@ spec = do
   where
     divideByZero :: Result
     divideByZero = Failure Nothing (Error Nothing $ toException DivideByZero)
+
+    divideByZeroIn :: String -> Result
+#if MIN_VERSION_base(4,8,1)
+    divideByZeroIn hook = Failure Nothing (Error (Just $ "in " <> hook <> "-hook:") $ toException DivideByZero)
+#else
+    divideByZeroIn _ = Failure Nothing (Error Nothing $ toException DivideByZero)
+#endif
 
     item :: [String] -> Result -> ([String], Item)
     item path result = (path, Item Nothing 0 "" result)

@@ -19,6 +19,7 @@ module Test.Hspec.Core.Runner.Eval (
 , EvalItem(..)
 , runFormatter
 #ifdef TEST
+, mergeResults
 , runSequentially
 #endif
 ) where
@@ -46,11 +47,12 @@ import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
 import           Test.Hspec.Core.Example (safeEvaluateResultStatus)
 
+import qualified NonEmpty
 import           NonEmpty (NonEmpty(..))
 
 data Tree c a =
     Node String (NonEmpty (Tree c a))
-  | NodeWithCleanup (Maybe Location) c (NonEmpty (Tree c a))
+  | NodeWithCleanup (Maybe (String, Location)) c (NonEmpty (Tree c a))
   | Leaf a
   deriving (Eq, Show, Functor, Foldable, Traversable)
 
@@ -134,7 +136,7 @@ runFormatter config specs = do
     withTimer 0.05 $ \ timer -> do
 
       format Format.Started
-      runReaderT (run $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs) (Env config ref) `E.finally` do
+      runReaderT (run . applyCleanup $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs) (Env config ref) `E.finally` do
         results <- reverse <$> readIORef ref
         format (Format.Done results)
 
@@ -156,13 +158,59 @@ cancelMany asyncs = do
 data Item a = Item {
   _itemDescription :: String
 , _itemLocation :: Maybe Location
-, _itemAction :: a
+, itemAction :: a
 } deriving Functor
 
 type Job m p a = (p -> m ()) -> m a
 
-type RunningItem m = Item (Path -> m (Seconds, Result))
-type RunningTree m = Tree (IO ()) (RunningItem m)
+type RunningItem = Item (Path -> IO (Seconds, Result))
+type RunningTree c = Tree c RunningItem
+
+applyCleanup :: [RunningTree (IO ())] -> [RunningTree ()]
+applyCleanup = map go
+  where
+    go t = case t of
+      Leaf a -> Leaf a
+      Node label xs -> Node label (go <$> xs)
+      NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc () (addCleanupToLastLeaf loc cleanup $ go <$> xs)
+
+addCleanupToLastLeaf :: Maybe (String, Location) -> IO () -> NonEmpty (RunningTree ()) -> NonEmpty (RunningTree ())
+addCleanupToLastLeaf loc cleanup = go
+  where
+    go = NonEmpty.reverse . mapHead goNode . NonEmpty.reverse
+
+    goNode node = case node of
+      Leaf item -> Leaf (addCleanupToItem loc cleanup item)
+      NodeWithCleanup loc_ () zs -> NodeWithCleanup loc_ () (go zs)
+      Node description zs -> Node description (go zs)
+
+mapHead :: (a -> a) -> NonEmpty a -> NonEmpty a
+mapHead f xs = case xs of
+  y :| ys -> f y :| ys
+
+addCleanupToItem :: Maybe (String, Location) -> IO () -> RunningItem -> RunningItem
+addCleanupToItem loc cleanup item = item {
+  itemAction = \ path -> do
+    (t1, r1) <- itemAction item path
+    (t2, r2) <- measure $ safeEvaluateResultStatus (cleanup >> return Success)
+    let t = t1 + t2
+    return (t, mergeResults loc r1 r2)
+}
+
+mergeResults :: Maybe (String, Location) -> Result -> ResultStatus -> Result
+mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
+  (_, Success) -> r1
+  (Failure{}, _) -> r1
+  (Pending{}, Pending{}) -> r1
+  (Success, Pending{}) -> r2
+  (_, Failure mLoc err) -> Failure (mLoc <|> hookLoc) $ case err of
+    Error message e -> Error (message <|> hookFailed) e
+    _ -> err
+  where
+    hookLoc = snd <$> mCallSite
+    hookFailed = case mCallSite of
+      Just (name, _) -> Just $ "in " ++ name ++ "-hook:"
+      Nothing -> Nothing
 
 type RunningItem_ m = (Async (), Item (Job m Progress (Seconds, Result)))
 type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
@@ -218,12 +266,12 @@ runParallel Semaphore{..} action = do
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
-run :: [RunningTree IO] -> EvalM ()
+run :: [RunningTree ()] -> EvalM ()
 run specs = do
   failFast <- asks (evalConfigFailFast . envConfig)
   sequenceActions failFast (concatMap foldSpec specs)
   where
-    foldSpec :: RunningTree IO -> [EvalM ()]
+    foldSpec :: RunningTree () -> [EvalM ()]
     foldSpec = foldTree FoldTree {
       onGroupStarted = groupStarted
     , onGroupDone = groupDone
@@ -231,16 +279,10 @@ run specs = do
     , onLeafe = evalItem
     }
 
-    runCleanup :: Maybe Location -> [String] -> IO () -> EvalM ()
-    runCleanup loc groups action = do
-      (t, r) <- liftIO $ measure $ safeEvaluateResultStatus (action >> return Success)
-      case r of
-        Success -> return ()
-        _ -> reportItem path loc $ return (t, Result "" r)
-      where
-        path = (groups, "afterAll-hook")
+    runCleanup :: Maybe (String, Location) -> [String] -> () -> EvalM ()
+    runCleanup _loc _groups = return
 
-    evalItem :: [String] -> RunningItem IO -> EvalM ()
+    evalItem :: [String] -> RunningItem -> EvalM ()
     evalItem groups (Item requirement loc action) = do
       reportItem path loc $ lift (action path)
       where
@@ -250,7 +292,7 @@ run specs = do
 data FoldTree c a r = FoldTree {
   onGroupStarted :: Path -> r
 , onGroupDone :: Path -> r
-, onCleanup :: Maybe Location -> [String] -> c -> r
+, onCleanup :: Maybe (String, Location) -> [String] -> c -> r
 , onLeafe :: [String] -> a -> r
 }
 

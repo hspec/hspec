@@ -36,7 +36,7 @@ import           Test.Hspec.Core.Example
 -- | Internal tree data structure
 data Tree c a =
     Node String [Tree c a]
-  | NodeWithCleanup (Maybe Location) c [Tree c a]
+  | NodeWithCleanup (Maybe (String, Location)) c [Tree c a]
   | Leaf a
   deriving (Eq, Show, Functor, Foldable, Traversable)
 

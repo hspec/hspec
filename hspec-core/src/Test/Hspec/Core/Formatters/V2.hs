@@ -312,7 +312,9 @@ defaultFailedFormatter = do
               where
                 indentation_ = indentation ++ replicate (length pre) ' '
 
-        Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
+        Error info e -> do
+          mapM_ indent info
+          withFailColor . indent $ "uncaught exception: " ++ formatException e
 
       writeLine ""
 
