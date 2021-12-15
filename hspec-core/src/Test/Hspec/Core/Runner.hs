@@ -80,7 +80,7 @@ import           System.Console.ANSI (hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Spec
+import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
@@ -90,9 +90,11 @@ import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Shuffle
 
 import           Test.Hspec.Core.Runner.PrintSlowSpecItems
-import           Test.Hspec.Core.Runner.Eval
+import           Test.Hspec.Core.Runner.Eval hiding (Tree(..))
+import qualified Test.Hspec.Core.Runner.Eval as Eval
 
-applyFilterPredicates :: Config -> [EvalTree] -> [EvalTree]
+
+applyFilterPredicates :: Config -> [Tree c EvalItem] -> [Tree c EvalItem]
 applyFilterPredicates c = filterForestWithLabels p
   where
     include :: Path -> Bool
@@ -106,7 +108,7 @@ applyFilterPredicates c = filterForestWithLabels p
       where
         path = (groups, evalItemDescription item)
 
-applyDryRun :: Config -> [EvalTree] -> [EvalTree]
+applyDryRun :: Config -> [EvalItemTree] -> [EvalItemTree]
 applyDryRun c
   | configDryRun c = bimapForest removeCleanup markSuccess
   | otherwise = id
@@ -310,7 +312,7 @@ specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
 specToEvalForest config =
       failFocusedItems config
   >>> focusSpec config
-  >>> toEvalForest params
+  >>> toEvalItemForest params
   >>> applyDryRun config
   >>> applyFilterPredicates config
   >>> randomize
@@ -322,8 +324,21 @@ specToEvalForest config =
       | configRandomize config = randomizeForest seed
       | otherwise = id
 
-toEvalForest :: Params -> [SpecTree ()] -> [EvalTree]
-toEvalForest params = bimapForest withUnit toEvalItem . filterForest itemIsFocused
+pruneForest :: [Tree c a] -> [Eval.Tree c a]
+pruneForest = mapMaybe pruneTree
+
+pruneTree :: Tree c a -> Maybe (Eval.Tree c a)
+pruneTree node = case node of
+  Node group xs -> Eval.Node group <$> prune xs
+  NodeWithCleanup loc action xs -> Eval.NodeWithCleanup loc action <$> prune xs
+  Leaf item -> Just (Eval.Leaf item)
+  where
+    prune = nonEmpty . pruneForest
+
+type EvalItemTree = Tree (IO ()) EvalItem
+
+toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
+toEvalItemForest params = bimapForest withUnit toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
     toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem requirement loc (fromMaybe False isParallelizable) (e params withUnit)
@@ -396,5 +411,5 @@ randomizeForest seed t = runST $ do
   ref <- newSTRef (mkStdGen $ fromIntegral seed)
   shuffleForest ref t
 
-countSpecItems :: [EvalTree] -> Int
+countSpecItems :: [Eval.Tree c a] -> Int
 countSpecItems = getSum . foldMap (foldMap . const $ Sum 1)

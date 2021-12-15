@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -12,7 +14,10 @@
 
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
+, NonEmpty(..)
+, nonEmpty
 , EvalTree
+, Tree(..)
 , EvalItem(..)
 , runFormatter
 , resultItemIsFailure
@@ -36,13 +41,28 @@ import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Class
 
 import           Test.Hspec.Core.Util
-import           Test.Hspec.Core.Spec (Tree(..), Progress, FailureReason(..), Result(..), ResultStatus(..), ProgressCallback)
+import           Test.Hspec.Core.Spec (Progress, FailureReason(..), Result(..), ResultStatus(..), ProgressCallback)
 import           Test.Hspec.Core.Timer
 import           Test.Hspec.Core.Format (Format)
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
 import           Test.Hspec.Core.Example (safeEvaluate)
+
+data NonEmpty a = a :| [a]
+  deriving (Eq, Show, Functor, Foldable, Traversable)
+
+infixr 5 :|
+
+nonEmpty :: [a] -> Maybe (NonEmpty a)
+nonEmpty []     = Nothing
+nonEmpty (a:as) = Just (a :| as)
+
+data Tree c a =
+    Node String (NonEmpty (Tree c a))
+  | NodeWithCleanup (Maybe Location) c (NonEmpty (Tree c a))
+  | Leaf a
+  deriving (Eq, Show, Functor, Foldable, Traversable)
 
 -- for compatibility with GHC < 7.10.1
 type Monad m = (Functor m, Applicative m, M.Monad m)
