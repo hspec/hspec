@@ -3,8 +3,11 @@ module Test.Hspec.Core.Runner.EvalSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Runner.Eval
+
+fromList :: [a] -> NonEmpty a
+fromList (a:as) = a :| as
+fromList [] = error "NonEmpty.fromList: empty list"
 
 spec :: Spec
 spec = do
@@ -12,7 +15,7 @@ spec = do
     context "when used with Tree" $ do
       let
         tree :: Tree () Int
-        tree = Node "" [Node "" [Leaf 1, Node "" [Leaf 2, Leaf 3]], Leaf 4]
+        tree = Node "" $ fromList [Node "" $ fromList [Leaf 1, Node "" $ fromList [Leaf 2, Leaf 3]], Leaf 4]
       it "walks the tree left-to-right, depth-first" $ do
         ref <- newIORef []
         traverse_ (modifyIORef ref . (:) ) tree

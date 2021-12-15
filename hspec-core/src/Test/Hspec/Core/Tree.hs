@@ -17,8 +17,8 @@ module Test.Hspec.Core.Tree (
 , filterForest
 , filterTreeWithLabels
 , filterForestWithLabels
-, pruneTree
-, pruneForest
+, pruneTree -- unused
+, pruneForest -- unused
 , location
 ) where
 
@@ -35,7 +35,7 @@ data Tree c a =
     Node String [Tree c a]
   | NodeWithCleanup (Maybe Location) c [Tree c a]
   | Leaf a
-  deriving (Show, Eq, Functor, Foldable, Traversable)
+  deriving (Eq, Show, Functor, Foldable, Traversable)
 
 -- | A tree is used to represent a spec internally.  The tree is parameterized
 -- over the type of cleanup actions and the type of the actual spec items.
