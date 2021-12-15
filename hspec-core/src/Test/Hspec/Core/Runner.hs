@@ -313,8 +313,8 @@ specToEvalForest config =
   >>> toEvalForest params
   >>> applyDryRun config
   >>> applyFilterPredicates config
-  >>> pruneForest
   >>> randomize
+  >>> pruneForest
   where
     seed = (fromJust . configQuickCheckSeed) config
     params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
