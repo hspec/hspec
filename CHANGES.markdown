@@ -1,6 +1,7 @@
 ## Changes in 2.10.0
-  - Allow to transform the config in SpecM
+  - Allow to transform the config in `SpecM`
   - Add `getSpecDescriptionPath` (#637, thanks @srid)
+  - Do not treat `afterAll` as another spec item (fixes #414, #364, #363)
   - Change type of `paramsSmallCheckDepth` to Maybe (see #345)
 
 ## Changes in 2.9.7
@@ -635,7 +636,7 @@ main = hspecX [
   ]
 ```
 
-Specs consisting of several *desribes*, combined with `descriptions`, continue
+Specs consisting of several *describes*, combined with `descriptions`, continue
 to work unchanged.  But `descriptions` is now a noop, and it will be removed in
 a future release.  So it is a good idea to drop it.
 
