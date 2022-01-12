@@ -145,7 +145,8 @@ data FormatterState = FormatterState {
 , stateCpuStartTime    :: Maybe Integer
 , stateStartTime       :: Seconds
 , stateTransientOutput :: String
-, stateConfig :: FormatConfig
+, stateConfig          :: FormatConfig
+, stateColor           :: Maybe SGR
 }
 
 getConfig :: (FormatConfig -> a) -> FormatM a
@@ -167,7 +168,7 @@ runFormatM :: FormatConfig -> FormatM a -> IO a
 runFormatM config (FormatM action) = do
   time <- getMonotonicTime
   cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState 0 0 [] cpuTime time "" config)
+  st <- newIORef (FormatterState 0 0 [] cpuTime time "" config Nothing)
   evalStateT action st
 
 -- | Increase the counter for successful examples
@@ -225,9 +226,27 @@ clearTransientOutput = do
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
-write s = do
+write str = do
+  useColor <- getConfig formatConfigUseColor
   h <- getHandle
-  liftIO $ IO.hPutStr h s
+  mColor <- gets stateColor
+  liftIO $ case (useColor, mColor) of
+    (True, Just color) ->
+      doLines
+        (\l -> bracket_ (hSetSGR h [color]) (hSetSGR h [Reset]) (IO.hPutStr h l))
+        (IO.hPutStr h "\n")
+        str
+    _ -> IO.hPutStr h str
+  where
+    doLines :: (String -> IO ()) -> IO () -> String -> IO ()
+    doLines handleLine handleNewline s = do
+      let (l, s') = break (=='\n') s
+      when (l /= "") $ handleLine l
+      case s' of
+        [] -> return ()
+        (_:s'') -> do
+          handleNewline
+          doLines handleLine handleNewline s''
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.
@@ -259,21 +278,12 @@ htmlSpan :: String -> FormatM a -> FormatM a
 htmlSpan cls action = write ("<span class=\"" ++ cls ++ "\">") *> action <* write "</span>"
 
 withColor_ :: SGR -> FormatM a -> FormatM a
-withColor_ color (FormatM action) = do
-  useColor <- getConfig formatConfigUseColor
-  h <- getHandle
-
-  FormatM . StateT $ \st -> do
-    bracket_
-
-      -- set color
-      (when useColor $ hSetSGR h [color])
-
-      -- reset colors
-      (when useColor $ hSetSGR h [Reset])
-
-      -- run action
-      (runStateT action st)
+withColor_ color action = do
+  oldColor <- gets stateColor
+  modify (\state -> state { stateColor = Just color })
+  x <- action
+  modify (\state -> state { stateColor = oldColor })
+  return x
 
 -- | Output given chunk in red.
 extraChunk :: String -> FormatM ()
