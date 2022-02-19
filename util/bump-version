@@ -1,9 +1,0 @@
-#!/bin/bash
-set -o nounset
-set -o errexit
-
-runhaskell util/BumpVersion.hs $*
-
-hpack package.yaml
-hpack hspec-core/package.yaml
-hpack hspec-discover/package.yaml
