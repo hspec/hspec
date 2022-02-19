@@ -1,2 +1,0 @@
-:set -DTEST -isrc -ivendor -itest
-:set -fwarn-implicit-prelude
