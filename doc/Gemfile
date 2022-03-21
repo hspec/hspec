@@ -3,9 +3,8 @@ gem 'redcarpet'
 gem 'RedCloth'
 gem 'jekyll'
 
-gem 'pygments.rb', :github => 'hspec/pygments.rb', :tag => 'v1.1.2-hspec'
+gem 'pygments.rb', git: 'https://github.com/hspec/pygments.rb', :tag => 'v1.1.2-hspec'
 
 gem "therubyracer" # required by less
 
-# gem 'jekyll-less',  :github => 'zroger/jekyll-less'
-gem 'jekyll-less',  :github => 'sfi0zy/jekyll-less' # use non-upstream as it includes a bug fix
+gem 'jekyll-less', git: 'https://github.com/sfi0zy/jekyll-less'

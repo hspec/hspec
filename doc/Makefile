@@ -1,4 +1,4 @@
-jekyll=bundle exec jekyll
+jekyll=./bundle exec jekyll
 
 all:
 	$(jekyll) build
@@ -19,9 +19,11 @@ watch-less: less
 	watchr -e 'watch("(^js/.*\.js)|(^css/.*\.less)") {system "make less"};'
 
 setup:
-	bundle install
+	rm -rf vendor
+	./bundle install
+	ln -s /usr/bin/python2 vendor/bundle/bin/python
 	rm -f .ghc.environment.*
-	cabal install HUnit QuickCheck .. ../hspec-contrib/ --lib --package-env .
+	cabal install HUnit QuickCheck hspec hspec-contrib --lib --package-env .
 
 clean:
 	-rm -rf _site
