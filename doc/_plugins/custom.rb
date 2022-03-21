@@ -29,29 +29,29 @@ module Hspec
 
     def id(name)
       haskell_identifiers = {
-        'property'          => 'http://hackage.haskell.org/packages/archive/QuickCheck/latest/doc/html/Test-QuickCheck.html#v:property',
-        'Property'          => 'http://hackage.haskell.org/packages/archive/QuickCheck/latest/doc/html/Test-QuickCheck.html#t:Property',
-        'Testable'          => 'http://hackage.haskell.org/packages/archive/QuickCheck/latest/doc/html/Test-QuickCheck.html#t:Testable',
+        'property'              => 'https://hackage.haskell.org/package/QuickCheck/docs/Test-QuickCheck.html#v:property',
+        'Property'              => 'https://hackage.haskell.org/package/QuickCheck/docs/Test-QuickCheck.html#t:Property',
+        'Testable'              => 'https://hackage.haskell.org/package/QuickCheck/docs/Test-QuickCheck.html#t:Testable',
 
-        '@?='               => 'http://hackage.haskell.org/packages/archive/HUnit/latest/doc/html/Test-HUnit-Base.html#v:-64--63--61-',
+        '@?='                   => 'https://hackage.haskell.org/package/HUnit/docs/Test-HUnit-Base.html#v:-64--63--61-',
 
-        'Spec'              => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html#t:Spec',
-        'hspec'             => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html#v:hspec',
+        'Spec'                  => 'https://hackage.haskell.org/package/hspec/docs/Test-Hspec.html#t:Spec',
+        'hspec'                 => 'https://hackage.haskell.org/package/hspec/docs/Test-Hspec.html#v:hspec',
 
-        'Test.Hspec.QuickCheck' => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-QuickCheck.html',
-        'prop'                  => 'http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-QuickCheck.html#v:prop',
+        'Test.Hspec.QuickCheck' => 'https://hackage.haskell.org/package/hspec/docs/Test-Hspec-QuickCheck.html',
+        'prop'                  => 'https://hackage.haskell.org/package/hspec/docs/Test-Hspec-QuickCheck.html#v:prop',
 
-        'fromHUnitTest'     => 'http://hackage.haskell.org/packages/archive/hspec-contrib/latest/doc/html/Test-Hspec-Contrib-HUnit.html#v:fromHUnitTest',
+        'fromHUnitTest'         => 'https://hackage.haskell.org/package/hspec-contrib/docs/Test-Hspec-Contrib-HUnit.html#v:fromHUnitTest',
 
-        'Selector'          => 'http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#t:Selector',
-        'shouldThrow'       => 'http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:shouldThrow',
-        'errorCall'         => 'http://hackage.haskell.org/packages/archive/hspec-expectations/latest/doc/html/Test-Hspec-Expectations.html#v:errorCall',
+        'Selector'              => 'https://hackage.haskell.org/package/hspec-expectations/docs/Test-Hspec-Expectations.html#t:Selector',
+        'shouldThrow'           => 'https://hackage.haskell.org/package/hspec-expectations/docs/Test-Hspec-Expectations.html#v:shouldThrow',
+        'errorCall'             => 'https://hackage.haskell.org/package/hspec-expectations/docs/Test-Hspec-Expectations.html#v:errorCall',
 
-        'isPermissionError' => 'http://hackage.haskell.org/packages/archive/base/latest/doc/html/System-IO-Error.html#v:isPermissionError',
-        'evaluate'          => 'http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#v:evaluate',
-        'ErrorCall'         => 'http://hackage.haskell.org/packages/archive/base/latest/doc/html/Control-Exception.html#t:ErrorCall',
+        'isPermissionError'     => 'https://hackage.haskell.org/package/base/docs/System-IO-Error.html#v:isPermissionError',
+        'evaluate'              => 'https://hackage.haskell.org/package/base/docs/Control-Exception.html#v:evaluate',
+        'ErrorCall'             => 'https://hackage.haskell.org/package/base/docs/Control-Exception.html#t:ErrorCall',
 
-        'force'             => 'http://hackage.haskell.org/packages/archive/deepseq/latest/doc/html/Control-DeepSeq.html#v:force',
+        'force'                 => 'https://hackage.haskell.org/package/deepseq/docs/Control-DeepSeq.html#v:force',
       }
       url = haskell_identifiers[name]
       if url
