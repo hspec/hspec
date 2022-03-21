@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/hspec/pygments.rb.git
+  remote: https://github.com/hspec/pygments.rb
   revision: aa9d3ef47029276ac585f1070ce853541bc0954f
   tag: v1.1.2-hspec
   specs:
@@ -7,7 +7,7 @@ GIT
       multi_json (>= 1.0.0)
 
 GIT
-  remote: git://github.com/sfi0zy/jekyll-less.git
+  remote: https://github.com/sfi0zy/jekyll-less
   revision: ef28fd77dfa18f6b23024622abd3238ed6b1f9ad
   specs:
     jekyll-less (0.1.0)

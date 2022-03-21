@@ -1,0 +1,3 @@
+#!/bin/bash -eu
+. "$(rvm 2.5.1 do rvm env --path)"
+bundle $*
