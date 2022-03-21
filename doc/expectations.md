@@ -147,7 +147,7 @@ constructor.
 
 Note that `return $!!` (or any other mechanism that relies solely on `seq`)
 does not work reliably!  (see the discussion at
-<del>[#5129](http://ghc.haskell.org/trac/ghc/ticket/5129)</del>)
+<del>[#5129](https://gitlab.haskell.org/ghc/ghc/-/issues/5129)</del>)
 
 {% example ExceptionsFromPureCode.hs %}
 
@@ -181,7 +181,7 @@ evaluate (error "foo" + error "bar" :: Int)
 
 The details of imprecise exceptions are described in the paper
 [_A semantics for imprecise exceptions_]
-(http://research.microsoft.com/en-us/um/people/simonpj/papers/imprecise-exn.htm).
+(https://www.microsoft.com/en-us/research/publication/a-semantics-for-imprecise-exceptions/).
 But beware that GHC does not fully adhere to those semantics (see
 [#1171](https://ghc.haskell.org/trac/ghc/ticket/1171),
 [#2273](https://ghc.haskell.org/trac/ghc/ticket/2273),

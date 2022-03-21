@@ -1,6 +1,6 @@
 ## Building the documentation locally
 
-A working ruby setup, including [Bundler](http://gembundler.com/), is required
+A working ruby setup, including [Bundler](https://bundler.io/), is required
 to build the documentation locally; the `bundle` command has to be on your
 `PATH`. Also [tinc](https://github.com/sol/tinc) is needed.
 

@@ -4,7 +4,7 @@ layout: default
 
 # User's Manual
 
-Hspec is a testing framework for [Haskell](http://www.haskell.org/).  Some of
+Hspec is a testing framework for [Haskell](https://www.haskell.org/).  Some of
 Hspec's distinctive features are:
 
  * a friendly DSL for defining tests
@@ -37,5 +37,5 @@ Here is an example for the impatient:
 ## Other resources
 
 * [Hspec on GitHub](https://github.com/hspec/hspec)
-* [Hspec on Hackage](http://hackage.haskell.org/package/hspec)
-* [API documentation](http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
+* [Hspec on Hackage](https://hackage.haskell.org/package/hspec)
+* [API documentation](https://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html)
