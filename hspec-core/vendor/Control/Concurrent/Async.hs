@@ -252,7 +252,7 @@ compareAsyncs (Async t1 _) (Async t2 _) = compare t1 t2
 
 -- | Spawn an asynchronous action in a separate thread.
 --
--- Like for 'forkIO', the action may be left running unintentinally
+-- Like for 'forkIO', the action may be left running unintentionally
 -- (see module-level documentation for details).
 --
 -- __Use 'withAsync' style functions wherever you can instead!__
