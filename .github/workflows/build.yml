@@ -12,15 +12,13 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }} / Cabal ${{ matrix.cabal }} / GHC ${{ matrix.ghc }}
+    name: ${{ matrix.os }} / GHC ${{ matrix.ghc }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os:
-          - ubuntu-18.04 # https://launchpad.net/~hvr/+archive/ubuntu/ghc?field.series_filter=bionic
-        cabal:
-          - 3.4
+          - ubuntu-18.04
         ghc:
           - 7.4.1
           - 7.4.2
@@ -46,12 +44,18 @@ jobs:
           - 8.10.2
           - 8.10.3
           - 8.10.4
+          - 8.10.5
+          - 8.10.6
+          - 8.10.7
           - 9.0.1
+          - 9.0.2
+          - 9.2.1
+          - 9.2.2
+
     steps:
       - uses: actions/checkout@v2
-      - uses: haskell/actions/setup@08fca952ff0302e4ff725a413e48733e4c9b4127
+      - uses: hspec/setup-haskell@main
         with:
-          cabal-version: ${{ matrix.cabal }}
           ghc-version: ${{ matrix.ghc }}
 
       - uses: sol/run-haskell-tests@v1
