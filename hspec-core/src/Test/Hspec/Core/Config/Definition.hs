@@ -22,6 +22,7 @@ import           Test.Hspec.Core.Compat
 
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
+import qualified Test.Hspec.Core.Formatters.GithubAction as GA
 import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.Util
@@ -103,6 +104,7 @@ defaultConfig = Config {
   , ("progress", V2.progress)
   , ("failed-examples", V2.failed_examples)
   , ("silent", V2.silent)
+  , ("github", GA.withGithubActionFormatter V2.checks)
   ]
 , configFormat = Nothing
 , configFormatter = Nothing
