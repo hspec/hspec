@@ -28,7 +28,7 @@ RUNNER OPTIONS
 FORMATTER OPTIONS
   -f FORMATTER  --format=FORMATTER      use a custom formatter; this can be one
                                         of checks, specdoc, progress,
-                                        failed-examples or silent
+                                        failed-examples, silent or github
                 --[no-]color            colorize the output
                 --[no-]unicode          output unicode
                 --[no-]diff             show colorized diffs
