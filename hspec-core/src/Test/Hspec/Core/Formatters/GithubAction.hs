@@ -4,6 +4,8 @@ module Test.Hspec.Core.Formatters.GithubAction (
   withGithubActionFormatter
 ) where
 
+import Prelude ()
+import Test.Hspec.Core.Compat
 import Test.Hspec.Core.Format
 import Test.Hspec.Core.Formatters.Internal
 import Test.Hspec.Core.Util (joinPath)
