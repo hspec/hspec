@@ -169,6 +169,7 @@ test-suite spec
       Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters
       Test.Hspec.Core.Formatters.Diff
+      Test.Hspec.Core.Formatters.GithubAction
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
