@@ -29,7 +29,18 @@ module Test.Hspec.Core.Spec (
 , sequential
 
 -- * The @SpecM@ monad
-, module Test.Hspec.Core.Spec.Monad
+, Test.Hspec.Core.Spec.Monad.Spec
+, Test.Hspec.Core.Spec.Monad.SpecWith
+, Test.Hspec.Core.Spec.Monad.SpecM(..)
+, Test.Hspec.Core.Spec.Monad.runSpecM
+, Test.Hspec.Core.Spec.Monad.fromSpecList
+, Test.Hspec.Core.Spec.Monad.runIO
+, Test.Hspec.Core.Spec.Monad.mapSpecForest
+, Test.Hspec.Core.Spec.Monad.mapSpecItem
+, Test.Hspec.Core.Spec.Monad.mapSpecItem_
+, Test.Hspec.Core.Spec.Monad.modifyParams
+, Test.Hspec.Core.Spec.Monad.modifyConfig
+, Test.Hspec.Core.Spec.Monad.getSpecDescriptionPath
 
 -- * A type class for examples
 , Test.Hspec.Core.Example.Example (..)
@@ -65,7 +76,9 @@ import           Test.Hspec.Core.Spec.Monad
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a
-describe label = mapSpecForest (return . specGroup label)
+describe label = mapSpecForest (return . specGroup label) . mapEnv pushAncestor
+  where
+    pushAncestor (Env ancs) = Env $ label : ancs
 
 -- | @context@ is an alias for `describe`.
 context :: HasCallStack => String -> SpecWith a -> SpecWith a
