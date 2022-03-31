@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- NOTE: re-exported from Test.Hspec.Core.Spec
 module Test.Hspec.Core.Spec.Monad (
@@ -10,11 +11,15 @@ module Test.Hspec.Core.Spec.Monad (
 , runIO
 
 , mapSpecForest
+, mapSpecForest_
 , mapSpecItem
 , mapSpecItem_
 , modifyParams
 
 , modifyConfig
+
+, Env(..)
+, askAncestors
 ) where
 
 import           Prelude ()
@@ -28,6 +33,8 @@ import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
 
 import           Test.Hspec.Core.Config.Definition (Config)
+import Control.Monad.Trans.Reader (ReaderT (runReaderT, ReaderT), withReaderT, mapReaderT, asks)
+import Control.Monad.Trans.Class (MonadTrans(lift))
 
 type Spec = SpecWith ()
 
@@ -39,12 +46,12 @@ modifyConfig :: (Config -> Config) -> SpecWith a
 modifyConfig f = SpecM $ tell (Endo f, mempty)
 
 -- | A writer monad for `SpecTree` forests
-newtype SpecM a r = SpecM (WriterT (Endo Config, [SpecTree a]) IO r)
+newtype SpecM a r = SpecM (WriterT (Endo Config, [SpecTree a]) (ReaderT Env IO) r)
   deriving (Functor, Applicative, Monad)
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
 runSpecM :: SpecWith a -> IO (Endo Config, [SpecTree a])
-runSpecM (SpecM specs) = execWriterT specs
+runSpecM (SpecM specs) = flip runReaderT (Env []) . execWriterT $ specs
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
 fromSpecForest :: (Endo Config, [SpecTree a]) -> SpecWith a
@@ -66,7 +73,11 @@ runIO :: IO r -> SpecM a r
 runIO = SpecM . liftIO
 
 mapSpecForest :: ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
-mapSpecForest f (SpecM specs) = SpecM (mapWriterT (fmap (fmap (second f))) specs)
+mapSpecForest = mapSpecForest_ id
+
+mapSpecForest_ :: (Env -> Env) -> ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
+mapSpecForest_ ef tf (SpecM specs) = SpecM $ flip mapWriterT specs $ 
+  mapReaderT (fmap (fmap (second tf))) . withReaderT ef
 
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem g f = mapSpecForest (bimapForest g f)
@@ -76,3 +87,13 @@ mapSpecItem_ = mapSpecItem id
 
 modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
+
+-- | Environment of a test definition, in the Spec monad
+data Env = Env 
+  { envAncestorGroups :: [String]  -- Should this be non empty?
+  }
+  deriving (Eq, Show, Ord)
+
+askAncestors :: SpecM a [String]
+askAncestors = do 
+  SpecM $ lift $ asks envAncestorGroups

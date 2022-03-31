@@ -65,7 +65,7 @@ import           Test.Hspec.Core.Spec.Monad
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a
-describe label = mapSpecForest (return . specGroup label)
+describe label = mapSpecForest_ (\(Env ancs) -> Env $ label : ancs) (return . specGroup label)
 
 -- | @context@ is an alias for `describe`.
 context :: HasCallStack => String -> SpecWith a -> SpecWith a
