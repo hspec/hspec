@@ -2,6 +2,7 @@
 
 -- NOTE: re-exported from Test.Hspec.Core.Spec
 module Test.Hspec.Core.Spec.Monad (
+  -- RE-EXPORTED from Test.Hspec.Core.Spec
   Spec
 , SpecWith
 , SpecM (..)
@@ -15,14 +16,22 @@ module Test.Hspec.Core.Spec.Monad (
 , modifyParams
 
 , modifyConfig
+
+, getSpecDescriptionPath
+-- END RE-EXPORTED from Test.Hspec.Core.Spec
+
+, mapEnv
+, Env(..)
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Control.Arrow
-import           Control.Monad.Trans.Writer
 import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Trans.Class (MonadTrans(lift))
+import           Control.Monad.Trans.Reader (ReaderT (runReaderT), local, asks)
+import           Control.Monad.Trans.Writer
 
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
@@ -39,12 +48,12 @@ modifyConfig :: (Config -> Config) -> SpecWith a
 modifyConfig f = SpecM $ tell (Endo f, mempty)
 
 -- | A writer monad for `SpecTree` forests
-newtype SpecM a r = SpecM (WriterT (Endo Config, [SpecTree a]) IO r)
+newtype SpecM a r = SpecM (WriterT (Endo Config, [SpecTree a]) (ReaderT Env IO) r)
   deriving (Functor, Applicative, Monad)
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
 runSpecM :: SpecWith a -> IO (Endo Config, [SpecTree a])
-runSpecM (SpecM specs) = execWriterT specs
+runSpecM (SpecM specs) = flip runReaderT (Env []) . execWriterT $ specs
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
 fromSpecForest :: (Endo Config, [SpecTree a]) -> SpecWith a
@@ -76,3 +85,23 @@ mapSpecItem_ = mapSpecItem id
 
 modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
+
+-- | Environment of a test definition, in the Spec monad
+data Env = Env
+  { -- | List of ancestors of this test. Parent is the first element,
+    -- grand-parent is the next, and so on with root test appearing at the last
+    -- position.
+    envAncestorGroups :: [String]
+  }
+  deriving (Eq, Show, Ord)
+
+-- | Get the current ancestor group labels, all the way to the root.
+getSpecDescriptionPath :: SpecM a [String]
+getSpecDescriptionPath = do
+  SpecM $ lift $ asks envAncestorGroups
+
+mapEnv :: (Env -> Env) -> SpecM a r -> SpecM a r
+mapEnv f (SpecM m) = SpecM $ do
+  (a, w) <- lift $ local f (runWriterT m)
+  tell w
+  pure a

@@ -20,6 +20,15 @@ spec :: Spec
 spec = do
   let runSpecM = fmap snd . H.runSpecM
 
+  it "getSpecDescriptionPath" $ do
+    let descriptionPathShouldBe xs =
+          H.getSpecDescriptionPath >>= H.runIO . (`shouldBe` xs)
+    void . runSpecM $ do
+      descriptionPathShouldBe []
+      H.describe "a" $ do
+        H.describe "b" $ do
+          descriptionPathShouldBe ["b", "a"]
+
   describe "describe" $ do
     it "can be nested" $ do
       [Node foo [Node bar [Leaf _]]] <- runSpecM $ do
