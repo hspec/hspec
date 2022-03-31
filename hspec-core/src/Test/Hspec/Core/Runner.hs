@@ -366,18 +366,24 @@ withHiddenCursor useColor h
 
 colorOutputSupported :: ColorMode -> IO Bool -> IO Bool
 colorOutputSupported mode isTerminalDevice = case mode of
-  ColorAuto  -> (&&) <$> (not <$> noColor) <*> isTerminalDevice
+  ColorAuto  -> (||) <$> githubActions <*> colorTerminal
   ColorNever -> return False
   ColorAlways -> return True
+  where
+    githubActions :: IO Bool
+    githubActions = lookupEnv "GITHUB_ACTIONS" <&> (== Just "true")
+
+    colorTerminal :: IO Bool
+    colorTerminal = (&&) <$> (not <$> noColor) <*> isTerminalDevice
+
+    noColor :: IO Bool
+    noColor = lookupEnv "NO_COLOR" <&> (/= Nothing)
 
 unicodeOutputSupported :: UnicodeMode -> Handle -> IO Bool
 unicodeOutputSupported mode h = case mode of
   UnicodeAuto -> (== Just "UTF-8") . fmap show <$> hGetEncoding h
   UnicodeNever -> return False
   UnicodeAlways -> return True
-
-noColor :: IO Bool
-noColor = lookupEnv "NO_COLOR" <&> (/= Nothing)
 
 rerunAll :: Config -> Maybe FailureReport -> Summary -> Bool
 rerunAll _ Nothing _ = False

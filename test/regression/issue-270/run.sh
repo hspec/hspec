@@ -3,7 +3,7 @@ set -o errexit
 cd `dirname "$0"`
 ghc -fforce-recomp Spec.hs
 
-./Spec -f silent > result & pid=$!
+./Spec -f silent --no-color > result & pid=$!
 sleep 1
 kill -SIGINT $pid
 wait $pid || output=$(cat result)
