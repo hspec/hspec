@@ -34,10 +34,10 @@ spec = do
       parse "-23" `shouldBe` just (integer (-23))
 
     it "parses rationals" $ do
-      parse "23.0" `shouldBe` just (Literal $ Rational 23)
+      parse "23.0" `shouldBe` just (Literal $ Rational "23.0")
 
     it "parses negative rationals" $ do
-      parse "-23.0" `shouldBe` just (Literal $ Rational (-23))
+      parse "-23.0" `shouldBe` just (Literal $ Rational "-23.0")
 
     it "parses lists" $ do
       parse (show ["foo", "bar", "baz"]) `shouldBe` just (List [string "foo", string "bar", string "baz"])
