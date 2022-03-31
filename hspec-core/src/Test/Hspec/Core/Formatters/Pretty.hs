@@ -99,7 +99,7 @@ renderExpression unicode = runBuilder . render
       Char c -> shows c
       String str -> if unicode then Builder $ ushows str else shows str
       Integer n -> shows n
-      Rational n -> shows n
+      Rational n -> fromString n
 
     render :: Expression -> Builder
     render expr = case expr of

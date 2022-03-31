@@ -146,7 +146,7 @@ instance ToExpression (HsExpr GhcPs) where
     HsOverLit _x lit -> toExpression lit
     HsApp _x f x -> App <$> toExpression f <*> toExpression x
     NegApp _x e _ -> toExpression e >>= \ x -> case x of
-      Literal (Rational n) -> return $ Literal (Rational $ negate n)
+      Literal (Rational n) -> return $ Literal (Rational $ '-' : n)
       Literal (Integer n) -> return $ Literal (Integer $ negate n)
       _ -> fail "NegApp"
     HsPar _x e -> Parentheses <$> toExpression e
@@ -244,21 +244,20 @@ instance ToExpression OverLitVal where
     HsIsString _ str -> toExpression str
 
 instance ToExpression FractionalLit where
-  toExpression fl = toExpression (fl_value fl)
-
-#if __GLASGOW_HASKELL__ >= 902
-fl_value :: FractionalLit -> Rational
-fl_value = rationalFromFractionalLit
+  toExpression fl = case fl_text fl of
+#if __GLASGOW_HASKELL__ > 802
+    REJECT(NoSourceText)
+    SourceText n
+#else
+    n
 #endif
+      -> return . Literal $ Rational n
 
 instance ToExpression FastString where
   toExpression = return . Literal . String . unpackFS
 
 instance ToExpression Integer where
   toExpression = return . Literal . Integer
-
-instance ToExpression Rational where
-  toExpression = return . Literal . Rational
 
 instance ToExpression Char where
   toExpression = return . Literal . Char

@@ -17,5 +17,5 @@ data Literal =
     Char Char
   | String String
   | Integer Integer
-  | Rational Rational
+  | Rational String
   deriving (Eq, Show)

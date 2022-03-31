@@ -58,11 +58,11 @@ spec = do
         ]
 
     it "pretty-prints tuples" $ do
-      pretty True (show (person, 23 :: Int)) `shouldBe` just [
+      pretty True (show (person, 23 :: Double)) `shouldBe` just [
           "(Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
-        , "}, 23)"
+        , "}, 23.0)"
         ]
 
     it "pretty-prints lists" $ do
