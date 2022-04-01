@@ -230,12 +230,12 @@ write str = do
   h <- getHandle
   mColor <- gets stateColor
   liftIO $ case mColor of
-    Just color ->
+    Just color | not (all isSpace str) ->
       doLines
         (\l -> bracket_ (hSetSGR h [color]) (hSetSGR h [Reset]) (IO.hPutStr h l))
         (IO.hPutStr h "\n")
         str
-    Nothing -> IO.hPutStr h str
+    _ -> IO.hPutStr h str
   where
     doLines :: (String -> IO ()) -> IO () -> String -> IO ()
     doLines handleLine handleNewline s = do
