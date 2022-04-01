@@ -270,13 +270,14 @@ runEvalTree config spec = do
     Nothing -> getDefaultConcurrentJobs
     Just n -> return n
 
-  useColor <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
+  (reportProgress, useColor) <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
-  results <- withHiddenCursor useColor stdout $ do
+  results <- withHiddenCursor reportProgress stdout $ do
     let
       formatConfig = FormatConfig {
         formatConfigUseColor = useColor
+      , formatConfigReportProgress = reportProgress
       , formatConfigOutputUnicode = outputUnicode
       , formatConfigUseDiff = configDiff config
       , formatConfigPrettyPrint = configPrettyPrint config
@@ -364,11 +365,15 @@ withHiddenCursor useColor h
   | useColor  = E.bracket_ (hHideCursor h) (hShowCursor h)
   | otherwise = id
 
-colorOutputSupported :: ColorMode -> IO Bool -> IO Bool
-colorOutputSupported mode isTerminalDevice = case mode of
-  ColorAuto  -> (||) <$> githubActions <*> colorTerminal
-  ColorNever -> return False
-  ColorAlways -> return True
+colorOutputSupported :: ColorMode -> IO Bool -> IO (Bool, Bool)
+colorOutputSupported mode isTerminalDevice = do
+  github <- githubActions
+  useColor <- case mode of
+    ColorAuto  -> (github ||) <$> colorTerminal
+    ColorNever -> return False
+    ColorAlways -> return True
+  let reportProgress = not github && useColor
+  return (reportProgress, useColor)
   where
     githubActions :: IO Bool
     githubActions = lookupEnv "GITHUB_ACTIONS" <&> (== Just "true")
