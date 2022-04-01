@@ -227,16 +227,15 @@ clearTransientOutput = do
 -- | Append some output to the report.
 write :: String -> FormatM ()
 write str = do
-  useColor <- getConfig formatConfigUseColor
   h <- getHandle
   mColor <- gets stateColor
-  liftIO $ case (useColor, mColor) of
-    (True, Just color) ->
+  liftIO $ case mColor of
+    Just color ->
       doLines
         (\l -> bracket_ (hSetSGR h [color]) (hSetSGR h [Reset]) (IO.hPutStr h l))
         (IO.hPutStr h "\n")
         str
-    _ -> IO.hPutStr h str
+    Nothing -> IO.hPutStr h str
   where
     doLines :: (String -> IO ()) -> IO () -> String -> IO ()
     doLines handleLine handleNewline s = do
@@ -280,10 +279,13 @@ htmlSpan cls action = write ("<span class=\"" ++ cls ++ "\">") *> action <* writ
 withColor_ :: SGR -> FormatM a -> FormatM a
 withColor_ color action = do
   oldColor <- gets stateColor
-  modify (\state -> state { stateColor = Just color })
-  x <- action
-  modify (\state -> state { stateColor = oldColor })
-  return x
+  setColor (Just color) *> action <* setColor oldColor
+
+setColor :: Maybe SGR -> FormatM ()
+setColor color = do
+  useColor <- getConfig formatConfigUseColor
+  when useColor $ do
+    modify (\ state -> state { stateColor = color })
 
 -- | Output given chunk in red.
 extraChunk :: String -> FormatM ()
