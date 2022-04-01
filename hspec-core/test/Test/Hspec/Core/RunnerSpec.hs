@@ -18,9 +18,6 @@ import           System.Exit
 import           Control.Concurrent
 import qualified Control.Exception as E
 import           Control.Concurrent.Async
-import           Data.Char (isDigit)
-import           Data.List (findIndex)
-import           Data.Maybe (isJust)
 import           Mock
 import           System.SetEnv
 import           System.Console.ANSI
@@ -395,33 +392,6 @@ spec = do
             H.it "example 3" $ mockAction e3
         (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 0, 1)
 
-    context "with --color" $ do
-      it "resets color before newlines" $ do
-        let parseColor s = case s of
-              ('\ESC':'[':s') ->
-                case span isDigit s' of
-                  (ds, 'm':_) -> Just ds
-                  _ -> Nothing
-              _ -> Nothing
-            isReset s = parseColor s == Just "0"
-            isColor s = not (isReset s) && isJust (parseColor s)
-        map isReset ["", "hello", reset, red, green <> reset, reset <> red]
-          `shouldBe` [False, False, True, False, False, True]
-        map isColor ["", "hello", reset, red, green <> reset, reset <> red]
-          `shouldBe` [False, False, False, True, True, False]
-
-        r <- capture_ . ignoreExitCode . withArgs ["--color"] . H.hspec $ do
-          H.it "foo" $ do
-            23 `H.shouldBe` (42 :: Int)
-        let resetAfterColor s =
-              let ixReset = findIndex isReset $ reverse $ tails s
-                  ixColor = findIndex isColor $ reverse $ tails s in
-              case (ixReset, ixColor) of
-                (_, Nothing) -> True
-                (Nothing, Just _) -> False
-                (Just i, Just j) -> i < j
-        mapM_ (\l -> l `shouldSatisfy` resetAfterColor) (lines r)
-
     context "with --diff" $ do
       it "shows colorized diffs" $ do
         r <- capture_ . ignoreExitCode . withArgs ["--diff", "--color"] . H.hspec $ do
@@ -455,7 +425,7 @@ spec = do
           , ""
           , "Slow spec items:"
 #if MIN_VERSION_base(4,8,1)
-          , "  test" </> "Test" </> "Hspec" </> "Core" </> "RunnerSpec.hs:448:11: /foo/ (2ms)"
+          , "  test" </> "Test" </> "Hspec" </> "Core" </> "RunnerSpec.hs:" <> show (__LINE__ - 10 :: Int) <> ":11: /foo/ (2ms)"
 #else
           , "  /foo/ (2ms)"
 #endif

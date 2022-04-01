@@ -40,6 +40,7 @@ module Test.Hspec.Core.Formatters.Internal (
 , missingChunk
 
 #ifdef TEST
+, runFormatM
 , overwriteWith
 , splitLines
 #endif
