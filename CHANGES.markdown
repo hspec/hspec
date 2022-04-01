@@ -1,3 +1,9 @@
+## Changes in 2.9.5
+  - Assume `--color` by default when running on GitHub Actions. Use
+    `HSPEC_COLOR=no` or `--no-color` to opt out of this behavior.
+  - Disable progress reporting on GitHub Actions.
+  - Retain source formatting of numbers when pretty-printing.
+
 ## Changes in 2.9.4
   - Compatibility with GHCJS (see #599)
 

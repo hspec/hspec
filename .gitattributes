@@ -1,4 +1,4 @@
-./hspec.cabal linguist-generated=true
-./hspec-discover/hspec-discover.cabal linguist-generated=true
-./hspec-core/hspec-core.cabal linguist-generated=true
-./hspec-contrib/hspec-contrib.cabal linguist-generated=true
+/hspec.cabal linguist-generated=true
+/hspec-discover/hspec-discover.cabal linguist-generated=true
+/hspec-core/hspec-core.cabal linguist-generated=true
+/hspec-contrib/hspec-contrib.cabal linguist-generated=true
