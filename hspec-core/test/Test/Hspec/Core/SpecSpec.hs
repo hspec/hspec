@@ -55,12 +55,7 @@ spec = do
 
     it "adds source locations" $ do
       [Leaf item] <- runSpecM (H.it "foo" True)
-      let location =
-#if MIN_VERSION_base(4,8,1)
-            Just $ H.Location __FILE__ (__LINE__ - 3) 32
-#else
-            Nothing
-#endif
+      let location = mkLocation __FILE__ (pred __LINE__) 32
       itemLocation item `shouldBe` location
 
     context "when no description is given" $ do

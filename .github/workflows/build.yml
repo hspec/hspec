@@ -51,6 +51,11 @@ jobs:
           - 9.0.2
           - 9.2.1
           - 9.2.2
+        include:
+          - os: macos-latest
+            ghc: latest
+          - os: windows-latest
+            ghc: latest
 
     steps:
       - uses: actions/checkout@v2

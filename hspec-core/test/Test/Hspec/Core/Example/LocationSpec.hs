@@ -36,7 +36,7 @@ spec = do
     context "with pattern match failure in do expression" $ do
       context "in IO" $ do
         it "extracts Location" $ do
-          let location = Just $ Location __FILE__ (__LINE__ + 2) 13
+          let location = Just $ Location file (__LINE__ + 2) 13
           Left e <- try $ do
             Just n <- return Nothing
             return (n :: Int)
@@ -45,7 +45,7 @@ spec = do
 #if !MIN_VERSION_base(4,12,0)
       context "in Either" $ do
         it "extracts Location" $ do
-          let location = Just $ Location __FILE__ (__LINE__ + 4) 15
+          let location = Just $ Location file (__LINE__ + 4) 15
           let
             foo :: Either () ()
             foo = do
@@ -60,7 +60,7 @@ spec = do
         let
           location =
 #if MIN_VERSION_base(4,9,0)
-            Just $ Location __FILE__ (__LINE__ + 4) 34
+            Just $ Location file (__LINE__ + 4) 34
 #else
             Nothing
 #endif
@@ -71,13 +71,13 @@ spec = do
       context "with single-line source span" $ do
         it "extracts Location" $ do
           let
-            location = Just $ Location __FILE__ (__LINE__ + 1) 40
+            location = Just $ Location file (__LINE__ + 1) 40
           Left e <- try (evaluate (let Just n = Nothing in (n :: Int)))
           extractLocation e `shouldBe` location
 
       context "with multi-line source span" $ do
         it "extracts Location" $ do
-          let location = Just $ Location __FILE__ (__LINE__ + 1) 36
+          let location = Just $ Location file (__LINE__ + 1) 36
           Left e <- try (evaluate (case Nothing of
             Just n -> n :: Int
             ))
@@ -86,19 +86,19 @@ spec = do
     context "with RecConError" $ do
       it "extracts Location" $ do
         let
-          location = Just $ Location __FILE__ (__LINE__ + 1) 39
+          location = Just $ Location file (__LINE__ + 1) 39
         Left e <- try $ evaluate (age Person {name = "foo"})
         extractLocation e `shouldBe` location
 
     context "with NoMethodError" $ do
       it "extracts Location" $ do
         Left e <- try $ someMethod ()
-        extractLocation e `shouldBe` Just (Location __FILE__ 21 10)
+        extractLocation e `shouldBe` Just (Location file 21 10)
 
     context "with AssertionFailed" $ do
       it "extracts Location" $ do
         let
-          location = Just $ Location __FILE__ (__LINE__ + 1) 36
+          location = Just $ Location file (__LINE__ + 1) 36
         Left e <- try . evaluate $ assert False ()
         extractLocation e `shouldBe` location
 
@@ -109,15 +109,18 @@ spec = do
             , "  error, called at libraries/base/GHC/Err.hs:79:14 in base:GHC.Err"
             , "  undefined, called at test/Test/Hspec.hs:13:32 in main:Test.Hspec"
             ]
-      parseCallStack input `shouldBe` Just (Location "test/Test/Hspec.hs" 13 32)
+      parseCallStack input `shouldBe` Just (Location ("test" </> "Test" </> "Hspec.hs") 13 32)
 
   describe "parseLocation" $ do
     it "parses Location" $ do
-      parseLocation "test/Test/Hspec.hs:13:32" `shouldBe` Just (Location "test/Test/Hspec.hs" 13 32)
+      parseLocation "test/Test/Hspec.hs:13:32" `shouldBe` Just (Location ("test" </> "Test" </> "Hspec.hs") 13 32)
 
   describe "parseSourceSpan" $ do
     it "parses single-line source span" $ do
-      parseSourceSpan "test/Test/Hspec.hs:25:36-51:" `shouldBe` Just (Location "test/Test/Hspec.hs" 25 36)
+      parseSourceSpan "test/Test/Hspec.hs:25:36-51:" `shouldBe` Just (Location ("test" </> "Test" </> "Hspec.hs") 25 36)
 
     it "parses multi-line source span" $ do
-      parseSourceSpan "test/Test/Hspec.hs:(15,7)-(17,26):" `shouldBe` Just (Location "test/Test/Hspec.hs" 15 7)
+      parseSourceSpan "test/Test/Hspec.hs:(15,7)-(17,26):" `shouldBe` Just (Location ("test" </> "Test" </> "Hspec.hs") 15 7)
+
+file :: FilePath
+file = workaroundForIssue19236 __FILE__
