@@ -27,6 +27,10 @@ module Helper (
 , shouldUseArgs
 
 , removeLocations
+
+, (</>)
+, mkLocation
+, workaroundForIssue19236
 ) where
 
 import           Prelude ()
@@ -39,6 +43,7 @@ import qualified Control.Exception as E
 import           Control.Exception
 import           System.IO.Silently
 import           System.SetEnv
+import           System.FilePath
 import           System.Directory
 import           System.IO.Temp
 
@@ -50,7 +55,8 @@ import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Clock
-import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..))
+import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..), Location(..))
+import           Test.Hspec.Core.Example.Location (workaroundForIssue19236)
 import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
 
@@ -145,3 +151,10 @@ inTempDirectory action = withSystemTempDirectory "mockery" $ \path -> do
   bracket getCurrentDirectory setCurrentDirectory $ \_ -> do
     setCurrentDirectory path
     action
+
+mkLocation :: FilePath -> Int -> Int -> Maybe Location
+#if MIN_VERSION_base(4,8,1)
+mkLocation file line column = Just (Location (workaroundForIssue19236 file) line column)
+#else
+mkLocation _ _ _ = Nothing
+#endif

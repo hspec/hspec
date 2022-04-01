@@ -1,10 +1,10 @@
+{-# LANGUAGE CPP #-}
 module Test.Hspec.Core.ConfigSpec (spec) where
 
 import           Prelude ()
 import           Helper
 
 import           System.Directory
-import           System.FilePath
 
 import           Test.Hspec.Core.Config
 
@@ -26,6 +26,7 @@ spec = around_ inTempDirectory $ around_ (withEnvironment [("HOME", "foo")]) $ d
       writeFile name "--diff"
       readConfigFiles `shouldReturn` [(name, ["--diff"])]
 
+#ifndef mingw32_HOST_OS
     it "reads ~/.hspec" $ do
       let name = "my-home/.hspec"
       createDirectory "my-home"
@@ -42,3 +43,4 @@ spec = around_ inTempDirectory $ around_ (withEnvironment [("HOME", "foo")]) $ d
         dir <- getCurrentDirectory
         removeDirectory dir
         readConfigFiles `shouldReturn` []
+#endif

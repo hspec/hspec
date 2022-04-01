@@ -3,11 +3,14 @@ module Test.Hspec.Core.Example.Location (
   Location(..)
 , extractLocation
 
--- for testing
+#ifdef TEST
 , parseAssertionFailed
 , parseCallStack
 , parseLocation
 , parseSourceSpan
+
+, workaroundForIssue19236
+#endif
 ) where
 
 import           Prelude ()
@@ -17,6 +20,10 @@ import           Control.Exception
 import           Data.Char
 import           Data.Maybe
 import           GHC.IO.Exception
+
+#ifdef mingw32_HOST_OS
+import           System.FilePath
+#endif
 
 -- | @Location@ is used to represent source locations.
 data Location = Location {
@@ -96,11 +103,11 @@ parseCallStack input = case reverse (lines input) of
 
 parseLocation :: String -> Maybe Location
 parseLocation input = case fmap breakColon (breakColon input) of
-  (file, (line, column)) -> Location file <$> readMaybe line <*> readMaybe column
+  (file, (line, column)) -> mkLocation file <$> readMaybe line <*> readMaybe column
 
 parseSourceSpan :: String -> Maybe Location
 parseSourceSpan input = case breakColon input of
-  (file, xs) -> (uncurry $ Location file) <$> (tuple <|> colonSeparated)
+  (file, xs) -> (uncurry $ mkLocation file) <$> (tuple <|> colonSeparated)
     where
       lineAndColumn :: String
       lineAndColumn = takeWhile (/= '-') xs
@@ -114,3 +121,14 @@ parseSourceSpan input = case breakColon input of
 
 breakColon :: String -> (String, String)
 breakColon = fmap (drop 1) . break (== ':')
+
+mkLocation :: FilePath -> Int -> Int -> Location
+mkLocation file line column = Location (workaroundForIssue19236 file) line column
+
+workaroundForIssue19236 :: FilePath -> FilePath -- https://gitlab.haskell.org/ghc/ghc/-/issues/19236
+workaroundForIssue19236 =
+#ifdef mingw32_HOST_OS
+  joinPath . splitDirectories
+#else
+  id
+#endif

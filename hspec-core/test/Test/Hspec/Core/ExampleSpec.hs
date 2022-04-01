@@ -10,11 +10,7 @@ import           Mock
 import           Control.Exception
 import           Test.HUnit (assertFailure, assertEqual)
 
-import           Test.Hspec.Core.Example (Result(..), ResultStatus(..)
-#if MIN_VERSION_base(4,8,1)
-  , Location(..)
-#endif
-  , FailureReason(..))
+import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..))
 import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
@@ -43,23 +39,13 @@ spec = do
       context "when used with `pending`" $ do
         it "returns Pending" $ do
           result <- safeEvaluateExample (H.pending)
-          let location =
-#if MIN_VERSION_base(4,8,1)
-                Just $ Location __FILE__ (__LINE__ - 3) 42
-#else
-                Nothing
-#endif
+          let location = mkLocation __FILE__ (pred __LINE__) 42
           result `shouldBe` Result "" (Pending location Nothing)
 
       context "when used with `pendingWith`" $ do
         it "includes the optional reason" $ do
           result <- safeEvaluateExample (H.pendingWith "foo")
-          let location =
-#if MIN_VERSION_base(4,8,1)
-                Just $ Location __FILE__ (__LINE__ - 3) 42
-#else
-                Nothing
-#endif
+          let location = mkLocation __FILE__ (pred __LINE__) 42
           result `shouldBe` Result "" (Pending location $ Just "foo")
 
   describe "evaluateExample" $ do
@@ -198,22 +184,12 @@ spec = do
 
       context "when used with `pending`" $ do
         it "returns Pending" $ do
-          let location =
-#if MIN_VERSION_base(4,8,1)
-                Just $ Location __FILE__ (__LINE__ + 4) 37
-#else
-                Nothing
-#endif
+          let location = mkLocation __FILE__ (succ __LINE__) 37
           evaluateExample (property H.pending) `shouldReturn` Result "" (Pending location Nothing)
 
       context "when used with `pendingWith`" $ do
         it "includes the optional reason" $ do
-          let location =
-#if MIN_VERSION_base(4,8,1)
-                Just $ Location __FILE__ (__LINE__ + 4) 39
-#else
-                Nothing
-#endif
+          let location = mkLocation __FILE__ (succ __LINE__) 39
           evaluateExample (property $ H.pendingWith "foo") `shouldReturn` Result "" (Pending location $ Just "foo")
 
   describe "Expectation" $ do
