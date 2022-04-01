@@ -368,11 +368,12 @@ withHiddenCursor useColor h
 colorOutputSupported :: ColorMode -> IO Bool -> IO (Bool, Bool)
 colorOutputSupported mode isTerminalDevice = do
   github <- githubActions
+  buildkite <- lookupEnv "BUILDKITE" <&> (== Just "true")
   useColor <- case mode of
     ColorAuto  -> (github ||) <$> colorTerminal
     ColorNever -> return False
     ColorAlways -> return True
-  let reportProgress = not github && useColor
+  let reportProgress = not github && not buildkite && useColor
   return (reportProgress, useColor)
   where
     githubActions :: IO Bool
