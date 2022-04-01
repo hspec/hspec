@@ -8,7 +8,7 @@ import           Test.Hspec.Contrib.HUnit
 import           Test.HUnit
 
 shouldYield :: Test -> [Tree () String] -> Expectation
-a `shouldYield` b = bimapForest (const ()) itemRequirement . snd <$> runSpecM (fromHUnitTest a) `shouldReturn` b
+a `shouldYield` b = bimapForest (const ()) itemRequirement <$> runSpecM (fromHUnitTest a) `shouldReturn` b
 
 spec :: Spec
 spec = do

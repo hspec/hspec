@@ -6,20 +6,18 @@ import           Helper
 
 import           Test.Hspec.Core.Spec (Item(..), Result(..), ResultStatus(..))
 import qualified Test.Hspec.Core.Runner as H
-import           Test.Hspec.Core.Spec (Tree(..))
+import           Test.Hspec.Core.Spec (Tree(..), runSpecM)
 
 import qualified Test.Hspec.Core.Spec as H
 
 extract :: (Item () -> a) -> H.Spec -> IO [Tree () a]
-extract f = fmap (H.bimapForest (const ()) f) . fmap snd . H.runSpecM
+extract f = fmap (H.bimapForest (const ()) f) . runSpecM
 
 runSpec :: H.Spec -> IO [String]
 runSpec = captureLines . H.hspecResult
 
 spec :: Spec
 spec = do
-  let runSpecM = fmap snd . H.runSpecM
-
   describe "describe" $ do
     it "can be nested" $ do
       [Node foo [Node bar [Leaf _]]] <- runSpecM $ do
