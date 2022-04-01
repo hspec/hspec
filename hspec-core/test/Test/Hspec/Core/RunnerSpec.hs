@@ -582,26 +582,26 @@ spec = do
       let isTerminalDevice = return False
 
       it "returns False" $ do
-        H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` False
+        H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (False, False)
 
       context "with GITHUB_ACTIONS=true" $ do
         it "returns True" $ do
           withEnvironment [("GITHUB_ACTIONS", "true")] $ do
-            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` True
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (False, True)
 
     context "with a terminal device" $ do
 
       let isTerminalDevice = return True
 
       it "returns True" $ do
-        H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` True
+        H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (True, True)
 
       context "when NO_COLOR is set" $ do
         it "returns False" $ do
           withEnvironment [("NO_COLOR", "yes")] $ do
-            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` False
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (False, False)
 
-  describe "colorOutputSupported" $ do
+  describe "unicodeOutputSupported" $ do
     context "with UnicodeAlways" $ do
       it "returns True" $ do
         H.unicodeOutputSupported H.UnicodeAlways undefined `shouldReturn` True

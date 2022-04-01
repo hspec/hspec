@@ -208,8 +208,8 @@ overwriteWith old new
 
 writeTransient :: String -> FormatM ()
 writeTransient new = do
-  useColor <- getConfig formatConfigUseColor
-  when (useColor) $ do
+  reportProgress <- getConfig formatConfigReportProgress
+  when (reportProgress) $ do
     old <- gets stateTransientOutput
     write $ old `overwriteWith` new
     modify $ \ state -> state {stateTransientOutput = new}

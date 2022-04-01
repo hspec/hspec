@@ -24,6 +24,7 @@ testSpec = do
 formatConfig :: FormatConfig
 formatConfig = FormatConfig {
   formatConfigUseColor = False
+, formatConfigReportProgress = False
 , formatConfigOutputUnicode = True
 , formatConfigUseDiff = True
 , formatConfigPrettyPrint = True
