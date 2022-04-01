@@ -41,6 +41,7 @@ module Test.Hspec.Core.Formatters.Internal (
 
 #ifdef TEST
 , overwriteWith
+, splitLines
 #endif
 ) where
 
@@ -54,6 +55,7 @@ import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
+import           Data.List (groupBy)
 import qualified System.CPUTime as CPUTime
 
 import           Test.Hspec.Core.Formatters.V1.Monad (FailureRecord(..))
@@ -226,26 +228,23 @@ clearTransientOutput = do
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
-write str = do
+write = mapM_ writeChunk . splitLines
+
+splitLines :: String -> [String]
+splitLines = groupBy (\ a b -> isNewline a == isNewline b)
+  where
+    isNewline = (== '\n')
+
+writeChunk :: String -> FormatM ()
+writeChunk str = do
   h <- getHandle
   mColor <- gets stateColor
   liftIO $ case mColor of
-    Just color | not (all isSpace str) ->
-      doLines
-        (\l -> bracket_ (hSetSGR h [color]) (hSetSGR h [Reset]) (IO.hPutStr h l))
-        (IO.hPutStr h "\n")
-        str
+    Just color | not (all isSpace str) -> bracket_
+      (hSetSGR h [color])
+      (hSetSGR h [Reset])
+      (IO.hPutStr h str)
     _ -> IO.hPutStr h str
-  where
-    doLines :: (String -> IO ()) -> IO () -> String -> IO ()
-    doLines handleLine handleNewline s = do
-      let (l, s') = break (=='\n') s
-      when (l /= "") $ handleLine l
-      case s' of
-        [] -> return ()
-        (_:s'') -> do
-          handleNewline
-          doLines handleLine handleNewline s''
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.
