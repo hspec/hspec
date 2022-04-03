@@ -39,7 +39,7 @@ library
     , ansi-terminal >=0.6.2
     , array
     , base >=4.5.0.0 && <5
-    , call-stack
+    , call-stack >=0.2.0
     , clock >=0.7.1
     , deepseq
     , directory
@@ -122,7 +122,7 @@ test-suite spec
     , array
     , base >=4.5.0.0 && <5
     , base-orphans
-    , call-stack
+    , call-stack >=0.2.0
     , clock >=0.7.1
     , deepseq
     , directory
