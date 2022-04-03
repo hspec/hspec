@@ -32,7 +32,18 @@ module Test.Hspec.Core.Spec (
 , module Test.Hspec.Core.Spec.Monad
 
 -- * A type class for examples
-, module Test.Hspec.Core.Example
+, Test.Hspec.Core.Example.Example (..)
+, Test.Hspec.Core.Example.Params (..)
+, Test.Hspec.Core.Example.defaultParams
+, Test.Hspec.Core.Example.ActionWith
+, Test.Hspec.Core.Example.Progress
+, Test.Hspec.Core.Example.ProgressCallback
+, Test.Hspec.Core.Example.Result(..)
+, Test.Hspec.Core.Example.ResultStatus (..)
+, Test.Hspec.Core.Example.Location (..)
+, Test.Hspec.Core.Example.FailureReason (..)
+, Test.Hspec.Core.Example.safeEvaluate
+, Test.Hspec.Core.Example.safeEvaluateExample
 
 -- * Internal representation of a spec tree
 , module Test.Hspec.Core.Tree

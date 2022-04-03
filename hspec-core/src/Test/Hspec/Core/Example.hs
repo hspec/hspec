@@ -5,8 +5,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
--- NOTE: re-exported from Test.Hspec.Core.Spec
 module Test.Hspec.Core.Example (
+-- RE-EXPORTED from Test.Hspec.Core.Spec
   Example (..)
 , Params (..)
 , defaultParams
@@ -19,6 +19,7 @@ module Test.Hspec.Core.Example (
 , FailureReason (..)
 , safeEvaluate
 , safeEvaluateExample
+-- END RE-EXPORTED from Test.Hspec.Core.Spec
 ) where
 
 import           Prelude ()
