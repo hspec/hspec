@@ -36,7 +36,7 @@ dependencies:
   - QuickCheck >= 2.13.1
   - quickcheck-io >= 0.2.0
   - hspec-expectations == 0.8.2.*
-  - call-stack
+  - call-stack >= 0.2.0
   - directory
   - filepath
 

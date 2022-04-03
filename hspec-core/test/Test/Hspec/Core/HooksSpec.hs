@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.HooksSpec (spec) where
 
@@ -147,7 +148,7 @@ spec = do
             n `shouldBe` 23
         `shouldReturn` [
           item ["foo"] divideByZero
-        , item ["bar"] (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
+        , item ["bar"] (Pending Nothing $ exceptionIn "beforeAll")
         ]
 
     context "when used with an empty list of examples" $ do
@@ -238,7 +239,7 @@ spec = do
                 n `shouldBe` 23
         `shouldReturn` [
           item ["foo"] divideByZero
-        , item ["bar"] (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
+        , item ["bar"] (Pending Nothing $ exceptionIn "beforeAllWith")
         ]
 
     context "when used with an empty list of examples" $ do
@@ -525,7 +526,7 @@ spec = do
           H.it "foo" True
       `shouldReturn` [
         item ["foo"] divideByZero
-      , item ["afterAll-hook"] (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
+      , item ["afterAll-hook"] (Pending Nothing $ exceptionIn "aroundAll_")
       ]
 
     it "reports exceptions on release" $ do
@@ -559,7 +560,7 @@ spec = do
           H.it "foo" H.pending
       `shouldReturn` [
         item ["foo"] divideByZero
-      , item ["afterAll-hook"] (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
+      , item ["afterAll-hook"] (Pending Nothing $ exceptionIn "aroundAllWith")
       ]
 
     it "reports exceptions on release" $ do
@@ -577,3 +578,9 @@ spec = do
 
     item :: [String] -> Result -> ([String], Item)
     item path result = (path, Item Nothing 0 "" result)
+
+#if MIN_VERSION_base(4,8,1)
+    exceptionIn name = Just ("exception in " <> name <> "-hook (see previous failure)")
+#else
+    exceptionIn _ = Just "exception in beforeAll-hook (see previous failure)"
+#endif

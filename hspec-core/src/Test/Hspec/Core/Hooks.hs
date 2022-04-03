@@ -49,19 +49,19 @@ beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
 beforeWith action = aroundWith $ \e x -> action x >>= e
 
 -- | Run a custom action before the first spec item.
-beforeAll :: IO a -> SpecWith a -> Spec
+beforeAll :: HasCallStack => IO a -> SpecWith a -> Spec
 beforeAll action spec = do
   mvar <- runIO (newMVar Empty)
   before (memoize mvar action) spec
 
 -- | Run a custom action before the first spec item.
-beforeAll_ :: IO () -> SpecWith a -> SpecWith a
+beforeAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
 beforeAll_ action spec = do
   mvar <- runIO (newMVar Empty)
   before_ (memoize mvar action) spec
 
 -- | Run a custom action with an argument before the first spec item.
-beforeAllWith :: (b -> IO a) -> SpecWith a -> SpecWith b
+beforeAllWith :: HasCallStack => (b -> IO a) -> SpecWith a -> SpecWith b
 beforeAllWith action spec = do
   mvar <- runIO (newMVar Empty)
   beforeWith (memoize mvar . action) spec
@@ -71,14 +71,14 @@ data Memoized a =
   | Memoized a
   | Failed SomeException
 
-memoize :: MVar (Memoized a) -> IO a -> IO a
+memoize :: HasCallStack => MVar (Memoized a) -> IO a -> IO a
 memoize mvar action = do
   result <- modifyMVar mvar $ \ma -> case ma of
     Empty -> do
       a <- try action
       return (either Failed Memoized a, a)
     Memoized a -> return (ma, Right a)
-    Failed _ -> throwIO (Pending Nothing (Just "exception in beforeAll-hook (see previous failure)"))
+    Failed _ -> throwIO (Pending Nothing (Just $ "exception in " <> maybe "beforeAll" fst callSite <> "-hook (see previous failure)"))
   either throwIO return result
 
 -- | Run a custom action after every spec item.
@@ -114,11 +114,11 @@ modifyAroundAction action item@Item{itemExample = e} =
   item{ itemExample = \params aroundAction -> e params (aroundAction . action) }
 
 -- | Wrap an action around the given spec.
-aroundAll :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
+aroundAll :: HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec
 aroundAll action = aroundAllWith $ \ e () -> action e
 
 -- | Wrap an action around the given spec.
-aroundAll_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
+aroundAll_ :: HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
 aroundAll_ action spec = do
   allSpecItemsDone <- runIO newEmptyMVar
   workerRef <- runIO newEmptyMVar
@@ -139,7 +139,7 @@ aroundAll_ action spec = do
   beforeAll_ acquire $ afterAll_ release spec
 
 -- | Wrap an action around the given spec. Changes the arg type inside.
-aroundAllWith :: forall a b. (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+aroundAllWith :: forall a b. HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundAllWith action spec = do
   allSpecItemsDone <- runIO newEmptyMVar
   workerRef <- runIO newEmptyMVar
