@@ -47,7 +47,7 @@ import           Test.Hspec.Core.Format (Format)
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
-import           Test.Hspec.Core.Example (safeEvaluate)
+import           Test.Hspec.Core.Example (safeEvaluateResultStatus)
 
 data NonEmpty a = a :| [a]
   deriving (Eq, Show, Functor, Foldable, Traversable)
@@ -243,10 +243,10 @@ run specs = do
 
     runCleanup :: Maybe Location -> [String] -> IO () -> EvalM ()
     runCleanup loc groups action = do
-      r <- liftIO $ measure $ safeEvaluate (action >> return (Result "" Success))
+      (t, r) <- liftIO $ measure $ safeEvaluateResultStatus (action >> return Success)
       case r of
-        (_, Result "" Success) -> return ()
-        _ -> reportItem path loc (return r)
+        Success -> return ()
+        _ -> reportItem path loc $ return (t, Result "" r)
       where
         path = (groups, "afterAll-hook")
 
