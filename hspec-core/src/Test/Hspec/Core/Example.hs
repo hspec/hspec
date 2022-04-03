@@ -20,6 +20,7 @@ module Test.Hspec.Core.Example (
 , safeEvaluate
 , safeEvaluateExample
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
+, safeEvaluateResultStatus
 ) where
 
 import           Prelude ()
@@ -107,12 +108,19 @@ safeEvaluateExample example params around progress = safeEvaluate $ forceResult 
 
 safeEvaluate :: IO Result -> IO Result
 safeEvaluate action = do
-  r <- safeTry $ action
+  r <- safeTry action
   return $ case r of
-    Left e | Just result <- fromException e -> Result "" result
-    Left e | Just hunit <- fromException e -> Result "" $ hunitFailureToResult Nothing hunit
-    Left e -> Result "" $ Failure Nothing $ Error Nothing e
+    Left e -> Result "" (toResultStatus e)
     Right result -> result
+
+safeEvaluateResultStatus :: IO ResultStatus -> IO ResultStatus
+safeEvaluateResultStatus action = either toResultStatus id <$> safeTry action
+
+toResultStatus :: SomeException -> ResultStatus
+toResultStatus e
+  | Just result <- fromException e = result
+  | Just hunit <- fromException e = hunitFailureToResult Nothing hunit
+  | otherwise = Failure Nothing $ Error Nothing e
 
 instance Example Result where
   type Arg Result = ()
