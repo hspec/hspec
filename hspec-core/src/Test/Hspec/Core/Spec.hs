@@ -40,7 +40,7 @@ module Test.Hspec.Core.Spec (
 , Test.Hspec.Core.Spec.Monad.mapSpecItem_
 , Test.Hspec.Core.Spec.Monad.modifyParams
 , Test.Hspec.Core.Spec.Monad.modifyConfig
-, Test.Hspec.Core.Spec.Monad.askAncestors
+, Test.Hspec.Core.Spec.Monad.getSpecDescriptionPath
 
 -- * A type class for examples
 , Test.Hspec.Core.Example.Example (..)

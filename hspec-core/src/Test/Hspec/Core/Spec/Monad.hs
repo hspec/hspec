@@ -17,7 +17,7 @@ module Test.Hspec.Core.Spec.Monad (
 
 , modifyConfig
 
-, askAncestors
+, getSpecDescriptionPath
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
 
 , mapEnv
@@ -96,8 +96,8 @@ data Env = Env
   deriving (Eq, Show, Ord)
 
 -- | Get the current ancestor group labels, all the way to the root.
-askAncestors :: SpecM a [String]
-askAncestors = do 
+getSpecDescriptionPath :: SpecM a [String]
+getSpecDescriptionPath = do 
   SpecM $ lift $ asks envAncestorGroups
 
 mapEnv :: (Env -> Env) -> SpecM a r -> SpecM a r
