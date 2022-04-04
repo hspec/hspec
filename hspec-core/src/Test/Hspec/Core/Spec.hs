@@ -62,11 +62,12 @@ import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Hooks
 import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
-import           Test.Hspec.Core.Spec.Env (pushAncestor)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a
-describe label = mapSpecForest_ (pushAncestor label) (return . specGroup label)
+describe label = mapSpecForest_ pushAncestor (return . specGroup label)
+  where 
+    pushAncestor (Env ancs) = Env $ label : ancs
 
 -- | @context@ is an alias for `describe`.
 context :: HasCallStack => String -> SpecWith a -> SpecWith a

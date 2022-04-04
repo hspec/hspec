@@ -17,12 +17,12 @@ module Test.Hspec.Core.Spec.Monad (
 
 , modifyConfig
 
+, Env(..)
 , askAncestors
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
-import           Test.Hspec.Core.Spec.Env
 
 import           Control.Arrow
 import           Control.Monad.IO.Class (liftIO)
@@ -86,6 +86,15 @@ mapSpecItem_ = mapSpecItem id
 
 modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
+
+-- | Environment of a test definition, in the Spec monad
+data Env = Env 
+  { -- | List of ancestors of this test. Parent is the first element,
+    -- grand-parent is the next, and so on with root test appearing at the last
+    -- position.
+    envAncestorGroups :: [String]
+  }
+  deriving (Eq, Show, Ord)
 
 -- | Get the current ancestor group labels, all the way to the root.
 askAncestors :: SpecM a [String]
