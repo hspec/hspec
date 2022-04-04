@@ -20,29 +20,15 @@ spec :: Spec
 spec = do
   let runSpecM = fmap snd . H.runSpecM
 
-  describe "askAncestors" $ do 
-    it "works" $ do 
-      res <- runSpec $ do 
-        ancs0 <- H.askAncestors
-        H.it "works at root" $ do
-          ancs0 `shouldBe` []
-        H.describe "child1" $ do
-          ancs1 <- H.askAncestors
-          H.it "works with one-level tree" $ do
-            ancs1 `shouldBe` ["child1"]
-          H.describe "grandchild1" $ do
-            ancs2 <- H.askAncestors
-            H.it "works with two-level tree" $ do
-              ancs2 `shouldBe` ["grandchild1", "child1"]
-          H.describe "grandchild2" $ do
-            ancs2 <- H.askAncestors
-            H.it "works with two-level tree" $ do
-              ancs2 `shouldBe` ["grandchild2", "child1"]
-        H.describe "child2" $ do
-          ancs1 <- H.askAncestors
-          H.it "works with one-level tree" $ do
-            ancs1 `shouldBe` ["child2"]
-      last res `shouldBe` "5 examples, 0 failures"
+  it "getSpecDescriptionPath" $ do 
+    let descriptionPathShouldBe xs =
+          H.getSpecDescriptionPath >>= H.runIO . (`shouldBe` xs)
+    void . runSpecM $ do 
+      descriptionPathShouldBe []
+      H.describe "child" $ do
+        descriptionPathShouldBe ["child"]
+        H.describe "grandchild" $ do
+          descriptionPathShouldBe ["grandchild", "child"]
 
   describe "describe" $ do
     it "can be nested" $ do
