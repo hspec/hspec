@@ -20,7 +20,7 @@ module Test.Hspec.Core.Spec.Monad (
 , askAncestors
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
 
-, mapSpecForest_
+, mapEnv
 , Env(..)
 ) where
 
@@ -30,7 +30,7 @@ import           Test.Hspec.Core.Compat
 import           Control.Arrow
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Trans.Class (MonadTrans(lift))
-import           Control.Monad.Trans.Reader (ReaderT (runReaderT), withReaderT, mapReaderT, asks)
+import           Control.Monad.Trans.Reader (ReaderT (runReaderT), local, asks)
 import           Control.Monad.Trans.Writer
 
 import           Test.Hspec.Core.Example
@@ -75,11 +75,7 @@ runIO :: IO r -> SpecM a r
 runIO = SpecM . liftIO
 
 mapSpecForest :: ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
-mapSpecForest = mapSpecForest_ id
-
-mapSpecForest_ :: (Env -> Env) -> ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
-mapSpecForest_ ef tf (SpecM specs) = SpecM $ flip mapWriterT specs $ 
-  mapReaderT (fmap (fmap (second tf))) . withReaderT ef
+mapSpecForest f (SpecM specs) = SpecM (mapWriterT (fmap (fmap (second f))) specs)
 
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem g f = mapSpecForest (bimapForest g f)
@@ -103,3 +99,9 @@ data Env = Env
 askAncestors :: SpecM a [String]
 askAncestors = do 
   SpecM $ lift $ asks envAncestorGroups
+
+mapEnv :: (Env -> Env) -> SpecM a r -> SpecM a r
+mapEnv f (SpecM m) = SpecM $ do 
+  (a, w) <- lift $ local f (runWriterT m)
+  tell w 
+  pure a
