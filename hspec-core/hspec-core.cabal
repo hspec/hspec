@@ -98,6 +98,7 @@ library
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.PrintSlowSpecItems
       Test.Hspec.Core.Shuffle
+      Test.Hspec.Core.Spec.Env
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
@@ -185,6 +186,7 @@ test-suite spec
       Test.Hspec.Core.Runner.PrintSlowSpecItems
       Test.Hspec.Core.Shuffle
       Test.Hspec.Core.Spec
+      Test.Hspec.Core.Spec.Env
       Test.Hspec.Core.Spec.Monad
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
