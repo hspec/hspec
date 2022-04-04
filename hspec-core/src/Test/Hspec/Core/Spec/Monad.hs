@@ -2,6 +2,7 @@
 
 -- NOTE: re-exported from Test.Hspec.Core.Spec
 module Test.Hspec.Core.Spec.Monad (
+  -- RE-EXPORTED from Test.Hspec.Core.Spec
   Spec
 , SpecWith
 , SpecM (..)
@@ -10,15 +11,17 @@ module Test.Hspec.Core.Spec.Monad (
 , runIO
 
 , mapSpecForest
-, mapSpecForest_
 , mapSpecItem
 , mapSpecItem_
 , modifyParams
 
 , modifyConfig
 
-, Env(..)
 , askAncestors
+-- END RE-EXPORTED from Test.Hspec.Core.Spec
+
+, mapSpecForest_
+, Env(..)
 ) where
 
 import           Prelude ()
