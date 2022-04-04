@@ -27,7 +27,7 @@ import           Test.Hspec.Core.Spec.Env
 import           Control.Arrow
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Trans.Class (MonadTrans(lift))
-import           Control.Monad.Trans.Reader (ReaderT (runReaderT, ReaderT), withReaderT, mapReaderT, asks)
+import           Control.Monad.Trans.Reader (ReaderT (runReaderT), withReaderT, mapReaderT, asks)
 import           Control.Monad.Trans.Writer
 
 import           Test.Hspec.Core.Example
