@@ -25,10 +25,9 @@ spec = do
           H.getSpecDescriptionPath >>= H.runIO . (`shouldBe` xs)
     void . runSpecM $ do 
       descriptionPathShouldBe []
-      H.describe "child" $ do
-        descriptionPathShouldBe ["child"]
-        H.describe "grandchild" $ do
-          descriptionPathShouldBe ["grandchild", "child"]
+      H.describe "a" $ do
+        H.describe "b" $ do
+          descriptionPathShouldBe ["b", "a"]
 
   describe "describe" $ do
     it "can be nested" $ do
