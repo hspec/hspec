@@ -90,10 +90,14 @@ modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample 
 
 -- | Environment of a test definition, in the Spec monad
 data Env = Env 
-  { envAncestorGroups :: [String]  -- Should this be non empty?
+  { -- | List of ancestors of this test. Parent is the first element,
+    -- grand-parent is the next, and so on with root test appearing at the last
+    -- position.
+    envAncestorGroups :: [String]
   }
   deriving (Eq, Show, Ord)
 
+-- | Get the current ancestor group labels, all the way to the root.
 askAncestors :: SpecM a [String]
 askAncestors = do 
   SpecM $ lift $ asks envAncestorGroups
