@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 -- NOTE: re-exported from Test.Hspec.Core.Spec
 module Test.Hspec.Core.Spec.Monad (
@@ -26,15 +25,15 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Control.Arrow
-import           Control.Monad.Trans.Writer
 import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Trans.Class (MonadTrans(lift))
+import           Control.Monad.Trans.Reader (ReaderT (runReaderT, ReaderT), withReaderT, mapReaderT, asks)
+import           Control.Monad.Trans.Writer
 
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
 
 import           Test.Hspec.Core.Config.Definition (Config)
-import Control.Monad.Trans.Reader (ReaderT (runReaderT, ReaderT), withReaderT, mapReaderT, asks)
-import Control.Monad.Trans.Class (MonadTrans(lift))
 
 type Spec = SpecWith ()
 
