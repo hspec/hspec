@@ -1,3 +1,8 @@
+## Changes in 2.9.6
+  - Ensure color codes don't span newlines (#346, thanks @robx)
+  - Disable progress reporting on Buildkite
+  - Improve error messages on exceptions in hooks
+
 ## Changes in 2.9.5
   - Assume `--color` by default when running on GitHub Actions. Use
     `HSPEC_COLOR=no` or `--no-color` to opt out of this behavior.
