@@ -230,8 +230,8 @@ replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
 
 run :: [RunningTree IO] -> EvalM ()
 run specs = do
-  fastFail <- asks (evalConfigFailFast . envConfig)
-  sequenceActions fastFail (concatMap foldSpec specs)
+  failFast <- asks (evalConfigFailFast . envConfig)
+  sequenceActions failFast (concatMap foldSpec specs)
   where
     foldSpec :: RunningTree IO -> [EvalM ()]
     foldSpec = foldTree FoldTree {
@@ -280,14 +280,15 @@ foldTree FoldTree{..} = go []
     go rGroups (Leaf a) = [onLeafe (reverse rGroups) a]
 
 sequenceActions :: Bool -> [EvalM ()] -> EvalM ()
-sequenceActions fastFail = go
+sequenceActions failFast = go
   where
     go :: [EvalM ()] -> EvalM ()
     go [] = return ()
     go (action : actions) = do
       action
-      hasFailures <- any resultItemIsFailure <$> getResults
-      let stopNow = fastFail && hasFailures
+      stopNow <- case failFast of
+        False -> return False
+        True -> any resultItemIsFailure <$> getResults
       unless stopNow (go actions)
 
 resultItemIsFailure :: (Path, Format.Item) -> Bool
