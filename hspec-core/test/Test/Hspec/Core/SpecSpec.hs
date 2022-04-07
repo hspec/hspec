@@ -20,14 +20,16 @@ spec :: Spec
 spec = do
   let runSpecM = fmap snd . H.runSpecM
 
-  it "getSpecDescriptionPath" $ do
-    let descriptionPathShouldBe xs =
-          H.getSpecDescriptionPath >>= H.runIO . (`shouldBe` xs)
-    void . runSpecM $ do
-      descriptionPathShouldBe []
-      H.describe "a" $ do
-        H.describe "b" $ do
-          descriptionPathShouldBe ["b", "a"]
+  describe "getSpecDescriptionPath" $ do
+    it "returns the spec path" $ do
+      let descriptionPathShouldBe xs =
+            H.getSpecDescriptionPath >>= H.runIO . (`shouldBe` xs)
+      void . runSpecM $ do
+        descriptionPathShouldBe []
+        H.describe "foo" $ do
+          H.describe "bar" $ do
+            descriptionPathShouldBe ["bar", "foo"]
+            H.it "baz" True
 
   describe "describe" $ do
     it "can be nested" $ do
