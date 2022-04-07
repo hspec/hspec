@@ -28,7 +28,7 @@ spec = do
         descriptionPathShouldBe []
         H.describe "foo" $ do
           H.describe "bar" $ do
-            descriptionPathShouldBe ["bar", "foo"]
+            descriptionPathShouldBe ["foo", "bar"]
             H.it "baz" True
 
   describe "describe" $ do
