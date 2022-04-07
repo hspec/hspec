@@ -102,7 +102,7 @@ filterPredicate pattern path =
 -- This is different from `show`.  The type of the exception is included, e.g.:
 --
 -- >>> formatException (toException DivideByZero)
--- "ArithException (divide by zero)"
+-- "ArithException\ndivide by zero"
 --
 -- For `IOException`s the `IOErrorType` is included, as well.
 formatException :: SomeException -> String

@@ -185,8 +185,18 @@ pending_ = (E.throwIO (Pending Nothing Nothing))
 pendingWith :: HasCallStack => String -> Expectation
 pendingWith = E.throwIO . Pending location . Just
 
--- | Get the current ancestor group labels, all the way to the root.
+-- | Get the path of `describe` labels, from the root all the way in to the
+-- call-site of this function.
+--
+-- ==== __Example__
+-- >>> :{
+-- runSpecM $ do
+--   describe "foo" $ do
+--     describe "bar" $ do
+--       getSpecDescriptionPath >>= runIO . print
+-- :}
+-- ["foo","bar"]
 --
 -- @since 2.10.0
 getSpecDescriptionPath :: SpecM a [String]
-getSpecDescriptionPath = SpecM $ lift $ asks envSpecDescriptionPath
+getSpecDescriptionPath = SpecM $ lift $ reverse <$> asks envSpecDescriptionPath
