@@ -26,6 +26,7 @@ import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
+import           Test.Hspec.Core.Runner.Result
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import qualified Test.Hspec.Core.QuickCheck as H
 
@@ -629,30 +630,30 @@ spec = do
     let
       report = FailureReport 0 0 0 0 [([], "foo")]
       config = H.defaultConfig {H.configRerun = True, H.configRerunAllOnSuccess = True}
-      summary = H.Summary 1 0
+      result = SpecResult [] True
     context "with --rerun, --rerun-all-on-success, previous failures, on success" $ do
       it "returns True" $ do
-        H.rerunAll config (Just report) summary `shouldBe` True
+        H.rerunAll config (Just report) result `shouldBe` True
 
     context "without --rerun" $ do
       it "returns False" $ do
-        H.rerunAll config {H.configRerun = False} (Just report) summary `shouldBe` False
+        H.rerunAll config {H.configRerun = False} (Just report) result `shouldBe` False
 
     context "without --rerun-all-on-success" $ do
       it "returns False" $ do
-        H.rerunAll config {H.configRerunAllOnSuccess = False} (Just report) summary `shouldBe` False
+        H.rerunAll config {H.configRerunAllOnSuccess = False} (Just report) result `shouldBe` False
 
     context "without previous failures" $ do
       it "returns False" $ do
-        H.rerunAll config (Just report {failureReportPaths = []}) summary `shouldBe` False
+        H.rerunAll config (Just report {failureReportPaths = []}) result `shouldBe` False
 
     context "without failure report" $ do
       it "returns False" $ do
-        H.rerunAll config Nothing summary `shouldBe` False
+        H.rerunAll config Nothing result `shouldBe` False
 
     context "on failure" $ do
       it "returns False" $ do
-        H.rerunAll config (Just report) summary {H.summaryFailures = 1} `shouldBe` False
+        H.rerunAll config (Just report) result { specResultSuccess = False } `shouldBe` False
   where
     green  = setSGRCode [SetColor Foreground Dull Green]
     red    = setSGRCode [SetColor Foreground Dull Red]

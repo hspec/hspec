@@ -20,7 +20,6 @@ module Test.Hspec.Core.Runner.Eval (
 , Tree(..)
 , EvalItem(..)
 , runFormatter
-, resultItemIsFailure
 #ifdef TEST
 , runSequentially
 #endif
@@ -288,13 +287,13 @@ sequenceActions failFast = go
       action
       stopNow <- case failFast of
         False -> return False
-        True -> any resultItemIsFailure <$> getResults
+        True -> any itemIsFailure <$> getResults
       unless stopNow (go actions)
 
-resultItemIsFailure :: (Path, Format.Item) -> Bool
-resultItemIsFailure = isFailure . Format.itemResult . snd
-  where
-    isFailure r = case r of
-      Format.Success{} -> False
-      Format.Pending{} -> False
-      Format.Failure{} -> True
+    itemIsFailure :: (Path, Format.Item) -> Bool
+    itemIsFailure = isFailure . Format.itemResult . snd
+      where
+        isFailure r = case r of
+          Format.Success{} -> False
+          Format.Pending{} -> False
+          Format.Failure{} -> True

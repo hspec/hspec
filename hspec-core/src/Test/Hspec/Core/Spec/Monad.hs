@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Core.Spec.Monad (
-  -- RE-EXPORTED from Test.Hspec.Core.Spec
+-- RE-EXPORTED from Test.Hspec.Core.Spec
   Spec
 , SpecWith
 , SpecM (SpecM)

@@ -14,7 +14,7 @@ To run a spec `hspec` performs a sequence of steps:
 1. Exit with `exitFailure` if at least on spec item fails
 
 The four primitives `evalSpec`, `readConfig`, `runSpecForest` and
-`evaluateSummary` each perform one of these steps respectively.
+`evaluateResult` each perform one of these steps respectively.
 
 `hspec` is defined in terms of these primitives:
 
@@ -23,7 +23,7 @@ hspec = `evalSpec` `defaultConfig` >=> \\ (config, spec) ->
       `getArgs`
   >>= `readConfig` config
   >>= `withArgs` [] . `runSpecForest` spec
-  >>= `evaluateSummary`
+  >>= `evaluateResult`
 @
 
 If you need more control over how a spec is run use these primitives individually.
@@ -32,6 +32,7 @@ If you need more control over how a spec is run use these primitives individuall
   hspec
 , evalSpec
 , runSpecForest
+, evaluateResult
 
 -- * Config
 , Config (..)
@@ -42,10 +43,21 @@ If you need more control over how a spec is run use these primitives individuall
 , configAddFilter
 , readConfig
 
--- * Summary
-, Summary (..)
-, isSuccess
-, evaluateSummary
+-- * Result
+
+-- ** Spec Result
+, Test.Hspec.Core.Runner.Result.SpecResult
+, Test.Hspec.Core.Runner.Result.specResultItems
+, Test.Hspec.Core.Runner.Result.specResultSuccess
+
+-- ** Result Item
+, Test.Hspec.Core.Runner.Result.ResultItem
+, Test.Hspec.Core.Runner.Result.resultItemPath
+, Test.Hspec.Core.Runner.Result.resultItemStatus
+, Test.Hspec.Core.Runner.Result.resultItemIsFailure
+
+-- ** Result Item Status
+, Test.Hspec.Core.Runner.Result.ResultItemStatus(..)
 
 -- * Legacy
 -- | The following primitives are deprecated.  Use `runSpecForest` instead.
@@ -53,6 +65,12 @@ If you need more control over how a spec is run use these primitives individuall
 , hspecResult
 , hspecWithResult
 , runSpec
+
+-- ** Summary
+, Summary (..)
+, toSummary
+, isSuccess
+, evaluateSummary
 
 #ifdef TEST
 , rerunAll
@@ -92,7 +110,7 @@ import           Test.Hspec.Core.Shuffle
 import           Test.Hspec.Core.Runner.PrintSlowSpecItems
 import           Test.Hspec.Core.Runner.Eval hiding (Tree(..))
 import qualified Test.Hspec.Core.Runner.Eval as Eval
-
+import           Test.Hspec.Core.Runner.Result
 
 applyFilterPredicates :: Config -> [Tree c EvalItem] -> [Tree c EvalItem]
 applyFilterPredicates c = filterForestWithLabels p
@@ -130,7 +148,7 @@ hspec = evalSpec defaultConfig >=> \ (config, spec) ->
       getArgs
   >>= readConfig config
   >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
-  >>= evaluateSummary
+  >>= evaluateResult
 
 -- |
 -- Evaluate a `Spec` to a forest of `SpecTree`s.  This does not execute any
@@ -170,6 +188,9 @@ isSuccess summary = summaryFailures summary == 0
 evaluateSummary :: Summary -> IO ()
 evaluateSummary summary = unless (isSuccess summary) exitFailure
 
+evaluateResult :: SpecResult -> IO ()
+evaluateResult result = unless (specResultSuccess result) exitFailure
+
 -- | Run given spec and returns a summary of the test run.
 --
 -- /Note/: `hspecResult` does not exit with `exitFailure` on failing spec
@@ -187,13 +208,13 @@ hspecWithResult :: Config -> Spec -> IO Summary
 hspecWithResult defaults = evalSpec defaults >=> \ (config, spec) ->
       getArgs
   >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
+  >>= doNotLeakCommandLineArgumentsToExamples . fmap toSummary . runSpecForest spec
 
 -- |
 -- /Note/: `runSpec` is deprecated. It ignores any modifications applied
 -- through `modifyConfig`.  Use `evalSpec` and `runSpecForest` instead.
 runSpec :: Spec -> Config -> IO Summary
-runSpec spec config = evalSpec defaultConfig spec >>= flip runSpecForest config . snd
+runSpec spec config = evalSpec defaultConfig spec >>= fmap toSummary . flip runSpecForest config . snd
 
 -- |
 -- `runSpecForest` is the most basic primitive to run a spec. `hspec` is
@@ -204,11 +225,11 @@ runSpec spec config = evalSpec defaultConfig spec >>= flip runSpecForest config 
 --       `getArgs`
 --   >>= `readConfig` config
 --   >>= `withArgs` [] . runSpecForest spec
---   >>= `evaluateSummary`
+--   >>= `evaluateResult`
 -- @
 --
 -- @since 2.10.0
-runSpecForest :: [SpecTree ()] -> Config -> IO Summary
+runSpecForest :: [SpecTree ()] -> Config -> IO SpecResult
 runSpecForest spec c_ = do
   oldFailureReport <- readFailureReportOnRerun c_
 
@@ -228,12 +249,12 @@ runSpecForest spec c_ = do
   where
     normalMode c = runSpecForest_ c spec
     rerunAllMode c oldFailureReport = do
-      summary <- runSpecForest_ c spec
-      if rerunAll c oldFailureReport summary
+      result <- runSpecForest_ c spec
+      if rerunAll c oldFailureReport result
         then runSpecForest spec c_
-        else return summary
+        else return result
 
-runSpecForest_ :: Config -> [SpecTree ()] -> IO Summary
+runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
 runSpecForest_ config spec = runEvalTree config (specToEvalForest config spec)
 
 failFocused :: Item a -> Item a
@@ -259,7 +280,7 @@ focusSpec config spec
   | configFocusedOnly config = spec
   | otherwise = focusForest spec
 
-runEvalTree :: Config -> [EvalTree] -> IO Summary
+runEvalTree :: Config -> [EvalTree] -> IO SpecResult
 runEvalTree config spec = do
   let
       seed = (fromJust . configQuickCheckSeed) config
@@ -273,7 +294,7 @@ runEvalTree config spec = do
   (reportProgress, useColor) <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
-  results <- withHiddenCursor reportProgress stdout $ do
+  results <- fmap toSpecResult . withHiddenCursor reportProgress stdout $ do
     let
       formatConfig = FormatConfig {
         formatConfigUseColor = useColor
@@ -300,14 +321,21 @@ runEvalTree config spec = do
       }
     runFormatter evalConfig spec
 
-  let failures = filter resultItemIsFailure results
+  let
+    failures :: [Path]
+    failures = map resultItemPath $ filter resultItemIsFailure $ specResultItems results
 
-  dumpFailureReport config seed qcArgs (map fst failures)
+  dumpFailureReport config seed qcArgs failures
 
-  return Summary {
-    summaryExamples = length results
-  , summaryFailures = length failures
-  }
+  return results
+
+toSummary :: SpecResult -> Summary
+toSummary result = Summary {
+  summaryExamples = length items
+, summaryFailures = length failures
+} where
+    items = specResultItems result
+    failures = filter resultItemIsFailure items
 
 specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
 specToEvalForest config =
@@ -391,18 +419,19 @@ unicodeOutputSupported mode h = case mode of
   UnicodeNever -> return False
   UnicodeAlways -> return True
 
-rerunAll :: Config -> Maybe FailureReport -> Summary -> Bool
-rerunAll _ Nothing _ = False
-rerunAll config (Just oldFailureReport) summary =
-     configRerunAllOnSuccess config
-  && configRerun config
-  && isSuccess summary
-  && (not . null) (failureReportPaths oldFailureReport)
+rerunAll :: Config -> Maybe FailureReport -> SpecResult -> Bool
+rerunAll config mOldFailureReport result = case mOldFailureReport of
+  Nothing -> False
+  Just oldFailureReport ->
+       configRerunAllOnSuccess config
+    && configRerun config
+    && specResultSuccess result
+    && (not . null) (failureReportPaths oldFailureReport)
 
 -- | Summary of a test run.
 data Summary = Summary {
-  summaryExamples :: Int
-, summaryFailures :: Int
+  summaryExamples :: !Int
+, summaryFailures :: !Int
 } deriving (Eq, Show)
 
 instance Monoid Summary where
