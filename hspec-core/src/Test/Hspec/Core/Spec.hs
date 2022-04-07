@@ -40,7 +40,7 @@ module Test.Hspec.Core.Spec (
 , Test.Hspec.Core.Spec.Monad.mapSpecItem_
 , Test.Hspec.Core.Spec.Monad.modifyParams
 , Test.Hspec.Core.Spec.Monad.modifyConfig
-, Test.Hspec.Core.Spec.Monad.getSpecDescriptionPath
+, getSpecDescriptionPath
 
 -- * A type class for examples
 , Test.Hspec.Core.Example.Example (..)
@@ -66,6 +66,8 @@ import           Test.Hspec.Core.Compat
 
 import qualified Control.Exception as E
 import           Data.CallStack
+import           Control.Monad.Trans.Class (lift)
+import           Control.Monad.Trans.Reader (asks)
 
 import           Test.Hspec.Expectations (Expectation)
 
@@ -76,9 +78,9 @@ import           Test.Hspec.Core.Spec.Monad
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a
-describe label = mapSpecForest (return . specGroup label) . mapEnv pushAncestor
+describe label = withEnv pushLabel . mapSpecForest (return . specGroup label)
   where
-    pushAncestor (Env ancs) = Env $ label : ancs
+    pushLabel (Env labels) = Env $ label : labels
 
 -- | @context@ is an alias for `describe`.
 context :: HasCallStack => String -> SpecWith a -> SpecWith a
@@ -182,3 +184,9 @@ pending_ = (E.throwIO (Pending Nothing Nothing))
 -- argument that can be used to specify the reason for why the spec item is pending.
 pendingWith :: HasCallStack => String -> Expectation
 pendingWith = E.throwIO . Pending location . Just
+
+-- | Get the current ancestor group labels, all the way to the root.
+--
+-- @since 2.10.0
+getSpecDescriptionPath :: SpecM a [String]
+getSpecDescriptionPath = SpecM $ lift $ asks envSpecDescriptionPath
