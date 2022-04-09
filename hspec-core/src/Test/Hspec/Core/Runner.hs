@@ -19,7 +19,7 @@ The four primitives `evalSpec`, `readConfig`, `runSpecForest` and
 `hspec` is defined in terms of these primitives:
 
 @
-hspec = `evalSpec` `defaultConfig` >=> \ (config, spec) ->
+hspec = `evalSpec` `defaultConfig` >=> \\ (config, spec) ->
       `getArgs`
   >>= `readConfig` config
   >>= `withArgs` [] . `runSpecForest` spec
@@ -200,7 +200,7 @@ runSpec spec config = evalSpec defaultConfig spec >>= flip runSpecForest config 
 -- defined in terms of @runSpecForest@:
 --
 -- @
--- hspec = `evalSpec` `defaultConfig` >=> \ (config, spec) ->
+-- hspec = `evalSpec` `defaultConfig` >=> \\ (config, spec) ->
 --       `getArgs`
 --   >>= `readConfig` config
 --   >>= `withArgs` [] . runSpecForest spec
