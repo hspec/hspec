@@ -131,7 +131,6 @@ import Test.Hspec.Core.Formatters.Internal (
   )
 
 import           Test.Hspec.Core.Formatters.Diff
-import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 
 silent :: Formatter
 silent = Formatter {
@@ -274,13 +273,7 @@ defaultFailedFormatter = do
       case reason of
         NoReason -> return ()
         Reason err -> withFailColor $ indent err
-        ExpectedButGot preface expected_ actual_ -> do
-          pretty <- prettyPrint
-          let
-            (expected, actual)
-              | pretty = pretty2 unicode expected_ actual_
-              | otherwise = (expected_, actual_)
-
+        ExpectedButGot preface expected actual -> do
           mapM_ indent preface
 
           b <- useDiff

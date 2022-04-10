@@ -103,6 +103,7 @@ import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
+import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Shuffle
@@ -316,6 +317,7 @@ runEvalTree config spec = do
     let
       evalConfig = EvalConfig {
         evalConfigFormat = format
+      , evalConfigPrettyPrint = if configPrettyPrint config then pretty2 outputUnicode else (,)
       , evalConfigConcurrentJobs = concurrentJobs
       , evalConfigFailFast = configFailFast config
       }

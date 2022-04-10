@@ -33,6 +33,8 @@ import qualified Test.Hspec.Core.QuickCheck as H
 import qualified Test.QuickCheck as QC
 import qualified Test.Hspec.Core.Hooks as H
 
+import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (Person(..))
+
 quickCheckOptions :: [([Char], Args -> Int)]
 quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]
 
@@ -41,6 +43,9 @@ runPropFoo args = unlines . normalizeSummary . lines <$> do
   capture_ . ignoreExitCode . withArgs args . H.hspec .  H.modifyMaxSuccess (const 1000000) $ do
     H.it "foo" $ do
       property (/= (23 :: Int))
+
+person :: Int -> Person
+person = Person "Joe"
 
 spec :: Spec
 spec = do
@@ -392,6 +397,34 @@ spec = do
           H.describe "baz" $ do
             H.it "example 3" $ mockAction e3
         (,,) <$> mockCounter e1 <*> mockCounter e2 <*> mockCounter e3 `shouldReturn` (1, 0, 1)
+
+#if __GLASGOW_HASKELL__ >= 802
+    context "with --pretty" $ do
+      it "pretty-prints Haskell values" $ do
+        r <- capture_ . ignoreExitCode . withArgs ["--pretty"] . H.hspec $ do
+          H.it "foo" $ do
+            person 23 `H.shouldBe` person 42
+        r `shouldContain` unlines [
+            "       expected: Person {"
+          , "                   personName = \"Joe\","
+          , "                   personAge = 42"
+          , "                 }"
+          , "        but got: Person {"
+          , "                   personName = \"Joe\","
+          , "                   personAge = 23"
+          , "                 }"
+          ]
+#endif
+
+    context "with --no-pretty" $ do
+      it "does not pretty-prints Haskell values" $ do
+        r <- capture_ . ignoreExitCode . withArgs ["--no-pretty"] . H.hspec $ do
+          H.it "foo" $ do
+            person 23 `H.shouldBe` person 42
+        r `shouldContain` unlines [
+            "       expected: Person {personName = \"Joe\", personAge = 42}"
+          , "        but got: Person {personName = \"Joe\", personAge = 23}"
+          ]
 
     context "with --diff" $ do
       it "shows colorized diffs" $ do
