@@ -69,7 +69,6 @@ type MonadIO m = (Monad m, M.MonadIO m)
 
 data EvalConfig = EvalConfig {
   evalConfigFormat :: Format
-, evalConfigPrettyPrint :: String -> String -> (String, String)
 , evalConfigConcurrentJobs :: Int
 , evalConfigFailFast :: Bool
 }
@@ -109,13 +108,11 @@ reportItemDone path item = do
 
 reportResult :: Path -> Maybe Location -> (Seconds, Result) -> EvalM ()
 reportResult path loc (duration, result) = do
-  prettyPrint <- asks (evalConfigPrettyPrint . envConfig)
   case result of
     Result info status -> reportItemDone path $ Format.Item loc duration info $ case status of
       Success                      -> Format.Success
       Pending loc_ reason          -> Format.Pending loc_ reason
       Failure loc_ err@(Error _ e) -> Format.Failure (loc_ <|> extractLocation e) err
-      Failure loc_ (ExpectedButGot pre expected actual) -> Format.Failure loc_ $ uncurry (ExpectedButGot pre) (prettyPrint expected actual)
       Failure loc_ err             -> Format.Failure loc_ err
 
 groupStarted :: Path -> EvalM ()

@@ -25,7 +25,6 @@ evalSpec = fmap normalize . (toEvalForest >=> runFormatter config)
   where
     config = EvalConfig {
       evalConfigFormat = \ _ -> return ()
-    , evalConfigPrettyPrint = (,)
     , evalConfigConcurrentJobs = 1
     , evalConfigFailFast = False
     }

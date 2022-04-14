@@ -15,6 +15,7 @@ formatConfig = FormatConfig {
 , formatConfigOutputUnicode = False
 , formatConfigUseDiff = False
 , formatConfigPrettyPrint = False
+, formatConfigPrettyPrintFunction = Nothing
 , formatConfigPrintTimes = False
 , formatConfigHtmlOutput = False
 , formatConfigPrintCpuTime = False

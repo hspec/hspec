@@ -59,6 +59,7 @@ module Test.Hspec.Core.Formatters.V2 (
 
 , useDiff
 , prettyPrint
+, prettyPrintFunction
 , extraChunk
 , missingChunk
 
@@ -126,6 +127,7 @@ import Test.Hspec.Core.Formatters.Internal (
 
   , useDiff
   , prettyPrint
+  , prettyPrintFunction
   , extraChunk
   , missingChunk
   )
@@ -273,7 +275,13 @@ defaultFailedFormatter = do
       case reason of
         NoReason -> return ()
         Reason err -> withFailColor $ indent err
-        ExpectedButGot preface expected actual -> do
+        ExpectedButGot preface expected_ actual_ -> do
+          pretty <- prettyPrintFunction
+          let
+            (expected, actual) = case pretty of
+              Just f -> f expected_ actual_
+              Nothing -> (expected_, actual_)
+
           mapM_ indent preface
 
           b <- useDiff
