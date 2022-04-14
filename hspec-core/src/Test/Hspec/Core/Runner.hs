@@ -302,6 +302,7 @@ runEvalTree config spec = do
       , formatConfigOutputUnicode = outputUnicode
       , formatConfigUseDiff = configDiff config
       , formatConfigPrettyPrint = configPrettyPrint config
+      , formatConfigPrettyPrintFunction = if configPrettyPrint config then Just (configPrettyPrintFunction config outputUnicode) else Nothing
       , formatConfigPrintTimes = configTimes config
       , formatConfigHtmlOutput = configHtmlOutput config
       , formatConfigPrintCpuTime = configPrintCpuTime config
@@ -316,7 +317,6 @@ runEvalTree config spec = do
     let
       evalConfig = EvalConfig {
         evalConfigFormat = format
-      , evalConfigPrettyPrint = if configPrettyPrint config then configPrettyPrintFunction config outputUnicode else (,)
       , evalConfigConcurrentJobs = concurrentJobs
       , evalConfigFailFast = configFailFast config
       }

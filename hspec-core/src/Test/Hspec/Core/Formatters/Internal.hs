@@ -36,6 +36,7 @@ module Test.Hspec.Core.Formatters.Internal (
 
 , useDiff
 , prettyPrint
+, prettyPrintFunction
 , extraChunk
 , missingChunk
 
@@ -112,7 +113,15 @@ useDiff = getConfig formatConfigUseDiff
 
 -- | Return `True` if the user requested pretty diffs, `False` otherwise.
 prettyPrint :: FormatM Bool
-prettyPrint = getConfig formatConfigPrettyPrint
+prettyPrint = maybe False (const True) <$> getConfig formatConfigPrettyPrintFunction
+{-# DEPRECATED prettyPrint "use `prettyPrintFunction` instead" #-}
+
+-- | Return a function for pretty-printing if the user requested pretty diffs,
+-- `Nothing` otherwise.
+--
+-- @since 2.10.0
+prettyPrintFunction :: FormatM (Maybe (String -> String -> (String, String)))
+prettyPrintFunction = getConfig formatConfigPrettyPrintFunction
 
 -- | Return `True` if the user requested unicode output, `False` otherwise.
 outputUnicode :: FormatM Bool

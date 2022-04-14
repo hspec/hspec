@@ -59,13 +59,14 @@ data FormatConfig = FormatConfig {
 , formatConfigReportProgress :: Bool
 , formatConfigOutputUnicode :: Bool
 , formatConfigUseDiff :: Bool
-, formatConfigPrettyPrint :: Bool
+, formatConfigPrettyPrint :: Bool -- ^ Deprecated: use `formatConfigPrettyPrintFunction` instead
+, formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
 , formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool
 , formatConfigPrintCpuTime :: Bool
 , formatConfigUsedSeed :: Integer
 , formatConfigExpectedTotalCount :: Int
-} deriving (Eq, Show)
+}
 
 data Signal = Ok | NotOk SomeException
 

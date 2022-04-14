@@ -25,15 +25,17 @@ formatConfig :: FormatConfig
 formatConfig = FormatConfig {
   formatConfigUseColor = False
 , formatConfigReportProgress = False
-, formatConfigOutputUnicode = True
+, formatConfigOutputUnicode = unicode
 , formatConfigUseDiff = True
 , formatConfigPrettyPrint = True
+, formatConfigPrettyPrintFunction = Just (H.configPrettyPrintFunction H.defaultConfig unicode)
 , formatConfigPrintTimes = False
 , formatConfigHtmlOutput = False
 , formatConfigPrintCpuTime = False
 , formatConfigUsedSeed = 0
 , formatConfigExpectedTotalCount = 0
-}
+} where
+    unicode = True
 
 runSpecWith :: Formatter -> H.Spec -> IO [String]
 runSpecWith formatter = captureLines . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ formatterToFormat formatter}
@@ -204,6 +206,25 @@ spec = do
           ]
 
     describe "formatterDone" $ do
+      it "recovers unicode from ExpectedButGot" $ do
+        formatter <- formatterToFormat failed_examples formatConfig { formatConfigOutputUnicode = True }
+        _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Failure Nothing $ ExpectedButGot Nothing (show "\955") (show "\956")
+        (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
+            ""
+          , "Failures:"
+          , ""
+          , "  1) "
+          , "       expected: \"λ\""
+          , "        but got: \"μ\""
+          , ""
+          , "  To rerun use: --match \"//\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
+          ]
+
       context "when actual/expected contain newlines" $ do
         it "adds indentation" $ do
           formatter <- formatterToFormat failed_examples formatConfig
