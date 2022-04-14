@@ -88,7 +88,7 @@ spec = do
 
     context "with --depth" $ do
       it "sets depth parameter for SmallCheck" $ do
-        configSmallCheckDepth <$> parseOptions [] Nothing [] ["--depth", "23"] `shouldBe` Right 23
+        configSmallCheckDepth <$> parseOptions [] Nothing [] ["--depth", "23"] `shouldBe` Right (Just 23)
 
     context "with --jobs" $ do
       it "sets number of concurrent jobs" $ do
