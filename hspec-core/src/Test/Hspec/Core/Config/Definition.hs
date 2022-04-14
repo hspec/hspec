@@ -59,7 +59,7 @@ data Config = Config {
 , configQuickCheckMaxDiscardRatio :: Maybe Int
 , configQuickCheckMaxSize :: Maybe Int
 , configQuickCheckMaxShrinks :: Maybe Int
-, configSmallCheckDepth :: Int
+, configSmallCheckDepth :: Maybe Int
 , configColorMode :: ColorMode
 , configUnicodeMode :: UnicodeMode
 , configDiff :: Bool
@@ -198,7 +198,7 @@ smallCheckOptions = [
   ]
 
 setDepth :: Int -> Config -> Config
-setDepth n c = c {configSmallCheckDepth = n}
+setDepth n c = c {configSmallCheckDepth = Just n}
 
 quickCheckOptions :: [Option Config]
 quickCheckOptions = [

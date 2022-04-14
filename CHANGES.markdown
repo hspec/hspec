@@ -1,6 +1,7 @@
 ## Changes in 2.10.0
   - Allow to transform the config in SpecM
   - Add `getSpecDescriptionPath` (#637, thanks @srid)
+  - Change type of `paramsSmallCheckDepth` to Maybe (see #345)
 
 ## Changes in 2.9.6
   - Ensure color codes don't span newlines (#346, thanks @robx)
