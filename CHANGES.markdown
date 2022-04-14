@@ -1,5 +1,6 @@
 ## Changes in 2.10.0
   - Allow to transform the config in `SpecM`
+  - Allow to customize pretty-printing (via `configPrettyPrintFunction`)
   - Add `getSpecDescriptionPath` (#637, thanks @srid)
   - Do not treat `afterAll` as another spec item (fixes #414, #364, #363)
   - Change type of `paramsSmallCheckDepth` to Maybe (see #345)

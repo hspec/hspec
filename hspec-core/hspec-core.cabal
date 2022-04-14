@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.7.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.9.7
+version:          2.10.0
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2022 Simon Hengel,
@@ -50,18 +50,6 @@ library
     , setenv
     , tf-random
     , transformers >=0.2.2.0
-  if impl(ghc >= 8.2.1)
-    build-depends:
-        ghc
-      , ghc-boot-th
-  if impl(ghc >= 8.4.1)
-    build-depends:
-        stm >=2.2
-  else
-    other-modules:
-        Control.Concurrent.STM.TMVar
-    hs-source-dirs:
-        vendor/stm-2.5.0.1/
   exposed-modules:
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
@@ -107,6 +95,18 @@ library
       Data.Algorithm.Diff
       Paths_hspec_core
   default-language: Haskell2010
+  if impl(ghc >= 8.2.1)
+    build-depends:
+        ghc
+      , ghc-boot-th
+  if impl(ghc >= 8.4.1)
+    build-depends:
+        stm >=2.2
+  else
+    other-modules:
+        Control.Concurrent.STM.TMVar
+    hs-source-dirs:
+        vendor/stm-2.5.0.1/
 
 test-suite spec
   type: exitcode-stdio-1.0
@@ -139,18 +139,6 @@ test-suite spec
     , temporary
     , tf-random
     , transformers >=0.2.2.0
-  if impl(ghc >= 8.2.1)
-    build-depends:
-        ghc
-      , ghc-boot-th
-  if impl(ghc >= 8.4.1)
-    build-depends:
-        stm >=2.2
-  else
-    other-modules:
-        Control.Concurrent.STM.TMVar
-    hs-source-dirs:
-        vendor/stm-2.5.0.1/
   build-tool-depends:
       hspec-meta:hspec-meta-discover
   other-modules:
@@ -227,3 +215,15 @@ test-suite spec
       Test.Hspec.Core.UtilSpec
       Paths_hspec_core
   default-language: Haskell2010
+  if impl(ghc >= 8.2.1)
+    build-depends:
+        ghc
+      , ghc-boot-th
+  if impl(ghc >= 8.4.1)
+    build-depends:
+        stm >=2.2
+  else
+    other-modules:
+        Control.Concurrent.STM.TMVar
+    hs-source-dirs:
+        vendor/stm-2.5.0.1/
