@@ -34,23 +34,6 @@ spec = do
         withSuccessColor $ write "foo\nbar\nbaz\n"
       `shouldReturn` unlines [green "foo", green "bar", green "baz"]
 
-  describe "overwriteWith" $ do
-    context "when old is null" $ do
-      it "returns new" $ do
-        ("" `overwriteWith` "foo") `shouldBe` "foo"
-
-    context "when old and new have the same length" $ do
-      it "overwrites old" $ do
-        ("foo" `overwriteWith` "bar") `shouldBe` "\rbar"
-
-    context "when old is shorter than new" $ do
-      it "overwrites old" $ do
-        ("ba" `overwriteWith` "foo") `shouldBe` "\rfoo"
-
-    context "when old is longer than new" $ do
-      it "overwrites old" $ do
-        ("foobar" `overwriteWith` "foo") `shouldBe` "\rfoo   "
-
   describe "splitLines" $ do
     it "splits a string into chunks" $ do
       splitLines "foo\nbar\nbaz" `shouldBe` ["foo", "\n", "bar", "\n", "baz"]
