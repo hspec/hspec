@@ -41,7 +41,6 @@ module Test.Hspec.Core.Formatters.Internal (
 
 #ifdef TEST
 , runFormatM
-, overwriteWith
 , splitLines
 #endif
 ) where
@@ -51,7 +50,7 @@ import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
 import           System.IO (Handle, stdout)
-import           Control.Exception (bracket_)
+import           Control.Exception (bracket_, bracket)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
@@ -94,7 +93,6 @@ formatterToFormat Formatter{..} config = monadic (runFormatM config) $ \ event -
   Progress path progress -> formatterProgress path progress
   ItemStarted path -> formatterItemStarted path
   ItemDone path item -> do
-    clearTransientOutput
     case itemResult item of
       Success {} -> increaseSuccessCount
       Pending {} -> increasePendingCount
@@ -147,7 +145,6 @@ data FormatterState = FormatterState {
 , stateFailMessages    :: [FailureRecord]
 , stateCpuStartTime    :: Maybe Integer
 , stateStartTime       :: Seconds
-, stateTransientOutput :: String
 , stateConfig          :: FormatConfig
 , stateColor           :: Maybe SGR
 }
@@ -168,11 +165,15 @@ newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
 runFormatM :: FormatConfig -> FormatM a -> IO a
-runFormatM config (FormatM action) = do
+runFormatM config (FormatM action) = withLineBuffering $ do
   time <- getMonotonicTime
   cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState 0 0 [] cpuTime time "" config Nothing)
+  st <- newIORef (FormatterState 0 0 [] cpuTime time config Nothing)
   evalStateT action st
+
+withLineBuffering :: IO a -> IO a
+withLineBuffering action = bracket (IO.hGetBuffering stdout) (IO.hSetBuffering stdout) $ \ _ -> do
+  IO.hSetBuffering stdout IO.LineBuffering >> action
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()
@@ -203,29 +204,14 @@ getFailMessages = reverse `fmap` gets stateFailMessages
 getExpectedTotalCount :: FormatM Int
 getExpectedTotalCount = getConfig formatConfigExpectedTotalCount
 
-overwriteWith :: String -> String -> String
-overwriteWith old new
-  | n == 0 = new
-  | otherwise = '\r' : new ++ replicate (n - length new) ' '
-  where
-    n = length old
-
 writeTransient :: String -> FormatM ()
 writeTransient new = do
   reportProgress <- getConfig formatConfigReportProgress
   when (reportProgress) $ do
-    old <- gets stateTransientOutput
-    write $ old `overwriteWith` new
-    modify $ \ state -> state {stateTransientOutput = new}
     h <- getHandle
+    write $ new
     liftIO $ IO.hFlush h
-
-clearTransientOutput :: FormatM ()
-clearTransientOutput = do
-  n <- length <$> gets stateTransientOutput
-  unless (n == 0) $ do
-    write ("\r" ++ replicate n ' ' ++ "\r")
-    modify $ \ state -> state {stateTransientOutput = ""}
+    write $ "\r" ++ replicate (length new) ' ' ++ "\r"
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
