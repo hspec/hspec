@@ -177,8 +177,19 @@ runFormatM :: FormatConfig -> FormatM a -> IO a
 runFormatM config (FormatM action) = withLineBuffering $ do
   time <- getMonotonicTime
   cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
-  st <- newIORef (FormatterState 0 0 [] cpuTime time config Nothing)
-  evalStateT action st
+
+  let
+    progress = formatConfigReportProgress config && not (formatConfigHtmlOutput config)
+    state = FormatterState {
+      stateSuccessCount = 0
+    , statePendingCount = 0
+    , stateFailMessages = []
+    , stateCpuStartTime = cpuTime
+    , stateStartTime = time
+    , stateConfig = config { formatConfigReportProgress = progress }
+    , stateColor = Nothing
+    }
+  newIORef state >>= evalStateT action
 
 withLineBuffering :: IO a -> IO a
 withLineBuffering action = bracket (IO.hGetBuffering stdout) (IO.hSetBuffering stdout) $ \ _ -> do
