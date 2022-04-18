@@ -3,6 +3,7 @@ module Test.Hspec.Core.Spec.Monad (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
   Spec
 , SpecWith
+, SpecWith_
 , SpecM (SpecM)
 , runSpecM
 , fromSpecList
@@ -33,29 +34,31 @@ import           Test.Hspec.Core.Tree
 
 import           Test.Hspec.Core.Config.Definition (Config)
 
-type Spec = SpecWith ()
+type Spec = SpecWith_ ()
 
-type SpecWith a = SpecM a ()
+type SpecWith_ a = SpecM IO a ()
+
+type SpecWith m a = SpecM m a ()
 
 -- |
 -- @since 2.10.0
-modifyConfig :: (Config -> Config) -> SpecWith a
+modifyConfig :: (Config -> Config) -> SpecWith m a
 modifyConfig f = SpecM $ tell (Endo f, mempty)
 
 -- | A writer monad for `SpecTree` forests
-newtype SpecM a r = SpecM { unSpecM :: WriterT (Endo Config, [SpecTree a]) (ReaderT Env IO) r }
+newtype SpecM m a r = SpecM { unSpecM :: WriterT (Endo Config, [SpecTree m a]) (ReaderT Env IO) r }
   deriving (Functor, Applicative, Monad)
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
-runSpecM :: SpecWith a -> IO (Endo Config, [SpecTree a])
+runSpecM :: SpecWith m a -> IO (Endo Config, [SpecTree m a])
 runSpecM = flip runReaderT (Env []) . execWriterT . unSpecM
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
-fromSpecForest :: (Endo Config, [SpecTree a]) -> SpecWith a
+fromSpecForest :: (Endo Config, [SpecTree m a]) -> SpecWith m a
 fromSpecForest = SpecM . tell
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
-fromSpecList :: [SpecTree a] -> SpecWith a
+fromSpecList :: [SpecTree m a] -> SpecWith m a
 fromSpecList = fromSpecForest . (,) mempty
 
 -- | Run an IO action while constructing the spec tree.
@@ -66,24 +69,24 @@ fromSpecList = fromSpecForest . (,) mempty
 -- when @--dry-run@ is specified).
 -- If you do not need the result of the IO action to construct the spec tree,
 -- `Test.Hspec.Core.Hooks.beforeAll` may be more suitable for your use case.
-runIO :: IO r -> SpecM a r
+runIO :: IO r -> SpecM m a r
 runIO = SpecM . liftIO
 
-mapSpecForest :: ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
+mapSpecForest :: ([SpecTree m a] -> [SpecTree n b]) -> SpecM m a r -> SpecM n b r
 mapSpecForest f (SpecM specs) = SpecM (mapWriterT (fmap (fmap (second f))) specs)
 
-mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
+mapSpecItem :: (ActionWith m a -> ActionWith n b) -> (Item m a -> Item n b) -> SpecWith m a -> SpecWith n b
 mapSpecItem _ = mapSpecItem_
 
-mapSpecItem_ :: (Item a -> Item b) -> SpecWith a -> SpecWith b
+mapSpecItem_ :: (Item m a -> Item n b) -> SpecWith m a -> SpecWith n b
 mapSpecItem_ = mapSpecForest . bimapForest id
 
-modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
+modifyParams :: (Params -> Params) -> SpecWith m a -> SpecWith m a
 modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
 
 newtype Env = Env {
   envSpecDescriptionPath :: [String]
 }
 
-withEnv :: (Env -> Env) -> SpecM a r -> SpecM a r
+withEnv :: (Env -> Env) -> SpecM m a r -> SpecM m a r
 withEnv f = SpecM . WriterT . local f . runWriterT . unSpecM

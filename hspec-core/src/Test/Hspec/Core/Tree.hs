@@ -11,6 +11,7 @@ module Test.Hspec.Core.Tree (
 , Item (..)
 , specGroup
 , specItem
+, specItem_
 , bimapTree
 , bimapForest
 , filterTree
@@ -42,7 +43,7 @@ data Tree c a =
 
 -- | A tree is used to represent a spec internally.  The tree is parameterized
 -- over the type of cleanup actions and the type of the actual spec items.
-type SpecTree a = Tree (IO ()) (Item a)
+type SpecTree m a = Tree (IO ()) (Item m a)
 
 bimapForest :: (a -> b) -> (c -> d) -> [Tree a c] -> [Tree b d]
 bimapForest g f = map (bimapTree g f)
@@ -97,7 +98,7 @@ pruneTree node = case node of
 -- Everything that is an instance of the `Example` type class can be used as an
 -- example, including QuickCheck properties, Hspec expectations and HUnit
 -- assertions.
-data Item a = Item {
+data Item m a = Item {
 
   -- | Textual description of behavior
   itemRequirement :: String
@@ -113,11 +114,11 @@ data Item a = Item {
 , itemIsFocused :: Bool
 
   -- | Example for behavior
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: Params -> (ActionWith m a -> m ()) -> ProgressCallback -> m Result
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
-specGroup :: HasCallStack => String -> [SpecTree a] -> SpecTree a
+specGroup :: HasCallStack => String -> [SpecTree m a] -> SpecTree m a
 specGroup s = Node msg
   where
     msg :: HasCallStack => String
@@ -126,8 +127,11 @@ specGroup s = Node msg
       | otherwise = s
 
 -- | The @specItem@ function creates a spec item.
-specItem :: (HasCallStack, Example a) => String -> a -> SpecTree (Arg a)
-specItem s e = Leaf $ Item requirement location Nothing False (safeEvaluateExample e)
+specItem :: (HasCallStack, Example a) => String -> a -> SpecTree IO (Arg a)
+specItem s = specItem_ s . safeEvaluateExample
+
+specItem_ :: HasCallStack => String -> (Params -> (ActionWith m a -> m ()) -> ProgressCallback -> m Result) -> SpecTree m a
+specItem_ s e = Leaf $ Item requirement location Nothing False e
   where
     requirement :: HasCallStack => String
     requirement
