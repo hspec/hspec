@@ -78,6 +78,7 @@ library
       GetOpt.Declarative.Interpret
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
+      NonEmpty
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
@@ -158,6 +159,7 @@ test-suite spec
       GetOpt.Declarative.Interpret
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
+      NonEmpty
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config

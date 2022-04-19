@@ -3,11 +3,9 @@ module Test.Hspec.Core.Runner.EvalSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           Test.Hspec.Core.Runner.Eval
+import           NonEmpty (fromList)
 
-fromList :: [a] -> NonEmpty a
-fromList (a:as) = a :| as
-fromList [] = error "NonEmpty.fromList: empty list"
+import           Test.Hspec.Core.Runner.Eval
 
 spec :: Spec
 spec = do

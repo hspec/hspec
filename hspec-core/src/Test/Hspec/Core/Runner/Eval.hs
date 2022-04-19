@@ -14,8 +14,6 @@
 
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
-, NonEmpty(..)
-, nonEmpty
 , EvalTree
 , Tree(..)
 , EvalItem(..)
@@ -48,14 +46,7 @@ import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
 import           Test.Hspec.Core.Example (safeEvaluateResultStatus)
 
-data NonEmpty a = a :| [a]
-  deriving (Eq, Show, Functor, Foldable, Traversable)
-
-infixr 5 :|
-
-nonEmpty :: [a] -> Maybe (NonEmpty a)
-nonEmpty []     = Nothing
-nonEmpty (a:as) = Just (a :| as)
+import           NonEmpty (NonEmpty(..))
 
 data Tree c a =
     Node String (NonEmpty (Tree c a))
