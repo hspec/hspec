@@ -3,6 +3,10 @@
   - Add `getSpecDescriptionPath` (#637, thanks @srid)
   - Change type of `paramsSmallCheckDepth` to Maybe (see #345)
 
+## Changes in 2.9.7
+  - Ensure that interim output does not interfere with output from tests This
+    facilitates using `print` when debugging test cases.
+
 ## Changes in 2.9.6
   - Ensure color codes don't span newlines (#346, thanks @robx)
   - Disable progress reporting on Buildkite
