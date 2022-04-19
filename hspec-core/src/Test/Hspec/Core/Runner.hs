@@ -84,6 +84,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Data.Maybe
+import           NonEmpty (nonEmpty)
 import           System.IO
 import           System.Environment (getArgs, withArgs)
 import           System.Exit
