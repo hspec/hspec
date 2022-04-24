@@ -57,7 +57,21 @@ module Test.Hspec.Core.Spec (
 , Test.Hspec.Core.Example.safeEvaluateExample
 
 -- * Internal representation of a spec tree
-, module Test.Hspec.Core.Tree
+, Test.Hspec.Core.Tree.SpecTree
+, Test.Hspec.Core.Tree.Tree (..)
+, Test.Hspec.Core.Tree.Item (..)
+, Test.Hspec.Core.Tree.specGroup
+, Test.Hspec.Core.Tree.specItem
+, Test.Hspec.Core.Tree.bimapTree
+, Test.Hspec.Core.Tree.bimapForest
+, Test.Hspec.Core.Tree.filterTree
+, Test.Hspec.Core.Tree.filterForest
+, Test.Hspec.Core.Tree.filterTreeWithLabels
+, Test.Hspec.Core.Tree.filterForestWithLabels
+, Test.Hspec.Core.Tree.pruneTree -- unused
+, Test.Hspec.Core.Tree.pruneForest -- unused
+, Test.Hspec.Core.Tree.location
+
 , focusForest
 ) where
 

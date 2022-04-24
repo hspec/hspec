@@ -4,8 +4,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
 
--- NOTE: re-exported from Test.Hspec.Core.Spec
 module Test.Hspec.Core.Tree (
+-- RE-EXPORTED from Test.Hspec.Core.Spec
   SpecTree
 , Tree (..)
 , Item (..)
@@ -20,12 +20,15 @@ module Test.Hspec.Core.Tree (
 , pruneTree -- unused
 , pruneForest -- unused
 , location
+-- END RE-EXPORTED from Test.Hspec.Core.Spec
+, callSite
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.CallStack
+import           Data.CallStack (HasCallStack, SrcLoc(..))
+import qualified Data.CallStack as CallStack
 import           Data.Maybe
 
 import           Test.Hspec.Core.Example
@@ -132,11 +135,15 @@ specItem s e = Leaf $ Item requirement location Nothing False (safeEvaluateExamp
       | otherwise = s
 
 location :: HasCallStack => Maybe Location
-location = case reverse callStack of
-  (_, loc) : _ -> Just (Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc))
-  _ -> Nothing
+location = snd <$> callSite
+
+callSite :: HasCallStack => Maybe (String, Location)
+callSite = fmap toLocation <$> CallStack.callSite
 
 defaultDescription :: HasCallStack => Maybe String
-defaultDescription = case reverse callStack of
-  (_, loc) : _ -> Just (srcLocModule loc ++ "[" ++ show (srcLocStartLine loc) ++ ":" ++ show (srcLocStartCol loc) ++ "]")
-  _ -> Nothing
+defaultDescription = case CallStack.callSite of
+  Just (_, loc) -> Just (srcLocModule loc ++ "[" ++ show (srcLocStartLine loc) ++ ":" ++ show (srcLocStartCol loc) ++ "]")
+  Nothing -> Nothing
+
+toLocation :: SrcLoc -> Location
+toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)

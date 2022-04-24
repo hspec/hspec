@@ -97,9 +97,11 @@ formatterToFormat Formatter{..} config = monadic (runFormatM config) $ \ event -
     case itemResult item of
       Success {} -> increaseSuccessCount
       Pending {} -> increasePendingCount
-      Failure loc err -> addFailMessage (loc <|> itemLocation item) path err
+      Failure loc err -> addFailure $ FailureRecord (loc <|> itemLocation item) path err
     formatterItemDone path item
   Done _ -> formatterDone
+  where
+    addFailure r = modify $ \ s -> s { stateFailMessages = r : stateFailMessages s }
 
 -- | Get the number of failed examples encountered so far.
 getFailCount :: FormatM Int
@@ -210,10 +212,6 @@ getSuccessCount = gets stateSuccessCount
 -- | Get the number of pending examples encountered so far.
 getPendingCount :: FormatM Int
 getPendingCount = gets statePendingCount
-
--- | Append to the list of accumulated failure messages.
-addFailMessage :: Maybe Location -> Path -> FailureReason -> FormatM ()
-addFailMessage loc p m = modify $ \s -> s {stateFailMessages = FailureRecord loc p m : stateFailMessages s}
 
 -- | Get the list of accumulated failure messages.
 getFailMessages :: FormatM [FailureRecord]

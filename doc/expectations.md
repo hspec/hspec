@@ -163,7 +163,7 @@ evaluate (error "foo" + error "bar" :: Int) `shouldThrow` errorCall "foo"
 
 There is a pretty good chance that this will indeed hold, but it may equally
 well fail.  The reason is that `+` does not give any guarantees about the
-evaluation order of it's arguments.
+evaluation order of its arguments.
 
 Semantically an exceptional value contains a set of exceptions.  When we "look"
 at the value, one _representative_ from the set is chosen in a
