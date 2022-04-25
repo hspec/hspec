@@ -120,29 +120,19 @@ aroundAll action = aroundAllWith $ \ e () -> action e
 -- | Wrap an action around the given spec.
 aroundAll_ :: HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
 aroundAll_ action spec = do
-  allSpecItemsDone <- runIO newEmptyMVar
-  workerRef <- runIO newEmptyMVar
-  let
-    acquire :: IO ()
-    acquire = do
-      resource <- newEmptyMVar
-      worker <- async $ do
-        action $ do
-          signal resource
-          waitFor allSpecItemsDone
-      putMVar workerRef worker
-      unwrapExceptionsFromLinkedThread $ do
-        link worker
-        waitFor resource
-    release :: IO ()
-    release = signal allSpecItemsDone >> takeMVar workerRef >>= wait
-  beforeAll_ acquire $ afterAll_ release spec
+  (acquire, release) <- runIO $ decompose (action .)
+  beforeAll_ (acquire ()) $ afterAll_ release spec
 
 -- | Wrap an action around the given spec. Changes the arg type inside.
 aroundAllWith :: forall a b. HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundAllWith action spec = do
-  allSpecItemsDone <- runIO newEmptyMVar
-  workerRef <- runIO newEmptyMVar
+  (acquire, release) <- runIO $ decompose action
+  beforeAllWith acquire $ afterAll_ release spec
+
+decompose :: forall a b. ((a -> IO ()) -> b -> IO ()) -> IO (b -> IO a, IO ())
+decompose action = do
+  allSpecItemsDone <- newEmptyMVar
+  workerRef <- newEmptyMVar
   let
     acquire :: b -> IO a
     acquire b = do
@@ -157,7 +147,7 @@ aroundAllWith action spec = do
         takeMVar resource
     release :: IO ()
     release = signal allSpecItemsDone >> takeMVar workerRef >>= wait
-  beforeAllWith acquire $ afterAll_ release spec
+  return (acquire, release)
 
 unwrapExceptionsFromLinkedThread :: IO a -> IO a
 unwrapExceptionsFromLinkedThread = (`catch` \ (ExceptionInLinkedThread _ e) -> throwIO e)
