@@ -369,7 +369,7 @@ pruneTree node = case node of
 type EvalItemTree = Tree (IO ()) EvalItem
 
 toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
-toEvalItemForest params = bimapForest withUnit toEvalItem . filterForest itemIsFocused
+toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
     toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem requirement loc (fromMaybe False isParallelizable) (e params withUnit)

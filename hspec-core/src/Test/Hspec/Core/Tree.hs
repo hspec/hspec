@@ -42,7 +42,7 @@ data Tree c a =
 
 -- | A tree is used to represent a spec internally.  The tree is parameterized
 -- over the type of cleanup actions and the type of the actual spec items.
-type SpecTree a = Tree (ActionWith a) (Item a)
+type SpecTree a = Tree (IO ()) (Item a)
 
 bimapForest :: (a -> b) -> (c -> d) -> [Tree a c] -> [Tree b d]
 bimapForest g f = map (bimapTree g f)

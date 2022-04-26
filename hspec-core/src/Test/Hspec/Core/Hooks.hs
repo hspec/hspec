@@ -99,11 +99,11 @@ around action = aroundWith $ \e () -> action e
 
 -- | Run a custom action after the last spec item.
 afterAll :: HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
-afterAll action = mapSpecForest (return . NodeWithCleanup location action)
+afterAll action = aroundAllWith (\ hook a -> hook a >> action a)
 
 -- | Run a custom action after the last spec item.
 afterAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
-afterAll_ action = afterAll (\_ -> action)
+afterAll_ action = mapSpecForest (return . NodeWithCleanup location action)
 
 -- | Run a custom action before and/or after every spec item.
 around_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
@@ -111,7 +111,7 @@ around_ action = aroundWith $ \e a -> action (e a)
 
 -- | Run a custom action before and/or after every spec item.
 aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
-aroundWith action = mapSpecItem action (modifyAroundAction action)
+aroundWith = mapSpecItem_ . modifyAroundAction
 
 modifyAroundAction :: (ActionWith a -> ActionWith b) -> Item a -> Item b
 modifyAroundAction action item@Item{itemExample = e} =
