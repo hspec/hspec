@@ -68,6 +68,7 @@ import           Data.IORef as Imports
 import           Text.Read as Imports (readMaybe)
 import           System.Environment as Imports (lookupEnv)
 #else
+import           Control.Exception
 import           Text.Read
 import           System.Environment
 import qualified Text.ParserCombinators.ReadP as P
@@ -87,6 +88,11 @@ import           GHC.IO
 #endif
 
 #if !MIN_VERSION_base(4,6,0)
+forkFinally :: IO a -> (Either SomeException a -> IO ()) -> IO ThreadId
+forkFinally action and_then =
+  mask $ \restore ->
+    forkIO $ try (restore action) >>= and_then
+
 -- |Strict version of 'modifyIORef'
 modifyIORef' :: IORef a -> (a -> a) -> IO ()
 modifyIORef' ref f = do

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -22,15 +23,18 @@ module Test.Hspec.Core.Hooks (
 
 , mapSubject
 , ignoreSubject
+
+#ifdef TEST
+, decompose
+#endif
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 import           Data.CallStack (HasCallStack)
 
-import           Control.Exception (SomeException, finally, throwIO, try, catch)
-import           Control.Concurrent.MVar
-import           Control.Concurrent.Async
+import           Control.Exception (SomeException, finally, throwIO, try)
+import           Control.Concurrent
 
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
@@ -129,28 +133,53 @@ aroundAllWith action spec = do
   (acquire, release) <- runIO $ decompose action
   beforeAllWith acquire $ afterAll_ release spec
 
+data Acquired a = Acquired a | ExceptionDuringAcquire SomeException
+data Released   = Released   | ExceptionDuringRelease SomeException
+
 decompose :: forall a b. ((a -> IO ()) -> b -> IO ()) -> IO (b -> IO a, IO ())
 decompose action = do
-  allSpecItemsDone <- newEmptyMVar
-  workerRef <- newEmptyMVar
+  doCleanupNow <- newEmptyMVar
+  acquired <- newEmptyMVar
+  released <- newEmptyMVar
+
   let
+    notify :: Either SomeException () -> IO ()
+    -- `notify` is guaranteed to run without being interrupted by an async
+    -- exception for the following reasons:
+    --
+    -- 1. `forkFinally` runs the final action within `mask`
+    -- 2. `tryPutMVar` is guaranteed not to be interruptible
+    -- 3. `putMVar` is guaranteed not to be interruptible on an empty `MVar`
+    notify r = case r of
+      Left err -> do
+        exceptionDuringAcquire <- tryPutMVar acquired (ExceptionDuringAcquire err)
+        putMVar released $ if exceptionDuringAcquire then Released else ExceptionDuringRelease err
+      Right () -> do
+        putMVar released Released
+
+    forkWorker :: b -> IO ()
+    forkWorker b = void . flip forkFinally notify $ do
+      flip action b $ \ a -> do
+        putMVar acquired (Acquired a)
+        waitFor doCleanupNow
+
     acquire :: b -> IO a
     acquire b = do
-      resource <- newEmptyMVar
-      worker <- async $ do
-        flip action b $ \ a -> do
-          putMVar resource a
-          waitFor allSpecItemsDone
-      putMVar workerRef worker
-      unwrapExceptionsFromLinkedThread $ do
-        link worker
-        takeMVar resource
-    release :: IO ()
-    release = signal allSpecItemsDone >> takeMVar workerRef >>= wait
-  return (acquire, release)
+      forkWorker b
+      r <- readMVar acquired -- This does not work reliably with base < 4.7
+      case r of
+        Acquired a -> return a
+        ExceptionDuringAcquire err -> throwIO err
 
-unwrapExceptionsFromLinkedThread :: IO a -> IO a
-unwrapExceptionsFromLinkedThread = (`catch` \ (ExceptionInLinkedThread _ e) -> throwIO e)
+    release :: IO ()
+    release = do
+      signal doCleanupNow
+      r <- takeMVar released
+      case r of
+        Released -> return ()
+        ExceptionDuringRelease err -> throwIO err
+
+  return (acquire, release)
 
 type BinarySemaphore = MVar ()
 
