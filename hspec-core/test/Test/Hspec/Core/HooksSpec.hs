@@ -572,6 +572,29 @@ spec = do
       , item ["afterAll-hook"] divideByZero
       ]
 
+  describe "decompose" $ do
+    it "decomposes a with-style action into acquire / release" $ do
+      (acquire, release) <- H.decompose $ \ action x -> do
+        action (x + 42)
+      acquire 23 `shouldReturn` (65 :: Int)
+      release
+
+    context "with an exception during resource acquisition" $ do
+      it "propagates that exception" $ do
+        (acquire, release) <- H.decompose $ \ action () -> do
+          throwException_
+          action ()
+        acquire () `shouldThrow` (== DivideByZero)
+        release
+
+    context "with an exception during resource deallocation" $ do
+      it "propagates that exception" $ do
+        (acquire, release) <- H.decompose $ \ action () -> do
+          action ()
+          throwException_
+        acquire ()
+        release `shouldThrow` (== DivideByZero)
+
   where
     divideByZero :: Result
     divideByZero = Failure Nothing (Error Nothing $ toException DivideByZero)
