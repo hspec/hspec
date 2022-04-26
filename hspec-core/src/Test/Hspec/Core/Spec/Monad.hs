@@ -73,10 +73,10 @@ mapSpecForest :: ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
 mapSpecForest f (SpecM specs) = SpecM (mapWriterT (fmap (fmap (second f))) specs)
 
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
-mapSpecItem g f = mapSpecForest (bimapForest g f)
+mapSpecItem _ = mapSpecItem_
 
-mapSpecItem_ :: (Item a -> Item a) -> SpecWith a -> SpecWith a
-mapSpecItem_ = mapSpecItem id
+mapSpecItem_ :: (Item a -> Item b) -> SpecWith a -> SpecWith b
+mapSpecItem_ = mapSpecForest . bimapForest id
 
 modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}

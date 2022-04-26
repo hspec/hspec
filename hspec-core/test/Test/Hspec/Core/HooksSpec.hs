@@ -323,7 +323,6 @@ spec = do
         , "foo"
         , "before"
         , "bar"
-        , "before"
         , "from before"
         ]
 
@@ -355,7 +354,6 @@ spec = do
         , "foo"
         , "before"
         , "bar"
-        , "before"
         , "afterAll_"
         ]
 
@@ -399,7 +397,7 @@ spec = do
         ]
 
     context "when action is successful" $ do
-      it "does not report anythig" $ do
+      it "does not report anything" $ do
         evalSpec $ do
           H.afterAll_ (return ()) $ do
             H.it "foo" True
@@ -518,15 +516,16 @@ spec = do
         , "2"
         , "3"
         ]
-      mockCounter mock `shouldReturn` 4
+      mockCounter mock `shouldReturn` 3
 
     it "reports exceptions on acquire" $ do
       evalSpec $ do
         H.aroundAll_ (throwException <*) $ do
           H.it "foo" True
+          H.it "bar" True
       `shouldReturn` [
         item ["foo"] divideByZero
-      , item ["afterAll-hook"] (Pending Nothing $ exceptionIn "aroundAll_")
+      , item ["bar"] (Pending Nothing $ exceptionIn "aroundAll_")
       ]
 
     it "reports exceptions on release" $ do
@@ -552,7 +551,7 @@ spec = do
         , "1"
         , "1"
         ]
-      mockCounter mock `shouldReturn` 4
+      mockCounter mock `shouldReturn` 3
 
     it "reports exceptions on acquire" $ do
       evalSpec $ do
@@ -560,7 +559,6 @@ spec = do
           H.it "foo" H.pending
       `shouldReturn` [
         item ["foo"] divideByZero
-      , item ["afterAll-hook"] (Pending Nothing $ exceptionIn "aroundAllWith")
       ]
 
     it "reports exceptions on release" $ do
