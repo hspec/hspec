@@ -95,7 +95,7 @@ spec = do
     it "creates a sentence from a subject and a requirement" $ do
       formatRequirement (["reverse"], "reverses a list") `shouldBe` "reverse reverses a list"
 
-    it "creates a sentence from a subject and a requirement when the subject consits of multiple words" $ do
+    it "creates a sentence from a subject and a requirement when the subject consists of multiple words" $ do
       formatRequirement (["The reverse function"], "reverses a list") `shouldBe` "The reverse function reverses a list"
 
     it "returns the requirement if no subject is given" $ do
