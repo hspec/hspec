@@ -194,7 +194,7 @@
 					scroll: element.scrollWidth,
 					client: element.clientWidth
 				},
-				// check overflow.x/y because iPad (and possibly other tablets) don't display scrollbars
+				// check overflow.x/y because iPad (and possibly other tablets) don't dislay scrollbars
 				scrollableX: function () {
 					return (overflow.x || overflow.isRoot) && this.width.scroll > this.width.client;
 				},
