@@ -42,6 +42,9 @@ spec = do
         , "Usage: hspec-discover SRC CUR DST [--module-name=NAME]"
         ]
 
+    it "recognizes --parallel" $ do
+      parse ["--parallel"] `shouldBe` Right (defaultConfig {configParallel = True})
+
     context "when option is given multiple times" $ do
       it "gives the last occurrence precedence" $ do
         parse ["--formatter", "foo", "--formatter", "bar"] `shouldBe` Right (defaultConfig {configFormatter = Just "bar"})

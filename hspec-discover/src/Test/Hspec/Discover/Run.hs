@@ -65,10 +65,11 @@ mkSpecModule src conf nodes =
   . showString ("module " ++ moduleName src conf ++" where\n")
   . importList nodes
   . showString "import Test.Hspec.Discover\n"
+  . importSequential
   . maybe driver driverWithFormatter (configFormatter conf)
   . showString "spec :: Spec\n"
   . showString "spec = "
-  . formatSpecs nodes
+  . formatSpecs conf nodes
   ) "\n"
   where
     driver =
@@ -77,6 +78,10 @@ mkSpecModule src conf nodes =
               showString "main :: IO ()\n"
             . showString "main = hspec spec\n"
           True -> ""
+    importSequential =
+      if configParallel conf
+        then showString "import Test.Hspec.Core.Spec\n"
+        else id
 
 moduleName :: FilePath -> Config -> String
 moduleName src conf = fromMaybe (if configNoMain conf then pathToModule src else "Main") (configModuleName conf)
@@ -120,10 +125,10 @@ moduleNames = fromForest
 sequenceS :: [ShowS] -> ShowS
 sequenceS = foldr (.) "" . intersperse " >> "
 
-formatSpecs :: Maybe [Spec] -> ShowS
-formatSpecs specs = case specs of
+formatSpecs :: Config -> Maybe [Spec] -> ShowS
+formatSpecs conf specs = case specs of
   Nothing -> "return ()"
-  Just xs -> fromForest xs
+  Just xs -> runParallel $ fromForest xs
   where
     fromForest :: [Spec] -> ShowS
     fromForest = sequenceS . map fromTree
@@ -132,6 +137,15 @@ formatSpecs specs = case specs of
     fromTree tree = case tree of
       Spec name -> "describe " . shows name . " " . showString name . "Spec.spec"
       Hook name forest -> "(" . showString name . ".hook $ " . fromForest forest . ")"
+
+    isParallel :: Bool
+    isParallel = configParallel conf
+
+    runParallel :: ShowS -> ShowS
+    runParallel x =
+      if isParallel
+        then "parallel (" . x . ")"
+        else x
 
 findSpecs :: FilePath -> IO (Maybe [Spec])
 findSpecs = fmap (fmap toSpecs) . discover

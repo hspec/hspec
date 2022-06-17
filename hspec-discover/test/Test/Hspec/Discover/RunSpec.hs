@@ -1,80 +1,112 @@
 module Test.Hspec.Discover.RunSpec (spec) where
 
-import           Helper
-import           Test.Mockery.Directory
-
-import           Test.Hspec.Discover.Run hiding (Spec)
+import Helper
+import Test.Hspec.Discover.Run hiding (Spec)
 import qualified Test.Hspec.Discover.Run as Run
+import Test.Mockery.Directory
 
 spec :: Spec
 spec = do
-  describe "run" $ around_ inTempDirectory $ do
-    it "generates a test driver" $ do
-      touch "test/FooSpec.hs"
-      touch "test/Foo/Bar/BazSpec.hs"
-      touch "test/Foo/BarSpec.hs"
-      run ["test/Spec.hs", "", "out"]
-      readFile "out" `shouldReturn` unlines [
-          "{-# LINE 1 \"test/Spec.hs\" #-}"
-        , "{-# LANGUAGE NoImplicitPrelude #-}"
-        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
-        , "module Main where"
-        , "import qualified FooSpec"
-        , "import qualified Foo.BarSpec"
-        , "import qualified Foo.Bar.BazSpec"
-        , "import Test.Hspec.Discover"
-        , "main :: IO ()"
-        , "main = hspec spec"
-        , "spec :: Spec"
-        , "spec = " ++ unwords [
-               "describe \"Foo\" FooSpec.spec"
-          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
-          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
-          ]
-        ]
+  describe "run" $
+    around_ inTempDirectory $ do
+      it "generates a test driver" $ do
+        touch "test/FooSpec.hs"
+        touch "test/Foo/Bar/BazSpec.hs"
+        touch "test/Foo/BarSpec.hs"
+        run ["test/Spec.hs", "", "out"]
+        readFile "out"
+          `shouldReturn` unlines
+            [ "{-# LINE 1 \"test/Spec.hs\" #-}",
+              "{-# LANGUAGE NoImplicitPrelude #-}",
+              "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}",
+              "module Main where",
+              "import qualified FooSpec",
+              "import qualified Foo.BarSpec",
+              "import qualified Foo.Bar.BazSpec",
+              "import Test.Hspec.Discover",
+              "main :: IO ()",
+              "main = hspec spec",
+              "spec :: Spec",
+              "spec = "
+                ++ unwords
+                  [ "describe \"Foo\" FooSpec.spec",
+                    ">> describe \"Foo.Bar\" Foo.BarSpec.spec",
+                    ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
+                  ]
+            ]
 
-    it "generates a test driver with hooks" $ do
-      touch "test/FooSpec.hs"
-      touch "test/Foo/Bar/BazSpec.hs"
-      touch "test/Foo/BarSpec.hs"
-      touch "test/Foo/SpecHook.hs"
-      touch "test/SpecHook.hs"
-      run ["test/Spec.hs", "", "out"]
-      readFile "out" `shouldReturn` unlines [
-          "{-# LINE 1 \"test/Spec.hs\" #-}"
-        , "{-# LANGUAGE NoImplicitPrelude #-}"
-        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
-        , "module Main where"
-        , "import qualified SpecHook"
-        , "import qualified FooSpec"
-        , "import qualified Foo.SpecHook"
-        , "import qualified Foo.BarSpec"
-        , "import qualified Foo.Bar.BazSpec"
-        , "import Test.Hspec.Discover"
-        , "main :: IO ()"
-        , "main = hspec spec"
-        , "spec :: Spec"
-        , "spec = " ++ unwords [
-               "(SpecHook.hook $ describe \"Foo\" FooSpec.spec"
-          , ">> (Foo.SpecHook.hook $ describe \"Foo.Bar\" Foo.BarSpec.spec"
-          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec))"
-          ]
-        ]
+      it "generates a test driver with hooks" $ do
+        touch "test/FooSpec.hs"
+        touch "test/Foo/Bar/BazSpec.hs"
+        touch "test/Foo/BarSpec.hs"
+        touch "test/Foo/SpecHook.hs"
+        touch "test/SpecHook.hs"
+        run ["test/Spec.hs", "", "out"]
+        readFile "out"
+          `shouldReturn` unlines
+            [ "{-# LINE 1 \"test/Spec.hs\" #-}",
+              "{-# LANGUAGE NoImplicitPrelude #-}",
+              "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}",
+              "module Main where",
+              "import qualified SpecHook",
+              "import qualified FooSpec",
+              "import qualified Foo.SpecHook",
+              "import qualified Foo.BarSpec",
+              "import qualified Foo.Bar.BazSpec",
+              "import Test.Hspec.Discover",
+              "main :: IO ()",
+              "main = hspec spec",
+              "spec :: Spec",
+              "spec = "
+                ++ unwords
+                  [ "(SpecHook.hook $ describe \"Foo\" FooSpec.spec",
+                    ">> (Foo.SpecHook.hook $ describe \"Foo.Bar\" Foo.BarSpec.spec",
+                    ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec))"
+                  ]
+            ]
 
-    it "generates a test driver for an empty directory" $ do
-      touch "test/Foo/Bar/Baz/.placeholder"
-      run ["test/Spec.hs", "", "out"]
-      readFile "out" `shouldReturn` unlines [
-          "{-# LINE 1 \"test/Spec.hs\" #-}"
-        , "{-# LANGUAGE NoImplicitPrelude #-}"
-        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
-        , "module Main where"
-        , "import Test.Hspec.Discover"
-        , "main :: IO ()"
-        , "main = hspec spec"
-        , "spec :: Spec"
-        , "spec = return ()"
-        ]
+      it "generates a test driver for an empty directory" $ do
+        touch "test/Foo/Bar/Baz/.placeholder"
+        run ["test/Spec.hs", "", "out"]
+        readFile "out"
+          `shouldReturn` unlines
+            [ "{-# LINE 1 \"test/Spec.hs\" #-}",
+              "{-# LANGUAGE NoImplicitPrelude #-}",
+              "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}",
+              "module Main where",
+              "import Test.Hspec.Discover",
+              "main :: IO ()",
+              "main = hspec spec",
+              "spec :: Spec",
+              "spec = return ()"
+            ]
+
+      it "generates a test driver with parallel" $ do
+        touch "test/FooSpec.hs"
+        touch "test/Foo/Bar/BazSpec.hs"
+        touch "test/Foo/BarSpec.hs"
+        run ["test/Spec.hs", "", "out"]
+        readFile "out"
+          `shouldReturn` unlines
+            [ "{-# LINE 1 \"test/Spec.hs\" #-}",
+              "{-# LANGUAGE NoImplicitPrelude #-}",
+              "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}",
+              "module Main where",
+              "import qualified FooSpec",
+              "import qualified Foo.BarSpec",
+              "import qualified Foo.Bar.BazSpec",
+              "import Test.Hspec.Discover",
+              "main :: IO ()",
+              "main = hspec spec",
+              "spec :: Spec",
+              "spec = parallel ("
+                ++ unwords
+                  [ "describe \"Foo\" FooSpec.spec",
+                    ">> describe \"Foo.Bar\" Foo.BarSpec.spec",
+                    ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
+                  ]
+                ++ ")"
+            ]
 
   describe "pathToModule" $ do
     it "derives module name from a given path" $ do
@@ -82,11 +114,12 @@ spec = do
 
   describe "driverWithFormatter" $ do
     it "generates a test driver that uses a custom formatter" $ do
-      driverWithFormatter "Some.Module.formatter" "" `shouldBe` unlines [
-          "import qualified Some.Module"
-        , "main :: IO ()"
-        , "main = hspecWithFormatter Some.Module.formatter spec"
-        ]
+      driverWithFormatter "Some.Module.formatter" ""
+        `shouldBe` unlines
+          [ "import qualified Some.Module",
+            "main :: IO ()",
+            "main = hspecWithFormatter Some.Module.formatter spec"
+          ]
 
   describe "moduleNameFromId" $ do
     it "returns the module name of a fully qualified identifier" $ do
@@ -94,10 +127,11 @@ spec = do
 
   describe "importList" $ do
     it "generates imports for a list of specs" $ do
-      importList (Just [Run.Spec "Foo", Run.Spec "Bar"]) "" `shouldBe` unlines [
-          "import qualified FooSpec"
-        , "import qualified BarSpec"
-        ]
+      importList (Just [Run.Spec "Foo", Run.Spec "Bar"]) ""
+        `shouldBe` unlines
+          [ "import qualified FooSpec",
+            "import qualified BarSpec"
+          ]
 
   describe "discover" $ do
     it "discovers spec files" $ do
