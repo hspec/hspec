@@ -26,6 +26,7 @@ module Test.Hspec.Core.Hooks (
 
 #ifdef TEST
 , decompose
+, orderedAcquireAndRelease
 #endif
 ) where
 
@@ -33,7 +34,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 import           Data.CallStack (HasCallStack)
 
-import           Control.Exception (SomeException, finally, throwIO, try)
+import           Control.Exception (Exception, SomeException, finally, throwIO, try)
 import           Control.Concurrent
 
 import           Test.Hspec.Core.Example
@@ -124,14 +125,43 @@ aroundAll action = aroundAllWith $ \ e () -> action e
 -- | Wrap an action around the given spec.
 aroundAll_ :: HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
 aroundAll_ action spec = do
-  (acquire, release) <- runIO $ decompose (action .)
+  (acquire, release) <- runIO $ orderedAcquireAndRelease =<< decompose (action .)
   beforeAll_ (acquire ()) $ afterAll_ release spec
 
 -- | Wrap an action around the given spec. Changes the arg type inside.
 aroundAllWith :: forall a b. HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundAllWith action spec = do
-  (acquire, release) <- runIO $ decompose action
+  (acquire, release) <- runIO $ orderedAcquireAndRelease =<< decompose action
   beforeAllWith acquire $ afterAll_ release spec
+
+data OrderedAcquireReleaseState
+  = Unacquired
+  | AcquireCalled
+  | ReleaseCalled
+
+data OrderedAcquireReleaseException
+  = HasAlreadyBeenAcquired
+  | HasAlreadyBeenReleased
+  deriving Show
+
+instance Exception OrderedAcquireReleaseException
+
+orderedAcquireAndRelease :: (b -> IO a, IO ()) -> IO (b -> IO a, IO ())
+orderedAcquireAndRelease (acquire, release) = do
+  stVar <- newMVar Unacquired
+
+  let
+    acq b = modifyMVar stVar $ \st -> case st of
+      Unacquired -> (\a -> (AcquireCalled, a)) <$> acquire b
+      AcquireCalled -> throwIO HasAlreadyBeenAcquired
+      ReleaseCalled -> throwIO HasAlreadyBeenReleased
+    rel = do
+        needRelease <- modifyMVar stVar $ \st -> case st of
+          AcquireCalled -> pure (ReleaseCalled, True)
+          _ -> pure (st, False)
+        when needRelease release
+
+  pure (acq, rel)
 
 data Acquired a = Acquired a | ExceptionDuringAcquire SomeException
 data Released   = Released   | ExceptionDuringRelease SomeException
