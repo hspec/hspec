@@ -125,7 +125,7 @@ shouldUseArgs args p = do
   (silence . ignoreExitCode . withArgs args . H.hspec) spec
   readIORef spy >>= (`shouldSatisfy` p)
 
-removeLocations :: H.SpecWith a -> H.SpecWith a
+removeLocations :: H.SpecWith_ a -> H.SpecWith_ a
 removeLocations = H.mapSpecItem_ (\item -> item{H.itemLocation = Nothing})
 
 withEnvironment :: [(String, String)] -> IO a -> IO a

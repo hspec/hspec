@@ -11,6 +11,7 @@ module Test.Hspec.Core.Example (
 , Params (..)
 , defaultParams
 , ActionWith
+, ActionWith_
 , Progress
 , ProgressCallback
 , Result(..)
@@ -47,7 +48,7 @@ import           Test.Hspec.Core.Example.Location
 class Example e where
   type Arg e
   type Arg e = ()
-  evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+  evaluateExample :: e -> Params -> (ActionWith_ (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
@@ -64,7 +65,8 @@ type Progress = (Int, Int)
 type ProgressCallback = Progress -> IO ()
 
 -- | An `IO` action that expects an argument of type @a@
-type ActionWith a = a -> IO ()
+type ActionWith_ a = a -> IO ()
+type ActionWith m a = a -> m ()
 
 -- | The result of running an example
 data Result = Result {
@@ -94,7 +96,7 @@ instance NFData FailureReason where
 
 instance Exception ResultStatus
 
-safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+safeEvaluateExample :: Example e => e -> Params -> (ActionWith_ (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 safeEvaluateExample example params around progress = safeEvaluate $ forceResult <$> evaluateExample example params around progress
   where
     forceResult :: Result -> Result

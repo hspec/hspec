@@ -41,31 +41,31 @@ import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
 
 -- | Run a custom action before every spec item.
-before :: IO a -> SpecWith a -> Spec
+before :: Monad m => m a -> SpecWith m a -> SpecWith m ()
 before action = around (action >>=)
 
 -- | Run a custom action before every spec item.
-before_ :: IO () -> SpecWith a -> SpecWith a
+before_ :: Monad m => m () -> SpecWith m a -> SpecWith m a
 before_ action = around_ (action >>)
 
 -- | Run a custom action before every spec item.
-beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
+beforeWith :: Monad m => (b -> m a) -> SpecWith m a -> SpecWith m b
 beforeWith action = aroundWith $ \e x -> action x >>= e
 
 -- | Run a custom action before the first spec item.
-beforeAll :: HasCallStack => IO a -> SpecWith a -> Spec
+beforeAll :: HasCallStack => IO a -> SpecWith_ a -> Spec
 beforeAll action spec = do
   mvar <- runIO (newMVar Empty)
   before (memoize mvar action) spec
 
 -- | Run a custom action before the first spec item.
-beforeAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
+beforeAll_ :: HasCallStack => IO () -> SpecWith_ a -> SpecWith_ a
 beforeAll_ action spec = do
   mvar <- runIO (newMVar Empty)
   before_ (memoize mvar action) spec
 
 -- | Run a custom action with an argument before the first spec item.
-beforeAllWith :: HasCallStack => (b -> IO a) -> SpecWith a -> SpecWith b
+beforeAllWith :: HasCallStack => (b -> IO a) -> SpecWith_ a -> SpecWith_ b
 beforeAllWith action spec = do
   mvar <- runIO (newMVar Empty)
   beforeWith (memoize mvar . action) spec
@@ -86,49 +86,49 @@ memoize mvar action = do
   either throwIO return result
 
 -- | Run a custom action after every spec item.
-after :: ActionWith a -> SpecWith a -> SpecWith a
+after :: ActionWith_ a -> SpecWith IO a -> SpecWith IO a
 after action = aroundWith $ \e x -> e x `finally` action x
 
 -- | Run a custom action after every spec item.
-after_ :: IO () -> SpecWith a -> SpecWith a
+after_ :: IO () -> SpecWith IO a -> SpecWith IO a
 after_ action = after $ \_ -> action
 
 -- | Run a custom action before and/or after every spec item.
-around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
+around :: (ActionWith m a -> m ()) -> SpecWith m a -> SpecWith m ()
 around action = aroundWith $ \e () -> action e
 
 -- | Run a custom action after the last spec item.
-afterAll :: HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
+afterAll :: HasCallStack => ActionWith_ a -> SpecWith_ a -> SpecWith_ a
 afterAll action = aroundAllWith (\ hook a -> hook a >> action a)
 
 -- | Run a custom action after the last spec item.
-afterAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
+afterAll_ :: HasCallStack => IO () -> SpecWith_ a -> SpecWith_ a
 afterAll_ action = mapSpecForest (return . NodeWithCleanup callSite action)
 
 -- | Run a custom action before and/or after every spec item.
-around_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
+around_ :: (m () -> m ()) -> SpecWith m a -> SpecWith m a
 around_ action = aroundWith $ \e a -> action (e a)
 
 -- | Run a custom action before and/or after every spec item.
-aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
-aroundWith = mapSpecItem_ . modifyAroundAction
+aroundWith :: (ActionWith m a -> ActionWith m b) -> SpecWith m a -> SpecWith m b
+aroundWith action = mapSpecItem action (modifyAroundAction action)
 
-modifyAroundAction :: (ActionWith a -> ActionWith b) -> Item a -> Item b
+modifyAroundAction :: (ActionWith m a -> ActionWith m b) -> Item m a -> Item m b
 modifyAroundAction action item@Item{itemExample = e} =
   item{ itemExample = \params aroundAction -> e params (aroundAction . action) }
 
 -- | Wrap an action around the given spec.
-aroundAll :: HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec
+aroundAll :: HasCallStack => (ActionWith_ a -> IO ()) -> SpecWith_ a -> Spec
 aroundAll action = aroundAllWith $ \ e () -> action e
 
 -- | Wrap an action around the given spec.
-aroundAll_ :: HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
+aroundAll_ :: HasCallStack => (IO () -> IO ()) -> SpecWith_ a -> SpecWith_ a
 aroundAll_ action spec = do
   (acquire, release) <- runIO $ decompose (action .)
   beforeAll_ (acquire ()) $ afterAll_ release spec
 
 -- | Wrap an action around the given spec. Changes the arg type inside.
-aroundAllWith :: forall a b. HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+aroundAllWith :: forall a b. HasCallStack => (ActionWith_ a -> ActionWith_ b) -> SpecWith_ a -> SpecWith_ b
 aroundAllWith action spec = do
   (acquire, release) <- runIO $ decompose action
   beforeAllWith acquire $ afterAll_ release spec
@@ -194,9 +194,9 @@ waitFor = takeMVar
 -- Note that this resembles a contravariant functor on the first type parameter
 -- of `SpecM`.  This is because the subject is passed inwards, as an argument
 -- to the spec item.
-mapSubject :: (b -> a) -> SpecWith a -> SpecWith b
+mapSubject :: (b -> a) -> SpecWith m a -> SpecWith m b
 mapSubject f = aroundWith (. f)
 
 -- | Ignore the subject under test for a given spec.
-ignoreSubject :: SpecWith () -> SpecWith a
+ignoreSubject :: SpecWith m () -> SpecWith m a
 ignoreSubject = mapSubject (const ())

@@ -160,7 +160,7 @@ hspec = evalSpec defaultConfig >=> \ (config, spec) ->
 -- are applied to the given config (the first argument).
 --
 -- @since 2.10.0
-evalSpec :: Config -> SpecWith a -> IO (Config, [SpecTree a])
+evalSpec :: Config -> SpecWith m a -> IO (Config, [SpecTree m a])
 evalSpec config spec = do
   (Endo f, forest) <- runSpecM spec
   return (f config, forest)
@@ -230,7 +230,7 @@ runSpec spec config = evalSpec defaultConfig spec >>= fmap toSummary . flip runS
 -- @
 --
 -- @since 2.10.0
-runSpecForest :: [SpecTree ()] -> Config -> IO SpecResult
+runSpecForest :: [SpecTree IO ()] -> Config -> IO SpecResult
 runSpecForest spec c_ = do
   oldFailureReport <- readFailureReportOnRerun c_
 
@@ -255,10 +255,10 @@ runSpecForest spec c_ = do
         then runSpecForest spec c_
         else return result
 
-runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
+runSpecForest_ :: Config -> [SpecTree IO ()] -> IO SpecResult
 runSpecForest_ config spec = runEvalTree config (specToEvalForest config spec)
 
-failFocused :: Item a -> Item a
+failFocused :: Item IO a -> Item IO a
 failFocused item = item {itemExample = example}
   where
     failure = Failure Nothing (Reason "item is focused; failing due to --fail-on-focused")
@@ -271,12 +271,12 @@ failFocused item = item {itemExample = example}
             Failure{} -> status
       | otherwise = itemExample item
 
-failFocusedItems :: Config -> [SpecTree a] -> [SpecTree a]
+failFocusedItems :: Config -> [SpecTree IO a] -> [SpecTree IO a]
 failFocusedItems config spec
   | configFailOnFocused config = map (fmap failFocused) spec
   | otherwise = spec
 
-focusSpec :: Config -> [SpecTree a] -> [SpecTree a]
+focusSpec :: Config -> [SpecTree m a] -> [SpecTree m a]
 focusSpec config spec
   | configFocusedOnly config = spec
   | otherwise = focusForest spec
@@ -339,7 +339,7 @@ toSummary result = Summary {
     items = specResultItems result
     failures = filter resultItemIsFailure items
 
-specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
+specToEvalForest :: Config -> [SpecTree IO ()] -> [EvalTree]
 specToEvalForest config =
       failFocusedItems config
   >>> focusSpec config
@@ -368,13 +368,13 @@ pruneTree node = case node of
 
 type EvalItemTree = Tree (IO ()) EvalItem
 
-toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
+toEvalItemForest :: Params -> [SpecTree IO ()] -> [EvalItemTree]
 toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
-    toEvalItem :: Item () -> EvalItem
+    toEvalItem :: Item IO () -> EvalItem
     toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem requirement loc (fromMaybe False isParallelizable) (e params withUnit)
 
-    withUnit :: ActionWith () -> IO ()
+    withUnit :: ActionWith_ () -> IO ()
     withUnit action = action ()
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()

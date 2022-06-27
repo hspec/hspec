@@ -10,7 +10,7 @@ import           Test.Hspec.Core.Spec (Tree(..))
 
 import qualified Test.Hspec.Core.Spec as H
 
-extract :: (Item () -> a) -> H.Spec -> IO [Tree () a]
+extract :: (Item IO () -> a) -> H.Spec -> IO [Tree () a]
 extract f = fmap (H.bimapForest (const ()) f) . fmap snd . H.runSpecM
 
 runSpec :: H.Spec -> IO [String]

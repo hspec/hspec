@@ -31,6 +31,7 @@ module Test.Hspec.Core.Spec (
 -- * The @SpecM@ monad
 , Test.Hspec.Core.Spec.Monad.Spec
 , Test.Hspec.Core.Spec.Monad.SpecWith
+, Test.Hspec.Core.Spec.Monad.SpecWith_
 , Test.Hspec.Core.Spec.Monad.SpecM(..)
 , Test.Hspec.Core.Spec.Monad.runSpecM
 , Test.Hspec.Core.Spec.Monad.fromSpecList
@@ -47,6 +48,7 @@ module Test.Hspec.Core.Spec (
 , Test.Hspec.Core.Example.Params (..)
 , Test.Hspec.Core.Example.defaultParams
 , Test.Hspec.Core.Example.ActionWith
+, Test.Hspec.Core.Example.ActionWith_
 , Test.Hspec.Core.Example.Progress
 , Test.Hspec.Core.Example.ProgressCallback
 , Test.Hspec.Core.Example.Result(..)
@@ -91,24 +93,24 @@ import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
 
 -- | The @describe@ function combines a list of specs into a larger spec.
-describe :: HasCallStack => String -> SpecWith a -> SpecWith a
+describe :: HasCallStack => String -> SpecWith m a -> SpecWith m a
 describe label = withEnv pushLabel . mapSpecForest (return . specGroup label)
   where
     pushLabel (Env labels) = Env $ label : labels
 
 -- | @context@ is an alias for `describe`.
-context :: HasCallStack => String -> SpecWith a -> SpecWith a
+context :: HasCallStack => String -> SpecWith_ a -> SpecWith_ a
 context = describe
 
 -- |
 -- Changing `describe` to `xdescribe` marks all spec items of the corresponding subtree as pending.
 --
 -- This can be used to temporarily disable spec items.
-xdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
+xdescribe :: HasCallStack => String -> SpecWith_ a -> SpecWith_ a
 xdescribe label spec = before_ pending_ $ describe label spec
 
 -- | @xcontext@ is an alias for `xdescribe`.
-xcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
+xcontext :: HasCallStack => String -> SpecWith_ a -> SpecWith_ a
 xcontext = xdescribe
 
 -- | The @it@ function creates a spec item.
@@ -122,61 +124,61 @@ xcontext = xdescribe
 -- > describe "absolute" $ do
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
-it :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+it :: (HasCallStack, Example a) => String -> a -> SpecWith_ (Arg a)
 it label action = fromSpecList [specItem label action]
 
 -- | @specify@ is an alias for `it`.
-specify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+specify :: (HasCallStack, Example a) => String -> a -> SpecWith_ (Arg a)
 specify = it
 
 -- |
 -- Changing `it` to `xit` marks the corresponding spec item as pending.
 --
 -- This can be used to temporarily disable a spec item.
-xit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+xit :: (HasCallStack, Example a) => String -> a -> SpecWith_ (Arg a)
 xit label action = before_ pending_ $ it label action
 
 -- | @xspecify@ is an alias for `xit`.
-xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith_ (Arg a)
 xspecify = xit
 
 -- | `focus` focuses all spec items of the given spec.
 --
 -- Applying `focus` to a spec with focused spec items has no effect.
-focus :: SpecWith a -> SpecWith a
+focus :: SpecWith m a -> SpecWith m a
 focus = mapSpecForest focusForest
 
-focusForest :: [SpecTree a] -> [SpecTree a]
+focusForest :: [SpecTree m a] -> [SpecTree m a]
 focusForest xs
   | any (any itemIsFocused) xs = xs
   | otherwise = bimapForest id (\ item -> item {itemIsFocused = True}) xs
 
 -- | @fit@ is an alias for @fmap focus . it@
-fit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+fit :: (HasCallStack, Example a) => String -> a -> SpecWith_ (Arg a)
 fit = fmap focus . it
 
 -- | @fspecify@ is an alias for `fit`.
-fspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+fspecify :: (HasCallStack, Example a) => String -> a -> SpecWith_ (Arg a)
 fspecify = fit
 
 -- | @fdescribe@ is an alias for @fmap focus . describe@
-fdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
+fdescribe :: HasCallStack => String -> SpecWith_ a -> SpecWith_ a
 fdescribe = fmap focus . describe
 
 -- | @fcontext@ is an alias for `fdescribe`.
-fcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
+fcontext :: HasCallStack => String -> SpecWith_ a -> SpecWith_ a
 fcontext = fdescribe
 
 -- | `parallel` marks all spec items of the given spec to be safe for parallel
 -- evaluation.
-parallel :: SpecWith a -> SpecWith a
+parallel :: SpecWith_ a -> SpecWith_ a
 parallel = mapSpecItem_ (setParallelizable True)
 
 -- | `sequential` marks all spec items of the given spec to be evaluated sequentially.
-sequential :: SpecWith a -> SpecWith a
+sequential :: SpecWith_ a -> SpecWith_ a
 sequential = mapSpecItem_ (setParallelizable False)
 
-setParallelizable :: Bool -> Item a -> Item a
+setParallelizable :: Bool -> Item m a -> Item m a
 setParallelizable value item = item {itemIsParallelizable = itemIsParallelizable item <|> Just value}
 
 -- | `pending` can be used to mark a spec item as pending.
@@ -212,5 +214,5 @@ pendingWith = E.throwIO . Pending location . Just
 -- ["foo","bar"]
 --
 -- @since 2.10.0
-getSpecDescriptionPath :: SpecM a [String]
+getSpecDescriptionPath :: SpecM IO a [String]
 getSpecDescriptionPath = SpecM $ lift $ reverse <$> asks envSpecDescriptionPath

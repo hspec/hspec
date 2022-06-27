@@ -39,7 +39,7 @@ evalSpec = fmap normalize . (toEvalForest >=> runFormatter config)
     }
     pathToList (xs, x) = xs ++ [x]
 
-toEvalForest :: H.SpecWith () -> IO [EvalTree]
+toEvalForest :: H.SpecWith_ () -> IO [EvalTree]
 toEvalForest = fmap (uncurry H.specToEvalForest . first (($ H.defaultConfig) . appEndo)) . H.runSpecM
 
 mkAppend :: IO (String -> IO (), IO [String])
