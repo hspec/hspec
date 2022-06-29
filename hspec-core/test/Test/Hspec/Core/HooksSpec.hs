@@ -635,53 +635,24 @@ spec = do
       , item ["bar"] $ divideByZeroIn "aroundAllWith"
       ]
 
-  describe "orderedAcquireAndRelease" $ do
-    it "calls acquire and release in order" $ do
-      (rec, retrieve) <- mkAppend
-      let acquire i = rec ("acquire " <> i)
-          release = rec "release"
-      (doAcquire, doRelease) <- H.orderedAcquireAndRelease (acquire, release)
-      doAcquire "arg"
-      doRelease
-      retrieve `shouldReturn` [
-          "acquire arg"
-        , "release"
-        ]
-
-    it "ignore calls to release if acquire has not been called" $ do
-      (rec, retrieve) <- mkAppend
-      let acquire _ = pure ()
-          release = rec "release"
-      (_, doRelease) <- H.orderedAcquireAndRelease (acquire, release)
-      doRelease
-      retrieve `shouldReturn` []
-
-    context "with an exception during the resource acquisition" $ do
-      it "propagates that exception" $ do
-        let acquire _ = throwException
-            release = pure ()
-        (doAcquire, _) <- H.orderedAcquireAndRelease (acquire, release)
-        doAcquire "whatever" `shouldThrow` (== DivideByZero)
-
-    context "with an exception during resource deallocation" $ do
-      it "propagates that exception" $ do
-        let acquire _ = pure ()
-            release = throwException
-        (doAcquire, doRelease) <- H.orderedAcquireAndRelease (acquire, release)
-        doAcquire "whatever"
-        doRelease `shouldThrow` (== DivideByZero)
-
   describe "decompose" $ do
     it "decomposes a with-style action into acquire / release" $ do
       (acquire, release) <- H.decompose $ \ action x -> do
-        action (x + 42)
-      acquire 23 `shouldReturn` (65 :: Int)
+        action (x + 42 :: Int)
+      acquire 23 `shouldReturn` 65
       release
+
+    context "when release is called before acquire" $ do
+      it "does nothing" $ do
+        (_, release) <- H.decompose $ \ action x -> do
+          action (x + 42 :: Int)
+        release
 
     context "with an exception during resource acquisition" $ do
       it "propagates that exception" $ do
-        (acquire, release) <- H.decompose $ \ _ () -> do
+        (acquire, release) <- H.decompose $ \ action () -> do
           throwException_
+          action ()
         acquire () `shouldThrow` (== DivideByZero)
         release
 

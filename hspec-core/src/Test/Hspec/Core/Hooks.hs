@@ -2,9 +2,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
-#if __GLASGOW_HASKELL__ < 710
-{-# LANGUAGE DeriveDataTypeable #-}
-#endif
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
   before
@@ -29,16 +26,14 @@ module Test.Hspec.Core.Hooks (
 
 #ifdef TEST
 , decompose
-, orderedAcquireAndRelease
 #endif
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 import           Data.CallStack (HasCallStack)
-import           Data.Typeable (Typeable)
 
-import           Control.Exception (Exception, SomeException, finally, throwIO, try)
+import           Control.Exception (SomeException, finally, throwIO, try)
 import           Control.Concurrent
 
 import           Test.Hspec.Core.Example
@@ -129,43 +124,14 @@ aroundAll action = aroundAllWith $ \ e () -> action e
 -- | Wrap an action around the given spec.
 aroundAll_ :: HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
 aroundAll_ action spec = do
-  (acquire, release) <- runIO $ orderedAcquireAndRelease =<< decompose (action .)
+  (acquire, release) <- runIO $ decompose (action .)
   beforeAll_ (acquire ()) $ afterAll_ release spec
 
 -- | Wrap an action around the given spec. Changes the arg type inside.
 aroundAllWith :: forall a b. HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundAllWith action spec = do
-  (acquire, release) <- runIO $ orderedAcquireAndRelease =<< decompose action
+  (acquire, release) <- runIO $ decompose action
   beforeAllWith acquire $ afterAll_ release spec
-
-data OrderedAcquireReleaseState
-  = Unacquired
-  | AcquireCalled
-  | ReleaseCalled
-
-data OrderedAcquireReleaseException
-  = HasAlreadyBeenAcquired
-  | HasAlreadyBeenReleased
-  deriving (Show, Typeable)
-
-instance Exception OrderedAcquireReleaseException
-
-orderedAcquireAndRelease :: (b -> IO a, IO ()) -> IO (b -> IO a, IO ())
-orderedAcquireAndRelease (acquire, release) = do
-  stVar <- newMVar Unacquired
-
-  let
-    acq b = modifyMVar stVar $ \st -> case st of
-      Unacquired -> (\a -> (AcquireCalled, a)) <$> acquire b
-      AcquireCalled -> throwIO HasAlreadyBeenAcquired
-      ReleaseCalled -> throwIO HasAlreadyBeenReleased
-    rel = do
-        needRelease <- modifyMVar stVar $ \st -> case st of
-          AcquireCalled -> pure (ReleaseCalled, True)
-          _ -> pure (st, False)
-        when needRelease release
-
-  pure (acq, rel)
 
 data Acquired a = Acquired a | ExceptionDuringAcquire SomeException
 data Released   = Released   | ExceptionDuringRelease SomeException
@@ -207,11 +173,13 @@ decompose action = do
 
     release :: IO ()
     release = do
-      signal doCleanupNow
-      r <- takeMVar released
-      case r of
-        Released -> return ()
-        ExceptionDuringRelease err -> throwIO err
+      acquireHasNotBeenCalled <- isEmptyMVar acquired -- NOTE: This can happen if an outer beforeAll fails
+      unless acquireHasNotBeenCalled $ do
+        signal doCleanupNow
+        r <- takeMVar released
+        case r of
+          Released -> return ()
+          ExceptionDuringRelease err -> throwIO err
 
   return (acquire, release)
 
