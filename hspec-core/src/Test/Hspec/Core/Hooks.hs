@@ -33,6 +33,7 @@ module Test.Hspec.Core.Hooks (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 import           Data.CallStack (HasCallStack)
+import           Data.Typeable (Typeable)
 
 import           Control.Exception (Exception, SomeException, finally, throwIO, try)
 import           Control.Concurrent
@@ -142,7 +143,7 @@ data OrderedAcquireReleaseState
 data OrderedAcquireReleaseException
   = HasAlreadyBeenAcquired
   | HasAlreadyBeenReleased
-  deriving Show
+  deriving (Show, Typeable)
 
 instance Exception OrderedAcquireReleaseException
 
