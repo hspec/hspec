@@ -523,8 +523,8 @@ spec = do
       (rec, retrieve) <- mkAppend
       let action i inner = rec ("before " <> i) *> inner <* rec ("after " <> i)
       evalSpec_ $
-        H.aroundAll_ (action "1") $ 
-          H.aroundAll_ (action "2 failing" . const throwException) $ 
+        H.aroundAll_ (action "1") $
+          H.aroundAll_ (action "2 failing" . const throwException) $
             H.aroundAll_ (action "3") $ do
               H.it "foo" $ rec "foo"
               H.it "bar" $ rec "bar"
@@ -606,8 +606,8 @@ spec = do
       (rec, retrieve) <- mkAppend
       let action i inner a = rec ("before " <> i) *> inner a <* rec ("after " <> i)
       evalSpec_ $
-        H.aroundAllWith (action "1") $ 
-          H.aroundAllWith (action "2 failing" . const . const throwException) $ 
+        H.aroundAllWith (action "1") $
+          H.aroundAllWith (action "2 failing" . const . const throwException) $
             H.aroundAllWith (action "3") $ do
               H.it "foo" $ rec "foo"
               H.it "bar" $ rec "bar"
