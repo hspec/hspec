@@ -504,6 +504,36 @@ spec = do
         , "after"
         ]
 
+    it "wrap actions around a spec in order" $ do
+      (rec, retrieve) <- mkAppend
+      let action i inner = rec ("before " <> i) *> inner <* rec ("after " <> i)
+      evalSpec_ $ H.aroundAll_ (action "1") $ H.aroundAll_ (action "2") $ do
+        H.it "foo" $ rec "foo"
+        H.it "bar" $ rec "bar"
+      retrieve `shouldReturn` [
+          "before 1"
+        , "before 2"
+        , "foo"
+        , "bar"
+        , "after 2"
+        , "after 1"
+        ]
+
+    it "does not call actions wrapped around a failing action" $ do
+      (rec, retrieve) <- mkAppend
+      let action i inner = rec ("before " <> i) *> inner <* rec ("after " <> i)
+      evalSpec_ $
+        H.aroundAll_ (action "1") $
+          H.aroundAll_ (action "2 failing" . const throwException) $
+            H.aroundAll_ (action "3") $ do
+              H.it "foo" $ rec "foo"
+              H.it "bar" $ rec "bar"
+      retrieve `shouldReturn` [
+          "before 1"
+        , "before 2 failing"
+        , "after 1"
+        ]
+
     it "does not memoize subject" $ do
       mock <- newMock
       let action :: IO Int
@@ -557,6 +587,36 @@ spec = do
         ]
       mockCounter mock `shouldReturn` 3
 
+    it "wrap actions around a spec in order" $ do
+      (rec, retrieve) <- mkAppend
+      let action i inner a = rec ("before " <> i) *> inner a <* rec ("after " <> i)
+      evalSpec_ $ H.aroundAllWith (action "1") $ H.aroundAllWith (action "2") $ do
+        H.it "foo" $ rec "foo"
+        H.it "bar" $ rec "bar"
+      retrieve `shouldReturn` [
+          "before 1"
+        , "before 2"
+        , "foo"
+        , "bar"
+        , "after 2"
+        , "after 1"
+        ]
+
+    it "does not call actions wrapped around a failing action" $ do
+      (rec, retrieve) <- mkAppend
+      let action i inner a = rec ("before " <> i) *> inner a <* rec ("after " <> i)
+      evalSpec_ $
+        H.aroundAllWith (action "1") $
+          H.aroundAllWith (action "2 failing" . const . const throwException) $
+            H.aroundAllWith (action "3") $ do
+              H.it "foo" $ rec "foo"
+              H.it "bar" $ rec "bar"
+      retrieve `shouldReturn` [
+          "before 1"
+        , "before 2 failing"
+        , "after 1"
+        ]
+
     it "reports exceptions on acquire" $ do
       evalSpec $ do
         H.aroundAllWith (\ action () -> throwException >>= action) $ do
@@ -575,6 +635,42 @@ spec = do
       , item ["bar"] $ divideByZeroIn "aroundAllWith"
       ]
 
+  describe "orderedAcquireAndRelease" $ do
+    it "calls acquire and release in order" $ do
+      (rec, retrieve) <- mkAppend
+      let acquire i = rec ("acquire " <> i)
+          release = rec "release"
+      (doAcquire, doRelease) <- H.orderedAcquireAndRelease (acquire, release)
+      doAcquire "arg"
+      doRelease
+      retrieve `shouldReturn` [
+          "acquire arg"
+        , "release"
+        ]
+
+    it "ignore calls to release if acquire has not been called" $ do
+      (rec, retrieve) <- mkAppend
+      let acquire _ = pure ()
+          release = rec "release"
+      (_, doRelease) <- H.orderedAcquireAndRelease (acquire, release)
+      doRelease
+      retrieve `shouldReturn` []
+
+    context "with an exception during the resource acquisition" $ do
+      it "propagates that exception" $ do
+        let acquire _ = throwException
+            release = pure ()
+        (doAcquire, _) <- H.orderedAcquireAndRelease (acquire, release)
+        doAcquire "whatever" `shouldThrow` (== DivideByZero)
+
+    context "with an exception during resource deallocation" $ do
+      it "propagates that exception" $ do
+        let acquire _ = pure ()
+            release = throwException
+        (doAcquire, doRelease) <- H.orderedAcquireAndRelease (acquire, release)
+        doAcquire "whatever"
+        doRelease `shouldThrow` (== DivideByZero)
+
   describe "decompose" $ do
     it "decomposes a with-style action into acquire / release" $ do
       (acquire, release) <- H.decompose $ \ action x -> do
@@ -584,9 +680,8 @@ spec = do
 
     context "with an exception during resource acquisition" $ do
       it "propagates that exception" $ do
-        (acquire, release) <- H.decompose $ \ action () -> do
+        (acquire, release) <- H.decompose $ \ _ () -> do
           throwException_
-          action ()
         acquire () `shouldThrow` (== DivideByZero)
         release
 
