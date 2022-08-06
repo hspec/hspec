@@ -1,3 +1,6 @@
+## Changes in 2.10.0.1
+  - Fix a deadlock with nested failed `aroundAll`s (see #679)
+
 ## Changes in 2.10.0
   - Allow to transform the config in `SpecM`
   - Allow to customize pretty-printing (via `configPrettyPrintFunction`)
