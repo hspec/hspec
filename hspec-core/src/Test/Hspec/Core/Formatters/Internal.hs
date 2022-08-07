@@ -120,7 +120,7 @@ prettyPrint = maybe False (const True) <$> getConfig formatConfigPrettyPrintFunc
 -- `Nothing` otherwise.
 --
 -- @since 2.10.0
-prettyPrintFunction :: FormatM (Maybe (String -> String -> (String, String)))
+prettyPrintFunction :: FormatM (Maybe PrettyPrintFunction)
 prettyPrintFunction = getConfig formatConfigPrettyPrintFunction
 
 -- | Return `True` if the user requested unicode output, `False` otherwise.
