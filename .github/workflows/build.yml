@@ -51,6 +51,9 @@ jobs:
           - 9.0.2
           - 9.2.1
           - 9.2.2
+          - 9.2.3
+          - 9.2.4
+          - 9.4.1
         include:
           - os: macos-latest
             ghc: latest

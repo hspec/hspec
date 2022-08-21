@@ -17,7 +17,7 @@ import           Test.Hspec.Core.Compat hiding (fail)
 import           Test.Hspec.Core.Formatters.Pretty.Parser.Types
 
 #ifndef __GHCJS__
-#if __GLASGOW_HASKELL__ >= 802 && __GLASGOW_HASKELL__ <= 902
+#if __GLASGOW_HASKELL__ >= 802 && __GLASGOW_HASKELL__ <= 904
 #define PRETTY_PRINTING_SUPPORTED
 #endif
 #endif
@@ -35,7 +35,12 @@ unsafeParseExpression _ = Nothing
 import           GHC.Stack
 import           GHC.Exception (throw, errorCallWithCallStackException)
 
-#if __GLASGOW_HASKELL__ >= 804
+#if __GLASGOW_HASKELL__ >= 904
+import           GHC.Utils.Error
+import           GHC.Utils.Outputable
+#endif
+
+#if __GLASGOW_HASKELL__ >= 804 && __GLASGOW_HASKELL__ < 904
 import           GHC.LanguageExtensions.Type
 #endif
 
@@ -52,7 +57,6 @@ import           GHC.Parser.Lexer
 import           GHC.Data.StringBuffer
 import           GHC.Data.FastString
 import           GHC.Types.SrcLoc
-import qualified GHC.Data.EnumSet as EnumSet
 import           GHC.Types.Name
 import           GHC.Types.Name.Reader
 import           GHC.Parser.PostProcess hiding (Tuple)
@@ -66,7 +70,12 @@ import           Name
 import           RdrName
 import           BasicTypes
 import           Module
-#if __GLASGOW_HASKELL__ >= 804
+#endif
+
+#if __GLASGOW_HASKELL__ >= 804 && __GLASGOW_HASKELL__ < 904
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Data.EnumSet as EnumSet
+#else
 import qualified EnumSet
 #endif
 #endif
@@ -149,18 +158,27 @@ instance ToExpression (HsExpr GhcPs) where
       Literal (Rational n) -> return $ Literal (Rational $ '-' : n)
       Literal (Integer n) -> return $ Literal (Integer $ negate n)
       _ -> fail "NegApp"
-    HsPar _x e -> Parentheses <$> toExpression e
+
+    HsPar _x
+#if __GLASGOW_HASKELL__ >= 904
+      _ e _ ->
+#else
+      e ->
+#endif
+        Parentheses <$> toExpression e
     ExplicitTuple _x xs _ -> Tuple <$> mapM toExpression xs
     ExplicitList _ _listSynExpr xs -> List <$> mapM toExpression xs
     RecCon(name, fields) -> Record (showRdrName name) <$> (recordFields $ rec_flds fields)
       where
+#if __GLASGOW_HASKELL__ >= 904
+        hsRecFieldLbl = hfbLHS
+        hsRecFieldArg = hfbRHS
+#endif
         fieldName = showFieldLabel . unLoc . hsRecFieldLbl
         recordFields = mapM (recordField . unLoc)
         recordField field = (,) (fieldName field) <$> toExpression (hsRecFieldArg field)
 
     REJECT(HsUnboundVar)
-    REJECT(HsConLikeOut)
-    REJECT(HsRecFld)
     REJECT(HsOverLabel)
     REJECT(HsIPVar)
     REJECT(HsLam)
@@ -178,14 +196,15 @@ instance ToExpression (HsExpr GhcPs) where
     REJECT(RecordUpd)
     REJECT(ExprWithTySig)
     REJECT(ArithSeq)
-    REJECT(HsBracket)
-    REJECT(HsRnBracketOut)
-    REJECT(HsTcBracketOut)
     REJECT(HsSpliceE)
     REJECT(HsProc)
     REJECT(HsStatic)
-    REJECT(HsTick)
-    REJECT(HsBinTick)
+
+#if __GLASGOW_HASKELL__ >= 904
+    REJECT(HsRecSel)
+    REJECT(HsTypedBracket)
+    REJECT(HsUntypedBracket)
+#endif
 #if __GLASGOW_HASKELL__ >= 902
     REJECT(HsGetField)
     REJECT(HsProjection)
@@ -193,13 +212,23 @@ instance ToExpression (HsExpr GhcPs) where
 #if __GLASGOW_HASKELL__ >= 900
     REJECT(HsPragE)
 #endif
-#if __GLASGOW_HASKELL__ <= 810
+
+#if __GLASGOW_HASKELL__ < 904
+    REJECT(HsConLikeOut)
+    REJECT(HsRecFld)
+    REJECT(HsBracket)
+    REJECT(HsRnBracketOut)
+    REJECT(HsTcBracketOut)
+    REJECT(HsTick)
+    REJECT(HsBinTick)
+#endif
+#if __GLASGOW_HASKELL__ < 900
     REJECT(HsSCC)
     REJECT(HsCoreAnn)
     REJECT(HsTickPragma)
     REJECT(HsWrap)
 #endif
-#if __GLASGOW_HASKELL__ <= 808
+#if __GLASGOW_HASKELL__ < 810
     REJECT(HsArrApp)
     REJECT(HsArrForm)
     REJECT(EWildPat)
@@ -207,7 +236,7 @@ instance ToExpression (HsExpr GhcPs) where
     REJECT(EViewPat)
     REJECT(ELazyPat)
 #endif
-#if __GLASGOW_HASKELL__ <= 804
+#if __GLASGOW_HASKELL__ < 806
     REJECT(HsAppTypeOut)
     REJECT(ExplicitPArr)
     REJECT(ExprWithTySigOut)
@@ -322,14 +351,24 @@ runParser str parser = unP parser parseState
     location = mkRealSrcLoc "" 1 1
     input = stringToStringBuffer str
     parseState = initParserState opts input location
-    opts = mkParserOpts warn extensions False False False True
+    opts = mkParserOpts warn
+#if __GLASGOW_HASKELL__ >= 904
+      (DiagOpts mempty mempty False False Nothing defaultSDocContext)
+#endif
+      extensions False False False True
 
-#if __GLASGOW_HASKELL__ >= 804
-    extensions = EnumSet.fromList [TraditionalRecordSyntax]
+#if __GLASGOW_HASKELL__ >= 804 && __GLASGOW_HASKELL__ < 904
     warn = EnumSet.empty
 #else
-    extensions = mempty
     warn = mempty
+#endif
+
+#if __GLASGOW_HASKELL__ >= 904
+    extensions = ["TraditionalRecordSyntax"]
+#elif __GLASGOW_HASKELL__ >= 804
+    extensions = EnumSet.fromList [TraditionalRecordSyntax]
+#else
+    extensions = mempty
 #endif
 
 #if __GLASGOW_HASKELL__ <= 900
