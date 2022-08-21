@@ -33,6 +33,28 @@ spec = do
           ]
         ]
 
+    it "generates a test driver with no Main/main" $ do
+      touch "test/FooSpec.hs"
+      touch "test/Foo/Bar/BazSpec.hs"
+      touch "test/Foo/BarSpec.hs"
+      run ["test/Spec.hs", "", "out", "--no-main"]
+      readFile "out" `shouldReturn` unlines [
+          "{-# LINE 1 \"test/Spec.hs\" #-}"
+        , "{-# LANGUAGE NoImplicitPrelude #-}"
+        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
+        , "module Spec (spec) where"
+        , "import qualified FooSpec"
+        , "import qualified Foo.BarSpec"
+        , "import qualified Foo.Bar.BazSpec"
+        , "import Test.Hspec.Discover"
+        , "spec :: Spec"
+        , "spec = " ++ unwords [
+               "describe \"Foo\" FooSpec.spec"
+          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
+          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
+          ]
+        ]
+
     it "generates a test driver with hooks" $ do
       touch "test/FooSpec.hs"
       touch "test/Foo/Bar/BazSpec.hs"
