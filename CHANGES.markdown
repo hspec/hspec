@@ -1,3 +1,7 @@
+## Changes in 2.10.1
+  - Support for GHC 9.4.1
+  - Generated modules now include an export list
+
 ## Changes in 2.10.0.1
   - Fix a deadlock with nested failed `aroundAll`s (see #679)
 
