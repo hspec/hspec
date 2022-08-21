@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | A preprocessor that finds and combines specs.
 --
@@ -117,9 +117,7 @@ sequenceS :: [ShowS] -> ShowS
 sequenceS = foldr (.) "" . intersperse " >> "
 
 formatSpecs :: Maybe [Spec] -> ShowS
-formatSpecs specs = case specs of
-  Nothing -> "return ()"
-  Just xs -> fromForest xs
+formatSpecs = maybe "return ()" fromForest
   where
     fromForest :: [Spec] -> ShowS
     fromForest = sequenceS . map fromTree

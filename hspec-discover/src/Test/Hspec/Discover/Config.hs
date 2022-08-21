@@ -35,9 +35,9 @@ usage prog = "\nUsage: " ++ prog ++ " SRC CUR DST [--module-name=NAME]\n"
 parseConfig :: String -> [String] -> Either String Config
 parseConfig prog args = case getOpt Permute options args of
     (opts, [], []) -> let
-        c = (foldl (flip id) defaultConfig opts)
+        c = foldl (flip id) defaultConfig opts
       in
-        if (configNoMain c && isJust (configFormatter c))
+        if configNoMain c && isJust (configFormatter c)
            then
              formatError "option `--formatter=<fmt>' does not make sense with `--no-main'\n"
            else

@@ -15,7 +15,7 @@ import           Data.Ord
 sortNaturallyBy :: (a -> (String, Int)) -> [a] -> [a]
 sortNaturallyBy f = sortBy (comparing ((\ (k, t) -> (naturalSortKey k, t)) . f))
 
-data NaturalSortKey = NaturalSortKey [Chunk]
+newtype NaturalSortKey = NaturalSortKey [Chunk]
   deriving (Eq, Ord)
 
 data Chunk = Numeric Integer Int | Textual [(Char, Char)]
