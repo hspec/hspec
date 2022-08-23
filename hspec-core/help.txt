@@ -13,6 +13,7 @@ RUNNER OPTIONS
                                 spec items
         --[no-]fail-on-focused  fail on focused spec items
         --[no-]fail-on-pending  fail on pending spec items
+        --[no-]strict           enable --fail-on-focused and --fail-on-pending
         --[no-]fail-fast        abort on first failure
         --[no-]randomize        randomize execution order
   -r    --rerun                 rerun all examples that failed in the previous

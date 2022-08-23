@@ -233,8 +233,11 @@ runnerOptions :: [Option Config]
 runnerOptions = [
     mkFlag "dry-run" setDryRun "pretend that everything passed; don't verify anything"
   , mkFlag "focused-only" setFocusedOnly "do not run anything, unless there are focused spec items"
+
   , mkFlag "fail-on-focused" setFailOnFocused "fail on focused spec items"
   , mkFlag "fail-on-pending" setFailOnPending "fail on pending spec items"
+  , mkFlag "strict" setStrict "enable --fail-on-focused and --fail-on-pending"
+
   , mkFlag "fail-fast" setFailFast "abort on first failure"
   , mkFlag "randomize" setRandomize "randomize execution order"
   , mkOptionNoArg "rerun" (Just 'r') setRerun "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
@@ -266,6 +269,11 @@ runnerOptions = [
 
     setFailOnPending :: Bool -> Config -> Config
     setFailOnPending value config = config {configFailOnPending = value}
+
+    setStrict :: Bool -> Config -> Config
+    setStrict value =
+        setFailOnFocused value
+      . setFailOnPending value
 
     setFailFast :: Bool -> Config -> Config
     setFailFast value config = config {configFailFast = value}
