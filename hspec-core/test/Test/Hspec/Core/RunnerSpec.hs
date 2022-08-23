@@ -292,6 +292,32 @@ spec = do
           , "1 example, 1 failure"
           ]
 
+    context "with --fail-on-pending" $ do
+      let run = captureLines . ignoreExitCode . withArgs ["--fail-on-pending", "--seed", "23"] . H.hspec . removeLocations
+      it "fails on pending spec items" $ do
+        r <- run $ do
+          H.it "foo" True
+          H.it "bar" $ do
+            void $ E.throwIO (H.Pending Nothing Nothing)
+
+        normalizeSummary r `shouldBe` [
+            ""
+          , "foo [✔]"
+          , "bar [✘]"
+          , ""
+          , "Failures:"
+          , ""
+          , "  1) bar"
+          , "       item is pending; failing due to --fail-on-pending"
+          , ""
+          , "  To rerun use: --match \"/bar/\""
+          , ""
+          , "Randomized with seed 23"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "2 examples, 1 failure"
+          ]
+
     context "with --fail-fast" $ do
       it "stops after first failure" $ do
         r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec . removeLocations $ do

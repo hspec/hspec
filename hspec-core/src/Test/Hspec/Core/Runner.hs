@@ -257,6 +257,14 @@ runSpecForest spec c_ = do
 runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
 runSpecForest_ config spec = runEvalTree config (specToEvalForest config spec)
 
+mapItem :: (Item a -> Item b) -> [SpecTree a] -> [SpecTree b]
+mapItem f = map (fmap f)
+
+failFocusedItems :: Config -> [SpecTree a] -> [SpecTree a]
+failFocusedItems config
+  | configFailOnFocused config = mapItem failFocused
+  | otherwise = id
+
 failFocused :: Item a -> Item a
 failFocused item = item {itemExample = example}
   where
@@ -270,10 +278,19 @@ failFocused item = item {itemExample = example}
             Failure{} -> status
       | otherwise = itemExample item
 
-failFocusedItems :: Config -> [SpecTree a] -> [SpecTree a]
-failFocusedItems config spec
-  | configFailOnFocused config = map (fmap failFocused) spec
-  | otherwise = spec
+failPendingItems :: Config -> [SpecTree a] -> [SpecTree a]
+failPendingItems config
+  | configFailOnPending config = mapItem failPending
+  | otherwise = id
+
+failPending :: Item a -> Item a
+failPending item = item {itemExample = example}
+  where
+    example params hook p = do
+      Result info status <- itemExample item params hook p
+      return $ Result info $ case status of
+        Pending loc _ -> Failure loc (Reason "item is pending; failing due to --fail-on-pending")
+        _ -> status
 
 focusSpec :: Config -> [SpecTree a] -> [SpecTree a]
 focusSpec config spec
@@ -341,6 +358,7 @@ toSummary result = Summary {
 specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
 specToEvalForest config =
       failFocusedItems config
+  >>> failPendingItems config
   >>> focusSpec config
   >>> toEvalItemForest params
   >>> applyDryRun config

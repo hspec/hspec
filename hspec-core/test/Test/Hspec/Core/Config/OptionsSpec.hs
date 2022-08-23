@@ -116,6 +116,7 @@ spec = do
           unlines [
             "my-spec: option `--fail' is ambiguous; could be one of:"
           , "    --fail-on-focused      fail on focused spec items"
+          , "    --fail-on-pending      fail on pending spec items"
           , "    --fail-fast            abort on first failure"
           , "    --failure-report=FILE  read/write a failure report for use with --rerun"
           , "in config file ~/.hspec"
