@@ -41,6 +41,7 @@ data Config = Config {
 , configDryRun :: Bool
 , configFocusedOnly :: Bool
 , configFailOnFocused :: Bool
+, configFailOnPending :: Bool
 , configPrintSlowItems :: Maybe Int
 , configPrintCpuTime :: Bool
 , configFailFast :: Bool
@@ -79,6 +80,7 @@ defaultConfig = Config {
 , configDryRun = False
 , configFocusedOnly = False
 , configFailOnFocused = False
+, configFailOnPending = False
 , configPrintSlowItems = Nothing
 , configPrintCpuTime = False
 , configFailFast = False
@@ -232,6 +234,7 @@ runnerOptions = [
     mkFlag "dry-run" setDryRun "pretend that everything passed; don't verify anything"
   , mkFlag "focused-only" setFocusedOnly "do not run anything, unless there are focused spec items"
   , mkFlag "fail-on-focused" setFailOnFocused "fail on focused spec items"
+  , mkFlag "fail-on-pending" setFailOnPending "fail on pending spec items"
   , mkFlag "fail-fast" setFailFast "abort on first failure"
   , mkFlag "randomize" setRandomize "randomize execution order"
   , mkOptionNoArg "rerun" (Just 'r') setRerun "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
@@ -260,6 +263,9 @@ runnerOptions = [
 
     setFailOnFocused :: Bool -> Config -> Config
     setFailOnFocused value config = config {configFailOnFocused = value}
+
+    setFailOnPending :: Bool -> Config -> Config
+    setFailOnPending value config = config {configFailOnPending = value}
 
     setFailFast :: Bool -> Config -> Config
     setFailFast value config = config {configFailFast = value}
