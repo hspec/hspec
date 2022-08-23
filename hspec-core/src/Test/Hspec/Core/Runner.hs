@@ -93,9 +93,8 @@ import qualified Control.Exception as E
 import           System.Random
 import           Control.Monad.ST
 import           Data.STRef
-import           System.Console.ANSI (hSupportsANSI)
 
-import           System.Console.ANSI (hHideCursor, hShowCursor)
+import           System.Console.ANSI (hSupportsANSI, hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util (Path)

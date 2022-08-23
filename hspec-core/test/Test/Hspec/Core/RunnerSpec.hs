@@ -642,6 +642,11 @@ spec = do
       it "returns True" $ do
         H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (True, True)
 
+      context "with BUILDKITE=true" $ do
+        it "disables progress reporting" $ do
+          withEnvironment [("BUILDKITE", "true")] $ do
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (False, True)
+
       context "when NO_COLOR is set" $ do
         it "returns False" $ do
           withEnvironment [("NO_COLOR", "yes")] $ do
