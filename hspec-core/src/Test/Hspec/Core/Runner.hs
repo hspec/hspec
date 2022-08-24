@@ -106,6 +106,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
+import           Test.Hspec.Core.Tree (formatDefaultDescription)
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
@@ -277,26 +278,48 @@ runSpecForest spec config = do
 mapItem :: (Item a -> Item b) -> [SpecTree a] -> [SpecTree b]
 mapItem f = map (fmap f)
 
+mapItemIf :: (Item a -> Bool) -> (Item a -> Item a) -> [SpecTree a] -> [SpecTree a]
+mapItemIf p f = mapItem $ \ item -> if p item then f item else item
+
+addDefaultDescriptions :: [SpecTree a] -> [SpecTree a]
+addDefaultDescriptions = mapItem addDefaultDescription
+  where
+    addDefaultDescription :: Item a -> Item a
+    addDefaultDescription item
+      | null (itemRequirement item) = item { itemRequirement = defaultRequirement }
+      | otherwise = item
+      where
+        defaultRequirement = maybe "(unspecified behavior)" formatDefaultDescription (itemLocation item)
+
+failItemsWithEmptyDescription :: Config -> [SpecTree a] -> [SpecTree a]
+failItemsWithEmptyDescription config
+  | configFailOnEmptyDescription config = mapItemIf condition (failWith failure)
+  | otherwise = id
+  where
+    condition = null . itemRequirement
+    failure = "item has no description; failing due to --fail-on=empty-description"
+
 failFocusedItems :: Config -> [SpecTree a] -> [SpecTree a]
 failFocusedItems config
-  | configFailOnFocused config = mapItem failFocused
+  | configFailOnFocused config = mapItemIf condition (failWith failure)
   | otherwise = id
+  where
+    condition = itemIsFocused
+    failure = "item is focused; failing due to --fail-on=focused"
 
-failFocused :: forall a. Item a -> Item a
-failFocused item = item {itemExample = example}
+failWith :: forall a. String -> Item a -> Item a
+failWith reason item = item {itemExample = example}
   where
     failure :: ResultStatus
-    failure = Failure Nothing (Reason "item is focused; failing due to --fail-on=focused")
+    failure = Failure Nothing (Reason reason)
 
     example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
-    example
-      | itemIsFocused item = \ params hook p -> do
-          Result info status <- itemExample item params hook p
-          return $ Result info $ case status of
-            Success -> failure
-            Pending _ _ -> failure
-            Failure{} -> status
-      | otherwise = itemExample item
+    example params hook p = do
+      Result info status <- itemExample item params hook p
+      return $ Result info $ case status of
+        Success -> failure
+        Pending _ _ -> failure
+        Failure{} -> status
 
 failPendingItems :: Config -> [SpecTree a] -> [SpecTree a]
 failPendingItems config
@@ -378,7 +401,9 @@ runSpecForest_ oldFailureReport spec c_ = do
 
 specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
 specToEvalForest config =
-      failFocusedItems config
+      failItemsWithEmptyDescription config
+  >>> addDefaultDescriptions
+  >>> failFocusedItems config
   >>> failPendingItems config
   >>> focusSpec config
   >>> toEvalItemForest params

@@ -68,11 +68,6 @@ spec = do
       let location = mkLocation __FILE__ (pred __LINE__) 32
       itemLocation item `shouldBe` location
 
-    context "when no description is given" $ do
-      it "uses a default description" $ do
-        [Leaf item] <- runSpecM (H.it "" True)
-        itemRequirement item `shouldBe` "Test.Hspec.Core.SpecSpec[" ++ show (pred __LINE__ :: Int) ++ ":34]"
-
   describe "xit" $ do
     it "creates a pending spec item" $ do
       [Leaf item] <- runSpecM (H.xit "whatever" True)

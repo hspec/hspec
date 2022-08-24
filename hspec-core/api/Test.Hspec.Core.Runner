@@ -22,6 +22,7 @@ data Config = Config
   configFailOnEmpty :: Bool
   configFailOnFocused :: Bool
   configFailOnPending :: Bool
+  configFailOnEmptyDescription :: Bool
   configPrintSlowItems :: Maybe Int
   configPrintCpuTime :: Bool
   configFailFast :: Bool

@@ -46,6 +46,7 @@ data Config = Config {
 , configFailOnEmpty :: Bool
 , configFailOnFocused :: Bool
 , configFailOnPending :: Bool
+, configFailOnEmptyDescription :: Bool
 , configPrintSlowItems :: Maybe Int
 , configPrintCpuTime :: Bool
 , configFailFast :: Bool
@@ -96,6 +97,7 @@ mkDefaultConfig formatters = Config {
 , configFailOnEmpty = False
 , configFailOnFocused = False
 , configFailOnPending = False
+, configFailOnEmptyDescription = False
 , configPrintSlowItems = Nothing
 , configPrintCpuTime = False
 , configFailFast = False
@@ -282,6 +284,7 @@ data FailOn =
     FailOnEmpty
   | FailOnFocused
   | FailOnPending
+  | FailOnEmptyDescription
   deriving (Bounded, Enum)
 
 allFailOnItems :: [FailOn]
@@ -292,6 +295,7 @@ showFailOn item = case item of
   FailOnEmpty -> "empty"
   FailOnFocused -> "focused"
   FailOnPending -> "pending"
+  FailOnEmptyDescription -> "empty-description"
 
 readFailOn :: String -> Maybe FailOn
 readFailOn = (`lookup` items)
@@ -342,6 +346,7 @@ runnerOptions = [
           FailOnEmpty -> "fail if all spec items have been filtered"
           FailOnFocused -> "fail on focused spec items"
           FailOnPending -> "fail on pending spec items"
+          FailOnEmptyDescription -> "fail on empty descriptions"
 
     setFailOnItems :: Bool -> [FailOn] -> Config -> Config
     setFailOnItems value = flip $ foldr (`setItem` value)
@@ -350,6 +355,7 @@ runnerOptions = [
           FailOnEmpty -> setFailOnEmpty
           FailOnFocused -> setFailOnFocused
           FailOnPending -> setFailOnPending
+          FailOnEmptyDescription -> setFailOnEmptyDescription
 
     readMaxJobs :: String -> Maybe Int
     readMaxJobs s = do
@@ -377,6 +383,9 @@ runnerOptions = [
 
     setFailOnPending :: Bool -> Config -> Config
     setFailOnPending value config = config {configFailOnPending = value}
+
+    setFailOnEmptyDescription :: Bool -> Config -> Config
+    setFailOnEmptyDescription value config = config {configFailOnEmptyDescription = value}
 
     setStrict :: Bool -> Config -> Config
     setStrict = (`setFailOnItems` strict)
