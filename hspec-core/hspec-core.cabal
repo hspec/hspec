@@ -213,6 +213,7 @@ test-suite spec
       Test.Hspec.Core.ShuffleSpec
       Test.Hspec.Core.SpecSpec
       Test.Hspec.Core.TimerSpec
+      Test.Hspec.Core.TreeSpec
       Test.Hspec.Core.UtilSpec
       Paths_hspec_core
   default-language: Haskell2010

@@ -325,6 +325,30 @@ spec = do
           , "1 example, 1 failure"
           ]
 
+    context "with --fail-on=empty-description" $ do
+      let run = captureLines . ignoreExitCode . withArgs ["--fail-on=empty-description", "--seed", "23"] . H.hspec . removeLocations
+      it "fails on items with empty requirement" $ do
+        r <- run $ do
+          H.it "foo" True
+          H.it "" True
+        normalizeSummary r `shouldBe` [
+            ""
+          , "foo [✔]"
+          , "(unspecified behavior) [✘]"
+          , ""
+          , "Failures:"
+          , ""
+          , "  1) (unspecified behavior)"
+          , "       item has no description; failing due to --fail-on=empty-description"
+          , ""
+          , "  To rerun use: --match \"/(unspecified behavior)/\""
+          , ""
+          , "Randomized with seed 23"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "2 examples, 1 failure"
+          ]
+
     context "with --fail-on=pending" $ do
       let run = captureLines . ignoreExitCode . withArgs ["--fail-on=pending", "--seed", "23"] . H.hspec . removeLocations
       it "fails on pending spec items" $ do

@@ -22,12 +22,15 @@ module Test.Hspec.Core.Tree (
 , location
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
 , callSite
+, formatDefaultDescription
+, toModuleName
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.CallStack (SrcLoc(..))
+import           Data.Char
+import           System.FilePath
 import qualified Data.CallStack as CallStack
 
 import           Test.Hspec.Core.Example
@@ -121,23 +124,18 @@ specGroup s = Node msg
   where
     msg :: HasCallStack => String
     msg
-      | null s = fromMaybe "(no description given)" defaultDescription
+      | null s = maybe "(no description given)" formatDefaultDescription location
       | otherwise = s
 
 -- | The @specItem@ function creates a spec item.
 specItem :: (HasCallStack, Example e) => String -> e -> SpecTree (Arg e)
 specItem s e = Leaf Item {
-    itemRequirement = requirement
+    itemRequirement = s
   , itemLocation = location
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
   , itemExample = safeEvaluateExample e
   }
-  where
-    requirement :: HasCallStack => String
-    requirement
-      | null s = fromMaybe "(unspecified behavior)" defaultDescription
-      | otherwise = s
 
 location :: HasCallStack => Maybe Location
 location = snd <$> callSite
@@ -145,7 +143,16 @@ location = snd <$> callSite
 callSite :: HasCallStack => Maybe (String, Location)
 callSite = fmap toLocation <$> CallStack.callSite
 
-defaultDescription :: HasCallStack => Maybe String
-defaultDescription = case CallStack.callSite of
-  Just (_, loc) -> Just (srcLocModule loc ++ "[" ++ show (srcLocStartLine loc) ++ ":" ++ show (srcLocStartCol loc) ++ "]")
-  Nothing -> Nothing
+formatDefaultDescription :: Location -> String
+formatDefaultDescription loc = toModuleName (locationFile loc) ++ "[" ++ show (locationLine loc) ++ ":" ++ show (locationColumn loc) ++ "]"
+
+toModuleName :: FilePath -> String
+toModuleName = intercalate "." . reverse . takeWhile isModuleNameComponent . reverse . splitDirectories . dropExtension
+
+isModuleNameComponent :: String -> Bool
+isModuleNameComponent name = case name of
+  x : xs -> isUpper x && all isIdChar xs
+  _ -> False
+
+isIdChar :: Char -> Bool
+isIdChar c = isAlphaNum c || c == '_' || c == '\''

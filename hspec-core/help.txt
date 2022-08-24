@@ -14,6 +14,7 @@ RUNNER OPTIONS
         --[no-]fail-on=ITEMS    empty: fail if all spec items have been filtered
                                 focused: fail on focused spec items
                                 pending: fail on pending spec items
+                                empty-description: fail on empty descriptions
         --[no-]strict           same as --fail-on=focused,pending
         --[no-]fail-fast        abort on first failure
         --[no-]randomize        randomize execution order
