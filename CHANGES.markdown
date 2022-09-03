@@ -1,4 +1,6 @@
-## Changes in next
+## Changes in 2.10.1
+  - Add `--strict`
+  - Add `--fail-on-pending`
   - Do not depend on `clock`
 
 ## Changes in 2.10.1
