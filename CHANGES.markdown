@@ -1,4 +1,7 @@
-## Changes in 2.10.1
+## Changes in next
+  - Deprecate `Test.Hspec.Formatters` and `Test.Hspec.Core.Formatters`
+
+## Changes in 2.10.2
   - Add `--strict`
   - Add `--fail-on-pending`
   - Do not depend on `clock`
