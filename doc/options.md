@@ -75,7 +75,7 @@ or
 
 Hspec reads options from the environment variable `HSPEC_OPTIONS`:
 
-<pre><kbd class="shell-input">HSPEC_OPTIONS="--format=progress" cabal test --show-details=direct</kbd></pre>
+<pre><kbd class="shell-input">HSPEC_OPTIONS="--format=progress" cabal test --test-show-details=direct</kbd></pre>
 
 ## Precedence resolution for options that are specified in multiple places
 
