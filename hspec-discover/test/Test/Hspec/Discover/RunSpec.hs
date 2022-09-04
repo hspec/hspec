@@ -17,7 +17,7 @@ spec = do
       readFile "out" `shouldReturn` unlines [
           "{-# LINE 1 \"test/Spec.hs\" #-}"
         , "{-# LANGUAGE NoImplicitPrelude #-}"
-        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
+        , "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}"
         , "module Main (main, spec) where"
         , "import qualified FooSpec"
         , "import qualified Foo.BarSpec"
@@ -41,7 +41,7 @@ spec = do
       readFile "out" `shouldReturn` unlines [
           "{-# LINE 1 \"test/Spec.hs\" #-}"
         , "{-# LANGUAGE NoImplicitPrelude #-}"
-        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
+        , "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}"
         , "module Spec (spec) where"
         , "import qualified FooSpec"
         , "import qualified Foo.BarSpec"
@@ -65,7 +65,7 @@ spec = do
       readFile "out" `shouldReturn` unlines [
           "{-# LINE 1 \"test/Spec.hs\" #-}"
         , "{-# LANGUAGE NoImplicitPrelude #-}"
-        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
+        , "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}"
         , "module Main (main, spec) where"
         , "import qualified SpecHook"
         , "import qualified FooSpec"
@@ -89,7 +89,7 @@ spec = do
       readFile "out" `shouldReturn` unlines [
           "{-# LINE 1 \"test/Spec.hs\" #-}"
         , "{-# LANGUAGE NoImplicitPrelude #-}"
-        , "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}"
+        , "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}"
         , "module Main (main, spec) where"
         , "import Test.Hspec.Discover"
         , "main :: IO ()"

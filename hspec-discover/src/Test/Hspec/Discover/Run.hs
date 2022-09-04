@@ -61,7 +61,7 @@ mkSpecModule :: FilePath -> Config -> Maybe [Spec] -> String
 mkSpecModule src conf nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
   . showString "{-# LANGUAGE NoImplicitPrelude #-}\n"
-  . showString "{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}\n"
+  . showString "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}\n"
   . showString ("module " ++ moduleName ++ exports ++ " where\n")
   . importList nodes
   . showString "import Test.Hspec.Discover\n"
