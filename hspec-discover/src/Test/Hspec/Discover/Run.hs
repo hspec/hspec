@@ -62,7 +62,7 @@ mkSpecModule src conf nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
   . showString "{-# LANGUAGE NoImplicitPrelude #-}\n"
   . showString "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}\n"
-  . showString ("module " ++ moduleName ++ exports ++ " where\n")
+  . showString ("module " ++ moduleName src conf ++" where\n")
   . importList nodes
   . showString "import Test.Hspec.Discover\n"
   . maybe driver driverWithFormatter (configFormatter conf)
@@ -71,11 +71,15 @@ mkSpecModule src conf nodes =
   . formatSpecs nodes
   ) "\n"
   where
-    ifNoMain x y = if configNoMain conf then x else y
-    defaultModuleName = ifNoMain (pathToModule src) "Main"
-    moduleName = fromMaybe defaultModuleName (configModuleName conf)
-    exports = " (" ++ ifNoMain "" "main, " ++ "spec)"
-    driver = showString $ ifNoMain "" "main :: IO ()\nmain = hspec spec\n"
+    driver =
+        case configNoMain conf of
+          False ->
+              showString "main :: IO ()\n"
+            . showString "main = hspec spec\n"
+          True -> ""
+
+moduleName :: FilePath -> Config -> String
+moduleName src conf = fromMaybe (if configNoMain conf then pathToModule src else "Main") (configModuleName conf)
 
 -- | Derive module name from specified path.
 pathToModule :: FilePath -> String
