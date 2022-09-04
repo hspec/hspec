@@ -69,13 +69,24 @@ Example:
 or
 <pre><kbd class="shell-input">echo --format=progress >> ~/.hspec</kbd></pre>
 
-## Specifying options through an environment variable
+## Specifying options through environment variables
 
-{% require 2.4.3 %}
+{% require 2.8.4 %}
 
-Hspec reads options from the environment variable `HSPEC_OPTIONS`:
+All of Hspec's options can be specified through environment variables:
 
-<pre><kbd class="shell-input">HSPEC_OPTIONS="--format=progress" cabal test --test-show-details=direct</kbd></pre>
+<pre><kbd class="shell-input">HSPEC_FORMAT=progress cabal test --test-show-details=direct</kbd></pre>
+
+For flags, like `--color`/`--no-color`, there is only one corresponding environment variable with valid values of `yes`/`no`:
+
+<pre><kbd class="shell-input">HSPEC_COLOR=yes cabal test --test-show-details=direct</kbd></pre>
+
+Option names are converted to environment variable names by:
+ 1. Converting all letters to uppercase
+ 2. Replacing all dashes with underscores
+ 3. Prepending `HSPEC_`
+
+In addition, Hspec reads options from the environment variable `HSPEC_OPTIONS`. This is deprecated and will be removed at some point in the future.
 
 ## Precedence resolution for options that are specified in multiple places
 
@@ -83,5 +94,5 @@ If the same option is specified in multiple places, precedence is resolved as fo
 
  - options from `~/.hspec` take the lowest precedence
  - options from `.hspec` take precedence over options from `~/.hspec`
- - options from `HSPEC_OPTIONS` take precedence over options from `.hspec`
+ - options from environment variables take precedence over options from `.hspec`
  - command-line options take the highest precedence
