@@ -82,10 +82,12 @@ import           Data.Maybe
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example (Location(..))
+import           Test.Hspec.Core.Format(PrettyPrintFunction)
 import           Text.Printf
 import           Test.Hspec.Core.Formatters.Pretty.Unicode (ushow)
 import           Control.Monad.IO.Class
 import           Control.Exception
+import           Control.Concurrent.Async
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Monad", to make
 -- sure, that we only use the public API to implement formatters.
@@ -258,15 +260,34 @@ defaultFailedFormatter = do
     writeLine "Failures:"
     writeLine ""
 
-    forM_ (zip [1..] failures) $ \x -> do
+    computeDiffs <- useDiff
+    precomputedDiffs <-
+      if computeDiffs
+        then do
+          pretty <- prettyPrintFunction
+          liftIO $ mapConcurrently (precomputeDiff pretty) failures
+        else return $ repeat Nothing
+
+    forM_ (zip3 [1..] failures precomputedDiffs) $ \x -> do
       formatFailure x
       writeLine ""
 
     write "Randomized with seed " >> usedSeed >>= writeLine . show
     writeLine ""
   where
-    formatFailure :: (Int, FailureRecord) -> FormatM ()
-    formatFailure (n, FailureRecord mLoc path reason) = do
+    precomputeDiff :: Maybe PrettyPrintFunction -> FailureRecord -> IO (Maybe [Diff])
+    precomputeDiff pretty (FailureRecord _ _ reason) =
+      case reason of
+        ExpectedButGot _ expected_ actual_ -> do
+          let
+            threshold = 2 :: Seconds
+            (expected, actual) = case pretty of
+              Just f -> f expected_ actual_
+              Nothing -> (expected_, actual_)
+          timeout threshold (evaluate $ diff expected actual)
+        _ -> return Nothing
+    formatFailure :: (Int, FailureRecord, Maybe [Diff]) -> FormatM ()
+    formatFailure (n, FailureRecord mLoc path reason, precomputedDiff) = do
       unicode <- outputUnicode
       forM_ mLoc $ \loc -> do
         withInfoColor $ writeLine ("  " ++ formatLocation loc)
@@ -284,15 +305,7 @@ defaultFailedFormatter = do
 
           mapM_ indent preface
 
-          b <- useDiff
-
-          let threshold = 2 :: Seconds
-
-          mchunks <- liftIO $ if b
-            then timeout threshold (evaluate $ diff expected actual)
-            else return Nothing
-
-          case mchunks of
+          case precomputedDiff of
             Just chunks -> do
               writeDiff chunks extraChunk missingChunk
             Nothing -> do

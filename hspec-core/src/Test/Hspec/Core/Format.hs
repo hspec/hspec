@@ -5,6 +5,7 @@
 module Test.Hspec.Core.Format (
   Format
 , FormatConfig(..)
+, PrettyPrintFunction
 , Event(..)
 , Progress
 , Path
@@ -60,13 +61,15 @@ data FormatConfig = FormatConfig {
 , formatConfigOutputUnicode :: Bool
 , formatConfigUseDiff :: Bool
 , formatConfigPrettyPrint :: Bool -- ^ Deprecated: use `formatConfigPrettyPrintFunction` instead
-, formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
+, formatConfigPrettyPrintFunction :: Maybe PrettyPrintFunction
 , formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool
 , formatConfigPrintCpuTime :: Bool
 , formatConfigUsedSeed :: Integer
 , formatConfigExpectedTotalCount :: Int
 }
+
+type PrettyPrintFunction = String -> String -> (String, String)
 
 data Signal = Ok | NotOk SomeException
 
