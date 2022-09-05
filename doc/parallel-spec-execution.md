@@ -6,6 +6,8 @@ title: Parallel spec execution
 You can use `parallel` to mark specs for parallel execution.  This is useful if
 you want to speed up your tests by utilizing multiple CPUs.
 
+## A minimal example
+
 Here is an example:
 
 ```hspec
@@ -49,3 +51,17 @@ the number of processors available to the process, as determined by
 `+RTS -N`.  A different number (higher or lower) can be specified with
 [Hspec's `-j` option](options.html).  Note that this number is in
 addition to the main thread.
+
+## Running all tests in parallel with `hspec-discover`
+
+If you are using [`hspec-discover`](hspec-discover.html) to generate a test driver then you can use a [spec hook](hspec-discover.html#spec-hooks) to apply `parallel` to all spec items:
+
+```haskell
+-- test/SpecHook.hs
+module SpecHook where
+
+import Test.Hspec
+
+hook :: Spec -> Spec
+hook = parallel
+```
