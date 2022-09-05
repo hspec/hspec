@@ -40,7 +40,10 @@ module Test.Hspec.Core.Spec (
 , Test.Hspec.Core.Spec.Monad.mapSpecItem_
 , Test.Hspec.Core.Spec.Monad.modifyParams
 , Test.Hspec.Core.Spec.Monad.modifyConfig
+, Test.Hspec.Core.Spec.Monad.withValue
+, Test.Hspec.Core.Spec.Monad.askValue
 , getSpecDescriptionPath
+
 
 -- * A type class for examples
 , Test.Hspec.Core.Example.Example (..)
@@ -82,9 +85,6 @@ module Test.Hspec.Core.Spec (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Monad.Trans.Class (lift)
-import           Control.Monad.Trans.Reader (asks)
-
 import           Test.Hspec.Expectations (Expectation)
 
 import           Test.Hspec.Core.Example
@@ -96,7 +96,8 @@ import           Test.Hspec.Core.Spec.Monad
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a
 describe label = withEnv pushLabel . mapSpecForest (return . specGroup label)
   where
-    pushLabel (Env labels) = Env $ label : labels
+    pushLabel :: Env -> Env
+    pushLabel env = env { envSpecDescriptionPath = label : envSpecDescriptionPath env }
 
 -- | @context@ is an alias for `describe`.
 context :: HasCallStack => String -> SpecWith a -> SpecWith a
@@ -215,4 +216,4 @@ pendingWith = throwIO . Pending location . Just
 --
 -- @since 2.10.0
 getSpecDescriptionPath :: SpecM a [String]
-getSpecDescriptionPath = SpecM $ lift $ reverse <$> asks envSpecDescriptionPath
+getSpecDescriptionPath = reverse <$> asks envSpecDescriptionPath
