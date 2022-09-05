@@ -77,14 +77,15 @@ All of Hspec's options can be specified through environment variables:
 
 <pre><kbd class="shell-input">HSPEC_FORMAT=progress cabal test --test-show-details=direct</kbd></pre>
 
+Option names are converted to environment variable names by:
+
+- Converting all letters to uppercase
+- Replacing all dashes with underscores
+- Prepending `HSPEC_`
+
 For flags, like `--color`/`--no-color`, there is only one corresponding environment variable with valid values of `yes`/`no`:
 
 <pre><kbd class="shell-input">HSPEC_COLOR=yes cabal test --test-show-details=direct</kbd></pre>
-
-Option names are converted to environment variable names by:
- 1. Converting all letters to uppercase
- 2. Replacing all dashes with underscores
- 3. Prepending `HSPEC_`
 
 In addition, Hspec reads options from the environment variable `HSPEC_OPTIONS`. This is deprecated and will be removed at some point in the future.
 
