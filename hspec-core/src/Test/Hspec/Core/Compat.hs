@@ -27,6 +27,7 @@ import           Data.List as Imports (
     stripPrefix
   , isPrefixOf
   , isInfixOf
+  , isSuffixOf
   , intercalate
   , inits
   , tails
@@ -171,3 +172,6 @@ infixl 1 <&>
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 (<&>) = flip (<$>)
 #endif
+
+endsWith :: Eq a => [a] -> [a] -> Bool
+endsWith = flip isSuffixOf

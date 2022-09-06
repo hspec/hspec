@@ -90,6 +90,25 @@ spec = do
       it "sets configDiff to False" $ do
         configDiff <$> parseOptions [] Nothing [] ["--no-diff"] `shouldBe` Right False
 
+    context "with --diff-context" $ do
+      it "accepts 0" $ do
+        configDiffContext <$> parseOptions [] Nothing [] ["--diff-context=0"] `shouldBe` Right (Just 0)
+
+      it "accepts positive values" $ do
+        configDiffContext <$> parseOptions [] Nothing [] ["--diff-context=5"] `shouldBe` Right (Just 5)
+
+      it "rejects invalid values" $ do
+          let msg = "my-spec: invalid argument `foo' for `--diff-context'\nTry `my-spec --help' for more information.\n"
+          void (parseOptions [] Nothing [] ["--diff-context=foo"]) `shouldBe` Left (ExitFailure 1, msg)
+
+      context "with negative values" $ do
+        it "disables the option" $ do
+          configDiffContext <$> parseOptions [] Nothing [] ["--diff-context=-1"] `shouldBe` Right Nothing
+
+      context "with 'full'" $ do
+        it "disables the option" $ do
+          configDiffContext <$> parseOptions [] Nothing [] ["--diff-context=full"] `shouldBe` Right Nothing
+
     context "with --print-slow-items" $ do
       it "sets configPrintSlowItems to N" $ do
         configPrintSlowItems <$> parseOptions [] Nothing [] ["--print-slow-items=5"] `shouldBe` Right (Just 5)

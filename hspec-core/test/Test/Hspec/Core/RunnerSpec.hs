@@ -510,6 +510,41 @@ spec = do
           , red ++ "        but got: " ++ reset ++ "23"
           ]
 
+    context "with --diff-context" $ do
+      it "suppresses excessive diff output" $ do
+        let
+          args = ["--seed=0", "--format=failed-examples", "--diff-context=1"]
+          expected = map show [1 .. 99 :: Int]
+          actual = replace "50" "foo" expected
+        r <- fmap (unlines . normalizeSummary . lines) . capture_ . ignoreExitCode . withArgs args . H.hspec . removeLocations $ do
+          H.it "foo" $ do
+            unlines actual `H.shouldBe` unlines expected
+        r `shouldBe` unlines [
+            ""
+          , "Failures:"
+          , ""
+          , "  1) foo"
+          , "       expected: @@ 48 lines omitted @@"
+          , "                 49"
+          , "                 50"
+          , "                 51"
+          , "                 @@ 48 lines omitted @@"
+          , "                 "
+          , "        but got: @@ 48 lines omitted @@"
+          , "                 49"
+          , "                 foo"
+          , "                 51"
+          , "                 @@ 48 lines omitted @@"
+          , "                 "
+          , ""
+          , "  To rerun use: --match \"/foo/\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
+          ]
+
     context "with --print-slow-items" $ do
       it "prints slow items" $ do
         r <- captureLines . ignoreExitCode . withArgs ["--print-slow-items"] . H.hspec $ do

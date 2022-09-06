@@ -65,6 +65,7 @@ data Config = Config {
 , configColorMode :: ColorMode
 , configUnicodeMode :: UnicodeMode
 , configDiff :: Bool
+, configDiffContext :: Maybe Int
 , configPrettyPrint :: Bool
 , configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
 , configTimes :: Bool
@@ -101,6 +102,7 @@ defaultConfig = Config {
 , configColorMode = ColorAuto
 , configUnicodeMode = UnicodeAuto
 , configDiff = True
+, configDiffContext = Just defaultDiffContext
 , configPrettyPrint = True
 , configPrettyPrintFunction = pretty2
 , configTimes = False
@@ -116,6 +118,9 @@ defaultConfig = Config {
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
 }
+
+defaultDiffContext :: Int
+defaultDiffContext = 3
 
 option :: String -> OptionSetter config -> String -> Option config
 option name arg help = Option name Nothing arg help True
@@ -141,6 +146,10 @@ formatterOptions formatters = [
   , mkFlag "color" setColor "colorize the output"
   , mkFlag "unicode" setUnicode "output unicode"
   , mkFlag "diff" setDiff "show colorized diffs"
+  , option "diff-context" (argument "N" readDiffContext setDiffContext) $ unlines [
+        "output N lines of diff context (default: " <> show defaultDiffContext <> ")"
+      , "use a value of 'full' to see the full context"
+      ]
   , mkFlag "pretty" setPretty "try to pretty-print diff values"
   , mkFlag "times" setTimes "report times for individual spec items"
   , mkOptionNoArg "print-cpu-time" Nothing setPrintCpuTime "include used CPU time in summary"
@@ -170,6 +179,16 @@ formatterOptions formatters = [
 
     setDiff :: Bool -> Config -> Config
     setDiff v config = config {configDiff = v}
+
+    readDiffContext :: String -> Maybe (Maybe Int)
+    readDiffContext input = case input of
+      "full" -> Just Nothing
+      _ -> case readMaybe input of
+        Nothing -> Nothing
+        mn -> Just (find (>= 0) mn)
+
+    setDiffContext :: Maybe Int -> Config -> Config
+    setDiffContext value c = c { configDiffContext = value }
 
     setPretty :: Bool -> Config -> Config
     setPretty v config = config {configPrettyPrint = v}
