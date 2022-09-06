@@ -13,7 +13,7 @@ formatConfig = FormatConfig {
   formatConfigUseColor = True
 , formatConfigReportProgress = False
 , formatConfigOutputUnicode = False
-, formatConfigUseDiff = False
+, formatConfigUseDiff = True
 , formatConfigPrettyPrint = False
 , formatConfigPrettyPrintFunction = Nothing
 , formatConfigPrintTimes = False
@@ -28,8 +28,37 @@ green text = setSGRCode [SetColor Foreground Dull Green] <> text <> setSGRCode [
 
 spec :: Spec
 spec = do
+  forM_ [
+      ("extraChunk", extraChunk, Red)
+    , ("missingChunk", missingChunk, Green)
+    ] $ \ (name, chunk, color) -> do
+
+    let colorize layer text = setSGRCode [SetColor layer Dull color] <> text <> setSGRCode [Reset]
+
+    describe name $ do
+      it "colorizes chunks" $ do
+        capture_ $ runFormatM formatConfig $ do
+          chunk "foo"
+        `shouldReturn` colorize Foreground "foo"
+
+      context "with an all-spaces chunk" $ do
+        it "colorizes background" $ do
+          capture_ $ runFormatM formatConfig $ do
+            chunk "  "
+          `shouldReturn` colorize Background "  "
+
+      context "with an all-newlines chunk" $ do
+        it "colorizes background" $ do
+          capture_ $ runFormatM formatConfig $ do
+            chunk "\n\n\n"
+          `shouldReturn` colorize Background "\n\n\n"
+
   describe "write" $ do
     it "does not span colored output over multiple lines" $ do
+
+      -- This helps with output on Jenkins and Buildkite:
+      -- https://github.com/hspec/hspec/issues/346
+
       capture_ $ runFormatM formatConfig $ do
         withSuccessColor $ write "foo\nbar\nbaz\n"
       `shouldReturn` unlines [green "foo", green "bar", green "baz"]
