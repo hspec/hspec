@@ -35,6 +35,7 @@ module Test.Hspec.Core.Formatters.Internal (
 , outputUnicode
 
 , useDiff
+, diffContext
 , prettyPrint
 , prettyPrintFunction
 , extraChunk
@@ -110,6 +111,13 @@ getFailCount = length <$> getFailMessages
 -- | Return `True` if the user requested colorized diffs, `False` otherwise.
 useDiff :: FormatM Bool
 useDiff = getConfig formatConfigUseDiff
+
+-- |
+-- Return the value of `Test.Hspec.Core.Runner.configDiffContext`.
+--
+-- @since 2.10.6
+diffContext :: FormatM (Maybe Int)
+diffContext = getConfig formatConfigDiffContext
 
 -- | Return `True` if the user requested pretty diffs, `False` otherwise.
 prettyPrint :: FormatM Bool

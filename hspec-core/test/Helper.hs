@@ -31,6 +31,8 @@ module Helper (
 , (</>)
 , mkLocation
 , workaroundForIssue19236
+
+, replace
 ) where
 
 import           Prelude ()
@@ -167,3 +169,8 @@ mkLocation file line column = Just (Location (workaroundForIssue19236 file) line
 #else
 mkLocation _ _ _ = Nothing
 #endif
+
+replace :: Eq a => a -> a -> [a] -> [a]
+replace x y xs = case break (== x) xs of
+  (ys, _: zs) -> ys ++ y : zs
+  _ -> xs

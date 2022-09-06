@@ -35,6 +35,8 @@ FORMATTER OPTIONS
            --[no-]color            colorize the output
            --[no-]unicode          output unicode
            --[no-]diff             show colorized diffs
+           --diff-context=N        output N lines of diff context (default: 3)
+                                   use a value of 'full' to see the full context
            --[no-]pretty           try to pretty-print diff values
            --[no-]times            report times for individual spec items
            --print-cpu-time        include used CPU time in summary

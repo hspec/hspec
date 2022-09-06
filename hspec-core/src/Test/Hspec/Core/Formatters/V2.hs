@@ -58,6 +58,7 @@ module Test.Hspec.Core.Formatters.V2 (
 , outputUnicode
 
 , useDiff
+, diffContext
 , prettyPrint
 , prettyPrintFunction
 , extraChunk
@@ -126,6 +127,7 @@ import Test.Hspec.Core.Formatters.Internal (
   , outputUnicode
 
   , useDiff
+  , diffContext
   , prettyPrint
   , prettyPrintFunction
   , extraChunk
@@ -288,8 +290,10 @@ defaultFailedFormatter = do
 
           let threshold = 2 :: Seconds
 
+          context <- diffContext
+
           mchunks <- liftIO $ if b
-            then timeout threshold (evaluate $ diff expected actual)
+            then timeout threshold (evaluate $ diff context expected actual)
             else return Nothing
 
           case mchunks of
@@ -308,6 +312,7 @@ defaultFailedFormatter = do
               forM_ (indentChunks indentation_ chunks) $ \ chunk -> case chunk of
                 PlainChunk a -> write a
                 ColorChunk a -> colorize a
+                Informational a -> withInfoColor $ write a
               writeLine ""
               where
                 indentation_ = indentation ++ replicate (length pre) ' '
@@ -326,7 +331,7 @@ defaultFailedFormatter = do
           forM_ (lines message) $ \line -> do
             writeLine (indentation ++ line)
 
-data Chunk = Original String | Modified String
+data Chunk = Original String | Modified String | OmittedLines Int
   deriving (Eq, Show)
 
 expectedChunks :: [Diff] -> [Chunk]
@@ -334,20 +339,23 @@ expectedChunks = mapMaybe $ \ chunk -> case chunk of
   Both a -> Just $ Original a
   First a -> Just $ Modified a
   Second _ -> Nothing
+  Omitted n -> Just $ OmittedLines n
 
 actualChunks :: [Diff] -> [Chunk]
 actualChunks = mapMaybe $ \ chunk -> case chunk of
   Both a -> Just $ Original a
   First _ -> Nothing
   Second a -> Just $ Modified a
+  Omitted n -> Just $ OmittedLines n
 
-data ColorChunk = PlainChunk String | ColorChunk String
+data ColorChunk = PlainChunk String | ColorChunk String | Informational String
   deriving (Eq, Show)
 
 indentChunks :: String -> [Chunk] -> [ColorChunk]
 indentChunks indentation = concatMap $ \ chunk -> case chunk of
   Original y -> [indentOriginal indentation y]
   Modified y -> indentModified indentation y
+  OmittedLines n -> [Informational $ "@@ " <> show n <> " lines omitted @@\n" <> indentation]
 
 indentOriginal :: String -> String -> ColorChunk
 indentOriginal indentation = PlainChunk . go

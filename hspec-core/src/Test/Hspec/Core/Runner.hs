@@ -338,6 +338,7 @@ runEvalTree config spec = do
       , formatConfigReportProgress = reportProgress
       , formatConfigOutputUnicode = outputUnicode
       , formatConfigUseDiff = configDiff config
+      , formatConfigDiffContext = configDiffContext config
       , formatConfigPrettyPrint = configPrettyPrint config
       , formatConfigPrettyPrintFunction = if configPrettyPrint config then Just (configPrettyPrintFunction config outputUnicode) else Nothing
       , formatConfigPrintTimes = configTimes config
