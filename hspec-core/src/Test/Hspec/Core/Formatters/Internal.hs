@@ -243,13 +243,14 @@ splitLines = groupBy (\ a b -> isNewline a == isNewline b)
 writeChunk :: String -> FormatM ()
 writeChunk str = do
   h <- getHandle
+  let
+    plainOutput = IO.hPutStr h str
+    colorOutput color = bracket_ (hSetSGR h [color]) (hSetSGR h [Reset]) plainOutput
   mColor <- gets stateColor
   liftIO $ case mColor of
-    Just color | not (all isSpace str) -> bracket_
-      (hSetSGR h [color])
-      (hSetSGR h [Reset])
-      (IO.hPutStr h str)
-    _ -> IO.hPutStr h str
+    Just (SetColor Foreground _ _) | all isSpace str -> plainOutput
+    Just color -> colorOutput color
+    Nothing -> plainOutput
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.
