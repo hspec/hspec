@@ -7,6 +7,16 @@ import           Test.Hspec.Core.Config.Definition
 
 spec :: Spec
 spec = do
-  describe "formatOrList" $ do
-    it "formats a list of or-options" $ do
-      formatOrList ["foo", "bar", "baz"] `shouldBe` "foo, bar or baz"
+  describe "splitOn" $ do
+    it "splits a string" $ do
+      splitOn ',' "foo,bar,baz" `shouldBe` ["foo", "bar", "baz"]
+
+    it "splits *arbitrary* strings" $ property $ do
+      let
+        string :: Gen String
+        string = arbitrary `suchThat` p
+
+        p :: String -> Bool
+        p = (&&) <$> not . null <*> all (/= ',')
+
+      forAll (listOf string) $ \ xs -> splitOn ',' (intercalate "," xs) `shouldBe` xs

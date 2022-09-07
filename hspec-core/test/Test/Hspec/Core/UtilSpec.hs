@@ -44,6 +44,14 @@ spec = do
         , "sed do eiusmod"
         ]
 
+    it "preserves existing line breaks" $ do
+      lineBreaksAt 10 "foo bar baz\none two three" `shouldBe` [
+          "foo bar"
+        , "baz"
+        , "one two"
+        , "three"
+        ]
+
   describe "safeTry" $ do
     it "returns Right on success" $ do
       Right e <- safeTry (return 23 :: IO Int)
