@@ -43,6 +43,37 @@ spec = do
         expected <- readFile "help.txt"
         help `shouldBe` expected
 
+    describe "RUNNER OPTIONS" $ do
+      let parseOptions_ args = snd <$> Options.parseOptions defaultConfig "my-spec" [] Nothing [] args
+
+      context "with --fail-on-focused" $ do
+        it "sets configFailOnFocused to True" $ do
+          configFailOnFocused <$> parseOptions_ ["--fail-on-focused"] `shouldBe` Right True
+
+      context "with --fail-on-pending" $ do
+        it "sets configFailOnPending to True" $ do
+          configFailOnPending <$> parseOptions_ ["--fail-on-pending"] `shouldBe` Right True
+
+      context "with --fail-on" $ do
+        it "accepts a list of values" $ do
+          let config = parseOptions_ ["--fail-on=focused,pending"]
+          configFailOnFocused <$> config `shouldBe` Right True
+          configFailOnPending <$> config `shouldBe` Right True
+
+        context "with focused" $ do
+          it "sets configFailOnFocused to True" $ do
+            configFailOnFocused <$> parseOptions_ ["--fail-on=focused"] `shouldBe` Right True
+
+        context "with pending" $ do
+          it "sets configFailOnPending to True" $ do
+            configFailOnPending <$> parseOptions_ ["--fail-on=pending"] `shouldBe` Right True
+
+      context "with --no-fail-on" $ do
+        it "inverts --fail-on" $ do
+          let config = parseOptions_ ["--fail-on=focused,pending", "--no-fail-on=focused,pending"]
+          configFailOnFocused <$> config `shouldBe` Right False
+          configFailOnPending <$> config `shouldBe` Right False
+
     context "with --color" $ do
       it "sets configColorMode to ColorAlways" $ do
         configColorMode <$> parseOptions [] Nothing [] ["--color"] `shouldBe` Right ColorAlways

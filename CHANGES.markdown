@@ -1,3 +1,6 @@
+## Changes in next
+  - Add `--fail-on`.  This subsums `--fail-on-focused` and `--fail-on-pending`.
+
 ## Changes in 2.10.4
   - Make sure that whitespace-only diff output is colorized properly (#660)
 

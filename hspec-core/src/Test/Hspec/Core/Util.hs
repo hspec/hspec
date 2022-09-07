@@ -50,10 +50,12 @@ strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
 -- ensure that lines are not longer than given `n`, insert line breaks at word
 -- boundaries
 lineBreaksAt :: Int -> String -> [String]
-lineBreaksAt n input = case words input of
-  []   -> []
-  x:xs -> go (x, xs)
+lineBreaksAt n = concatMap f . lines
   where
+    f input = case words input of
+      []   -> []
+      x:xs -> go (x, xs)
+
     go :: (String, [String]) -> [String]
     go c = case c of
       (s, [])   -> [s]

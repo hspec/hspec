@@ -13,7 +13,7 @@ module Test.Hspec.Core.Config.Definition (
 , runnerOptions
 
 #ifdef TEST
-, formatOrList
+, splitOn
 #endif
 ) where
 
@@ -229,14 +229,41 @@ setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 setSeed :: Integer -> Config -> Config
 setSeed n c = c {configQuickCheckSeed = Just n}
 
+data FailOn = FailOnFocused | FailOnPending
+  deriving (Bounded, Enum)
+
+allFailOnItems :: [FailOn]
+allFailOnItems = [minBound .. maxBound]
+
+showFailOn :: FailOn -> String
+showFailOn item = case item of
+  FailOnFocused -> "focused"
+  FailOnPending -> "pending"
+
+readFailOn :: String -> Maybe FailOn
+readFailOn = (`lookup` items)
+  where
+    items = map (showFailOn &&& id) allFailOnItems
+
+splitOn :: Char -> String -> [String]
+splitOn sep = go
+  where
+    go xs =  case break (== sep) xs of
+      ("", "") -> []
+      (y, "") -> [y]
+      (y, _ : ys) -> y : go ys
+
 runnerOptions :: [Option Config]
 runnerOptions = [
     mkFlag "dry-run" setDryRun "pretend that everything passed; don't verify anything"
   , mkFlag "focused-only" setFocusedOnly "do not run anything, unless there are focused spec items"
 
-  , mkFlag "fail-on-focused" setFailOnFocused "fail on focused spec items"
-  , mkFlag "fail-on-pending" setFailOnPending "fail on pending spec items"
-  , mkFlag "strict" setStrict "enable --fail-on-focused and --fail-on-pending"
+  , undocumented $ mkFlag "fail-on-focused" setFailOnFocused "fail on focused spec items"
+  , undocumented $ mkFlag "fail-on-pending" setFailOnPending "fail on pending spec items"
+
+  , mkOption    "fail-on" Nothing (argument "ITEMS" readFailOnItems (setFailOnItems True )) helpForFailOn
+  , mkOption "no-fail-on" Nothing (argument "ITEMS" readFailOnItems (setFailOnItems False)) helpForFailOn
+  , mkFlag "strict" setStrict $ "same as --fail-on=" <> showFailOnItems strict
 
   , mkFlag "fail-fast" setFailFast "abort on first failure"
   , mkFlag "randomize" setRandomize "randomize execution order"
@@ -246,6 +273,29 @@ runnerOptions = [
   , mkOption "jobs" (Just 'j') (argument "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
   ]
   where
+    strict = allFailOnItems
+
+    readFailOnItems :: String -> Maybe [FailOn]
+    readFailOnItems = mapM readFailOn . splitOn ','
+
+    showFailOnItems :: [FailOn] -> String
+    showFailOnItems = intercalate "," . map showFailOn
+
+    helpForFailOn :: String
+    helpForFailOn = unlines . flip map allFailOnItems $ \ item ->
+      showFailOn item <> ": " <> help item
+      where
+        help item = case item of
+          FailOnFocused -> "fail on focused spec items"
+          FailOnPending -> "fail on pending spec items"
+
+    setFailOnItems :: Bool -> [FailOn] -> Config -> Config
+    setFailOnItems value = flip $ foldr setItem
+      where
+        setItem item = case item of
+          FailOnFocused -> setFailOnFocused value
+          FailOnPending -> setFailOnPending value
+
     readMaxJobs :: String -> Maybe Int
     readMaxJobs s = do
       n <- readMaybe s
@@ -271,9 +321,7 @@ runnerOptions = [
     setFailOnPending value config = config {configFailOnPending = value}
 
     setStrict :: Bool -> Config -> Config
-    setStrict value =
-        setFailOnFocused value
-      . setFailOnPending value
+    setStrict = (`setFailOnItems` strict)
 
     setFailFast :: Bool -> Config -> Config
     setFailFast value config = config {configFailFast = value}
