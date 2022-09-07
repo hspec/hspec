@@ -112,13 +112,11 @@ spec = do
         fromLeft (parseOptions [("~/.hspec", ["--invalid"])] Nothing [] []) `shouldBe` (ExitFailure 1, "my-spec: unrecognized option `--invalid' in config file ~/.hspec\n")
 
       it "rejects ambiguous options" $ do
-        fromLeft (parseOptions [("~/.hspec", ["--fail"])] Nothing [] []) `shouldBe` (ExitFailure 1,
+        fromLeft (parseOptions [("~/.hspec", ["--print"])] Nothing [] []) `shouldBe` (ExitFailure 1,
           unlines [
-            "my-spec: option `--fail' is ambiguous; could be one of:"
-          , "    --fail-on-focused      fail on focused spec items"
-          , "    --fail-on-pending      fail on pending spec items"
-          , "    --fail-fast            abort on first failure"
-          , "    --failure-report=FILE  read/write a failure report for use with --rerun"
+            "my-spec: option `--print' is ambiguous; could be one of:"
+          , "         --print-cpu-time        include used CPU time in summary"
+          , "  -p[N]  --print-slow-items[=N]  print the N slowest spec items (default: 10)"
           , "in config file ~/.hspec"
           ]
           )

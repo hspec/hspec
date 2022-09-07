@@ -11,7 +11,6 @@ module Test.Hspec.Core.Formatters.Pretty (
 import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (shows, intercalate)
 
-import           Control.Arrow
 import           Data.Char
 import           Data.String
 import           Data.List (intersperse)
