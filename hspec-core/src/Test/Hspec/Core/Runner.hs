@@ -88,7 +88,6 @@ import           NonEmpty (nonEmpty)
 import           System.IO
 import           System.Environment (getArgs, withArgs)
 import           System.Exit
-import           Control.Arrow
 import qualified Control.Exception as E
 import           System.Random
 import           Control.Monad.ST

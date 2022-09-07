@@ -23,7 +23,6 @@ module Test.Hspec.Core.Spec.Monad (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Arrow
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Writer

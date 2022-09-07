@@ -4,6 +4,7 @@ module Test.Hspec.Core.Compat (
 , module Test.Hspec.Core.Compat
 ) where
 
+import           Control.Arrow as Imports ((>>>), (&&&), first, second)
 import           Control.Applicative as Imports
 import           Control.Monad as Imports hiding (
     mapM
