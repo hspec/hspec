@@ -1,0 +1,17 @@
+name: shell
+
+on:
+  push:
+    branches:
+      - shell
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: |
+        git checkout add-fail-on-empty-description
+        git rebase origin/main
+        git push origin add-fail-on-empty-description --force-with-lease
