@@ -269,8 +269,8 @@ spec = do
             , "0 examples, 0 failures"
             ]
 
-    context "with --fail-on-focused" $ do
-      let run = captureLines . ignoreExitCode . withArgs ["--fail-on-focused", "--seed", "23"] . H.hspec . removeLocations
+    context "with --fail-on=focused" $ do
+      let run = captureLines . ignoreExitCode . withArgs ["--fail-on=focused", "--seed", "23"] . H.hspec . removeLocations
       it "fails on focused spec items" $ do
         r <- run $ do
           H.it "foo" True
@@ -282,7 +282,7 @@ spec = do
           , "Failures:"
           , ""
           , "  1) bar"
-          , "       item is focused; failing due to --fail-on-focused"
+          , "       item is focused; failing due to --fail-on=focused"
           , ""
           , "  To rerun use: --match \"/bar/\""
           , ""
@@ -292,8 +292,8 @@ spec = do
           , "1 example, 1 failure"
           ]
 
-    context "with --fail-on-pending" $ do
-      let run = captureLines . ignoreExitCode . withArgs ["--fail-on-pending", "--seed", "23"] . H.hspec . removeLocations
+    context "with --fail-on=pending" $ do
+      let run = captureLines . ignoreExitCode . withArgs ["--fail-on=pending", "--seed", "23"] . H.hspec . removeLocations
       it "fails on pending spec items" $ do
         r <- run $ do
           H.it "foo" True
@@ -308,7 +308,7 @@ spec = do
           , "Failures:"
           , ""
           , "  1) bar"
-          , "       item is pending; failing due to --fail-on-pending"
+          , "       item is pending; failing due to --fail-on=pending"
           , ""
           , "  To rerun use: --match \"/bar/\""
           , ""

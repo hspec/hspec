@@ -267,7 +267,7 @@ failFocusedItems config
 failFocused :: Item a -> Item a
 failFocused item = item {itemExample = example}
   where
-    failure = Failure Nothing (Reason "item is focused; failing due to --fail-on-focused")
+    failure = Failure Nothing (Reason "item is focused; failing due to --fail-on=focused")
     example
       | itemIsFocused item = \ params hook p -> do
           Result info status <- itemExample item params hook p
@@ -288,7 +288,7 @@ failPending item = item {itemExample = example}
     example params hook p = do
       Result info status <- itemExample item params hook p
       return $ Result info $ case status of
-        Pending loc _ -> Failure loc (Reason "item is pending; failing due to --fail-on-pending")
+        Pending loc _ -> Failure loc (Reason "item is pending; failing due to --fail-on=pending")
         _ -> status
 
 focusSpec :: Config -> [SpecTree a] -> [SpecTree a]
