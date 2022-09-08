@@ -40,6 +40,8 @@ If you need more control over how a spec is run use these primitives individuall
 , UnicodeMode(..)
 , Path
 , defaultConfig
+, registerFormatter
+, registerDefaultFormatter
 , configAddFilter
 , readConfig
 
@@ -99,7 +101,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Config
-import           Test.Hspec.Core.Format (FormatConfig(..))
+import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.FailureReport
@@ -110,6 +112,16 @@ import           Test.Hspec.Core.Runner.PrintSlowSpecItems
 import           Test.Hspec.Core.Runner.Eval hiding (Tree(..))
 import qualified Test.Hspec.Core.Runner.Eval as Eval
 import           Test.Hspec.Core.Runner.Result
+
+-- |
+-- Make a formatter available for use with @--format@.
+registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
+registerFormatter formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
+
+-- |
+-- Make a formatter available for use with @--format@ and use it by default.
+registerDefaultFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
+registerDefaultFormatter formatter@(_, format) config = (registerFormatter formatter config) { configFormat = Just format }
 
 applyFilterPredicates :: Config -> [Tree c EvalItem] -> [Tree c EvalItem]
 applyFilterPredicates c = filterForestWithLabels p
