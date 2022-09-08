@@ -269,6 +269,20 @@ spec = do
             , "0 examples, 0 failures"
             ]
 
+    context "with --fail-on=empty" $ do
+      it "fails if no spec items have been run" $ do
+        (out, r) <- capture . E.try . withArgs ["--skip=", "--fail-on=empty"] . H.hspec $ do
+          H.it "foo" True
+          H.it "bar" True
+          H.it "baz" True
+        unlines (normalizeSummary (lines out)) `shouldBe` unlines [
+            ""
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "0 examples, 0 failures"
+          ]
+        r `shouldBe` Left (ExitFailure 1)
+
     context "with --fail-on=focused" $ do
       let run = captureLines . ignoreExitCode . withArgs ["--fail-on=focused", "--seed", "23"] . H.hspec . removeLocations
       it "fails on focused spec items" $ do

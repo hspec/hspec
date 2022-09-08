@@ -43,11 +43,11 @@ data ResultItemStatus =
   | ResultItemFailure
   deriving (Eq, Show)
 
-toSpecResult :: [(Path, Format.Item)] -> SpecResult
-toSpecResult results = SpecResult items success
+toSpecResult :: Bool -> [(Path, Format.Item)] -> SpecResult
+toSpecResult failOnEmpty results = SpecResult items success
   where
     items = map toResultItem results
-    success = all (not . resultItemIsFailure) items
+    success = not (failOnEmpty && null results) && all (not . resultItemIsFailure) items
 
 toResultItem :: (Path, Format.Item) -> ResultItem
 toResultItem (path, item) = ResultItem path status
