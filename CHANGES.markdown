@@ -1,6 +1,8 @@
 ## Changes in next
   - Add `--fail-on`.  This subsums `--fail-on-focused` and `--fail-on-pending`.
   - Add `--fail-on=empty` (#650)
+  - Add `registerFormatter` and `registerDefaultFormatter` to
+    `Test.Hspec.Runner`.
   - Revert deprecation of `Test.Hspec.Formatters` and
     `Test.Hspec.Core.Formatters`.  Instead the module documentation now says
     that they are deprecated in favor of `Test.Hspec.Core.Formatters.V1`.
