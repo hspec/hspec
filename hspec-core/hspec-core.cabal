@@ -208,6 +208,7 @@ test-suite spec
       Test.Hspec.Core.QuickCheckUtilSpec
       Test.Hspec.Core.Runner.EvalSpec
       Test.Hspec.Core.Runner.PrintSlowSpecItemsSpec
+      Test.Hspec.Core.Runner.ResultSpec
       Test.Hspec.Core.RunnerSpec
       Test.Hspec.Core.ShuffleSpec
       Test.Hspec.Core.SpecSpec

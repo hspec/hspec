@@ -11,9 +11,10 @@ RUNNER OPTIONS
                                 anything
         --[no-]focused-only     do not run anything, unless there are focused
                                 spec items
-        --[no-]fail-on=ITEMS    focused: fail on focused spec items
+        --[no-]fail-on=ITEMS    empty: fail if no spec items have been run
+                                focused: fail on focused spec items
                                 pending: fail on pending spec items
-        --[no-]strict           same as --fail-on=focused,pending
+        --[no-]strict           same as --fail-on=empty,focused,pending
         --[no-]fail-fast        abort on first failure
         --[no-]randomize        randomize execution order
   -r    --rerun                 rerun all examples that failed in the previous

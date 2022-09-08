@@ -40,6 +40,7 @@ data Config = Config {
   configIgnoreConfigFile :: Bool
 , configDryRun :: Bool
 , configFocusedOnly :: Bool
+, configFailOnEmpty :: Bool
 , configFailOnFocused :: Bool
 , configFailOnPending :: Bool
 , configPrintSlowItems :: Maybe Int
@@ -79,6 +80,7 @@ defaultConfig = Config {
   configIgnoreConfigFile = False
 , configDryRun = False
 , configFocusedOnly = False
+, configFailOnEmpty = False
 , configFailOnFocused = False
 , configFailOnPending = False
 , configPrintSlowItems = Nothing
@@ -229,7 +231,10 @@ setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 setSeed :: Integer -> Config -> Config
 setSeed n c = c {configQuickCheckSeed = Just n}
 
-data FailOn = FailOnFocused | FailOnPending
+data FailOn =
+    FailOnEmpty
+  | FailOnFocused
+  | FailOnPending
   deriving (Bounded, Enum)
 
 allFailOnItems :: [FailOn]
@@ -237,6 +242,7 @@ allFailOnItems = [minBound .. maxBound]
 
 showFailOn :: FailOn -> String
 showFailOn item = case item of
+  FailOnEmpty -> "empty"
   FailOnFocused -> "focused"
   FailOnPending -> "pending"
 
@@ -286,15 +292,17 @@ runnerOptions = [
       showFailOn item <> ": " <> help item
       where
         help item = case item of
+          FailOnEmpty -> "fail if no spec items have been run"
           FailOnFocused -> "fail on focused spec items"
           FailOnPending -> "fail on pending spec items"
 
     setFailOnItems :: Bool -> [FailOn] -> Config -> Config
-    setFailOnItems value = flip $ foldr setItem
+    setFailOnItems value = flip $ foldr (`setItem` value)
       where
         setItem item = case item of
-          FailOnFocused -> setFailOnFocused value
-          FailOnPending -> setFailOnPending value
+          FailOnEmpty -> setFailOnEmpty
+          FailOnFocused -> setFailOnFocused
+          FailOnPending -> setFailOnPending
 
     readMaxJobs :: String -> Maybe Int
     readMaxJobs s = do
@@ -313,6 +321,9 @@ runnerOptions = [
 
     setFocusedOnly :: Bool -> Config -> Config
     setFocusedOnly value config = config {configFocusedOnly = value}
+
+    setFailOnEmpty :: Bool -> Config -> Config
+    setFailOnEmpty value config = config {configFailOnEmpty = value}
 
     setFailOnFocused :: Bool -> Config -> Config
     setFailOnFocused value config = config {configFailOnFocused = value}

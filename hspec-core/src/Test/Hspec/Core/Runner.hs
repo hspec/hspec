@@ -299,6 +299,7 @@ focusSpec config spec
 runEvalTree :: Config -> [EvalTree] -> IO SpecResult
 runEvalTree config spec = do
   let
+      failOnEmpty = configFailOnEmpty config
       seed = (fromJust . configQuickCheckSeed) config
       qcArgs = configQuickCheckArgs config
       !numberOfItems = countSpecItems spec
@@ -310,7 +311,7 @@ runEvalTree config spec = do
   (reportProgress, useColor) <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
-  results <- fmap toSpecResult . withHiddenCursor reportProgress stdout $ do
+  results <- fmap (toSpecResult failOnEmpty) . withHiddenCursor reportProgress stdout $ do
     let
       formatConfig = FormatConfig {
         formatConfigUseColor = useColor
