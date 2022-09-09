@@ -95,7 +95,7 @@ configQuickCheckArgs c = qcArgs
 --
 -- 1. @~/.hspec@ (a config file in the user's home directory)
 -- 1. @.hspec@ (a config file in the current working directory)
--- 1. the environment variable @HSPEC_OPTIONS@
+-- 1. [environment variables starting with @HSPEC_@](https://hspec.github.io/options.html#specifying-options-through-environment-variables)
 -- 1. the provided list of command-line options (the second argument to @readConfig@)
 --
 -- (precedence from low to high)

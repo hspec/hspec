@@ -115,11 +115,15 @@ import           Test.Hspec.Core.Runner.Result
 
 -- |
 -- Make a formatter available for use with @--format@.
+--
+-- @since 2.10.5
 registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 registerFormatter formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
 
 -- |
 -- Make a formatter available for use with @--format@ and use it by default.
+--
+-- @since 2.10.5
 registerDefaultFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 registerDefaultFormatter formatter@(_, format) config = (registerFormatter formatter config) { configFormat = Just format }
 
