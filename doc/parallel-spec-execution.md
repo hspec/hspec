@@ -52,7 +52,7 @@ the number of processors available to the process, as determined by
 [Hspec's `-j` option](options.html).  Note that this number is in
 addition to the main thread.
 
-## Running all tests in parallel with `hspec-discover`
+## Running all tests in parallel with \`hspec-discover\`
 
 If you are using [`hspec-discover`](hspec-discover.html) to generate a test driver then you can use a [spec hook](hspec-discover.html#spec-hooks) to apply `parallel` to all spec items:
 

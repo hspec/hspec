@@ -187,7 +187,11 @@ ensureSeed c = case configQuickCheckSeed c of
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Spec -> IO ()
-hspecWith defaults = hspecWithResult defaults >=> evaluateSummary
+hspecWith defaults = evalSpec defaults >=> \ (config, spec) ->
+      getArgs
+  >>= readConfig config
+  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
+  >>= evaluateResult
 
 -- | `True` if the given `Summary` indicates that there were no
 -- failures, `False` otherwise.
