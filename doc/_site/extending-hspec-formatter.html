@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- TODO: Restrict font variants to what we are actually using! -->
+    <!-- link href='https://fonts.googleapis.com/css?family=Arimo:700italic,700,400italic,400|Cousine:700italic,700,400italic,400' rel='stylesheet' type='text/css'-->
+
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+    <title>Extending Hspec: Writing a custom formatter - Hspec: A Testing Framework for Haskell</title>
+
+  </head>
+  <body>
+    <a class="header" href="/">
+      <div class="container">
+        <h1>Hspec: <span class="sub">A Testing Framework for Haskell</span></h1>
+      </div>
+    </a>
+
+    <div class="container flex-container">
+      <div class="flex-item toc">
+        <h1>Contents</h1>
+        <ul>
+
+
+
+          <li>
+
+            <a href="/writing-specs.html">Writing tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/running-specs.html">Running tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/options.html">Passing options to Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/expectations.html">Setting expectations</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/quickcheck.html">Using QuickCheck with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hunit.html">Interoperability with HUnit</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hspec-discover.html">Automatic spec discovery</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/match.html">Running individual spec items</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/rerun.html">Speeding up the edit-compile-test cycle</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/parallel-spec-execution.html">Parallel spec execution</a>
+
+          </li>
+
+
+
+          <li>
+
+            Extending Hspec: Writing a custom formatter
+            <ul>
+<li>
+<a href="#a-simple-formatter">A simple formatter</a>
+</li>
+<li>
+<a href="#a-monadic-formatter">A monadic formatter</a>
+</li>
+<li>
+<a href="#using-a-custom-formatter-with-hspec-discover">Using a custom formatter with `hspec-discover`</a>
+</li>
+<li>
+<a href="#packaging-a-formatter-for-distribution-and-reuse">Packaging a formatter for distribution and reuse</a>
+</li>
+</ul>
+
+
+          </li>
+
+        </ul>
+      </div>
+
+      <div class="flex-item content">
+        <noscript>
+          <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
+          you'll get some non-essential but convenient user interface
+          enhancements.</em>
+        </noscript>
+
+
+        <h1>Extending Hspec: Writing a custom formatter</h1>
+
+
+        <p>This section describes how to customize the output of Hspec by writing a custom
+formatter.  The focus is on how to write and package a formatter so that it can
+be used by others.</p>
+
+<h2 id="a-simple-formatter">A simple formatter</h2>
+
+<p>The essence of a formatter in Hspec is a function <code>format :: Format</code>.  This
+function takes an <a href="https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#t:Event"><code>Event</code></a> and produces some side effect:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="kr">type</span> <span class="kt">Format</span> <span class="ow">=</span> <span class="kt">Event</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="nb">()</span>
+</code></pre></div>
+<p>As an example here is a format function that, on each completed spec item,
+prints the item path and one of <code>✔</code>/<code>‐</code>/<code>✘</code>:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="nf">format</span> <span class="ow">::</span> <span class="kt">Format</span>
+<span class="nf">format</span> <span class="n">event</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">event</span> <span class="kr">of</span>
+  <span class="kt">ItemDone</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">-&gt;</span> <span class="n">putStrLn</span> <span class="p">(</span><span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span><span class="p">)</span>
+  <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="nb">()</span>
+  <span class="kr">where</span>
+    <span class="n">formatItem</span> <span class="ow">::</span> <span class="kt">Path</span> <span class="ow">-&gt;</span> <span class="kt">Item</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">=</span> <span class="n">joinPath</span> <span class="n">path</span> <span class="o">&lt;&gt;</span> <span class="s">&quot; [&quot;</span> <span class="o">&lt;&gt;</span> <span class="n">formatResult</span> <span class="n">item</span> <span class="o">&lt;&gt;</span> <span class="s">&quot;]&quot;</span>
+
+    <span class="n">formatResult</span> <span class="ow">::</span> <span class="kt">Item</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">formatResult</span> <span class="n">item</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">itemResult</span> <span class="n">item</span> <span class="kr">of</span>
+      <span class="kt">Success</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;✔&quot;</span>
+      <span class="kt">Pending</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;‐&quot;</span>
+      <span class="kt">Failure</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;✘&quot;</span>
+
+    <span class="n">joinPath</span> <span class="ow">::</span> <span class="kt">Path</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">joinPath</span> <span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">requirement</span><span class="p">)</span> <span class="ow">=</span> <span class="n">intercalate</span> <span class="s">&quot; ❯ &quot;</span> <span class="o">$</span> <span class="n">groups</span> <span class="o">++</span> <span class="p">[</span><span class="n">requirement</span><span class="p">]</span>
+</code></pre></div>
+<p>When we run a spec with this formatter we anticipate output of the form:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>reverse ❯ reverses a list [✔]
+reverse ❯ gives the original list, if applied twice [✔]
+</code></pre></div>
+<p>To use a formatter, we first need to register it; not the <code>format</code> function
+itself, but something that offers more utility:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="nf">formatter</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">String</span><span class="p">,</span> <span class="kt">FormatConfig</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="kt">Format</span><span class="p">)</span>
+<span class="nf">formatter</span> <span class="ow">=</span> <span class="p">(</span><span class="s">&quot;my-formatter&quot;</span><span class="p">,</span> <span class="nf">\</span> <span class="n">_config</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="n">format</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>A formatter has a name so that it can be selected by <code>--format=NAME</code>.  Here, we use <code>&quot;my-formatter&quot;</code> as the name.</li>
+<li>Hspec passes a config value of type <a href="https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#t:FormatConfig"><code>FormatConfig</code></a> to the formatter so
+that the <code>format</code> function can make use of it.  Here, we don&#39;t
+look at the config value at all.</li>
+<li>Hspec allows the <code>format</code> function itself to be constructed in <code>IO</code>.  Here,
+we simply return the <code>format</code> function without doing any <code>IO</code>.</li>
+</ul>
+
+<p>This <code>formatter</code> can then be used with <a href="https://hackage.haskell.org/package/hspec-core/docs/Test-Hspec-Core-Runner.html#v:hspecWith"><code>hspecWith</code></a>:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspecWith</span> <span class="p">(</span><span class="n">useFormatter</span> <span class="n">formatter</span> <span class="n">defaultConfig</span><span class="p">)</span> <span class="n">spec</span>
+</code></pre></div>
+<div class="note"><p><strong>Note:</strong> A more idiomatic way to use formatters, that plays nice with <code>hspec-discover</code>,
+is discussed below.</p>
+</div>
+
+<div>
+  <h5 class="foldable">Example code:</h5>
+  <div>
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file Spec.hs</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec.Runner</span> <span class="p">(</span><span class="nf">hspecWith</span><span class="p">,</span> <span class="nf">defaultConfig</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Test.QuickCheck</span> <span class="p">(</span><span class="nf">property</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Data.List</span> <span class="p">(</span><span class="nf">intercalate</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec.Api.Format.V1</span>
+
+<span class="nf">formatter</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">String</span><span class="p">,</span> <span class="kt">FormatConfig</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="kt">Format</span><span class="p">)</span>
+<span class="nf">formatter</span> <span class="ow">=</span> <span class="p">(</span><span class="s">&quot;my-formatter&quot;</span><span class="p">,</span> <span class="nf">\</span> <span class="n">_config</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="n">format</span><span class="p">)</span>
+
+<span class="nf">format</span> <span class="ow">::</span> <span class="kt">Format</span>
+<span class="nf">format</span> <span class="n">event</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">event</span> <span class="kr">of</span>
+  <span class="kt">ItemDone</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">-&gt;</span> <span class="n">putStrLn</span> <span class="p">(</span><span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span><span class="p">)</span>
+  <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="nb">()</span>
+  <span class="kr">where</span>
+    <span class="n">formatItem</span> <span class="ow">::</span> <span class="kt">Path</span> <span class="ow">-&gt;</span> <span class="kt">Item</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">=</span> <span class="n">joinPath</span> <span class="n">path</span> <span class="o">&lt;&gt;</span> <span class="s">&quot; [&quot;</span> <span class="o">&lt;&gt;</span> <span class="n">formatResult</span> <span class="n">item</span> <span class="o">&lt;&gt;</span> <span class="s">&quot;]&quot;</span>
+
+    <span class="n">formatResult</span> <span class="ow">::</span> <span class="kt">Item</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">formatResult</span> <span class="n">item</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">itemResult</span> <span class="n">item</span> <span class="kr">of</span>
+      <span class="kt">Success</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;✔&quot;</span>
+      <span class="kt">Pending</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;‐&quot;</span>
+      <span class="kt">Failure</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;✘&quot;</span>
+
+    <span class="n">joinPath</span> <span class="ow">::</span> <span class="kt">Path</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">joinPath</span> <span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">requirement</span><span class="p">)</span> <span class="ow">=</span> <span class="n">intercalate</span> <span class="s">&quot; ❯ &quot;</span> <span class="o">$</span> <span class="n">groups</span> <span class="o">++</span> <span class="p">[</span><span class="n">requirement</span><span class="p">]</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspecWith</span> <span class="p">(</span><span class="n">useFormatter</span> <span class="n">formatter</span> <span class="n">defaultConfig</span><span class="p">)</span> <span class="n">spec</span>
+
+<span class="nf">spec</span> <span class="ow">::</span> <span class="kt">Spec</span>
+<span class="nf">spec</span> <span class="ow">=</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;reverse&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;reverses a list&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">reverse</span> <span class="p">[</span><span class="mi">1</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+    it <span class="sd">&quot;gives the original list, if applied twice&quot;</span> <span class="o">$</span> <span class="n">property</span> <span class="o">$</span>
+      <span class="nf">\</span> <span class="n">xs</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">reverse</span> <span class="o">.</span> <span class="n">reverse</span><span class="p">)</span> <span class="n">xs</span> <span class="o">==</span> <span class="p">(</span><span class="n">xs</span> <span class="ow">::</span> <span class="p">[</span><span class="kt">Int</span><span class="p">])</span></code></pre></figure>
+
+<pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
+<samp>reverse ❯ reverses a list [✔]
+reverse ❯ gives the original list, if applied twice [✔]
+</samp></pre>
+
+  </div>
+</div>
+
+<h2 id="a-monadic-formatter">A monadic formatter</h2>
+
+<p>It is possible to use a custom monad stack for the <code>format</code> function.</p>
+
+<p>As an example, let&#39;s assume we want to enumerate spec items, changing the
+output from above to:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>1. reverse ❯ reverses a list [✔]
+2. reverse ❯ gives the original list, if applied twice [✔]
+</code></pre></div>
+<p>Using <code>StateT Int IO</code> instead of <code>IO</code> is one way to achieve this:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="nf">format</span> <span class="ow">::</span> <span class="kt">Event</span> <span class="ow">-&gt;</span> <span class="kt">StateT</span> <span class="kt">Int</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">format</span> <span class="n">event</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">event</span> <span class="kr">of</span>
+  <span class="kt">ItemDone</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+    <span class="n">n</span> <span class="ow">&lt;-</span> <span class="n">state</span> <span class="p">(</span><span class="n">id</span> <span class="o">&amp;&amp;&amp;</span> <span class="n">succ</span><span class="p">)</span>
+    <span class="n">liftIO</span> <span class="o">$</span> <span class="n">putStrLn</span> <span class="p">(</span><span class="n">show</span> <span class="n">n</span> <span class="o">&lt;&gt;</span> <span class="s">&quot;. &quot;</span> <span class="o">&lt;&gt;</span> <span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span><span class="p">)</span>
+  <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="nb">()</span>
+</code></pre></div>
+<p>The <a href="https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#v:monadic"><code>monadic</code></a> function can be used to transform a monadic <code>format</code> function
+into one of type <code>IO Format</code>.  To do  this, <a href="https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#v:monadic"><code>monadic</code></a> requires some function:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="nf">run</span> <span class="ow">::</span> <span class="kt">MonadIO</span> <span class="n">m</span> <span class="ow">=&gt;</span> <span class="n">m</span> <span class="nb">()</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="nb">()</span>
+</code></pre></div>
+<p>For <code>StateT Int IO</code> we can use <a href="https://hackage.haskell.org/package/transformers/docs/Control-Monad-Trans-State-Lazy.html#v:evalStateT"><code>evalStateT</code></a>:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="nf">formatter</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">String</span><span class="p">,</span> <span class="kt">FormatConfig</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="kt">Format</span><span class="p">)</span>
+<span class="nf">formatter</span> <span class="ow">=</span> <span class="p">(</span><span class="s">&quot;my-formatter&quot;</span><span class="p">,</span> <span class="nf">\</span> <span class="n">_config</span> <span class="ow">-&gt;</span> <span class="n">monadic</span> <span class="p">(`</span><span class="n">evalStateT</span><span class="p">`</span> <span class="mi">1</span><span class="p">)</span> <span class="n">format</span><span class="p">)</span>
+</code></pre></div>
+<div>
+  <h5 class="foldable">Example code:</h5>
+  <div>
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file Spec.hs</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec.Runner</span> <span class="p">(</span><span class="nf">hspecWith</span><span class="p">,</span> <span class="nf">defaultConfig</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Test.QuickCheck</span> <span class="p">(</span><span class="nf">property</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Control.Arrow</span>
+<span class="kr">import</span> <span class="nn">Control.Monad.IO.Class</span>
+<span class="kr">import</span> <span class="nn">Control.Monad.Trans.State</span>
+<span class="kr">import</span> <span class="nn">Data.List</span> <span class="p">(</span><span class="nf">intercalate</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec.Api.Format.V1</span>
+
+<span class="nf">formatter</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">String</span><span class="p">,</span> <span class="kt">FormatConfig</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="kt">Format</span><span class="p">)</span>
+<span class="nf">formatter</span> <span class="ow">=</span> <span class="p">(</span><span class="s">&quot;my-formatter&quot;</span><span class="p">,</span> <span class="nf">\</span> <span class="n">_config</span> <span class="ow">-&gt;</span> <span class="n">monadic</span> <span class="p">(`</span><span class="n">evalStateT</span><span class="p">`</span> <span class="mi">1</span><span class="p">)</span> <span class="n">format</span><span class="p">)</span>
+
+<span class="nf">format</span> <span class="ow">::</span> <span class="kt">Event</span> <span class="ow">-&gt;</span> <span class="kt">StateT</span> <span class="kt">Int</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">format</span> <span class="n">event</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">event</span> <span class="kr">of</span>
+  <span class="kt">ItemDone</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+    <span class="n">n</span> <span class="ow">&lt;-</span> <span class="n">state</span> <span class="p">(</span><span class="n">id</span> <span class="o">&amp;&amp;&amp;</span> <span class="n">succ</span><span class="p">)</span>
+    <span class="n">liftIO</span> <span class="o">$</span> <span class="n">putStrLn</span> <span class="p">(</span><span class="n">show</span> <span class="n">n</span> <span class="o">&lt;&gt;</span> <span class="s">&quot;. &quot;</span> <span class="o">&lt;&gt;</span> <span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span><span class="p">)</span>
+  <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="nb">()</span>
+  <span class="kr">where</span>
+    <span class="n">formatItem</span> <span class="ow">::</span> <span class="kt">Path</span> <span class="ow">-&gt;</span> <span class="kt">Item</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">=</span> <span class="n">joinPath</span> <span class="n">path</span> <span class="o">&lt;&gt;</span> <span class="s">&quot; [&quot;</span> <span class="o">&lt;&gt;</span> <span class="n">formatResult</span> <span class="n">item</span> <span class="o">&lt;&gt;</span> <span class="s">&quot;]&quot;</span>
+
+    <span class="n">formatResult</span> <span class="ow">::</span> <span class="kt">Item</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">formatResult</span> <span class="n">item</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">itemResult</span> <span class="n">item</span> <span class="kr">of</span>
+      <span class="kt">Success</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;✔&quot;</span>
+      <span class="kt">Pending</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;‐&quot;</span>
+      <span class="kt">Failure</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;✘&quot;</span>
+
+    <span class="n">joinPath</span> <span class="ow">::</span> <span class="kt">Path</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">joinPath</span> <span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">requirement</span><span class="p">)</span> <span class="ow">=</span> <span class="n">intercalate</span> <span class="s">&quot; ❯ &quot;</span> <span class="o">$</span> <span class="n">groups</span> <span class="o">++</span> <span class="p">[</span><span class="n">requirement</span><span class="p">]</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspecWith</span> <span class="p">(</span><span class="n">useFormatter</span> <span class="n">formatter</span> <span class="n">defaultConfig</span><span class="p">)</span> <span class="n">spec</span>
+
+<span class="nf">spec</span> <span class="ow">::</span> <span class="kt">Spec</span>
+<span class="nf">spec</span> <span class="ow">=</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;reverse&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;reverses a list&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">reverse</span> <span class="p">[</span><span class="mi">1</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+    it <span class="sd">&quot;gives the original list, if applied twice&quot;</span> <span class="o">$</span> <span class="n">property</span> <span class="o">$</span>
+      <span class="nf">\</span> <span class="n">xs</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">reverse</span> <span class="o">.</span> <span class="n">reverse</span><span class="p">)</span> <span class="n">xs</span> <span class="o">==</span> <span class="p">(</span><span class="n">xs</span> <span class="ow">::</span> <span class="p">[</span><span class="kt">Int</span><span class="p">])</span></code></pre></figure>
+
+<pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
+<samp>1. reverse ❯ reverses a list [✔]
+2. reverse ❯ gives the original list, if applied twice [✔]
+</samp></pre>
+
+  </div>
+</div>
+
+<h2 id="using-a-custom-formatter-with-hspec-discover">Using a custom formatter with `hspec-discover`</h2>
+
+<p>The previous examples used <a href="https://hackage.haskell.org/package/hspec-core/docs/Test-Hspec-Core-Runner.html#v:hspecWith"><code>hspecWith</code></a> to register a formatter.  This
+works, but it requires the user to write a custom <code>main</code> function.  This is
+inconvenient when you are using <a href="hspec-discover.html"><code>hspec-discover</code></a>.</p>
+
+<p><a href="https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#v:modifyConfig"><code>modifyConfig</code></a> provides an alternative, it can be used to register a
+formatter in <a href="https://hackage.haskell.org/package/hspec-core/docs/Test-Hspec-Core-Spec.html#t:SpecM"><code>SpecM</code></a>:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="nf">spec</span> <span class="ow">::</span> <span class="kt">Spec</span>
+<span class="nf">spec</span> <span class="ow">=</span> <span class="kr">do</span>
+  <span class="n">modifyConfig</span> <span class="p">(</span><span class="n">useFormatter</span> <span class="kt">MyFormatter</span><span class="o">.</span><span class="n">formatter</span><span class="p">)</span>
+  <span class="o">...</span>
+</code></pre></div>
+<p><a href="https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#v:modifyConfig"><code>modifyConfig</code></a> can be used anywhere within a spec.  However, it is idiomatic
+to use it from a <a href="hspec-discover.html#spec-hooks">spec hook</a>:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="c1">-- file test/SpecHook.hs</span>
+<span class="kr">module</span> <span class="nn">SpecHook</span> <span class="kr">where</span>
+
+<span class="kr">import</span>           <span class="nn">Test.Hspec</span>
+<span class="kr">import</span>           <span class="nn">Test.Hspec.Api.Format.V1</span> <span class="p">(</span><span class="nf">modifyConfig</span><span class="p">,</span> <span class="nf">useFormatter</span><span class="p">)</span>
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">MyFormatter</span>
+
+<span class="nf">hook</span> <span class="ow">::</span> <span class="kt">Spec</span> <span class="ow">-&gt;</span> <span class="kt">Spec</span>
+<span class="nf">hook</span> <span class="ow">=</span> <span class="p">(</span><span class="n">modifyConfig</span> <span class="p">(</span><span class="n">useFormatter</span> <span class="kt">MyFormatter</span><span class="o">.</span><span class="n">formatter</span><span class="p">)</span> <span class="o">&gt;&gt;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="packaging-a-formatter-for-distribution-and-reuse">Packaging a formatter for distribution and reuse</h2>
+
+<p>When distributing a formatter you should, by convention, provide at least three
+primitives:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="kr">module</span> <span class="nn">MyFormatter</span> <span class="p">(</span><span class="nf">use</span><span class="p">,</span> <span class="nf">register</span><span class="p">,</span> <span class="nf">formatter</span><span class="p">,</span> <span class="nf">module</span> <span class="kt">Api</span><span class="p">)</span> <span class="kr">where</span>
+
+<span class="kr">import</span> <span class="nn">Test.Hspec.Api.Format.V1</span> <span class="k">as</span> <span class="n">Api</span>
+
+<span class="c1">-- | Make `formatter` available for use with @--format@ and use it by default.</span>
+<span class="nf">use</span> <span class="ow">::</span> <span class="kt">SpecWith</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">SpecWith</span> <span class="n">a</span>
+<span class="nf">use</span> <span class="ow">=</span> <span class="p">(</span><span class="n">modifyConfig</span> <span class="p">(</span><span class="n">useFormatter</span> <span class="n">formatter</span><span class="p">)</span> <span class="o">&gt;&gt;</span><span class="p">)</span>
+
+<span class="c1">-- | Make `formatter` available for use with @--format@.</span>
+<span class="nf">register</span> <span class="ow">::</span> <span class="kt">SpecWith</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">SpecWith</span> <span class="n">a</span>
+<span class="nf">register</span> <span class="ow">=</span> <span class="p">(</span><span class="n">modifyConfig</span> <span class="p">(</span><span class="n">registerFormatter</span> <span class="n">formatter</span><span class="p">)</span> <span class="o">&gt;&gt;</span><span class="p">)</span>
+
+<span class="nf">formatter</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">String</span><span class="p">,</span> <span class="kt">FormatConfig</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="kt">Format</span><span class="p">)</span>
+<span class="nf">formatter</span> <span class="ow">=</span> <span class="o">...</span>
+</code></pre></div>
+<p><code>use</code> and <code>register</code> make it convenient to register the formatter from a
+<a href="hspec-discover.html#spec-hooks">spec hook</a>:</p>
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file test/SpecHook.hs</span>
+<span class="kr">module</span> <span class="nn">SpecHook</span> <span class="kr">where</span>
+
+<span class="kr">import</span>           <span class="nn">Test.Hspec</span>
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">MyFormatter</span>
+
+<span class="nf">hook</span> <span class="ow">::</span> <span class="kt">Spec</span> <span class="ow">-&gt;</span> <span class="kt">Spec</span>
+<span class="nf">hook</span> <span class="ow">=</span> <span class="kt">MyFormatter</span><span class="o">.</span><span class="n">use</span></code></pre></figure>
+
+<p>The <code>formatter</code> should be exported so that it is possible to augment it if
+needed.  In addition you may choose to export internals that are specific to
+your formatter.</p>
+
+<p>You also want to re-export <code>Test.Hspec.Api.Format.V1</code> for two reasons:</p>
+
+<ul>
+<li>It documents which version of the API is used by the formatter.</li>
+<li>It allows users to augment the formatter without having to import the correct
+version of the API themselves.</li>
+</ul>
+
+<div>
+  <h5 class="foldable">Example code:</h5>
+  <div>
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file src/MyFormatter.hs</span>
+<span class="kr">module</span> <span class="nn">MyFormatter</span> <span class="p">(</span><span class="nf">use</span><span class="p">,</span> <span class="nf">register</span><span class="p">,</span> <span class="nf">formatter</span><span class="p">,</span> <span class="nf">module</span> <span class="kt">Api</span><span class="p">)</span> <span class="kr">where</span>
+
+<span class="kr">import</span> <span class="nn">Data.List</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec.Api.Format.V1</span> <span class="k">as</span> <span class="n">Api</span>
+
+<span class="c1">-- | Make `formatter` available for use with @--format@ and use it by default.</span>
+<span class="nf">use</span> <span class="ow">::</span> <span class="kt">SpecWith</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">SpecWith</span> <span class="n">a</span>
+<span class="nf">use</span> <span class="ow">=</span> <span class="p">(</span><span class="n">modifyConfig</span> <span class="p">(</span><span class="n">useFormatter</span> <span class="n">formatter</span><span class="p">)</span> <span class="o">&gt;&gt;</span><span class="p">)</span>
+
+<span class="c1">-- | Make `formatter` available for use with @--format@.</span>
+<span class="nf">register</span> <span class="ow">::</span> <span class="kt">SpecWith</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">SpecWith</span> <span class="n">a</span>
+<span class="nf">register</span> <span class="ow">=</span> <span class="p">(</span><span class="n">modifyConfig</span> <span class="p">(</span><span class="n">registerFormatter</span> <span class="n">formatter</span><span class="p">)</span> <span class="o">&gt;&gt;</span><span class="p">)</span>
+
+<span class="nf">formatter</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">String</span><span class="p">,</span> <span class="kt">FormatConfig</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="kt">Format</span><span class="p">)</span>
+<span class="nf">formatter</span> <span class="ow">=</span> <span class="p">(</span><span class="s">&quot;my-formatter&quot;</span><span class="p">,</span> <span class="nf">\</span> <span class="n">_config</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="n">format</span><span class="p">)</span>
+
+<span class="nf">format</span> <span class="ow">::</span> <span class="kt">Format</span>
+<span class="nf">format</span> <span class="n">event</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">event</span> <span class="kr">of</span>
+  <span class="kt">ItemDone</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">-&gt;</span> <span class="n">putStrLn</span> <span class="p">(</span><span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span><span class="p">)</span>
+  <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="nb">()</span>
+  <span class="kr">where</span>
+    <span class="n">formatItem</span> <span class="ow">::</span> <span class="kt">Path</span> <span class="ow">-&gt;</span> <span class="kt">Item</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">formatItem</span> <span class="n">path</span> <span class="n">item</span> <span class="ow">=</span> <span class="n">joinPath</span> <span class="n">path</span> <span class="o">&lt;&gt;</span> <span class="s">&quot; [&quot;</span> <span class="o">&lt;&gt;</span> <span class="n">formatResult</span> <span class="n">item</span> <span class="o">&lt;&gt;</span> <span class="s">&quot;]&quot;</span>
+
+    <span class="n">formatResult</span> <span class="ow">::</span> <span class="kt">Item</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">formatResult</span> <span class="n">item</span> <span class="ow">=</span> <span class="kr">case</span> <span class="n">itemResult</span> <span class="n">item</span> <span class="kr">of</span>
+      <span class="kt">Success</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;✔&quot;</span>
+      <span class="kt">Pending</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;‐&quot;</span>
+      <span class="kt">Failure</span> <span class="p">{}</span> <span class="ow">-&gt;</span> <span class="s">&quot;✘&quot;</span>
+
+    <span class="n">joinPath</span> <span class="ow">::</span> <span class="kt">Path</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+    <span class="n">joinPath</span> <span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">requirement</span><span class="p">)</span> <span class="ow">=</span> <span class="n">intercalate</span> <span class="s">&quot; ❯ &quot;</span> <span class="o">$</span> <span class="n">groups</span> <span class="o">++</span> <span class="p">[</span><span class="n">requirement</span><span class="p">]</span></code></pre></figure>
+
+
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file test/SpecHook.hs</span>
+<span class="kr">module</span> <span class="nn">SpecHook</span> <span class="kr">where</span>
+
+<span class="kr">import</span>           <span class="nn">Test.Hspec</span>
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">MyFormatter</span>
+
+<span class="nf">hook</span> <span class="ow">::</span> <span class="kt">Spec</span> <span class="ow">-&gt;</span> <span class="kt">Spec</span>
+<span class="nf">hook</span> <span class="ow">=</span> <span class="kt">MyFormatter</span><span class="o">.</span><span class="n">use</span></code></pre></figure>
+
+
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file test/Data/ListSpec.hs</span>
+<span class="kr">module</span> <span class="nn">Data.ListSpec</span> <span class="p">(</span><span class="nf">spec</span><span class="p">)</span> <span class="kr">where</span>
+
+<span class="kr">import</span>           <span class="nn">Test.Hspec</span>
+<span class="kr">import</span>           <span class="nn">Test.QuickCheck</span>
+
+<span class="nf">spec</span> <span class="ow">::</span> <span class="kt">Spec</span>
+<span class="nf">spec</span> <span class="ow">=</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;reverse&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;reverses a list&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">reverse</span> <span class="p">[</span><span class="mi">1</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+    it <span class="sd">&quot;gives the original list, if applied twice&quot;</span> <span class="o">$</span> <span class="n">property</span> <span class="o">$</span>
+      <span class="nf">\</span> <span class="n">xs</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">reverse</span> <span class="o">.</span> <span class="n">reverse</span><span class="p">)</span> <span class="n">xs</span> <span class="o">==</span> <span class="p">(</span><span class="n">xs</span> <span class="ow">::</span> <span class="p">[</span><span class="kt">Int</span><span class="p">])</span></code></pre></figure>
+
+
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file test/Spec.hs</span>
+<span class="cm">{-# OPTIONS_GHC -F -pgmF hspec-discover #-}</span></code></pre></figure>
+
+<pre><kbd class="shell-input">runhaskell -isrc -itest test/Spec.hs</kbd>
+<samp>Data.List ❯ reverse ❯ reverses a list [✔]
+Data.List ❯ reverse ❯ gives the original list, if applied twice [✔]
+</samp></pre>
+
+  </div>
+</div>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <div style="margin-left: 10px">
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=watch&amp;count=true"></iframe>
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=fork&amp;count=true"></iframe>
+      </div>
+      <div class="follow-me">
+        <a href="https://twitter.com/solirc_" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @solirc_</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="js/jquery.scrollintoview.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

@@ -18,8 +18,6 @@ module Hspec
         puts "#{cmd}"
         r = `#{cmd}`
           .gsub(/Finished in \S+ seconds/, 'Finished in 0.0005 seconds')
-          .gsub(/_includes\/introduction\/MathSpec.hs:/, 'MathSpec.hs:')
-          .gsub(/_includes\/introduction\/step2\/Math.hs:/, 'Math.hs:')
           .gsub(/_includes\/[a-zA-Z]+\.hs:/, 'Spec.hs:')
         File.write file, r
         puts "  created cache file #{file}"
@@ -35,8 +33,19 @@ module Hspec
 
         '@?='                   => 'https://hackage.haskell.org/package/HUnit/docs/Test-HUnit-Base.html#v:-64--63--61-',
 
+
+        'modifyConfig'          => 'https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#v:modifyConfig',
+        'monadic'               => 'https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#v:monadic',
+        'Event'                 => 'https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#t:Event',
+        'FormatConfig'          => 'https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html#t:FormatConfig',
+
+        'SpecM'                 => 'https://hackage.haskell.org/package/hspec-core/docs/Test-Hspec-Core-Spec.html#t:SpecM',
+        'evalStateT'            => 'https://hackage.haskell.org/package/transformers/docs/Control-Monad-Trans-State-Lazy.html#v:evalStateT',
+
+
         'Spec'                  => 'https://hackage.haskell.org/package/hspec/docs/Test-Hspec.html#t:Spec',
         'hspec'                 => 'https://hackage.haskell.org/package/hspec/docs/Test-Hspec.html#v:hspec',
+        'hspecWith'             => 'https://hackage.haskell.org/package/hspec-core/docs/Test-Hspec-Core-Runner.html#v:hspecWith',
 
         'Test.Hspec.QuickCheck' => 'https://hackage.haskell.org/package/hspec/docs/Test-Hspec-QuickCheck.html',
         'prop'                  => 'https://hackage.haskell.org/package/hspec/docs/Test-Hspec-QuickCheck.html#v:prop',
@@ -91,6 +100,38 @@ Liquid::Template.register_tag('require', Hspec::RequireTag)
 Liquid::Template.register_tag('note', Hspec::NoteTag)
 
 module Hspec
+  class InlineSourceTag < Liquid::Tag
+    def initialize(tag_name, file, tokens)
+      super
+      @file, @name = file.split
+
+      if @name then
+        @file = File.join @file, @name if File.directory? @file
+      else
+        @name = File.basename @file
+      end
+    end
+
+    def render(context)
+      partial = Liquid::Template.parse(add_wrapping)
+      context.stack do
+        partial.render(context)
+      end
+    end
+
+    def add_wrapping
+      source = File.read(@file)
+<<-HTML
+{% highlight hspec %}
+-- file #{@name}
+#{source}
+{% endhighlight %}
+HTML
+    end
+  end
+end
+
+module Hspec
   class ExampleTag < Liquid::Tag
     def initialize(tag_name, file, tokens)
       super
@@ -107,13 +148,27 @@ module Hspec
 
     def add_wrapping(file)
       source = File.read(file)
+      dir = File.dirname(file)
+      visible_includes = ""
+      if File.basename(dir) == "test" then
+        src = File.join(File.dirname(dir), "src")
+        if File.directory? src
+          visible_includes += "-isrc "
+          isrc = "-i#{src}"
+        end
+        visible_includes += "-itest "
+        name = "test/Spec.hs"
+      else
+        name = "Spec.hs"
+      end
+
 <<-HTML
 {% highlight hspec %}
--- file Spec.hs
+-- file #{name}
 #{source}
 {% endhighlight %}
-<pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
-<samp>{{ "#{file} --html --seed 921447365 --ignore-dot-hspec" | runhaskell }}</samp></pre>
+<pre><kbd class="shell-input">runhaskell #{visible_includes}#{name}</kbd>
+<samp>{{ "-i#{dir} #{isrc} #{file} --html --seed 921447365 --ignore-dot-hspec" | runhaskell }}</samp></pre>
 HTML
     end
   end
@@ -138,5 +193,6 @@ HTML
   end
 end
 
+Liquid::Template.register_tag('inline_source', Hspec::InlineSourceTag)
 Liquid::Template.register_tag('inline_example', Hspec::ExampleTag)
 Liquid::Template.register_tag('example', Hspec::FoldableExampleTag)
