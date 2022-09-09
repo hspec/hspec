@@ -71,6 +71,8 @@ runIO = SpecM . liftIO
 mapSpecForest :: ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
 mapSpecForest f (SpecM specs) = SpecM (mapWriterT (fmap (fmap (second f))) specs)
 
+-- {-# DEPRECATED mapSpecItem "Use `mapSpecItem_` instead." #-}
+-- | Deprecated: Use `mapSpecItem_` instead.
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem _ = mapSpecItem_
 
