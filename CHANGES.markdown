@@ -1,4 +1,4 @@
-## Changes in next
+## Changes in 2.10.5
   - Add `--fail-on`.  This subsums `--fail-on-focused` and `--fail-on-pending`.
   - Add `--fail-on=empty` (#650)
   - Add `registerFormatter` and `registerDefaultFormatter` to
