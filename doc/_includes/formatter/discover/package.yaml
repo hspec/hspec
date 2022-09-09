@@ -1,0 +1,24 @@
+name: formatter-example
+
+ghc-options: -Wall -Werror
+
+when:
+  condition: impl(ghc < 8.4)
+  buildable: False
+
+library:
+  source-dirs: src
+  dependencies:
+    - base == 4.*
+    - hspec-api == 2.*
+
+tests:
+  spec:
+    build-tools: hspec-discover
+    main: Spec.hs
+    source-dirs: test
+    dependencies:
+      - base == 4.*
+      - QuickCheck
+      - hspec == 2.*
+      - formatter-example

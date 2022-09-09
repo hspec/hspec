@@ -1,0 +1,45 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           formatter-example
+version:        0.0.0
+build-type:     Simple
+
+library
+  exposed-modules:
+      MyFormatter
+  other-modules:
+      Paths_formatter_example
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Werror
+  build-depends:
+      base ==4.*
+    , hspec-api ==2.*
+  default-language: Haskell2010
+  if impl(ghc < 8.4)
+    buildable: False
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Data.ListSpec
+      SpecHook
+      Paths_formatter_example
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Werror
+  build-tool-depends:
+      hspec-discover:hspec-discover
+  build-depends:
+      QuickCheck
+    , base ==4.*
+    , formatter-example
+    , hspec ==2.*
+  default-language: Haskell2010
+  if impl(ghc < 8.4)
+    buildable: False

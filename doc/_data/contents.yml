@@ -8,3 +8,4 @@
 - match
 - rerun
 - parallel-spec-execution
+- extending-hspec-formatter

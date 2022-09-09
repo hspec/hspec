@@ -6,6 +6,7 @@ packages:
   hspec-contrib
   hspec-discover/example
   hspec-discover/integration-test
+  doc/_includes/formatter/discover
 
 package hspec
   ghc-options: -Werror
