@@ -192,9 +192,8 @@ printSlowItemsOption = Option name (Just 'p') (OptArg "N" arg) "print the N slow
 
     parseArg :: String -> Config -> Maybe Config
     parseArg input c = case readMaybe input of
-      Just 0 -> Just (setter Nothing c)
-      Just n -> Just (setter (Just n) c)
       Nothing -> Nothing
+      mn -> Just (setter (find (> 0) mn) c)
 
 smallCheckOptions :: [Option Config]
 smallCheckOptions = [
