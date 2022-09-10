@@ -137,7 +137,7 @@ argument name parser setter = Arg name $ \ input c -> flip setter c <$> parser i
 
 formatterOptions :: [(String, FormatConfig -> IO Format)] -> [Option Config]
 formatterOptions formatters = [
-    mkOption "format" (Just 'f') (argument "FORMATTER" readFormatter setFormatter) helpForFormat
+    mkOption "format" (Just 'f') (argument "NAME" readFormatter setFormatter) helpForFormat
   , mkFlag "color" setColor "colorize the output"
   , mkFlag "unicode" setUnicode "output unicode"
   , mkFlag "diff" setDiff "show colorized diffs"
