@@ -38,17 +38,23 @@ import           Control.Concurrent.Async
 --
 -- >>> pluralize 2 "example"
 -- "2 examples"
+--
+-- @since 2.0.0
 pluralize :: Int -> String -> String
 pluralize 1 s = "1 " ++ s
 pluralize n s = show n ++ " " ++ s ++ "s"
 
 -- | Strip leading and trailing whitespace
+--
+-- @since 2.0.0
 strip :: String -> String
 strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
 
 -- |
--- ensure that lines are not longer than given `n`, insert line breaks at word
+-- Ensure that lines are not longer than given `n`, insert line breaks at word
 -- boundaries
+--
+-- @since 2.0.0
 lineBreaksAt :: Int -> String -> [String]
 lineBreaksAt n = concatMap f . lines
   where
@@ -68,17 +74,23 @@ lineBreaksAt n = concatMap f . lines
 -- A `Path` describes the location of a spec item within a spec tree.
 --
 -- It consists of a list of group descriptions and a requirement description.
+--
+-- @since 2.0.0
 type Path = ([String], String)
 
 -- |
 -- Join a `Path` with slashes.  The result will have a leading and a trailing
 -- slash.
+--
+-- @since 2.5.4
 joinPath :: Path -> String
 joinPath (groups, requirement) = "/" ++ intercalate "/" (groups ++ [requirement]) ++ "/"
 
 -- |
 -- Try to create a proper English sentence from a path by applying some
 -- heuristics.
+--
+-- @since 2.0.0
 formatRequirement :: Path -> String
 formatRequirement (groups, requirement) = groups_ ++ requirement
   where
@@ -91,6 +103,8 @@ formatRequirement (groups, requirement) = groups_ ++ requirement
       ys  -> concatMap (++ ", ") ys
 
 -- | A predicate that can be used to filter a spec tree.
+--
+-- @since 2.0.0
 filterPredicate :: String -> Path -> Bool
 filterPredicate pattern path =
      pattern `isInfixOf` plain
@@ -107,6 +121,8 @@ filterPredicate pattern path =
 -- "ArithException\ndivide by zero"
 --
 -- For `IOException`s the `IOErrorType` is included, as well.
+--
+-- @since 2.0.0
 formatException :: SomeException -> String
 formatException err@(SomeException e) = case fromException err of
   Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ "\n" ++ show ioe
@@ -137,5 +153,7 @@ formatException err@(SomeException e) = case fromException err of
 -- | @safeTry@ evaluates given action and returns its result.  If an exception
 -- occurs, the exception is returned instead.  Unlike `try` it is agnostic to
 -- asynchronous exceptions.
+--
+-- @since 2.0.0
 safeTry :: IO a -> IO (Either SomeException a)
 safeTry action = withAsync (action >>= evaluate) waitCatch
