@@ -105,6 +105,10 @@ spec = do
         it "disables the option" $ do
           configPrintSlowItems <$> parseOptions [] Nothing [] ["-p0"] `shouldBe` Right Nothing
 
+      context "when N is negative" $ do
+        it "disables the option" $ do
+          configPrintSlowItems <$> parseOptions [] Nothing [] ["--print-slow-items=-23"] `shouldBe` Right Nothing
+
     context "with --qc-max-success" $ do
       it "sets QuickCheck maxSuccess" $ do
         maxSuccess . configQuickCheckArgs <$> (parseOptions [] Nothing [] ["--qc-max-success", "23"]) `shouldBe`  Right 23
