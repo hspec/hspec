@@ -14,10 +14,10 @@ $ util/release major
 ```
 This will bump the version and update `CHANGES.markdown`.
 
-Releases happen automatically when a new version end up on the `main` branch.
+Releases happen automatically when a new version ends up on `main`.
 
-Whenever [`.github/workflows/publish.yml`](.github/workflows/publish.yml) sees
+Whenever [`.github/workflows/publish.yml`](.github/workflows/publish.yml) detects
 a new version that has no corresponding tag it:
 
-- creates the tag
+- creates a tag
 - publishes to Hackage
