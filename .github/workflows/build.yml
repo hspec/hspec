@@ -73,7 +73,7 @@ jobs:
 
       - uses: sol/run-haskell-tests@v2
         env: 
-          HSPEC_STRICT=no
+          HSPEC_STRICT: no
 
       - name: Run regression tests
         run: |
