@@ -1,0 +1,6 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+
+util/bump-version $*
+util/update-changes
