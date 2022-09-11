@@ -282,6 +282,8 @@ defaultFailedFormatter = do
               Just f -> f expected_ actual_
               Nothing -> (expected_, actual_)
 
+            multiline = '\n' `elem` actual && '\n' `elem` expected
+
           mapM_ indent preface
 
           b <- useDiff
@@ -294,13 +296,19 @@ defaultFailedFormatter = do
 
           case mchunks of
             Just chunks -> do
-              writeDiff chunks extraChunk missingChunk
+              writeDiff multiline chunks extraChunk missingChunk
             Nothing -> do
-              writeDiff [First expected, Second actual] write write
+              writeDiff multiline [First expected, Second actual] write write
           where
-            writeDiff chunks extra missing = do
-              writeChunks "expected: " (expectedChunks chunks) extra
-              writeChunks " but got: " (actualChunks chunks) missing
+            writeDiff multiline chunks extra missing = do
+              if multiline then do
+                withFailColor $ write (indentation ++ "expected:\n")
+                writeChunks "  " (expectedChunks chunks) extra
+                withFailColor $ write (indentation ++ "but got:\n")
+                writeChunks "  " (actualChunks chunks) missing
+              else do
+                writeChunks "expected: " (expectedChunks chunks) extra
+                writeChunks " but got: " (actualChunks chunks) missing
 
             writeChunks :: String -> [Chunk] -> (String -> FormatM ()) -> FormatM ()
             writeChunks pre chunks colorize = do

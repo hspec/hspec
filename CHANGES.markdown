@@ -1,3 +1,6 @@
+## Changes in 2.10.6
+  - Use less indentation for multiline diffs (#715)
+
 ## Changes in 2.10.5
   - Add `--fail-on`.  This subsums `--fail-on-focused` and `--fail-on-pending`.
   - Add `--fail-on=empty` (#650)
