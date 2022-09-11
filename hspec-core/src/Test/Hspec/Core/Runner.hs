@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE RankNTypes #-} -- FIXME: needed now, breaking change
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
 -- Stability: provisional
@@ -112,6 +114,7 @@ import           Test.Hspec.Core.Runner.PrintSlowSpecItems
 import           Test.Hspec.Core.Runner.Eval hiding (Tree(..))
 import qualified Test.Hspec.Core.Runner.Eval as Eval
 import           Test.Hspec.Core.Runner.Result
+import           Test.Hspec.Core.Example (AroundAction)  -- FIXME
 
 -- |
 -- Make a formatter available for use with @--format@.
@@ -284,10 +287,12 @@ failFocusedItems config
   | configFailOnFocused config = mapItem failFocused
   | otherwise = id
 
-failFocused :: Item a -> Item a
+failFocused :: forall a. Item a -> Item a
 failFocused item = item {itemExample = example}
   where
     failure = Failure Nothing (Reason "item is focused; failing due to --fail-on=focused")
+
+    example :: Params -> AroundAction a -> ProgressCallback -> IO Result -- FIXME: This is now needed => breaking changes
     example
       | itemIsFocused item = \ params hook p -> do
           Result info status <- itemExample item params hook p
@@ -302,9 +307,10 @@ failPendingItems config
   | configFailOnPending config = mapItem failPending
   | otherwise = id
 
-failPending :: Item a -> Item a
+failPending :: forall a. Item a -> Item a
 failPending item = item {itemExample = example}
   where
+    example :: Params -> AroundAction a -> ProgressCallback -> IO Result -- FIXME: This is now needed => breaking changes
     example params hook p = do
       Result info status <- itemExample item params hook p
       return $ Result info $ case status of
@@ -411,7 +417,7 @@ toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
     toEvalItem :: Item () -> EvalItem
     toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem requirement loc (fromMaybe False isParallelizable) (e params withUnit)
 
-    withUnit :: ActionWith () -> IO ()
+    withUnit :: AroundAction ()
     withUnit action = action ()
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()

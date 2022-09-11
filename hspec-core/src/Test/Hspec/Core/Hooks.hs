@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE RankNTypes #-}
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
   before
@@ -113,9 +114,14 @@ around_ action = aroundWith $ \e a -> action (e a)
 aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundWith = mapSpecItem_ . modifyAroundAction
 
-modifyAroundAction :: (ActionWith a -> ActionWith b) -> Item a -> Item b
+modifyAroundAction :: forall a b. (ActionWith a -> ActionWith b) -> Item a -> Item b
 modifyAroundAction action item@Item{itemExample = e} =
-  item{ itemExample = \params aroundAction -> e params (aroundAction . action) }
+  item{ itemExample = \ params aroundAction -> e params (mapAround action aroundAction) }
+
+mapAround :: (ActionWith a -> ActionWith b) -> ((b -> IO r) -> IO r) -> (a -> IO r) -> IO r
+mapAround action aroundAction example = do
+  ref <- newIORef undefined -- FIXME: This will result in undefined if example is never called by `action`...
+  aroundAction $ \ b -> action (example >=> writeIORef ref) b >> readIORef ref
 
 -- | Wrap an action around the given spec.
 aroundAll :: HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec

@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Test.Hspec.Core.Tree (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
@@ -113,7 +114,7 @@ data Item a = Item {
 , itemIsFocused :: Bool
 
   -- | Example for behavior
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: Params -> AroundAction a -> ProgressCallback -> IO Result
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
