@@ -72,6 +72,8 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
 
       - uses: sol/run-haskell-tests@v2
+        env: 
+          HSPEC_NO_FAIL_ON: empty
 
       - name: Run regression tests
         run: |
