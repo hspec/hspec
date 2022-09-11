@@ -126,7 +126,16 @@ shouldUseArgs args p = do
   readIORef spy >>= (`shouldSatisfy` p)
 
 removeLocations :: H.SpecWith a -> H.SpecWith a
-removeLocations = H.mapSpecItem_ (\item -> item{H.itemLocation = Nothing})
+removeLocations = H.mapSpecItem_ $ \ item -> item {
+  H.itemLocation = Nothing
+, H.itemExample = \ params action progressCallback -> removeResultLocation <$> H.itemExample item params action progressCallback
+}
+
+removeResultLocation :: Result -> Result
+removeResultLocation (Result info status) = case status of
+  Success -> Result info status
+  Pending _loc reason -> Result info (Pending Nothing reason)
+  Failure _loc reason -> Result info (Failure Nothing reason)
 
 withEnvironment :: [(String, String)] -> IO a -> IO a
 withEnvironment environment action = bracket saveEnv restoreEnv $ const action
