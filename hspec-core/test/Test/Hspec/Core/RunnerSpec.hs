@@ -35,6 +35,10 @@ import qualified Test.Hspec.Core.Hooks as H
 
 import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (Person(..))
 
+#if __GLASGOW_HASKELL__ >= 802
+import           Test.HUnit.Lang
+#endif
+
 quickCheckOptions :: [([Char], Args -> Int)]
 quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]
 
@@ -441,11 +445,16 @@ spec = do
 #if __GLASGOW_HASKELL__ >= 802
     context "with --pretty" $ do
       it "pretty-prints Haskell values" $ do
-        r <- capture_ . ignoreExitCode . withArgs ["--pretty"] . H.hspec $ do
+        let args = ["--pretty", "--seed=0", "--format=failed-examples"]
+        r <- fmap (unlines . normalizeSummary . lines) . capture_ . ignoreExitCode . withArgs args . H.hspec . removeLocations $ do
           H.it "foo" $ do
-            person 23 `H.shouldBe` person 42
-        r `shouldContain` unlines [
-            "       expected: Person {"
+            void . E.throwIO $ HUnitFailure Nothing $ ExpectedButGot Nothing (show $ person 42) (show $ person 23)
+        r `shouldBe` unlines [
+            ""
+          , "Failures:"
+          , ""
+          , "  1) foo"
+          , "       expected: Person {"
           , "                   personName = \"Joe\","
           , "                   personAge = 42"
           , "                 }"
@@ -453,6 +462,13 @@ spec = do
           , "                   personName = \"Joe\","
           , "                   personAge = 23"
           , "                 }"
+          , ""
+          , "  To rerun use: --match \"/foo/\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
           ]
 #endif
 
