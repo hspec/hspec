@@ -71,7 +71,7 @@ jobs:
         with:
           ghc-version: ${{ matrix.ghc }}
 
-      - uses: sol/run-haskell-tests@v1
+      - uses: sol/run-haskell-tests@v2
 
       - name: Run regression tests
         run: |
