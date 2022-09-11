@@ -46,6 +46,14 @@ spec = do
     describe "RUNNER OPTIONS" $ do
       let parseOptions_ args = snd <$> Options.parseOptions defaultConfig "my-spec" [] Nothing [] args
 
+      it "gives HSPEC_FAIL_ON precedence over HSPEC_STRICT" $ do
+        (configFailOnFocused &&& configFailOnEmpty) <$> parseOptions [] Nothing [("HSPEC_STRICT", "no"), ("HSPEC_FAIL_ON", "focused")] []
+          `shouldBe` Right (True, False)
+
+      it "gives HSPEC_NO_FAIL_ON precedence over HSPEC_STRICT" $ do
+        (configFailOnFocused &&& configFailOnEmpty) <$> parseOptions [] Nothing [("HSPEC_STRICT", "yes"), ("HSPEC_NO_FAIL_ON", "focused")] []
+          `shouldBe` Right (False, True)
+
       context "with --fail-on-focused" $ do
         it "sets configFailOnFocused to True" $ do
           configFailOnFocused <$> parseOptions_ ["--fail-on-focused"] `shouldBe` Right True
