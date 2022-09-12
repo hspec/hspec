@@ -21,16 +21,32 @@ import           Test.Hspec.Core.Compat
 import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
 
+-- |
+-- @since 2.10.0
 data SpecResult = SpecResult {
+  -- |
+  -- @since 2.10.0
   specResultItems :: [ResultItem]
+
+  -- |
+  -- @since 2.10.0
 , specResultSuccess :: !Bool
 } deriving (Eq, Show)
 
+-- |
+-- @since 2.10.0
 data ResultItem = ResultItem {
+  -- |
+  -- @since 2.10.0
   resultItemPath :: Path
+
+  -- |
+  -- @since 2.10.0
 , resultItemStatus :: ResultItemStatus
 } deriving (Eq, Show)
 
+-- |
+-- @since 2.10.0
 resultItemIsFailure :: ResultItem -> Bool
 resultItemIsFailure item = case resultItemStatus item of
   ResultItemSuccess -> False
