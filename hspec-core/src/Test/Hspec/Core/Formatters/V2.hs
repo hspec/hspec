@@ -388,10 +388,12 @@ defaultFooter = do
          pluralize total   "example"
       ++ ", " ++ pluralize fails "failure"
       ++ if pending == 0 then "" else ", " ++ show pending ++ " pending"
-    c | fails /= 0   = withFailColor
+
+    color
+      | fails /= 0   = withFailColor
       | pending /= 0 = withPendingColor
       | otherwise    = withSuccessColor
-  c $ writeLine output
+  color $ writeLine output
 
 formatLocation :: Location -> String
 formatLocation (Location file line column) = file ++ ":" ++ show line ++ ":" ++ show column ++ ": "
