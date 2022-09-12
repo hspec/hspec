@@ -39,6 +39,7 @@ dependencies:
   - call-stack >= 0.2.0
   - directory
   - filepath
+  - process
 
   - array # for Diff
 

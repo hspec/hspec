@@ -339,6 +339,7 @@ runEvalTree config spec = do
       , formatConfigOutputUnicode = outputUnicode
       , formatConfigUseDiff = configDiff config
       , formatConfigDiffContext = configDiffContext config
+      , formatConfigExternalDiff = if configDiff config then ($ configDiffContext config) <$> configExternalDiff config else Nothing
       , formatConfigPrettyPrint = configPrettyPrint config
       , formatConfigPrettyPrintFunction = if configPrettyPrint config then Just (configPrettyPrintFunction config outputUnicode) else Nothing
       , formatConfigPrintTimes = configTimes config

@@ -60,6 +60,7 @@ data FormatConfig = FormatConfig {
 , formatConfigOutputUnicode :: Bool
 , formatConfigUseDiff :: Bool
 , formatConfigDiffContext :: Maybe Int
+, formatConfigExternalDiff :: Maybe (String -> String -> IO ())
 , formatConfigPrettyPrint :: Bool -- ^ Deprecated: use `formatConfigPrettyPrintFunction` instead
 , formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
 , formatConfigPrintTimes :: Bool
