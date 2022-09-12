@@ -44,6 +44,7 @@ library
     , directory
     , filepath
     , hspec-expectations ==0.8.2.*
+    , process
     , quickcheck-io >=0.2.0
     , random
     , setenv

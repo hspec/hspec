@@ -28,6 +28,7 @@ formatConfig = FormatConfig {
 , formatConfigOutputUnicode = unicode
 , formatConfigUseDiff = True
 , formatConfigDiffContext = Just 3
+, formatConfigExternalDiff = Nothing
 , formatConfigPrettyPrint = True
 , formatConfigPrettyPrintFunction = Just (H.configPrettyPrintFunction H.defaultConfig unicode)
 , formatConfigPrintTimes = False

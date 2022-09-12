@@ -117,6 +117,10 @@ spec = do
         it "disables the option" $ do
           configDiffContext <$> parseOptions [] Nothing [] ["--diff-context=full"] `shouldBe` Right Nothing
 
+    context "with --diff-command=" $ do
+      it "sets configExternalDiff to Nothing" $ do
+        fmap (const ()) . configExternalDiff <$> parseOptions [] Nothing [] ["--diff-command="] `shouldBe` Right Nothing
+
     context "with --print-slow-items" $ do
       it "sets configPrintSlowItems to N" $ do
         configPrintSlowItems <$> parseOptions [] Nothing [] ["--print-slow-items=5"] `shouldBe` Right (Just 5)

@@ -37,6 +37,8 @@ FORMATTER OPTIONS
            --[no-]diff             show colorized diffs
            --diff-context=N        output N lines of diff context (default: 3)
                                    use a value of 'full' to see the full context
+           --diff-command=CMD      use an external diff command
+                                   example: --diff-command="git diff"
            --[no-]pretty           try to pretty-print diff values
            --[no-]times            report times for individual spec items
            --print-cpu-time        include used CPU time in summary

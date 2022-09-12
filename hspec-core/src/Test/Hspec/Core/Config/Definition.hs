@@ -20,6 +20,11 @@ module Test.Hspec.Core.Config.Definition (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import           Control.Exception (bracket)
+import           System.Directory (getTemporaryDirectory, removeFile)
+import           System.IO (openTempFile, hClose)
+import           System.Process (system)
+
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
@@ -66,6 +71,15 @@ data Config = Config {
 , configUnicodeMode :: UnicodeMode
 , configDiff :: Bool
 , configDiffContext :: Maybe Int
+
+-- |
+-- An action that is used to print diffs.  The first argument is the value of
+-- `configDiffContext`.  The remaining two arguments are the @expected@ and
+-- @actual@ value.
+--
+-- @since 2.10.6
+, configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
+
 , configPrettyPrint :: Bool
 , configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
 , configTimes :: Bool
@@ -103,6 +117,7 @@ defaultConfig = Config {
 , configUnicodeMode = UnicodeAuto
 , configDiff = True
 , configDiffContext = Just defaultDiffContext
+, configExternalDiff = Nothing
 , configPrettyPrint = True
 , configPrettyPrintFunction = pretty2
 , configTimes = False
@@ -121,6 +136,20 @@ defaultConfig = Config {
 
 defaultDiffContext :: Int
 defaultDiffContext = 3
+
+externalDiff :: String -> String -> String -> IO ()
+externalDiff command expected actual = do
+  tmp <- getTemporaryDirectory
+  withTempFile tmp "hspec-expected" expected $ \ expectedFile -> do
+    withTempFile tmp "hspec-actual" actual $ \ actualFile -> do
+      void . system $ unwords [command, expectedFile, actualFile]
+
+withTempFile :: FilePath -> FilePath -> String -> (FilePath -> IO a) -> IO a
+withTempFile dir file contents action = do
+  bracket (openTempFile dir file) (removeFile . fst) $ \ (path, h) -> do
+    hClose h
+    writeFile path contents
+    action path
 
 option :: String -> OptionSetter config -> String -> Option config
 option name arg help = Option name Nothing arg help True
@@ -150,6 +179,7 @@ formatterOptions formatters = [
         "output N lines of diff context (default: " <> show defaultDiffContext <> ")"
       , "use a value of 'full' to see the full context"
       ]
+  , option "diff-command" (argument "CMD" return setDiffCommand) "use an external diff command\nexample: --diff-command=\"git diff\""
   , mkFlag "pretty" setPretty "try to pretty-print diff values"
   , mkFlag "times" setTimes "report times for individual spec items"
   , mkOptionNoArg "print-cpu-time" Nothing setPrintCpuTime "include used CPU time in summary"
@@ -160,6 +190,13 @@ formatterOptions formatters = [
   , undocumented $ mkOptionNoArg "html" Nothing setHtml "produce HTML output"
   ]
   where
+    setDiffCommand :: String -> Config -> Config
+    setDiffCommand command config = config {
+      configExternalDiff = case strip command of
+        "" -> Nothing
+        _ -> Just $ \ _context -> externalDiff command
+    }
+
     setHtml config = config {configHtmlOutput = True}
 
     helpForFormat :: String

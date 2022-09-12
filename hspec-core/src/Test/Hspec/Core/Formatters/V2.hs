@@ -59,6 +59,7 @@ module Test.Hspec.Core.Formatters.V2 (
 
 , useDiff
 , diffContext
+, externalDiffAction
 , prettyPrint
 , prettyPrintFunction
 , extraChunk
@@ -128,6 +129,7 @@ import Test.Hspec.Core.Formatters.Internal (
 
   , useDiff
   , diffContext
+  , externalDiffAction
   , prettyPrint
   , prettyPrintFunction
   , extraChunk
@@ -290,17 +292,24 @@ defaultFailedFormatter = do
 
           let threshold = 2 :: Seconds
 
-          context <- diffContext
 
-          mchunks <- liftIO $ if b
-            then timeout threshold (evaluate $ diff context expected actual)
-            else return Nothing
+          mExternalDiff <- externalDiffAction
 
-          case mchunks of
-            Just chunks -> do
-              writeDiff chunks extraChunk missingChunk
+          case mExternalDiff of
+            Just externalDiff -> do
+              liftIO $ externalDiff expected actual
+
             Nothing -> do
-              writeDiff [First expected, Second actual] write write
+              context <- diffContext
+              mchunks <- liftIO $ if b
+                then timeout threshold (evaluate $ diff context expected actual)
+                else return Nothing
+
+              case mchunks of
+                Just chunks -> do
+                  writeDiff chunks extraChunk missingChunk
+                Nothing -> do
+                  writeDiff [First expected, Second actual] write write
           where
             writeDiff chunks extra missing = do
               writeChunks "expected: " (expectedChunks chunks) extra

@@ -545,6 +545,40 @@ spec = do
           , "1 example, 1 failure"
           ]
 
+    context "with --diff-command" $ do
+      it "uses an external diff command" $ do
+        let
+          args = ["--seed=0", "--format=failed-examples", "--diff-command", "diff -u -L expected -L actual"]
+          expected = map show [1 .. 99 :: Int]
+          actual = replace "50" "foo" expected
+        r <- fmap (unlines . normalizeSummary . lines) . capture_ . ignoreExitCode . withArgs args . H.hspec . removeLocations $ do
+          H.it "foo" $ do
+            unlines actual `H.shouldBe` unlines expected
+        r `shouldBe` unlines [
+            ""
+          , "Failures:"
+          , ""
+          , "  1) foo"
+          , "--- expected"
+          , "+++ actual"
+          , "@@ -47,7 +47,7 @@"
+          , " 47"
+          , " 48"
+          , " 49"
+          , "-50"
+          , "+foo"
+          , " 51"
+          , " 52"
+          , " 53"
+          , ""
+          , "  To rerun use: --match \"/foo/\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
+          ]
+
     context "with --print-slow-items" $ do
       it "prints slow items" $ do
         r <- captureLines . ignoreExitCode . withArgs ["--print-slow-items"] . H.hspec $ do

@@ -36,6 +36,7 @@ module Test.Hspec.Core.Formatters.Internal (
 
 , useDiff
 , diffContext
+, externalDiffAction
 , prettyPrint
 , prettyPrintFunction
 , extraChunk
@@ -118,6 +119,18 @@ useDiff = getConfig formatConfigUseDiff
 -- @since 2.10.6
 diffContext :: FormatM (Maybe Int)
 diffContext = getConfig formatConfigDiffContext
+
+-- | An action for printing diffs.
+--
+-- The action takes @expected@ and @actual@ as arguments.
+--
+-- When this is a `Just`-value then it should be used instead of any built-in
+-- diff implementation.  A `Just`-value also implies that `useDiff` returns
+-- `True`.
+--
+-- @since 2.10.6
+externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
+externalDiffAction = getConfig formatConfigExternalDiff
 
 -- | Return `True` if the user requested pretty diffs, `False` otherwise.
 prettyPrint :: FormatM Bool
