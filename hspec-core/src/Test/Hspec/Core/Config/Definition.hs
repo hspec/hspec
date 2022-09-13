@@ -4,7 +4,7 @@ module Test.Hspec.Core.Config.Definition (
 , ColorMode(..)
 , UnicodeMode(..)
 , filterOr
-, defaultConfig
+, mkDefaultConfig
 
 , commandLineOnlyOptions
 , formatterOptions
@@ -27,8 +27,7 @@ import           System.Process (system)
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
-import qualified Test.Hspec.Core.Formatters.V1 as V1
-import qualified Test.Hspec.Core.Formatters.V2 as V2
+import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
 import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
@@ -89,8 +88,8 @@ data Config = Config {
 , configConcurrentJobs :: Maybe Int
 }
 
-defaultConfig :: Config
-defaultConfig = Config {
+mkDefaultConfig :: [(String, FormatConfig -> IO Format)] -> Config
+mkDefaultConfig formatters = Config {
   configIgnoreConfigFile = False
 , configDryRun = False
 , configFocusedOnly = False
@@ -120,13 +119,7 @@ defaultConfig = Config {
 , configPrettyPrint = True
 , configPrettyPrintFunction = pretty2
 , configTimes = False
-, configAvailableFormatters = map (fmap V2.formatterToFormat) [
-    ("checks", V2.checks)
-  , ("specdoc", V2.specdoc)
-  , ("progress", V2.progress)
-  , ("failed-examples", V2.failed_examples)
-  , ("silent", V2.silent)
-  ]
+, configAvailableFormatters = formatters
 , configFormat = Nothing
 , configFormatter = Nothing
 , configHtmlOutput = False
