@@ -1,6 +1,6 @@
 checks :: Formatter
 failed_examples :: Formatter
-formatLocation :: hspec-core:Test.Hspec.Core.Example.Location.Location -> String
+formatLocation :: Location -> String
 progress :: Formatter
 silent :: Formatter
 specdoc :: Formatter
@@ -12,8 +12,8 @@ data FailureReason
   | Error (Maybe String) GHC.Exception.Type.SomeException
 type FailureRecord :: *
 data FailureRecord = FailureRecord
-  failureRecordLocation :: Maybe hspec-core:Test.Hspec.Core.Example.Location.Location
-  failureRecordPath :: Test.Hspec.Core.Util.Path
+  failureRecordLocation :: Maybe Location
+  failureRecordPath :: Path
   failureRecordMessage :: FailureReason
 type role FormatM nominal
 type FormatM :: * -> *
@@ -21,23 +21,32 @@ newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Cont
 type Formatter :: *
 data Formatter = Formatter
   formatterStarted :: FormatM ()
-  formatterGroupStarted :: Test.Hspec.Core.Util.Path -> FormatM ()
-  formatterGroupDone :: Test.Hspec.Core.Util.Path -> FormatM ()
-  formatterProgress :: Test.Hspec.Core.Util.Path -> hspec-core:Test.Hspec.Core.Example.Progress -> FormatM ()
-  formatterItemStarted :: Test.Hspec.Core.Util.Path -> FormatM ()
-  formatterItemDone :: Test.Hspec.Core.Util.Path -> Item -> FormatM ()
+  formatterGroupStarted :: Path -> FormatM ()
+  formatterGroupDone :: Path -> FormatM ()
+  formatterProgress :: Path -> Progress -> FormatM ()
+  formatterItemStarted :: Path -> FormatM ()
+  formatterItemDone :: Path -> Item -> FormatM ()
   formatterDone :: FormatM ()
 type Item :: *
 data Item = Item
-  itemLocation :: Maybe hspec-core:Test.Hspec.Core.Example.Location.Location
+  itemLocation :: Maybe Location
   itemDuration :: Seconds
   itemInfo :: String
   itemResult :: Result
+type Location :: *
+data Location = Location
+  locationFile :: FilePath
+  locationLine :: Int
+  locationColumn :: Int
+type Path :: *
+type Path = ([String], String)
+type Progress :: *
+type Progress = (Int, Int)
 type Result :: *
 data Result
   | Success
-  | Pending (Maybe hspec-core:Test.Hspec.Core.Example.Location.Location) (Maybe String)
-  | Failure (Maybe hspec-core:Test.Hspec.Core.Example.Location.Location) FailureReason
+  | Pending (Maybe Location) (Maybe String)
+  | Failure (Maybe Location) FailureReason
 type Seconds :: *
 newtype Seconds = Seconds Double
 diffContext :: FormatM (Maybe Int)
