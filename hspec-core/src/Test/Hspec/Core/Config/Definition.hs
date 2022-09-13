@@ -297,7 +297,7 @@ runnerOptions = [
   , mkOption "jobs" (Just 'j') (argument "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
   ]
   where
-    strict = allFailOnItems
+    strict = [FailOnFocused, FailOnPending]
 
     readFailOnItems :: String -> Maybe [FailOn]
     readFailOnItems = mapM readFailOn . splitOn ','
