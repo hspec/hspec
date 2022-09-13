@@ -183,11 +183,11 @@ test-suite spec
       Test.Hspec.Core.Util
       Control.Concurrent.Async
       Data.Algorithm.Diff
-      All
       GetOpt.Declarative.EnvironmentSpec
       GetOpt.Declarative.UtilSpec
       Helper
       Mock
+      SpecHook
       Test.Hspec.Core.ClockSpec
       Test.Hspec.Core.CompatSpec
       Test.Hspec.Core.Config.DefinitionSpec
