@@ -1,3 +1,10 @@
+## Changes in 2.10.6 (2022-09-13)
+  - Suppress excessive diff output (#449)
+  - Allow the use of an external diff program.  This can e.g. be used by
+    setting `HSPEC_DIFF_COMMAND="diff -u --color -L expected -L actual"` or
+    `HSPEC_DIFF_COMMAND="git diff"`
+  - Do not imply `--fail-on=empty` on `--strict`
+
 ## Changes in 2.10.5
   - Add `--fail-on`.  This subsums `--fail-on-focused` and `--fail-on-pending`.
   - Add `--fail-on=empty` (#650)
