@@ -1,0 +1,26 @@
+name: api-dump
+
+ghc-options: -Wall
+
+dependencies:
+  - base
+  - process
+  - filepath
+  - directory
+  - hpack
+
+source-dirs: src
+
+executable:
+  main: Run.main
+
+tests:
+  spec:
+    cpp-options: -DTEST
+    build-tools: hspec-discover
+    main: Spec.hs
+    source-dirs:
+      - test
+    dependencies:
+      - hspec == 2.*
+      - QuickCheck
