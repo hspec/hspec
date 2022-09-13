@@ -1,6 +1,5 @@
 name: build
 
-# cancel in-progress builds for the same pull request
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true

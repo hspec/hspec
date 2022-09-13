@@ -1,0 +1,32 @@
+name: api-check
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cabal/store
+          key: api-check-${{ github.run_id }}
+          restore-keys: api-check-
+
+      - run: cabal update
+      - run: mkdir -p $HOME/.local/bin/
+      - run: cd util/api-dump/ && cabal install --installdir=$HOME/.local/bin/
+      - run: cabal build
+      - run: api-dump && cd hspec-core && api-dump
+
+      - name: Check for uncommitted changes
+        run: git diff --quiet || (git diff && false)

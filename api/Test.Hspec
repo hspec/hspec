@@ -1,0 +1,74 @@
+example :: Expectation -> Expectation
+type ActionWith :: * -> *
+type ActionWith a = a -> IO ()
+type Example :: * -> Constraint
+class Example e where
+  type Arg :: * -> *
+  type family Arg e
+    Default: ()
+  hspec-core:Test.Hspec.Core.Example.evaluateExample :: e -> hspec-core:Test.Hspec.Core.Example.Params -> (ActionWith (Arg e) -> IO ()) -> hspec-core:Test.Hspec.Core.Example.ProgressCallback -> IO hspec-core:Test.Hspec.Core.Example.Result
+  {-# MINIMAL evaluateExample #-}
+type Expectation :: *
+type Expectation = Test.HUnit.Lang.Assertion
+type HasCallStack :: Constraint
+type HasCallStack = ?callStack::GHC.Stack.Types.CallStack :: Constraint
+type Selector :: * -> *
+type Selector a = a -> Bool
+type Spec :: *
+type Spec = SpecWith ()
+type SpecWith :: * -> *
+type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
+after :: ActionWith a -> SpecWith a -> SpecWith a
+afterAll :: HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
+afterAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
+after_ :: IO () -> SpecWith a -> SpecWith a
+anyArithException :: Selector GHC.Exception.Type.ArithException
+anyErrorCall :: Selector GHC.Exception.ErrorCall
+anyException :: Selector GHC.Exception.Type.SomeException
+anyIOException :: Selector GHC.IO.Exception.IOException
+around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
+aroundAll :: HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec
+aroundAllWith :: HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+aroundAll_ :: HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
+aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+around_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
+before :: IO a -> SpecWith a -> Spec
+beforeAll :: HasCallStack => IO a -> SpecWith a -> Spec
+beforeAllWith :: HasCallStack => (b -> IO a) -> SpecWith a -> SpecWith b
+beforeAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
+beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
+before_ :: IO () -> SpecWith a -> SpecWith a
+context :: HasCallStack => String -> SpecWith a -> SpecWith a
+describe :: HasCallStack => String -> SpecWith a -> SpecWith a
+errorCall :: String -> Selector GHC.Exception.ErrorCall
+expectationFailure :: HasCallStack => String -> Expectation
+fcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
+fdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
+fit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+focus :: SpecWith a -> SpecWith a
+fspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+hspec :: Spec -> IO ()
+ignoreSubject :: SpecWith () -> SpecWith a
+it :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+mapSubject :: (b -> a) -> SpecWith a -> SpecWith b
+parallel :: SpecWith a -> SpecWith a
+pending :: HasCallStack => Expectation
+pendingWith :: HasCallStack => String -> Expectation
+runIO :: IO r -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a r
+shouldBe :: (HasCallStack, Show a, Eq a) => a -> a -> Expectation
+shouldContain :: (HasCallStack, Show a, Eq a) => [a] -> [a] -> Expectation
+shouldEndWith :: (HasCallStack, Show a, Eq a) => [a] -> [a] -> Expectation
+shouldMatchList :: (HasCallStack, Show a, Eq a) => [a] -> [a] -> Expectation
+shouldNotBe :: (HasCallStack, Show a, Eq a) => a -> a -> Expectation
+shouldNotContain :: (HasCallStack, Show a, Eq a) => [a] -> [a] -> Expectation
+shouldNotReturn :: (HasCallStack, Show a, Eq a) => IO a -> a -> Expectation
+shouldNotSatisfy :: (HasCallStack, Show a) => a -> (a -> Bool) -> Expectation
+shouldReturn :: (HasCallStack, Show a, Eq a) => IO a -> a -> Expectation
+shouldSatisfy :: (HasCallStack, Show a) => a -> (a -> Bool) -> Expectation
+shouldStartWith :: (HasCallStack, Show a, Eq a) => [a] -> [a] -> Expectation
+shouldThrow :: (HasCallStack, GHC.Exception.Type.Exception e) => IO a -> Selector e -> Expectation
+specify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+xcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
+xdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
+xit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
