@@ -15,7 +15,7 @@ on:
     - cron: 0 0 * * *
 
 jobs:
-  build:
+  api-check:
     runs-on: ubuntu-latest
 
     steps:

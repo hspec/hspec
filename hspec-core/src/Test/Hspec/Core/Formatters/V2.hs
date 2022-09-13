@@ -21,6 +21,9 @@ module Test.Hspec.Core.Formatters.V2 (
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
 , Formatter (..)
+, Path
+, Progress
+, Location(..)
 , Item(..)
 , Result(..)
 , FailureReason (..)
@@ -82,7 +85,7 @@ import           Test.Hspec.Core.Compat hiding (First)
 import           Data.Char
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
-import           Test.Hspec.Core.Example (Location(..))
+import           Test.Hspec.Core.Example (Location(..), Progress)
 import           Text.Printf
 import           Test.Hspec.Core.Formatters.Pretty.Unicode (ushow)
 import           Control.Monad.IO.Class
