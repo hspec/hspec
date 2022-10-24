@@ -1,4 +1,9 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -44,10 +49,10 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example.Location
 
 -- | A type class for examples
-class Example e where
-  type Arg e
-  type Arg e = ()
-  evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+class Example env e where
+  evaluateExample :: e -> Params -> (ActionWith env -> IO ()) -> ProgressCallback -> IO Result
+--evaluateExample :: e -> Params -> ((env -> IO ()) -> IO ()) -> ProgressCallback -> IO Result
+--evaluateExample :: (a -> e) -> Params -> ((env -> IO ()) -> IO ()) -> ProgressCallback -> IO Result
 
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
@@ -64,7 +69,8 @@ type Progress = (Int, Int)
 type ProgressCallback = Progress -> IO ()
 
 -- | An `IO` action that expects an argument of type @a@
-type ActionWith a = a -> IO ()
+type ActionWith a =
+     a -> IO ()
 
 -- | The result of running an example
 data Result = Result {
@@ -94,7 +100,7 @@ instance NFData FailureReason where
 
 instance Exception ResultStatus
 
-safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+safeEvaluateExample :: Example env e => e -> Params -> (ActionWith env -> IO ()) -> ProgressCallback -> IO Result
 safeEvaluateExample example params around progress = safeEvaluate $ forceResult <$> evaluateExample example params around progress
   where
     forceResult :: Result -> Result
@@ -122,35 +128,66 @@ toResultStatus e
   | Just hunit <- fromException e = hunitFailureToResult Nothing hunit
   | otherwise = Failure Nothing $ Error Nothing e
 
-instance Example Result where
-  type Arg Result = ()
-  evaluateExample e = evaluateExample (\() -> e)
-
-instance Example (a -> Result) where
-  type Arg (a -> Result) = a
+instance Example env Result where
   evaluateExample example _params action _callback = do
     ref <- newIORef (Result "" Success)
-    action (evaluate . example >=> writeIORef ref)
+    action $ \_env -> do
+        r <- evaluate example
+        writeIORef ref r
     readIORef ref
 
-instance Example Bool where
-  type Arg Bool = ()
-  evaluateExample e = evaluateExample (\() -> e)
+-- instance (env ~ a) => Example env (a -> Result) where
+--   evaluateExample example _params action _callback = do
+--     ref <- newIORef (Result "" Success)
+--     action $ \env -> do
+--         r <- evaluate (example env)
+--         writeIORef ref r
+--     readIORef ref
 
-instance Example (a -> Bool) where
-  type Arg (a -> Bool) = a
+instance Example env Bool where
   evaluateExample p _params action _callback = do
     ref <- newIORef (Result "" Success)
-    action (evaluate . example >=> writeIORef ref)
+    action (\_ -> evaluate example >>= writeIORef ref)
     readIORef ref
     where
-      example a
-        | p a = Result "" Success
+      example
+        | p = Result "" Success
         | otherwise = Result "" $ Failure Nothing NoReason
 
-instance Example Expectation where
-  type Arg Expectation = ()
-  evaluateExample e = evaluateExample (\() -> e)
+-- instance (env ~ a) => Example env (a -> Bool) where
+--   evaluateExample p _params action _callback = do
+--     ref <- newIORef (Result "" Success)
+--     action (evaluate . example >=> writeIORef ref)
+--     readIORef ref
+--     where
+--       example a
+--         | p a = Result "" Success
+--         | otherwise = Result "" $ Failure Nothing NoReason
+
+instance Example env Expectation where
+  evaluateExample e _ action _ = action (\_ -> e) >> return (Result "" Success)
+
+class Has env a where
+    get :: env -> a
+
+instance {-# OVERLAPPING #-} Has a a where
+    get = id
+
+instance Has env () where
+    get _ = ()
+
+instance Has (a, b) a where
+    get = fst
+
+instance Has (a, b) b where
+    get = snd
+
+instance (Has env a, Example env r) => Example env (a -> r) where
+    evaluateExample item params action progressCallback = do
+        a <- newIORef (Result "" Success)
+        action (\env ->
+                writeIORef a =<< evaluateExample (item (get env :: a)) params (\k -> k env) progressCallback)
+        readIORef a
 
 hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> ResultStatus
 hunitFailureToResult pre e = case e of
@@ -173,22 +210,24 @@ hunitFailureToResult pre e = case e of
       Just x -> x ++ "\n" ++ xs
       Nothing -> xs
 
-instance Example (a -> Expectation) where
-  type Arg (a -> Expectation) = a
-  evaluateExample e _ action _ = action e >> return (Result "" Success)
+-- instance (env ~ a) => Example env (a -> Expectation) where
+--   evaluateExample e _ action _ = action e >> return (Result "" Success)
 
-instance Example QC.Property where
-  type Arg QC.Property = ()
-  evaluateExample e = evaluateExample (\() -> e)
-
-instance Example (a -> QC.Property) where
-  type Arg (a -> QC.Property) = a
+instance Example a QC.Property where
   evaluateExample p c action progressCallback = do
-    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
+    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action (\_ -> p))
     return $ fromQuickCheckResult r
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
         \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
+
+-- instance (env ~ a) => Example env (a -> QC.Property) where
+--   evaluateExample p c action progressCallback = do
+--     r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
+--     return $ fromQuickCheckResult r
+--     where
+--       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
+--         \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
 
 fromQuickCheckResult :: QC.Result -> Result
 fromQuickCheckResult r = case parseQuickCheckResult r of

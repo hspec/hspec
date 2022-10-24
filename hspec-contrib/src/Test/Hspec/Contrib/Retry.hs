@@ -1,4 +1,6 @@
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 -- |
 -- maintainer: Junji Hashimoto <junji.hashimoto@gree.net>
 module Test.Hspec.Contrib.Retry (retryWith) where
@@ -7,8 +9,7 @@ import           Test.Hspec.Core.Spec
 
 data Retry a = Retry Int a
 
-instance Example a => Example (Retry a) where
-  type Arg (Retry a) = Arg a
+instance Example env a => Example env (Retry a) where
   evaluateExample (Retry n example) a b c
     | n > 1 = do
         result <- safeEvaluateExample example a b c

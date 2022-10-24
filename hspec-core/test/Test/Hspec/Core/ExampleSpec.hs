@@ -18,16 +18,16 @@ import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 
-safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO Result
+safeEvaluateExample :: (H.Example env e,  env ~ ()) => e -> IO Result
 safeEvaluateExample e = H.safeEvaluateExample e defaultParams ($ ()) noOpProgressCallback
 
-evaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO Result
+evaluateExample :: (H.Example env e,  env ~ ()) => e -> IO Result
 evaluateExample e = H.evaluateExample e defaultParams ($ ()) noOpProgressCallback
 
-evaluateExampleWith :: (H.Example e, H.Arg e ~ ()) => (IO () -> IO ()) -> e -> IO Result
+evaluateExampleWith :: (H.Example env e, env ~ ()) => (IO () -> IO ()) -> e -> IO Result
 evaluateExampleWith action e = H.evaluateExample e defaultParams (action . ($ ())) noOpProgressCallback
 
-evaluateExampleWithArgument :: H.Example e => (ActionWith (H.Arg e) -> IO ()) -> e -> IO Result
+evaluateExampleWithArgument :: H.Example env e => (ActionWith env -> IO ()) -> e -> IO Result
 evaluateExampleWithArgument action e = H.evaluateExample e defaultParams action noOpProgressCallback
 
 spec :: Spec
@@ -72,7 +72,7 @@ spec = do
             action e = do
               e 42
               modifyIORef ref succ
-        evaluateExampleWithArgument action (Result "" . Failure Nothing . Reason . show) `shouldReturn` Result "" (Failure Nothing $ Reason "42")
+        evaluateExampleWithArgument action (Result "" . Failure Nothing . Reason . (show :: Integer -> String)) `shouldReturn` Result "" (Failure Nothing $ Reason "42")
         readIORef ref `shouldReturn` 1
 
     context "for Bool" $ do

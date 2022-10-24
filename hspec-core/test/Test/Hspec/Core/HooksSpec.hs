@@ -57,7 +57,10 @@ spec = do
           rec (value ++ " foo")
         H.it "bar" $ \value -> do
           rec (value ++ " bar")
-      retrieve `shouldReturn` ["before", "value foo", "before", "value bar"]
+        H.describe "also works if the example does not need an input" $ do
+            H.it "no-hands" $ do
+                True
+      retrieve `shouldReturn` ["before", "value foo", "before", "value bar", "before"]
 
     context "when used with a QuickCheck property" $ do
       it "runs action before every check of the property" $ do
@@ -65,6 +68,19 @@ spec = do
         evalSpec_ $ H.before (rec "before" >> return "value") $ do
           H.it "foo" $ \value -> property $ \(_ :: Int) -> rec value
         retrieve `shouldReturn` (take 200 . cycle) ["before", "value"]
+
+    context "can provide two arguments to a function" $ do
+        it "ok" $ do
+            evalSpec_ $ H.before (pure (1 :: Int)) $ do
+                H.beforeWith (\i -> pure ('a', i)) $ do
+                    H.it "no args" $ do
+                        pure () :: IO ()
+                    H.it "one arg" $ \i -> do
+                        (1 :: Int) `shouldBe` i
+                    H.it "two args" $ \a i -> do
+                        ('a', (1 :: Int)) `shouldBe` (a, i)
+                    H.it "tuple" $ \(a, i) -> do
+                        ('a', (1 :: Int)) `shouldBe` (a, i)
 
   describe "before_" $ do
     it "runs an action before every spec item" $ do
@@ -140,11 +156,11 @@ spec = do
 
     context "when specified action throws an exception" $ do
       it "sets subsequent spec items to pending" $ do
-        evalSpec $ H.beforeAll throwException $ do
+        evalSpec $ H.beforeAll (throwException :: IO Int) $ do
           H.it "foo" $ \n -> do
             n `shouldBe` (23 :: Int)
           H.it "bar" $ \n -> do
-            n `shouldBe` 23
+            n `shouldBe` (23 :: Int)
         `shouldReturn` [
           item ["foo"] divideByZero
         , item ["bar"] (Pending Nothing $ exceptionIn "beforeAll")
@@ -231,11 +247,11 @@ spec = do
       it "sets subsequent spec items to pending" $ do
         evalSpec $ do
           H.beforeAll (return (23 :: Int)) $ do
-            H.beforeAllWith (\ _ -> throwException) $ do
+            H.beforeAllWith (\ _ -> throwException :: IO Int) $ do
               H.it "foo" $ \n -> do
                 n `shouldBe` (23 :: Int)
               H.it "bar" $ \n -> do
-                n `shouldBe` 23
+                n `shouldBe` (23 :: Int)
         `shouldReturn` [
           item ["foo"] divideByZero
         , item ["bar"] (Pending Nothing $ exceptionIn "beforeAllWith")
@@ -253,9 +269,9 @@ spec = do
     it "runs an action after every spec item" $ do
       (rec, retrieve) <- mkAppend
       evalSpec_ $ H.before (rec "before" >> return "from before") $ H.after rec $ do
-        H.it "foo" $ \_ -> do
+        H.it "foo" $ do
           rec "foo"
-        H.it "bar" $ \_ -> do
+        H.it "bar" $ do
           rec "bar"
       retrieve `shouldReturn` [
           "before"
@@ -269,7 +285,7 @@ spec = do
     it "guarantees that action is run" $ do
       (rec, retrieve) <- mkAppend
       evalSpec_ $ H.before (rec "before" >> return "from before") $ H.after rec $ do
-        H.it "foo" $ \_ -> do
+        H.it "foo" $ do
           throwException_
           rec "foo"
       retrieve `shouldReturn` ["before", "from before"]
@@ -313,9 +329,9 @@ spec = do
     it "runs an action after the last spec item" $ do
       (rec, retrieve) <- mkAppend
       evalSpec_ $ H.before (rec "before" >> return "from before") $ H.afterAll rec $ do
-        H.it "foo" $ \_ -> do
+        H.it "foo" $ do
           rec "foo"
-        H.it "bar" $ \_ -> do
+        H.it "bar" $ do
           rec "bar"
       retrieve `shouldReturn` [
           "before"
@@ -540,9 +556,11 @@ spec = do
 
       (rec, retrieve) <- mkAppend
       evalSpec_ $ H.before action $ H.aroundAll_ id $ do
-        H.it "foo" $ rec . show
-        H.it "bar" $ rec . show
-        H.it "baz" $ rec . show
+        let showInt :: Int -> String
+            showInt = show
+        H.it "foo" $ rec . showInt
+        H.it "bar" $ rec . showInt
+        H.it "baz" $ rec . showInt
       retrieve `shouldReturn` [
           "1"
         , "2"
