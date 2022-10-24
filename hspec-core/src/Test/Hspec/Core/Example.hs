@@ -176,6 +176,12 @@ instance {-# OVERLAPPING #-} Has a a where
 instance Has env () where
     get _ = ()
 
+instance Has (a, b) a where
+    get = fst
+
+instance Has (a, b) b where
+    get = snd
+
 instance (Has env a, Example env r) => Example env (a -> r) where
     evaluateExample item params action progressCallback = do
         a <- newIORef (Result "" Success)

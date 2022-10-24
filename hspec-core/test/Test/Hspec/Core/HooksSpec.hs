@@ -69,6 +69,19 @@ spec = do
           H.it "foo" $ \value -> property $ \(_ :: Int) -> rec value
         retrieve `shouldReturn` (take 200 . cycle) ["before", "value"]
 
+    context "can provide two arguments to a function" $ do
+        it "ok" $ do
+            evalSpec_ $ H.before (pure (1 :: Int)) $ do
+                H.beforeWith (\i -> pure ('a', i)) $ do
+                    H.it "no args" $ do
+                        pure () :: IO ()
+                    H.it "one arg" $ \i -> do
+                        (1 :: Int) `shouldBe` i
+                    H.it "two args" $ \a i -> do
+                        ('a', (1 :: Int)) `shouldBe` (a, i)
+                    H.it "tuple" $ \(a, i) -> do
+                        ('a', (1 :: Int)) `shouldBe` (a, i)
+
   describe "before_" $ do
     it "runs an action before every spec item" $ do
       (rec, retrieve) <- mkAppend
