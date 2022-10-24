@@ -72,7 +72,7 @@ spec = do
             action e = do
               e 42
               modifyIORef ref succ
-        evaluateExampleWithArgument action (Result "" . Failure Nothing . Reason . show) `shouldReturn` Result "" (Failure Nothing $ Reason "42")
+        evaluateExampleWithArgument action (Result "" . Failure Nothing . Reason . (show :: Integer -> String)) `shouldReturn` Result "" (Failure Nothing $ Reason "42")
         readIORef ref `shouldReturn` 1
 
     context "for Bool" $ do

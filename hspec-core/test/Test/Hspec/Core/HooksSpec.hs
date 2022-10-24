@@ -143,11 +143,11 @@ spec = do
 
     context "when specified action throws an exception" $ do
       it "sets subsequent spec items to pending" $ do
-        evalSpec $ H.beforeAll throwException $ do
+        evalSpec $ H.beforeAll (throwException :: IO Int) $ do
           H.it "foo" $ \n -> do
             n `shouldBe` (23 :: Int)
           H.it "bar" $ \n -> do
-            n `shouldBe` 23
+            n `shouldBe` (23 :: Int)
         `shouldReturn` [
           item ["foo"] divideByZero
         , item ["bar"] (Pending Nothing $ exceptionIn "beforeAll")
@@ -234,11 +234,11 @@ spec = do
       it "sets subsequent spec items to pending" $ do
         evalSpec $ do
           H.beforeAll (return (23 :: Int)) $ do
-            H.beforeAllWith (\ _ -> throwException) $ do
+            H.beforeAllWith (\ _ -> throwException :: IO Int) $ do
               H.it "foo" $ \n -> do
                 n `shouldBe` (23 :: Int)
               H.it "bar" $ \n -> do
-                n `shouldBe` 23
+                n `shouldBe` (23 :: Int)
         `shouldReturn` [
           item ["foo"] divideByZero
         , item ["bar"] (Pending Nothing $ exceptionIn "beforeAllWith")
@@ -256,9 +256,9 @@ spec = do
     it "runs an action after every spec item" $ do
       (rec, retrieve) <- mkAppend
       evalSpec_ $ H.before (rec "before" >> return "from before") $ H.after rec $ do
-        H.it "foo" $ \_ -> do
+        H.it "foo" $ do
           rec "foo"
-        H.it "bar" $ \_ -> do
+        H.it "bar" $ do
           rec "bar"
       retrieve `shouldReturn` [
           "before"
@@ -272,7 +272,7 @@ spec = do
     it "guarantees that action is run" $ do
       (rec, retrieve) <- mkAppend
       evalSpec_ $ H.before (rec "before" >> return "from before") $ H.after rec $ do
-        H.it "foo" $ \_ -> do
+        H.it "foo" $ do
           throwException_
           rec "foo"
       retrieve `shouldReturn` ["before", "from before"]
@@ -316,9 +316,9 @@ spec = do
     it "runs an action after the last spec item" $ do
       (rec, retrieve) <- mkAppend
       evalSpec_ $ H.before (rec "before" >> return "from before") $ H.afterAll rec $ do
-        H.it "foo" $ \_ -> do
+        H.it "foo" $ do
           rec "foo"
-        H.it "bar" $ \_ -> do
+        H.it "bar" $ do
           rec "bar"
       retrieve `shouldReturn` [
           "before"
@@ -543,9 +543,11 @@ spec = do
 
       (rec, retrieve) <- mkAppend
       evalSpec_ $ H.before action $ H.aroundAll_ id $ do
-        H.it "foo" $ rec . show
-        H.it "bar" $ rec . show
-        H.it "baz" $ rec . show
+        let showInt :: Int -> String
+            showInt = show
+        H.it "foo" $ rec . showInt
+        H.it "bar" $ rec . showInt
+        H.it "baz" $ rec . showInt
       retrieve `shouldReturn` [
           "1"
         , "2"
