@@ -126,7 +126,7 @@ specGroup s = Node msg
       | otherwise = s
 
 -- | The @specItem@ function creates a spec item.
-specItem :: (HasCallStack, Example a) => String -> a -> SpecTree (Arg a)
+specItem :: (HasCallStack, Example env a) => String -> a -> SpecTree env
 specItem s e = Leaf $ Item requirement location Nothing False (safeEvaluateExample e)
   where
     requirement :: HasCallStack => String

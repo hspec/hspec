@@ -57,7 +57,10 @@ spec = do
           rec (value ++ " foo")
         H.it "bar" $ \value -> do
           rec (value ++ " bar")
-      retrieve `shouldReturn` ["before", "value foo", "before", "value bar"]
+        H.describe "also works if the example does not need an input" $ do
+            H.it "no-hands" $ do
+                True
+      retrieve `shouldReturn` ["before", "value foo", "before", "value bar", "before"]
 
     context "when used with a QuickCheck property" $ do
       it "runs action before every check of the property" $ do

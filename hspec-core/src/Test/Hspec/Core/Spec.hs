@@ -122,22 +122,22 @@ xcontext = xdescribe
 -- > describe "absolute" $ do
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
-it :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+it :: (HasCallStack, Example env a) => String -> a -> SpecWith env
 it label action = fromSpecList [specItem label action]
 
 -- | @specify@ is an alias for `it`.
-specify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+specify :: (HasCallStack, Example env a) => String -> a -> SpecWith env
 specify = it
 
 -- |
 -- Changing `it` to `xit` marks the corresponding spec item as pending.
 --
 -- This can be used to temporarily disable a spec item.
-xit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+xit :: (HasCallStack, Example env a) => String -> a -> SpecWith env
 xit label action = before_ pending_ $ it label action
 
 -- | @xspecify@ is an alias for `xit`.
-xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+xspecify :: (HasCallStack, Example env a) => String -> a -> SpecWith env
 xspecify = xit
 
 -- | `focus` focuses all spec items of the given spec.
@@ -152,11 +152,11 @@ focusForest xs
   | otherwise = bimapForest id (\ item -> item {itemIsFocused = True}) xs
 
 -- | @fit@ is an alias for @fmap focus . it@
-fit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+fit :: (HasCallStack, Example env a) => String -> a -> SpecWith env
 fit = fmap focus . it
 
 -- | @fspecify@ is an alias for `fit`.
-fspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+fspecify :: (HasCallStack, Example env a) => String -> a -> SpecWith env
 fspecify = fit
 
 -- | @fdescribe@ is an alias for @fmap focus . describe@
