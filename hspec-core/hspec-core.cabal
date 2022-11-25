@@ -28,6 +28,11 @@ source-repository head
   location: https://github.com/hspec/hspec
   subdir: hspec-core
 
+flag pretty-printing
+  default: True
+  description: Support for pretty printing of data structures via GHC.
+  manual: False
+
 library
   hs-source-dirs:
       src
@@ -96,7 +101,8 @@ library
       Data.Algorithm.Diff
       Paths_hspec_core
   default-language: Haskell2010
-  if impl(ghc >= 8.2.1)
+  if flag(pretty-printing) && impl(ghc >= 8.2.1) && impl(ghc < 9.5)
+    ghc-options: -DPRETTY_PRINTING_SUPPORTED
     build-depends:
         ghc
       , ghc-boot-th
@@ -217,7 +223,8 @@ test-suite spec
       Test.Hspec.Core.UtilSpec
       Paths_hspec_core
   default-language: Haskell2010
-  if impl(ghc >= 8.2.1)
+  if flag(pretty-printing) && impl(ghc >= 8.2.1) && impl(ghc < 9.5)
+    ghc-options: -DPRETTY_PRINTING_SUPPORTED
     build-depends:
         ghc
       , ghc-boot-th

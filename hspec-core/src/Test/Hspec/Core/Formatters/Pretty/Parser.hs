@@ -16,13 +16,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (fail)
 import           Test.Hspec.Core.Formatters.Pretty.Parser.Types
 
-#ifndef __GHCJS__
-#if __GLASGOW_HASKELL__ >= 802 && __GLASGOW_HASKELL__ <= 904
-#define PRETTY_PRINTING_SUPPORTED
-#endif
-#endif
-
-#ifndef PRETTY_PRINTING_SUPPORTED
+#if defined(__GHCJS__) || !defined(PRETTY_PRINTING_SUPPORTED)
 
 parseExpression :: String -> Maybe Expression
 parseExpression _ = Nothing
