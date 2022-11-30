@@ -1,4 +1,6 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.Core.Formatters.Pretty.ParserSpec (spec, Person(..)) where
 
 import           Prelude ()
@@ -11,59 +13,57 @@ data Person = Person {
 , personAge :: Int
 } deriving (Eq, Show)
 
-string :: String -> Expression
-string = Literal . String
+infix 1 `shouldParseAs`
 
-integer :: Integer -> Expression
-integer = Literal . Integer
-
-spec :: Spec
-spec = do
-  let parse = unsafeParseExpression
-  describe "parseExpression" $ do
-    it "parses characters" $ do
-      parse (show 'c') `shouldBe` just (Literal $ Char 'c')
-
-    it "parses strings" $ do
-      parse (show "foo") `shouldBe` just (string "foo")
-
-    it "parses integers" $ do
-      parse "23" `shouldBe` just (integer 23)
-
-    it "parses negative integers" $ do
-      parse "-23" `shouldBe` just (integer (-23))
-
-    it "parses rationals" $ do
-      parse "23.0" `shouldBe` just (Literal $ Rational "23.0")
-
-    it "parses negative rationals" $ do
-      parse "-23.0" `shouldBe` just (Literal $ Rational "-23.0")
-
-    it "parses lists" $ do
-      parse (show ["foo", "bar", "baz"]) `shouldBe` just (List [string "foo", string "bar", string "baz"])
-
-    it "parses tuples" $ do
-      parse (show ("foo", "bar", "baz")) `shouldBe` just (Tuple [string "foo", string "bar", string "baz"])
-
-    it "parses Nothing" $ do
-      parse (show (Nothing :: Maybe Int)) `shouldBe` just (Id "Nothing")
-
-    it "parses Just" $ do
-      parse (show $ Just "foo") `shouldBe` just (App (Id "Just") (string "foo"))
-
-    it "parses nested Just" $ do
-      parse (show $ Just $ Just "foo") `shouldBe` just (App (Id "Just") . Parentheses $ App (Id "Just") (string "foo"))
-
-    it "parses records" $ do
-      let person = Person "Joe" 23
-
-      parse (show person) `shouldBe` just (Record "Person" [
-          ("personName", string "Joe")
-        , ("personAge", integer 23)
-        ])
+shouldParseAs :: HasCallStack => String -> Value -> Expectation
+shouldParseAs input expected = unsafeParseValue input `shouldBe` just expected
   where
 #if __GLASGOW_HASKELL__ >= 802
     just = Just
 #else
     just _ = Nothing
 #endif
+
+spec :: Spec
+spec = do
+  describe "parseValue" $ do
+    it "parses characters" $ do
+      show 'c' `shouldParseAs` Char 'c'
+
+    it "parses strings" $ do
+      show "foo" `shouldParseAs` String "foo"
+
+    it "parses integers" $ do
+      "23" `shouldParseAs` Integer 23
+
+    it "parses negative integers" $ do
+      "-23" `shouldParseAs` Integer (-23)
+
+    it "parses rationals" $ do
+      "23.0" `shouldParseAs` Rational "23.0"
+
+    it "parses negative rationals" $ do
+      "-23.0" `shouldParseAs` Rational "-23.0"
+
+    it "parses lists" $ do
+      show ["foo", "bar", "baz"] `shouldParseAs` List [String "foo", String "bar", String "baz"]
+
+    it "parses tuples" $ do
+      show ("foo", "bar", "baz") `shouldParseAs` Tuple [String "foo", String "bar", String "baz"]
+
+    it "parses Nothing" $ do
+      show (Nothing :: Maybe Int) `shouldParseAs` Id "Nothing"
+
+    it "parses Just" $ do
+      show (Just "foo") `shouldParseAs` App (Id "Just") (String "foo")
+
+    it "parses nested Just" $ do
+      show (Just $ Just "foo") `shouldParseAs` App (Id "Just") (Parentheses $ App (Id "Just") (String "foo"))
+
+    it "parses records" $ do
+      let person = Person "Joe" 23
+
+      show person `shouldParseAs` Record "Person" [
+          ("personName", String "Joe")
+        , ("personAge", Integer 23)
+        ]

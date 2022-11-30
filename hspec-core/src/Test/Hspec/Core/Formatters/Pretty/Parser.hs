@@ -6,10 +6,9 @@
 {-# LANGUAGE EmptyCase #-}
 #endif
 module Test.Hspec.Core.Formatters.Pretty.Parser (
-  Expression(..)
-, Literal(..)
-, parseExpression
-, unsafeParseExpression
+  Value(..)
+, parseValue
+, unsafeParseValue
 ) where
 
 import           Prelude ()
@@ -24,11 +23,11 @@ import           Test.Hspec.Core.Formatters.Pretty.Parser.Types
 
 #ifndef PRETTY_PRINTING_SUPPORTED
 
-parseExpression :: String -> Maybe Expression
-parseExpression _ = Nothing
+parseValue :: String -> Maybe Value
+parseValue _ = Nothing
 
-unsafeParseExpression :: String -> Maybe Expression
-unsafeParseExpression _ = Nothing
+unsafeParseValue :: String -> Maybe Value
+unsafeParseValue _ = Nothing
 
 #else
 
@@ -95,13 +94,13 @@ import           Data.Bits
 import           Control.Exception
 #endif
 
-parseExpression :: String -> Maybe Expression
-parseExpression = parseWith (const Nothing)
+parseValue :: String -> Maybe Value
+parseValue = parseWith (const Nothing)
 
-unsafeParseExpression :: String -> Maybe Expression
-unsafeParseExpression = parseWith throwError
+unsafeParseValue :: String -> Maybe Value
+unsafeParseValue = parseWith throwError
 
-parseWith :: (Error -> Maybe Expression) -> String -> Maybe Expression
+parseWith :: (Error -> Maybe Value) -> String -> Maybe Value
 parseWith err = parse >=> either err Just . toExpression
 
 data Error = Error CallStack String
@@ -113,7 +112,7 @@ fail :: HasCallStack => String -> Either Error a
 fail = Left . Error callStack
 
 class ToExpression a where
-  toExpression :: a -> Either Error Expression
+  toExpression :: a -> Either Error Value
 
 #if __GLASGOW_HASKELL__ < 806
 #define _x
@@ -155,8 +154,8 @@ instance ToExpression (HsExpr GhcPs) where
     HsOverLit _x lit -> toExpression lit
     HsApp _x f x -> App <$> toExpression f <*> toExpression x
     NegApp _x e _ -> toExpression e >>= \ x -> case x of
-      Literal (Rational n) -> return $ Literal (Rational $ '-' : n)
-      Literal (Integer n) -> return $ Literal (Integer $ negate n)
+      Rational n -> return (Rational $ '-' : n)
+      Integer n -> return (Integer $ negate n)
       _ -> fail "NegApp"
 
     HsPar _x
@@ -280,16 +279,16 @@ instance ToExpression FractionalLit where
 #else
     n
 #endif
-      -> return . Literal $ Rational n
+      -> return $ Rational n
 
 instance ToExpression FastString where
-  toExpression = return . Literal . String . unpackFS
+  toExpression = return . String . unpackFS
 
 instance ToExpression Integer where
-  toExpression = return . Literal . Integer
+  toExpression = return . Integer
 
 instance ToExpression Char where
-  toExpression = return . Literal . Char
+  toExpression = return . Char
 
 instance ToExpression (HsLit GhcPsHsLit) where
   toExpression lit = case lit of

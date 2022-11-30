@@ -45,17 +45,19 @@ recoverString unicode input = case readMaybe input of
     isSafe c = (unicode || isAscii c) && (not $ isControl c) || c == '\n'
 
 pretty :: Bool -> String -> Maybe String
-pretty unicode = parseExpression >=> render_
+pretty unicode = parseValue >=> render_
   where
-    render_ :: Expression -> Maybe String
-    render_ expr = guard (shouldParseBack expr) >> Just (renderExpression unicode expr)
+    render_ :: Value -> Maybe String
+    render_ value = guard (shouldParseBack value) >> Just (renderValue unicode value)
 
-    shouldParseBack :: Expression -> Bool
+    shouldParseBack :: Value -> Bool
     shouldParseBack = go
       where
-        go expr = case expr of
-          Literal (String _) -> True
-          Literal _ -> False
+        go value = case value of
+          Char _ -> False
+          String _ -> True
+          Integer _ -> False
+          Rational _ -> False
           Id _ -> False
           App (Id _) e -> go e
           App _ _ -> False
@@ -91,18 +93,15 @@ shows = Builder . Show.shows
 instance IsString Builder where
   fromString = Builder . showString
 
-renderExpression :: Bool -> Expression -> String
-renderExpression unicode = runBuilder . render
+renderValue :: Bool -> Value -> String
+renderValue unicode = runBuilder . render
   where
-    renderLiteral lit = case lit of
+    render :: Value -> Builder
+    render value = case value of
       Char c -> shows c
       String str -> if unicode then Builder $ ushows str else shows str
       Integer n -> shows n
       Rational n -> fromString n
-
-    render :: Expression -> Builder
-    render expr = case expr of
-      Literal lit -> renderLiteral lit
       Id name -> fromString name
       App a b -> render a <> " " <> render b
       Parentheses e@Record{} -> render e
