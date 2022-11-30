@@ -3,19 +3,15 @@ module Test.Hspec.Core.Formatters.Pretty.Parser.Types where
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-data Expression =
-    Literal Literal
-  | Id String
-  | App Expression Expression
-  | Parentheses Expression
-  | Tuple [Expression]
-  | List [Expression]
-  | Record String [(String, Expression)]
-  deriving (Eq, Show)
-
-data Literal =
+data Value =
     Char Char
   | String String
   | Integer Integer
   | Rational String
+  | Id String
+  | App Value Value
+  | Parentheses Value
+  | Tuple [Value]
+  | List [Value]
+  | Record String [(String, Value)]
   deriving (Eq, Show)
