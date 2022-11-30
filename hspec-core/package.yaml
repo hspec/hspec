@@ -40,14 +40,9 @@ dependencies:
   - directory
   - filepath
   - process
+  - haskell-lexer
 
   - array # for Diff
-
-when:
-  condition: impl(ghc >= 8.2.1)
-  dependencies:
-    - ghc
-    - ghc-boot-th
 
 source-dirs:
   - src
