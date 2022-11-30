@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.Core.Formatters.Pretty.ParserSpec (spec, Person(..)) where
@@ -16,34 +15,38 @@ data Person = Person {
 infix 1 `shouldParseAs`
 
 shouldParseAs :: HasCallStack => String -> Value -> Expectation
-shouldParseAs input expected = unsafeParseValue input `shouldBe` just expected
-  where
-#if __GLASGOW_HASKELL__ >= 802
-    just = Just
-#else
-    just _ = Nothing
-#endif
+shouldParseAs input expected = parseValue input `shouldBe` Just expected
+
+unit :: Value
+unit = Tuple []
+
+parentheses :: Value -> Value
+parentheses value = Tuple [value]
 
 spec :: Spec
 spec = do
   describe "parseValue" $ do
+    it "parses unit" $ do
+      show () `shouldParseAs` unit
+
     it "parses characters" $ do
       show 'c' `shouldParseAs` Char 'c'
 
     it "parses strings" $ do
       show "foo" `shouldParseAs` String "foo"
 
-    it "parses integers" $ do
-      "23" `shouldParseAs` Integer 23
+    context "when parsing numbers" $ do
+      it "accepts integers" $ do
+        "23" `shouldParseAs` Number "23"
 
-    it "parses negative integers" $ do
-      "-23" `shouldParseAs` Integer (-23)
+      it "accepts negative integers" $ do
+        "-23" `shouldParseAs` Number "-23"
 
-    it "parses rationals" $ do
-      "23.0" `shouldParseAs` Rational "23.0"
+      it "accepts floats" $ do
+        show (23.0 :: Float) `shouldParseAs` Number "23.0"
 
-    it "parses negative rationals" $ do
-      "-23.0" `shouldParseAs` Rational "-23.0"
+      it "accepts negative floats" $ do
+        show (-23.0 :: Float) `shouldParseAs` Number "-23.0"
 
     it "parses lists" $ do
       show ["foo", "bar", "baz"] `shouldParseAs` List [String "foo", String "bar", String "baz"]
@@ -52,18 +55,18 @@ spec = do
       show ("foo", "bar", "baz") `shouldParseAs` Tuple [String "foo", String "bar", String "baz"]
 
     it "parses Nothing" $ do
-      show (Nothing :: Maybe Int) `shouldParseAs` Id "Nothing"
+      show (Nothing :: Maybe Int) `shouldParseAs` Constructor "Nothing" []
 
     it "parses Just" $ do
-      show (Just "foo") `shouldParseAs` App (Id "Just") (String "foo")
+      show (Just "foo") `shouldParseAs` Constructor "Just" [String "foo"]
 
     it "parses nested Just" $ do
-      show (Just $ Just "foo") `shouldParseAs` App (Id "Just") (Parentheses $ App (Id "Just") (String "foo"))
+      show (Just $ Just "foo") `shouldParseAs` Constructor "Just" [parentheses (Constructor "Just" [String "foo"])]
 
     it "parses records" $ do
       let person = Person "Joe" 23
 
       show person `shouldParseAs` Record "Person" [
           ("personName", String "Joe")
-        , ("personAge", Integer 23)
+        , ("personAge", Number "23")
         ]

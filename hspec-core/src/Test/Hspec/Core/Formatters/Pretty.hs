@@ -24,16 +24,12 @@ pretty2 unicode expected actual = case (recoverString unicode expected, recoverS
   (Just expected_, Just actual_) -> (expected_, actual_)
   _ -> case (pretty unicode expected, pretty unicode actual) of
     (Just expected_, Just actual_) -> (expected_, actual_)
-#if __GLASGOW_HASKELL__ >= 802
-    _ -> (expected, actual)
-#else
     _ -> (rec expected, rec actual)
   where
     rec = if unicode then urecover else id
 
     urecover :: String -> String
     urecover xs = maybe xs ushow $ readMaybe xs
-#endif
 
 recoverString :: Bool -> String -> Maybe String
 recoverString unicode input = case readMaybe input of
@@ -56,15 +52,11 @@ pretty unicode = parseValue >=> render_
         go value = case value of
           Char _ -> False
           String _ -> True
-          Integer _ -> False
-          Rational _ -> False
-          Id _ -> False
-          App (Id _) e -> go e
-          App _ _ -> False
-          Parentheses e -> go e
+          Number _ -> False
+          Record _ _ -> True
+          Constructor _ xs -> any go xs
           Tuple xs -> any go xs
           List xs -> any go xs
-          Record _ _ -> True
 
 newtype Builder = Builder ShowS
 
@@ -100,14 +92,11 @@ renderValue unicode = runBuilder . render
     render value = case value of
       Char c -> shows c
       String str -> if unicode then Builder $ ushows str else shows str
-      Integer n -> shows n
-      Rational n -> fromString n
-      Id name -> fromString name
-      App a b -> render a <> " " <> render b
-      Parentheses e@Record{} -> render e
-      Parentheses e -> "(" <> render e <> ")"
+      Number n -> fromString n
+      Record name fields -> fromString name <> " {\n  " <> (intercalate ",\n  " $ map renderField fields) <> "\n}"
+      Constructor name values -> intercalate " " (fromString name : map render values)
+      Tuple [e@Record{}] -> render e
       Tuple xs -> "(" <> intercalate ", " (map render xs) <> ")"
       List xs -> "[" <> intercalate ", " (map render xs) <> "]"
-      Record name fields -> fromString name <> " {\n  " <> (intercalate ",\n  " $ map renderField fields) <> "\n}"
 
     renderField (name, value) = fromString name <> " = " <> render value

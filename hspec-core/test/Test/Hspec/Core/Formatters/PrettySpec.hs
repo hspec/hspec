@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 module Test.Hspec.Core.Formatters.PrettySpec (spec) where
 
 import           Prelude ()
@@ -110,8 +109,4 @@ spec = do
         let input = unlines ["foo", "bar", "baz"]
         pretty True input `shouldBe` Nothing
   where
-#if __GLASGOW_HASKELL__ >= 802
     just = Just . intercalate "\n"
-#else
-    just _ = Nothing
-#endif
