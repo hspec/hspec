@@ -351,7 +351,7 @@ runEvalTree config spec = do
 
       formatter = fromMaybe (V2.formatterToFormat V2.checks) (configFormat config <|> V1.formatterToFormat <$> configFormatter config)
 
-    format <- maybe id printSlowSpecItems (configPrintSlowItems config) <$> formatter formatConfig
+    format <- maybe id (printSlowSpecItems (configUserSlowSpecFilter config)) (configPrintSlowItems config) <$> formatter formatConfig
 
     let
       evalConfig = EvalConfig {

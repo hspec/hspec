@@ -30,6 +30,7 @@ import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
+import Test.Hspec.Core.Runner.PrintSlowSpecItems (SlowItem)
 import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
@@ -88,6 +89,10 @@ data Config = Config {
 , configFormatter :: Maybe V1.Formatter -- ^ deprecated, use `configFormat` instead
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
+
+-- | A way to have a custom filter on the slow log
+-- | useful for having a "known slow tests list" so you can prevent introducing new slow tests in legacy codebases
+, configUserSlowSpecFilter :: SlowItem -> Bool
 }
 
 defaultConfig :: Config
@@ -132,6 +137,7 @@ defaultConfig = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
+, configUserSlowSpecFilter = const True
 }
 
 defaultDiffContext :: Int
