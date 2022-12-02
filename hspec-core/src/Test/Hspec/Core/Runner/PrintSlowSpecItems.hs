@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 module Test.Hspec.Core.Runner.PrintSlowSpecItems (
-  SlowItem,
+  SlowItem(..),
   printSlowSpecItems
 ) where
 
