@@ -70,6 +70,7 @@ If you need more control over how a spec is run use these primitives individuall
 
 -- ** Summary
 , Summary (..)
+, SlowItem(..)
 , toSummary
 , isSuccess
 , evaluateSummary
