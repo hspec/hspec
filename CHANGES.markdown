@@ -1,3 +1,6 @@
+## Changes in 2.10.7 (2022-12-03)
+  - Do not depend on `ghc` for pretty-printing (#750, #752)
+
 ## Changes in 2.10.6 (2022-09-13)
   - Suppress excessive diff output (#449)
   - Allow the use of an external diff program.  This can e.g. be used by
