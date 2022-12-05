@@ -35,18 +35,23 @@ spec = do
     it "parses strings" $ do
       show "foo" `shouldParseAs` String "foo"
 
-    context "when parsing numbers" $ do
-      it "accepts integers" $ do
-        "23" `shouldParseAs` Number "23"
+    it "accepts rationals" $ do
+      show (0.5 :: Rational) `shouldParseAs` Rational (Number "1") (Number "2")
 
-      it "accepts negative integers" $ do
-        "-23" `shouldParseAs` Number "-23"
+    it "accepts negative rationals" $ do
+      show (-0.5 :: Rational) `shouldParseAs` Rational (parentheses $ Number "-1") (Number "2")
 
-      it "accepts floats" $ do
-        show (23.0 :: Float) `shouldParseAs` Number "23.0"
+    it "accepts integers" $ do
+      "23" `shouldParseAs` Number "23"
 
-      it "accepts negative floats" $ do
-        show (-23.0 :: Float) `shouldParseAs` Number "-23.0"
+    it "accepts negative integers" $ do
+      "-23" `shouldParseAs` Number "-23"
+
+    it "accepts floats" $ do
+      show (23.0 :: Float) `shouldParseAs` Number "23.0"
+
+    it "accepts negative floats" $ do
+      show (-23.0 :: Float) `shouldParseAs` Number "-23.0"
 
     it "parses lists" $ do
       show ["foo", "bar", "baz"] `shouldParseAs` List [String "foo", String "bar", String "baz"]

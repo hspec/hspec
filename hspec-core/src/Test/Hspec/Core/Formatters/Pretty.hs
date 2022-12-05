@@ -52,6 +52,7 @@ pretty unicode = parseValue >=> render_
         go value = case value of
           Char _ -> False
           String _ -> True
+          Rational _ _ -> False
           Number _ -> False
           Record _ _ -> True
           Constructor _ xs -> any go xs
@@ -92,6 +93,7 @@ renderValue unicode = runBuilder . render
     render value = case value of
       Char c -> shows c
       String str -> if unicode then Builder $ ushows str else shows str
+      Rational n d -> render n <> " % " <> render d
       Number n -> fromString n
       Record name fields -> fromString name <> " {\n  " <> (intercalate ",\n  " $ map renderField fields) <> "\n}"
       Constructor name values -> intercalate " " (fromString name : map render values)

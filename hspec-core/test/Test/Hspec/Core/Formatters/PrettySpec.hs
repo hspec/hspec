@@ -57,11 +57,11 @@ spec = do
         ]
 
     it "pretty-prints tuples" $ do
-      pretty True (show (person, 23 :: Double)) `shouldBe` just [
+      pretty True (show (person, -0.5 :: Rational)) `shouldBe` just [
           "(Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
-        , "}, 23.0)"
+        , "}, (-1) % 2)"
         ]
 
     it "pretty-prints lists" $ do
