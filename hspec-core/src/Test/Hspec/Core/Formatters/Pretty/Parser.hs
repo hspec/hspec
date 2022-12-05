@@ -16,6 +16,7 @@ type Name = String
 data Value =
     Char Char
   | String String
+  | Rational Value Value
   | Number String
   | Record Name [(Name, Value)]
   | Constructor Name [Value]
@@ -34,6 +35,7 @@ value :: Parser Value
 value =
       char
   <|> string
+  <|> rational
   <|> number
   <|> record
   <|> constructor
@@ -45,6 +47,9 @@ char = Char <$> (token CharLit >>= readA)
 
 string :: Parser Value
 string = String <$> (token StringLit >>= readA)
+
+rational :: Parser Value
+rational = Rational <$> (number <|> tuple) <* require (Varsym, "%") <*> number
 
 number :: Parser Value
 number = integer <|> float
