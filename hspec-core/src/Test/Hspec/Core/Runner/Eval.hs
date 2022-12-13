@@ -161,7 +161,7 @@ data Item a = Item {
 , itemAction :: a
 } deriving Functor
 
-type Job m p a = (p -> m ()) -> m a
+type Job m progress a = (progress -> m ()) -> m a
 
 type RunningItem = Item (Path -> IO (Seconds, Result))
 type RunningTree c = Tree c RunningItem
@@ -230,31 +230,32 @@ parallelizeItem sem EvalItem{..} = do
   (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize (interruptible . evalItemAction)
   return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
 
-parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
+parallelize :: MonadIO m => Semaphore -> Bool -> Job IO progress a -> IO (Async (), Job m progress (Seconds, a))
 parallelize sem isParallelizable
   | isParallelizable = runParallel sem
   | otherwise = runSequentially
 
-runSequentially :: MonadIO m => Job IO p a -> IO (Async (), Job m p (Seconds, a))
+runSequentially :: MonadIO m => Job IO progress a -> IO (Async (), Job m progress (Seconds, a))
 runSequentially action = do
   mvar <- newEmptyMVar
   (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) (return ())) action
   return (asyncAction, \ notifyPartial -> liftIO (putMVar mvar ()) >> evalAction notifyPartial)
 
-data Parallel p a = Partial p | Return a
+data Parallel progress a = Partial progress | Return a
 
-runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
+runParallel :: forall m progress a. MonadIO m => Semaphore -> Job IO progress a -> IO (Async (), Job m progress (Seconds, a))
 runParallel Semaphore{..} action = do
   mvar <- newEmptyMVar
   asyncAction <- async $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
   return (asyncAction, eval mvar)
   where
+    worker :: MVar (Parallel progress (Seconds, a)) -> IO ()
     worker mvar = do
       let partialCallback = replaceMVar mvar . Partial
       result <- measure $ action partialCallback
       replaceMVar mvar (Return result)
 
-    eval :: MVar (Parallel p (Seconds, a)) -> (p -> m ()) -> m (Seconds, a)
+    eval :: MVar (Parallel progress (Seconds, a)) -> (progress -> m ()) -> m (Seconds, a)
     eval mvar notifyPartial = do
       r <- liftIO (takeMVar mvar)
       case r of
