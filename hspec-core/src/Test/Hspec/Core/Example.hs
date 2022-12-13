@@ -128,10 +128,8 @@ instance Example Result where
 
 instance Example (a -> Result) where
   type Arg (a -> Result) = a
-  evaluateExample example _params action _callback = do
-    ref <- newIORef (Result "" Success)
-    action (evaluate . example >=> writeIORef ref)
-    readIORef ref
+  evaluateExample example _params hook _callback = do
+    liftHook (Result "" Success) hook (evaluate . example)
 
 instance Example Bool where
   type Arg Bool = ()
@@ -139,10 +137,8 @@ instance Example Bool where
 
 instance Example (a -> Bool) where
   type Arg (a -> Bool) = a
-  evaluateExample p _params action _callback = do
-    ref <- newIORef (Result "" Success)
-    action (evaluate . example >=> writeIORef ref)
-    readIORef ref
+  evaluateExample p _params hook _callback = do
+    liftHook (Result "" Success) hook (evaluate . example)
     where
       example a
         | p a = Result "" Success
@@ -175,7 +171,7 @@ hunitFailureToResult pre e = case e of
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
-  evaluateExample e _ action _ = action e >> return (Result "" Success)
+  evaluateExample e _ hook _ = hook e >> return (Result "" Success)
 
 instance Example QC.Property where
   type Arg QC.Property = ()
@@ -183,8 +179,8 @@ instance Example QC.Property where
 
 instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = a
-  evaluateExample p c action progressCallback = do
-    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
+  evaluateExample p c hook progressCallback = do
+    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty hook p)
     return $ fromQuickCheckResult r
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $

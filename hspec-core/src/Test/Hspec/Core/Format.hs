@@ -21,7 +21,7 @@ import           Test.Hspec.Core.Compat
 
 import           Control.Exception
 import           Control.Concurrent
-import           Control.Concurrent.Async (async)
+import           Control.Concurrent.Async (Async, async)
 import qualified Control.Concurrent.Async as Async
 import           Control.Monad.IO.Class
 
@@ -99,18 +99,19 @@ monadic run format = do
           signal Ok
           go
 
-  t <- async $ do
+  worker <- async $ do
     (run go >> signal Ok) `catch` (signal . NotOk)
 
   return $ \ event -> do
-    running <- Async.poll t
-    case running of
-      Just _ -> return ()
-      Nothing -> do
-        putEvent event
-        r <- wait
-        case r of
-          Ok -> return ()
-          NotOk err -> do
-            Async.wait t
-            throwIO err
+    running <- asyncRunning worker
+    when running $ do
+      putEvent event
+      r <- wait
+      case r of
+        Ok -> return ()
+        NotOk err -> do
+          Async.wait worker
+          throwIO err
+
+asyncRunning :: Async () -> IO Bool
+asyncRunning worker = maybe True (const False) <$> Async.poll worker
