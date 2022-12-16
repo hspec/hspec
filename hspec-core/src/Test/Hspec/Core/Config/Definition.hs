@@ -90,6 +90,7 @@ data Config = Config {
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
 
+-- @since 2.10.7
 -- | A way to have a custom filter on the slow log
 -- | useful for having a "known slow tests list" so you can prevent introducing new slow tests in legacy codebases
 , configUserSlowSpecFilter :: SlowItem -> Bool
