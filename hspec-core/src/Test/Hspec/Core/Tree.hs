@@ -52,7 +52,7 @@ bimapTree g f = go
   where
     go spec = case spec of
       Node d xs -> Node d (map go xs)
-      NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc (g cleanup) (map go xs)
+      NodeWithCleanup loc action xs -> NodeWithCleanup loc (g action) (map go xs)
       Leaf item -> Leaf (f item)
 
 filterTree :: (a -> Bool) -> Tree c a -> Maybe (Tree c a)

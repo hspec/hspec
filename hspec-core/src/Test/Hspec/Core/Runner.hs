@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
 -- Stability: provisional
@@ -284,10 +285,13 @@ failFocusedItems config
   | configFailOnFocused config = mapItem failFocused
   | otherwise = id
 
-failFocused :: Item a -> Item a
+failFocused :: forall a. Item a -> Item a
 failFocused item = item {itemExample = example}
   where
+    failure :: ResultStatus
     failure = Failure Nothing (Reason "item is focused; failing due to --fail-on=focused")
+
+    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
     example
       | itemIsFocused item = \ params hook p -> do
           Result info status <- itemExample item params hook p
@@ -302,9 +306,10 @@ failPendingItems config
   | configFailOnPending config = mapItem failPending
   | otherwise = id
 
-failPending :: Item a -> Item a
+failPending :: forall a. Item a -> Item a
 failPending item = item {itemExample = example}
   where
+    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
     example params hook p = do
       Result info status <- itemExample item params hook p
       return $ Result info $ case status of
