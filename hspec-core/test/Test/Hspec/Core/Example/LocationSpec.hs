@@ -50,7 +50,7 @@ spec = do
             foo :: Either () ()
             foo = do
               23 <- Right (42 :: Int)
-              return ()
+              pass
           Left e <- try (evaluate foo)
           extractLocation e `shouldBe` location
 #endif

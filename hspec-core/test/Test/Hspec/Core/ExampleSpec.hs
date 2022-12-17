@@ -131,7 +131,7 @@ spec = do
 
       it "returns Failure if property does not hold" $ do
         Result "" (Failure _ _) <- evaluateExample $ property $ \n -> n /= (n :: Int)
-        return ()
+        pass
 
       it "shows what falsified it" $ do
         Result "" (Failure _ r) <- evaluateExample $ property $ \ (x :: Int) (y :: Int) -> (x == 0 && y == 1) ==> False

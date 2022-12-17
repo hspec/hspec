@@ -8,7 +8,7 @@ import           Helper
 spec :: Spec
 spec = do
   describe "timer action provided by withTimer" $ do
-    return () -- this test is fragile, see e.g. https://github.com/hspec/hspec/issues/352
+    pass -- this test is fragile, see e.g. https://github.com/hspec/hspec/issues/352
 
 {-
     let

@@ -6,7 +6,7 @@ import           Prelude ()
 import           Helper
 import           Data.String
 import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Writer
+import           Control.Monad.Trans.Writer hiding (pass)
 import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Spec as H
@@ -192,7 +192,7 @@ spec = do
           H.describe "foo" $ do
             H.it "example 1" True
           H.describe "bar" $ do
-            return ()
+            pass
           H.describe "baz" $ do
             H.it "example 2" True
 
