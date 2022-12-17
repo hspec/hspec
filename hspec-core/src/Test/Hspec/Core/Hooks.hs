@@ -178,7 +178,7 @@ decompose action = do
         signal doCleanupNow
         r <- takeMVar released
         case r of
-          Released -> return ()
+          Released -> pass
           ExceptionDuringRelease err -> throwIO err
 
   return (acquire, release)

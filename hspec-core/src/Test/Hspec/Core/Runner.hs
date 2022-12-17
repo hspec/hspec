@@ -147,7 +147,7 @@ applyDryRun c
   | otherwise = id
   where
     removeCleanup :: IO () -> IO ()
-    removeCleanup _ = return ()
+    removeCleanup _ = pass
 
     markSuccess :: EvalItem -> EvalItem
     markSuccess item = item {evalItemAction = \ _ -> return $ Result "" Success}

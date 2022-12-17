@@ -28,7 +28,7 @@ printSlowSpecItems n format event = do
       unless (null xs) $ do
         putStrLn "\nSlow spec items:"
         mapM_ printSlowSpecItem xs
-    _ -> return ()
+    _ -> pass
 
 toSlowItem :: (Path, Item) -> SlowItem
 toSlowItem (path, item) = SlowItem (itemLocation item)  path (toMilliseconds $ itemDuration item)

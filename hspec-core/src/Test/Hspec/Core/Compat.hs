@@ -105,7 +105,7 @@ modifyIORef' ref f = do
 atomicWriteIORef :: IORef a -> a -> IO ()
 atomicWriteIORef ref a = do
     x <- atomicModifyIORef ref (\_ -> (a, ()))
-    x `seq` return ()
+    x `seq` pass
 
 -- | Parse a string using the 'Read' instance.
 -- Succeeds if there is exactly one valid result.
@@ -176,5 +176,10 @@ infixl 1 <&>
 endsWith :: Eq a => [a] -> [a] -> Bool
 endsWith = flip isSuffixOf
 
+#if MIN_VERSION_base(4,8,0)
 pass :: Applicative m => m ()
 pass = pure ()
+#else
+pass :: Monad m => m ()
+pass = return ()
+#endif
