@@ -16,7 +16,6 @@ module Test.Hspec.Core.Example.Location (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Exception
 import           Data.Char
 import           Data.Maybe
 import           GHC.IO.Exception

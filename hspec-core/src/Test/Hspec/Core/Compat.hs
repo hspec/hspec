@@ -4,6 +4,7 @@ module Test.Hspec.Core.Compat (
 , module Test.Hspec.Core.Compat
 ) where
 
+import           Control.Exception as Imports
 import           Control.Arrow as Imports ((>>>), (&&&), first, second)
 import           Control.Applicative as Imports
 import           Control.Monad as Imports hiding (
@@ -16,6 +17,7 @@ import           Control.Monad as Imports hiding (
   , sequence_
   )
 import           Data.Foldable as Imports
+import           Data.CallStack as Imports (HasCallStack)
 
 #if MIN_VERSION_base(4,11,0)
 import           Data.Functor as Imports
@@ -70,7 +72,6 @@ import           Data.IORef as Imports
 import           Text.Read as Imports (readMaybe)
 import           System.Environment as Imports (lookupEnv)
 #else
-import           Control.Exception
 import           Text.Read
 import           System.Environment
 import qualified Text.ParserCombinators.ReadP as P
@@ -83,9 +84,7 @@ import           Data.Ord (comparing)
 import           Data.Typeable (tyConModule, tyConName)
 import           Control.Concurrent
 
-#if MIN_VERSION_base(4,9,0)
-import           Control.Exception as Imports (interruptible)
-#else
+#if !MIN_VERSION_base(4,9,0)
 import           GHC.IO
 #endif
 

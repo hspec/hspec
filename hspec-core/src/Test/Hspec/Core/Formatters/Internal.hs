@@ -53,7 +53,6 @@ import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
 import           System.IO (Handle, stdout)
-import           Control.Exception (bracket_, bracket)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class

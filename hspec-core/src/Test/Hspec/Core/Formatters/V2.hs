@@ -87,7 +87,6 @@ import           Test.Hspec.Core.Example (Location(..))
 import           Text.Printf
 import           Test.Hspec.Core.Formatters.Pretty.Unicode (ushow)
 import           Control.Monad.IO.Class
-import           Control.Exception
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Monad", to make
 -- sure, that we only use the public API to implement formatters.

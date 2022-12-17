@@ -21,6 +21,7 @@ module Test.Hspec.Core.Example (
 , safeEvaluateExample
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
 , safeEvaluateResultStatus
+, toLocation
 ) where
 
 import           Prelude ()
@@ -28,9 +29,8 @@ import           Test.Hspec.Core.Compat
 
 import qualified Test.HUnit.Lang as HUnit
 
-import           Data.CallStack
+import           Data.CallStack (SrcLoc(..))
 
-import           Control.Exception
 import           Control.DeepSeq
 import           Data.Typeable (Typeable)
 import qualified Test.QuickCheck as QC
@@ -162,12 +162,15 @@ hunitFailureToResult pre e = case e of
     where
       location = case mLoc of
         Nothing -> Nothing
-        Just loc -> Just $ Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
+        Just loc -> Just $ toLocation loc
   where
     addPre :: String -> String
     addPre xs = case pre of
       Just x -> x ++ "\n" ++ xs
       Nothing -> xs
+
+toLocation :: SrcLoc -> Location
+toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a

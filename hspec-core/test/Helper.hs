@@ -41,8 +41,6 @@ import           Test.Hspec.Core.Compat
 import           Data.Char
 import           System.Environment (withArgs, getEnvironment)
 import           System.Exit
-import qualified Control.Exception as E
-import           Control.Exception
 import           System.IO.Silently
 import           System.SetEnv
 import           System.FilePath
@@ -64,10 +62,10 @@ import qualified Test.Hspec.Core.Format as Format
 
 import           Data.Orphans()
 
-exceptionEq :: E.SomeException -> E.SomeException -> Bool
+exceptionEq :: SomeException -> SomeException -> Bool
 exceptionEq a b
-  | Just ea <- E.fromException a, Just eb <- E.fromException b = ea == (eb :: E.ErrorCall)
-  | Just ea <- E.fromException a, Just eb <- E.fromException b = ea == (eb :: E.ArithException)
+  | Just ea <- fromException a, Just eb <- fromException b = ea == (eb :: ErrorCall)
+  | Just ea <- fromException a, Just eb <- fromException b = ea == (eb :: ArithException)
   | otherwise = throw (HUnit.HUnitFailure Nothing $ HUnit.ExpectedButGot Nothing (formatException b) (formatException a))
 
 deriving instance Eq FailureReason
@@ -81,16 +79,16 @@ instance Eq SomeException where
   (==) = exceptionEq
 
 throwException :: IO a
-throwException = E.throwIO DivideByZero
+throwException = throwIO DivideByZero
 
 throwException_ :: IO ()
 throwException_ = throwException
 
 ignoreExitCode :: IO () -> IO ()
-ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in pass
+ignoreExitCode action = action `catch` \e -> let _ = e :: ExitCode in pass
 
 ignoreUserInterrupt :: IO () -> IO ()
-ignoreUserInterrupt action = E.catchJust (guard . (== E.UserInterrupt)) action return
+ignoreUserInterrupt action = catchJust (guard . (== UserInterrupt)) action return
 
 captureLines :: IO a -> IO [String]
 captureLines = fmap lines . capture_

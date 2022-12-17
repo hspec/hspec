@@ -4,7 +4,6 @@ import           Prelude ()
 import           Helper
 
 import           Control.Concurrent
-import qualified Control.Exception as E
 
 import           Test.Hspec.Core.Util
 
@@ -22,12 +21,12 @@ spec = do
 
   describe "formatException" $ do
     it "converts exception to string" $ do
-      formatException (E.toException E.DivideByZero) `shouldBe` "ArithException\ndivide by zero"
+      formatException (toException DivideByZero) `shouldBe` "ArithException\ndivide by zero"
 
     context "when used with an IOException" $ do
       it "includes the IOErrorType" $ do
         inTempDirectory $ do
-          Left e <- E.try (readFile "foo")
+          Left e <- try (readFile "foo")
           formatException e `shouldBe` intercalate "\n" [
               "IOException of type NoSuchThing"
             , "foo: openFile: does not exist (No such file or directory)"
@@ -59,10 +58,10 @@ spec = do
 
     it "returns Left on exception" $ do
       Left e <- safeTry throwException
-      E.fromException e `shouldBe` Just E.DivideByZero
+      fromException e `shouldBe` Just DivideByZero
 
     it "evaluates result to weak head normal form" $ do
-      Left e <- safeTry (return $ E.throw $ E.ErrorCall "foo")
+      Left e <- safeTry (return $ throw $ ErrorCall "foo")
       show e `shouldBe` "foo"
 
     it "does not catch asynchronous exceptions" $ do
@@ -70,10 +69,10 @@ spec = do
       sync <- newEmptyMVar
       threadId <- forkIO $ do
         safeTry (putMVar sync () >> threadDelay 1000000) >> pass
-        `E.catch` putMVar mvar
+        `catch` putMVar mvar
       takeMVar sync
-      throwTo threadId E.UserInterrupt
-      readMVar mvar `shouldReturn` E.UserInterrupt
+      throwTo threadId UserInterrupt
+      readMVar mvar `shouldReturn` UserInterrupt
 
   describe "filterPredicate" $ do
     it "tries to match a pattern against a path" $ do

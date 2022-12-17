@@ -20,7 +20,6 @@ module Test.Hspec.Core.Config.Definition (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Exception (bracket)
 import           System.Directory (getTemporaryDirectory, removeFile)
 import           System.IO (openTempFile, hClose)
 import           System.Process (system)

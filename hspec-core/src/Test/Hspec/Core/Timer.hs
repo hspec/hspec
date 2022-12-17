@@ -3,7 +3,6 @@ module Test.Hspec.Core.Timer (withTimer) where
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Exception
 import           Control.Concurrent.Async
 
 import           Test.Hspec.Core.Clock

@@ -91,7 +91,6 @@ import           NonEmpty (nonEmpty)
 import           System.IO
 import           System.Environment (getArgs, withArgs)
 import           System.Exit
-import qualified Control.Exception as E
 import           System.Random
 import           Control.Monad.ST
 import           Data.STRef
@@ -436,7 +435,7 @@ doNotLeakCommandLineArgumentsToExamples = withArgs []
 
 withHiddenCursor :: Bool -> Handle -> IO a -> IO a
 withHiddenCursor useColor h
-  | useColor  = E.bracket_ (hHideCursor h) (hShowCursor h)
+  | useColor  = bracket_ (hHideCursor h) (hShowCursor h)
   | otherwise = id
 
 colorOutputSupported :: ColorMode -> IO Bool -> IO (Bool, Bool)

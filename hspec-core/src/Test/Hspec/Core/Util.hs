@@ -21,7 +21,6 @@ import           Test.Hspec.Core.Compat hiding (join)
 
 import           Data.Char (isSpace)
 import           GHC.IO.Exception
-import           Control.Exception
 import           Control.Concurrent.Async
 
 -- |

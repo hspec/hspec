@@ -19,7 +19,6 @@ module Test.Hspec.Core.Format (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Exception
 import           Control.Concurrent
 import           Control.Concurrent.Async (Async, async)
 import qualified Control.Concurrent.Async as Async
