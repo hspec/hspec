@@ -140,13 +140,13 @@ import           Test.Hspec.Core.Formatters.Diff
 
 silent :: Formatter
 silent = Formatter {
-  formatterStarted      = return ()
-, formatterGroupStarted = \ _ -> return ()
-, formatterGroupDone    = \ _ -> return ()
-, formatterProgress     = \ _ _ -> return ()
-, formatterItemStarted  = \ _ -> return ()
-, formatterItemDone     = \ _ _ -> return ()
-, formatterDone         = return ()
+  formatterStarted      = pass
+, formatterGroupStarted = \ _ -> pass
+, formatterGroupDone    = \ _ -> pass
+, formatterProgress     = \ _ _ -> pass
+, formatterItemStarted  = \ _ -> pass
+, formatterItemDone     = \ _ _ -> pass
+, formatterDone         = pass
 }
 
 checks :: Formatter
@@ -165,8 +165,8 @@ checks = specdoc {
       Pending {} -> (withPendingColor, fallback "‐" "-")
       Failure {} -> (withFailColor,    fallback "✘" "x")
     case itemResult item of
-      Success {} -> return ()
-      Failure {} -> return ()
+      Success {} -> pass
+      Failure {} -> pass
       Pending _ reason -> withPendingColor $ do
         writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
 } where
@@ -277,7 +277,7 @@ defaultFailedFormatter = do
       write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
       case reason of
-        NoReason -> return ()
+        NoReason -> pass
         Reason err -> withFailColor $ indent err
         ExpectedButGot preface expected_ actual_ -> do
           pretty <- prettyPrintFunction

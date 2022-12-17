@@ -238,7 +238,7 @@ parallelize sem isParallelizable
 runSequentially :: MonadIO m => Job IO progress a -> IO (Async (), Job m progress (Seconds, a))
 runSequentially action = do
   mvar <- newEmptyMVar
-  (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) (return ())) action
+  (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) pass) action
   return (asyncAction, \ notifyPartial -> liftIO (putMVar mvar ()) >> evalAction notifyPartial)
 
 data Parallel progress a = Partial progress | Return a
@@ -316,7 +316,7 @@ sequenceActions :: Bool -> [EvalM ()] -> EvalM ()
 sequenceActions failFast = go
   where
     go :: [EvalM ()] -> EvalM ()
-    go [] = return ()
+    go [] = pass
     go (action : actions) = do
       action
       stopNow <- case failFast of

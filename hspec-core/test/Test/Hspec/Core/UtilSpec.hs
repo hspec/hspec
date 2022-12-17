@@ -69,7 +69,7 @@ spec = do
       mvar <- newEmptyMVar
       sync <- newEmptyMVar
       threadId <- forkIO $ do
-        safeTry (putMVar sync () >> threadDelay 1000000) >> return ()
+        safeTry (putMVar sync () >> threadDelay 1000000) >> pass
         `E.catch` putMVar mvar
       takeMVar sync
       throwTo threadId E.UserInterrupt

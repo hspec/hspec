@@ -35,7 +35,7 @@ writeFailureReport config report = case configFailureReport config of
     -- into the environment is a non-essential feature we just disable this to be
     -- able to run hspec test-suites with ghcjs at all. Should be reverted once
     -- the issue is fixed.
-    return ()
+    pass
 #else
     -- on Windows this can throw an exception when the input is too large, hence
     -- we use `safeTry` here

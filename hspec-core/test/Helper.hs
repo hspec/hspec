@@ -87,7 +87,7 @@ throwException_ :: IO ()
 throwException_ = throwException
 
 ignoreExitCode :: IO () -> IO ()
-ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
+ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in pass
 
 ignoreUserInterrupt :: IO () -> IO ()
 ignoreUserInterrupt action = E.catchJust (guard . (== E.UserInterrupt)) action return
@@ -116,7 +116,7 @@ defaultParams :: H.Params
 defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000}}
 
 noOpProgressCallback :: H.ProgressCallback
-noOpProgressCallback _ = return ()
+noOpProgressCallback _ = pass
 
 shouldUseArgs :: HasCallStack => [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do

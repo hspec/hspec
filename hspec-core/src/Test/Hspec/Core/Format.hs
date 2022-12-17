@@ -94,7 +94,7 @@ monadic run format = do
       event <- takeEvent
       format event
       case event of
-        Done {} -> return ()
+        Done {} -> pass
         _ -> do
           signal Ok
           go
@@ -108,7 +108,7 @@ monadic run format = do
       putEvent event
       r <- wait
       case r of
-        Ok -> return ()
+        Ok -> pass
         NotOk err -> do
           Async.wait worker
           throwIO err

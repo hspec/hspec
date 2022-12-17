@@ -153,16 +153,16 @@ interpret = interpretWith Environment {
 
 silent :: Formatter
 silent = Formatter {
-  headerFormatter     = return ()
-, exampleGroupStarted = \_ _ -> return ()
-, exampleGroupDone    = return ()
-, exampleStarted      = \_ -> return ()
-, exampleProgress     = \_ _ -> return ()
-, exampleSucceeded    = \ _ _ -> return ()
-, exampleFailed       = \_ _ _ -> return ()
-, examplePending      = \_ _ _ -> return ()
-, failedFormatter     = return ()
-, footerFormatter     = return ()
+  headerFormatter     = pass
+, exampleGroupStarted = \_ _ -> pass
+, exampleGroupDone    = pass
+, exampleStarted      = \_ -> pass
+, exampleProgress     = \_ _ -> pass
+, exampleSucceeded    = \ _ _ -> pass
+, exampleFailed       = \_ _ _ -> pass
+, examplePending      = \_ _ _ -> pass
+, failedFormatter     = pass
+, footerFormatter     = pass
 }
 
 checks :: Formatter
@@ -278,7 +278,7 @@ defaultFailedFormatter = do
       write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
       case reason of
-        NoReason -> return ()
+        NoReason -> pass
         Reason err -> withFailColor $ indent err
         ExpectedButGot preface expected actual -> do
           mapM_ indent preface
@@ -306,16 +306,16 @@ defaultFailedFormatter = do
               forM_ chunks $ \ chunk -> case chunk of
                 Both a -> indented write a
                 First a -> indented extra a
-                Second _ -> return ()
-                Omitted _ -> return ()
+                Second _ -> pass
+                Omitted _ -> pass
               writeLine ""
 
               withFailColor $ write (indentation ++ " but got: ")
               forM_ chunks $ \ chunk -> case chunk of
                 Both a -> indented write a
-                First _ -> return ()
+                First _ -> pass
                 Second a -> indented missing a
-                Omitted _ -> return ()
+                Omitted _ -> pass
               writeLine ""
 
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
