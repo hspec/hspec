@@ -28,7 +28,6 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (Monad)
 import qualified Test.Hspec.Core.Compat as M
 
-import qualified Control.Exception as E
 import           Control.Concurrent
 import           Control.Concurrent.Async hiding (cancel)
 
@@ -132,11 +131,11 @@ runFormatter config specs = do
     start = parallelizeTree (evalConfigConcurrentJobs config) specs
     cancel = cancelMany . concatMap toList . map (fmap fst)
 
-  E.bracket start cancel $ \ runningSpecs -> do
+  bracket start cancel $ \ runningSpecs -> do
     withTimer 0.05 $ \ timer -> do
 
       format Format.Started
-      runReaderT (run . applyCleanup $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs) (Env config ref) `E.finally` do
+      runReaderT (run . applyCleanup $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs) (Env config ref) `finally` do
         results <- reverse <$> readIORef ref
         format (Format.Done results)
 
@@ -246,7 +245,7 @@ data Parallel progress a = Partial progress | Return a
 runParallel :: forall m progress a. MonadIO m => Semaphore -> Job IO progress a -> IO (Async (), Job m progress (Seconds, a))
 runParallel Semaphore{..} action = do
   mvar <- newEmptyMVar
-  asyncAction <- async $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
+  asyncAction <- async $ bracket_ semaphoreWait semaphoreSignal (worker mvar)
   return (asyncAction, eval mvar)
   where
     worker :: MVar (Parallel progress (Seconds, a)) -> IO ()

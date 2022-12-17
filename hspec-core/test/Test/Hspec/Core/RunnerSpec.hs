@@ -16,7 +16,6 @@ import           System.IO
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import           Control.Concurrent
-import qualified Control.Exception as E
 import           Control.Concurrent.Async
 import           Mock
 import           System.SetEnv
@@ -59,15 +58,15 @@ spec = do
       mvar <- newEmptyMVar
       hspec_ $ do
         H.it "foo" $ do
-          E.getMaskingState >>= putMVar mvar
-      takeMVar mvar `shouldReturn` E.Unmasked
+          getMaskingState >>= putMVar mvar
+      takeMVar mvar `shouldReturn` Unmasked
 
     it "runs finalizers" $ do
       mvar <- newEmptyMVar
       ref <- newIORef "did not run finalizer"
       a <- async $ hspec_ $ do
           H.it "foo" $ do
-            (putMVar mvar () >> threadDelay 10000000) `E.finally`
+            (putMVar mvar () >> threadDelay 10000000) `finally`
               writeIORef ref "ran finalizer"
       takeMVar mvar
       cancel a
@@ -195,7 +194,7 @@ spec = do
             H.it "baz" True
           putMVar mvar r
         takeMVar sync
-        throwTo threadId E.UserInterrupt
+        throwTo threadId UserInterrupt
         r <- takeMVar mvar
         normalizeSummary r `shouldBe` [
             ""
@@ -221,10 +220,10 @@ spec = do
             H.it "foo" $ do
               putMVar sync ()
               threadDelay 1000000
-          `E.catch` putMVar mvar
+          `catch` putMVar mvar
         takeMVar sync
-        throwTo threadId E.UserInterrupt
-        takeMVar mvar `shouldReturn` E.UserInterrupt
+        throwTo threadId UserInterrupt
+        takeMVar mvar `shouldReturn` UserInterrupt
 
     context "with --dry-run" $ do
       let withDryRun = captureLines . withArgs ["--dry-run"] . H.hspec
@@ -271,7 +270,7 @@ spec = do
 
     context "with --fail-on=empty" $ do
       it "fails if no spec items have been run" $ do
-        (out, r) <- capture . E.try . withArgs ["--skip=", "--fail-on=empty"] . H.hspec $ do
+        (out, r) <- capture . try . withArgs ["--skip=", "--fail-on=empty"] . H.hspec $ do
           H.it "foo" True
           H.it "bar" True
           H.it "baz" True
@@ -312,7 +311,7 @@ spec = do
         r <- run $ do
           H.it "foo" True
           H.it "bar" $ do
-            void $ E.throwIO (H.Pending Nothing Nothing)
+            void $ throwIO (H.Pending Nothing Nothing)
 
         normalizeSummary r `shouldBe` [
             ""
@@ -368,7 +367,7 @@ spec = do
             H.it "bar" $ do
               -- NOTE: waitQSem should never return here, as we want to
               -- guarantee that the thread is killed before hspec returns
-              (signalQSem child1 >> waitQSem child2 >> writeIORef ref "foo") `E.finally` signalQSem parent
+              (signalQSem child1 >> waitQSem child2 >> writeIORef ref "foo") `finally` signalQSem parent
         signalQSem child2
         waitQSem parent
         readIORef ref `shouldReturn` ""
@@ -737,7 +736,7 @@ spec = do
               atomicModifyIORef highRef $ \x -> (max x current, ())
             stop = atomicModifyIORef currentRef $ \x -> (pred x, ())
         r <- hspecResult ["-j", show j] . H.parallel $ do
-          replicateM_ n $ H.it "foo" $ E.bracket_ start stop $ sleep t
+          replicateM_ n $ H.it "foo" $ bracket_ start stop $ sleep t
         r `shouldBe` H.Summary n 0
         high <- readIORef highRef
         high `shouldBe` j

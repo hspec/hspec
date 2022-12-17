@@ -2,7 +2,6 @@ module Test.Hspec.Core.Formatters.V2Spec (spec) where
 
 import           Prelude ()
 import           Helper
-import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Spec as Spec
@@ -292,7 +291,7 @@ failed_examplesSpec formatter = do
 
     it "prints the exception type for requirements that fail due to an uncaught exception" $ do
       r <- runSpec $ do
-        H.it "foobar" (E.throw (E.ErrorCall "baz") :: Bool)
+        H.it "foobar" (throw (ErrorCall "baz") :: Bool)
       r `shouldContain` [
           "  1) foobar"
         , "       uncaught exception: ErrorCall"

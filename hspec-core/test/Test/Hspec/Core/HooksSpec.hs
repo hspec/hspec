@@ -6,8 +6,6 @@ import           Prelude ()
 import           Helper
 import           Mock
 
-import           Control.Exception
-
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Spec as H
 import           Test.Hspec.Core.Format

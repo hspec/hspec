@@ -31,9 +31,7 @@ module Test.Hspec.Core.Hooks (
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
-import           Data.CallStack (HasCallStack)
 
-import           Control.Exception (SomeException, finally, throwIO, try)
 import           Control.Concurrent
 
 import           Test.Hspec.Core.Example

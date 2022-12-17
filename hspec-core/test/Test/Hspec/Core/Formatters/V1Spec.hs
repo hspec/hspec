@@ -7,7 +7,6 @@ import           Helper
 import           Data.String
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Writer hiding (pass)
-import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
@@ -283,7 +282,7 @@ failed_examplesSpec formatter = do
 
     it "prints the exception type for requirements that fail due to an uncaught exception" $ do
       r <- runSpec $ do
-        H.it "foobar" (E.throw (E.ErrorCall "baz") :: Bool)
+        H.it "foobar" (throw (ErrorCall "baz") :: Bool)
       r `shouldContain` [
           "  1) foobar"
         , "       uncaught exception: ErrorCall"

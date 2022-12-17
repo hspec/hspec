@@ -27,7 +27,7 @@ module Test.Hspec.Core.Tree (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.CallStack (HasCallStack, SrcLoc(..))
+import           Data.CallStack (SrcLoc(..))
 import qualified Data.CallStack as CallStack
 import           Data.Maybe
 
@@ -144,6 +144,3 @@ defaultDescription :: HasCallStack => Maybe String
 defaultDescription = case CallStack.callSite of
   Just (_, loc) -> Just (srcLocModule loc ++ "[" ++ show (srcLocStartLine loc) ++ ":" ++ show (srcLocStartCol loc) ++ "]")
   Nothing -> Nothing
-
-toLocation :: SrcLoc -> Location
-toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)

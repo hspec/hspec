@@ -68,7 +68,6 @@ import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example (Location(..))
 import           Text.Printf
 import           Control.Monad.IO.Class
-import           Control.Exception
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Internal", to make
 -- sure, that we only use the public API to implement formatters.

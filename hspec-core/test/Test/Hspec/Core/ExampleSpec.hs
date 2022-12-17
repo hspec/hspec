@@ -9,7 +9,6 @@ import           Prelude ()
 import           Helper
 
 import           Mock
-import           Control.Exception
 import           Test.HUnit (assertFailure, assertEqual)
 
 import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..))

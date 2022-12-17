@@ -10,8 +10,6 @@ module Test.Hspec.Core.Example.LocationSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           Control.Exception
-
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Example.Location
 
@@ -93,7 +91,7 @@ spec = do
     context "with NoMethodError" $ do
       it "extracts Location" $ do
         Left e <- try $ someMethod ()
-        extractLocation e `shouldBe` Just (Location file 21 10)
+        extractLocation e `shouldBe` Just (Location file 19 10)
 
     context "with AssertionFailed" $ do
       it "extracts Location" $ do
