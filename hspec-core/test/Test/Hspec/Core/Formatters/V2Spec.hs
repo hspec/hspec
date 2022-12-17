@@ -192,7 +192,7 @@ spec = do
           H.describe "foo" $ do
             H.it "example 1" True
           H.describe "bar" $ do
-            return ()
+            pass
           H.describe "baz" $ do
             H.it "example 2" True
 

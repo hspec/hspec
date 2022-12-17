@@ -175,3 +175,6 @@ infixl 1 <&>
 
 endsWith :: Eq a => [a] -> [a] -> Bool
 endsWith = flip isSuffixOf
+
+pass :: Applicative m => m ()
+pass = pure ()

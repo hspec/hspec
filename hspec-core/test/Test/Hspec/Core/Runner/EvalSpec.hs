@@ -80,7 +80,7 @@ spec = do
       ref <- newIORef []
       (_, actionA) <- runSequentially $ \ _ -> modifyIORef ref (23 :)
       (_, actionB) <- runSequentially $ \ _ -> modifyIORef ref (42 :)
-      (_, ()) <- actionB (\_ -> return ())
+      (_, ()) <- actionB (\_ -> pass)
       readIORef ref `shouldReturn` [42 :: Int]
-      (_, ()) <- actionA (\_ -> return ())
+      (_, ()) <- actionA (\_ -> pass)
       readIORef ref `shouldReturn` [23, 42]
