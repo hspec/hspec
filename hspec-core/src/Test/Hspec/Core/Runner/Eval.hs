@@ -170,9 +170,9 @@ applyCleanup :: [RunningTree (IO ())] -> [RunningTree ()]
 applyCleanup = map go
   where
     go t = case t of
-      Leaf a -> Leaf a
       Node label xs -> Node label (go <$> xs)
       NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc () (addCleanupToLastLeaf loc cleanup $ go <$> xs)
+      Leaf a -> Leaf a
 
 addCleanupToLastLeaf :: Maybe (String, Location) -> IO () -> NonEmpty (RunningTree ()) -> NonEmpty (RunningTree ())
 addCleanupToLastLeaf loc cleanup = go
@@ -180,9 +180,9 @@ addCleanupToLastLeaf loc cleanup = go
     go = NonEmpty.reverse . mapHead goNode . NonEmpty.reverse
 
     goNode node = case node of
+      Node description xs -> Node description (go xs)
+      NodeWithCleanup loc_ () xs -> NodeWithCleanup loc_ () (go xs)
       Leaf item -> Leaf (addCleanupToItem loc cleanup item)
-      NodeWithCleanup loc_ () zs -> NodeWithCleanup loc_ () (go zs)
-      Node description zs -> Node description (go zs)
 
 mapHead :: (a -> a) -> NonEmpty a -> NonEmpty a
 mapHead f xs = case xs of
