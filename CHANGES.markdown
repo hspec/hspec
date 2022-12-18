@@ -1,3 +1,6 @@
+## Changes in 2.10.8 (TBD)
+  - Add `xprop` and `fprop`, which use `xit` and `fit`
+
 ## Changes in 2.10.7 (2022-12-03)
   - Do not depend on `ghc` for pretty-printing (#750, #752)
 

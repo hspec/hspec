@@ -10,6 +10,8 @@ module Test.Hspec.QuickCheck (
 
 -- * Shortcuts
 , prop
+, xprop
+, fprop
 ) where
 
 import           Test.Hspec
@@ -26,3 +28,27 @@ import           Test.Hspec.Core.QuickCheck
 -- >   ..
 prop :: (HasCallStack, Testable prop) => String -> prop -> Spec
 prop s = it s . property
+
+
+-- |
+-- > xprop ".." $
+-- >   ..
+--
+-- is a shortcut for
+--
+-- > xit ".." $ property $
+-- >   ..
+xprop :: (HasCallStack, Testable prop) => String -> prop -> Spec
+xprop s = xit s . property
+
+
+-- |
+-- > fprop ".." $
+-- >   ..
+--
+-- is a shortcut for
+--
+-- > fit ".." $ property $
+-- >   ..
+fprop :: (HasCallStack, Testable prop) => String -> prop -> Spec
+fprop s = fit s . property
