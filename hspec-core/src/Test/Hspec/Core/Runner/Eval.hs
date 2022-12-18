@@ -20,6 +20,7 @@ module Test.Hspec.Core.Runner.Eval (
 , runFormatter
 #ifdef TEST
 , mergeResults
+, AsyncJob(..)
 , runSequentially
 #endif
 ) where
@@ -29,7 +30,7 @@ import           Test.Hspec.Core.Compat hiding (Monad)
 import qualified Test.Hspec.Core.Compat as M
 
 import           Control.Concurrent
-import           Control.Concurrent.Async hiding (cancel)
+import           Control.Concurrent.Async hiding (wait, cancel)
 
 import           Control.Monad.IO.Class (liftIO)
 import qualified Control.Monad.IO.Class as M
@@ -117,7 +118,7 @@ data EvalItem = EvalItem {
   evalItemDescription :: String
 , evalItemLocation :: Maybe Location
 , evalItemParallelize :: Bool
-, evalItemAction :: ProgressCallback -> IO Result
+, evalItemAction :: ProgressCallback -> IO (Seconds, Result)
 }
 
 type EvalTree = Tree (IO ()) EvalItem
@@ -128,26 +129,41 @@ runFormatter config specs = do
   ref <- newIORef []
 
   let
+    start :: IO [RunningTree_ IO]
     start = parallelizeTree (evalConfigConcurrentJobs config) specs
-    cancel = cancelMany . concatMap toList . map (fmap fst)
 
-  bracket start cancel $ \ runningSpecs -> do
+    cancel :: [RunningTree_ IO] -> IO ()
+    cancel = cancelAllJobs . map itemAction . concatMap toList
+
+  bracket start cancel $ \ runningSpecs_ -> do
     withTimer 0.05 $ \ timer -> do
 
+      let
+        applyReportProgress :: RunningItem_ IO -> RunningItem
+        applyReportProgress item = fmap ((. reportProgress timer) . jobWaitForResult) item
+
+        runningSpecs :: [RunningTree ()]
+        runningSpecs = applyCleanup $ map (fmap applyReportProgress) runningSpecs_
+
       format Format.Started
-      runReaderT (run . applyCleanup $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs) (Env config ref) `finally` do
+      runReaderT (run runningSpecs) (Env config ref) `finally` do
         results <- reverse <$> readIORef ref
         format (Format.Done results)
 
       results <- reverse <$> readIORef ref
       return results
   where
+    format :: Format
     format = evalConfigFormat config
 
+    reportProgress :: IO Bool -> Path -> Progress -> IO ()
     reportProgress timer path progress = do
       r <- timer
       when r $ do
         format (Format.Progress path progress)
+
+cancelAllJobs :: [AsyncJob m progress a] -> IO ()
+cancelAllJobs = cancelMany . map jobAsync
 
 cancelMany :: [Async a] -> IO ()
 cancelMany asyncs = do
@@ -162,8 +178,16 @@ data Item a = Item {
 
 type Job m progress a = (progress -> m ()) -> m a
 
+data AsyncJob m progress a = AsyncJob {
+  jobWaitForResult :: Job m progress a
+, jobAsync :: Async ()
+}
+
 type RunningItem = Item (Path -> IO (Seconds, Result))
 type RunningTree c = Tree c RunningItem
+
+type RunningItem_ m = Item (AsyncJob m Progress (Seconds, Result))
+type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
 
 applyCleanup :: [RunningTree (IO ())] -> [RunningTree ()]
 applyCleanup = map go
@@ -211,9 +235,6 @@ mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
       Just (name, _) -> Just $ "in " ++ name ++ "-hook:"
       Nothing -> Nothing
 
-type RunningItem_ m = (Async (), Item (Job m Progress (Seconds, Result)))
-type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
-
 data Semaphore = Semaphore {
   semaphoreWait :: IO ()
 , semaphoreSignal :: IO ()
@@ -226,35 +247,46 @@ parallelizeTree n specs = do
 
 parallelizeItem :: MonadIO m => QSem -> EvalItem -> IO (RunningItem_ m)
 parallelizeItem sem EvalItem{..} = do
-  (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize (interruptible . evalItemAction)
-  return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
+  job <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize (interruptible . evalItemAction)
+  return (Item evalItemDescription evalItemLocation job)
 
-parallelize :: MonadIO m => Semaphore -> Bool -> Job IO progress a -> IO (Async (), Job m progress (Seconds, a))
+parallelize :: MonadIO m => Semaphore -> Bool -> Job IO progress a -> IO (AsyncJob m progress a)
 parallelize sem isParallelizable
   | isParallelizable = runParallel sem
   | otherwise = runSequentially
 
-runSequentially :: MonadIO m => Job IO progress a -> IO (Async (), Job m progress (Seconds, a))
+runSequentially :: forall m progress a. MonadIO m => Job IO progress a -> IO (AsyncJob m progress a)
 runSequentially action = do
-  mvar <- newEmptyMVar
-  (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) pass) action
-  return (asyncAction, \ notifyPartial -> liftIO (putMVar mvar ()) >> evalAction notifyPartial)
+  mutex <- newEmptyMVar
+  let
+    signal :: m ()
+    signal = liftIO $ putMVar mutex ()
+
+    wait :: IO ()
+    wait = takeMVar mutex
+
+  job <- runParallel (Semaphore wait pass) action
+  return job { jobWaitForResult = \ notifyPartial -> do
+    signal >> jobWaitForResult job notifyPartial
+  }
 
 data Parallel progress a = Partial progress | Return a
 
-runParallel :: forall m progress a. MonadIO m => Semaphore -> Job IO progress a -> IO (Async (), Job m progress (Seconds, a))
+runParallel :: forall m progress a. MonadIO m => Semaphore -> Job IO progress a -> IO (AsyncJob m progress a)
 runParallel Semaphore{..} action = do
   mvar <- newEmptyMVar
   asyncAction <- async $ bracket_ semaphoreWait semaphoreSignal (worker mvar)
-  return (asyncAction, eval mvar)
+  return (AsyncJob (eval mvar) asyncAction)
   where
-    worker :: MVar (Parallel progress (Seconds, a)) -> IO ()
+    worker :: MVar (Parallel progress a) -> IO ()
     worker mvar = do
-      let partialCallback = replaceMVar mvar . Partial
-      result <- measure $ action partialCallback
+      let
+        partialCallback :: progress -> IO ()
+        partialCallback = replaceMVar mvar . Partial
+      result <- action partialCallback
       replaceMVar mvar (Return result)
 
-    eval :: MVar (Parallel progress (Seconds, a)) -> (progress -> m ()) -> m (Seconds, a)
+    eval :: MVar (Parallel progress a) -> (progress -> m ()) -> m a
     eval mvar notifyPartial = do
       r <- liftIO (takeMVar mvar)
       case r of

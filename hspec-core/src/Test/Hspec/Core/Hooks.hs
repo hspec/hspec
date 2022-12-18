@@ -109,11 +109,12 @@ around_ action = aroundWith $ \e a -> action (e a)
 
 -- | Run a custom action before and/or after every spec item.
 aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
-aroundWith = mapSpecItem_ . modifyAroundAction
+aroundWith = mapSpecItem_ . modifyHook
 
-modifyAroundAction :: (ActionWith a -> ActionWith b) -> Item a -> Item b
-modifyAroundAction action item@Item{itemExample = e} =
-  item{ itemExample = \params aroundAction -> e params (aroundAction . action) }
+modifyHook :: (ActionWith a -> ActionWith b) -> Item a -> Item b
+modifyHook action item = item {
+    itemExample = \ params hook -> itemExample item params (hook . action)
+  }
 
 -- | Wrap an action around the given spec.
 aroundAll :: HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec

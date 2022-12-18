@@ -62,7 +62,6 @@ module Test.Hspec.Core.Formatters.V1 (
 import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (First)
 
-import           Data.Maybe
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example (Location(..))

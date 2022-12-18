@@ -77,9 +77,9 @@ spec = do
   describe "runSequentially" $ do
     it "runs actions sequentially" $ do
       ref <- newIORef []
-      (_, actionA) <- runSequentially $ \ _ -> modifyIORef ref (23 :)
-      (_, actionB) <- runSequentially $ \ _ -> modifyIORef ref (42 :)
-      (_, ()) <- actionB (\_ -> pass)
+      jobA <- runSequentially $ \ _ -> modifyIORef ref (23 :)
+      jobB <- runSequentially $ \ _ -> modifyIORef ref (42 :)
+      jobWaitForResult jobB (\_ -> pass)
       readIORef ref `shouldReturn` [42 :: Int]
-      (_, ()) <- actionA (\_ -> pass)
+      jobWaitForResult jobA (\_ -> pass)
       readIORef ref `shouldReturn` [23, 42]

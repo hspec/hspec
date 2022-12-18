@@ -29,7 +29,6 @@ import           Test.Hspec.Core.Compat
 
 import           Data.CallStack (SrcLoc(..))
 import qualified Data.CallStack as CallStack
-import           Data.Maybe
 
 import           Test.Hspec.Core.Example
 
@@ -126,8 +125,14 @@ specGroup s = Node msg
       | otherwise = s
 
 -- | The @specItem@ function creates a spec item.
-specItem :: (HasCallStack, Example a) => String -> a -> SpecTree (Arg a)
-specItem s e = Leaf $ Item requirement location Nothing False (safeEvaluateExample e)
+specItem :: (HasCallStack, Example e) => String -> e -> SpecTree (Arg e)
+specItem s e = Leaf Item {
+    itemRequirement = requirement
+  , itemLocation = location
+  , itemIsParallelizable = Nothing
+  , itemIsFocused = False
+  , itemExample = safeEvaluateExample e
+  }
   where
     requirement :: HasCallStack => String
     requirement
