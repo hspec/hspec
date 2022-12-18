@@ -132,13 +132,27 @@ specItem s e = Leaf Item {
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
   , itemExample = \ params hook progress -> do
-      measure $ safeEvaluateExample e params hook progress
+      case paramsIgnoreHookTimes params of
+        IgnoreAll -> do
+          ref <- newIORef 0
+          r <- safeEvaluateExample e params (ignoreHookTimes ref hook) progress
+          t <- readIORef ref
+          return (t, r)
+        _ -> do
+          measure $ safeEvaluateExample e params hook progress
   }
   where
     requirement :: HasCallStack => String
     requirement
       | null s = fromMaybe "(unspecified behavior)" defaultDescription
       | otherwise = s
+
+    ignoreHookTimes :: IORef Seconds -> (ActionWith a -> IO ()) -> ActionWith a -> IO ()
+    ignoreHookTimes ref hook example = do
+      hook $ \ a -> do
+        (t, r) <- measure (example a)
+        modifyIORef ref (+ t)
+        return r
 
 location :: HasCallStack => Maybe Location
 location = snd <$> callSite

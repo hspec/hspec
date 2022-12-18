@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ViewPatterns #-}
 module Test.Hspec.Core.Config.Definition (
   Config(..)
 , ColorMode(..)
 , UnicodeMode(..)
+, IgnoreHookTimes(..)
 , filterOr
 , defaultConfig
 
@@ -24,7 +26,7 @@ import           System.Directory (getTemporaryDirectory, removeFile)
 import           System.IO (openTempFile, hClose)
 import           System.Process (system)
 
-import           Test.Hspec.Core.Example (Params(..), defaultParams)
+import           Test.Hspec.Core.Example (Params(..), IgnoreHookTimes(..), defaultParams)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1 as V1
@@ -82,6 +84,7 @@ data Config = Config {
 , configPrettyPrint :: Bool
 , configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
 , configTimes :: Bool
+, configIgnoreHookTimes :: IgnoreHookTimes -- ^ @since 2.11.0
 , configAvailableFormatters :: [(String, FormatConfig -> IO Format)]
 , configFormat :: Maybe (FormatConfig -> IO Format)
 , configFormatter :: Maybe V1.Formatter -- ^ deprecated, use `configFormat` instead
@@ -120,6 +123,7 @@ defaultConfig = Config {
 , configPrettyPrint = True
 , configPrettyPrintFunction = pretty2
 , configTimes = False
+, configIgnoreHookTimes = paramsIgnoreHookTimes defaultParams
 , configAvailableFormatters = map (fmap V2.formatterToFormat) [
     ("checks", V2.checks)
   , ("specdoc", V2.specdoc)
@@ -181,6 +185,7 @@ formatterOptions formatters = [
   , option "diff-command" (argument "CMD" return setDiffCommand) "use an external diff command\nexample: --diff-command=\"git diff\""
   , mkFlag "pretty" setPretty "try to pretty-print diff values"
   , mkFlag "times" setTimes "report times for individual spec items"
+  , ignoreHookTimesOption
   , mkOptionNoArg "print-cpu-time" Nothing setPrintCpuTime "include used CPU time in summary"
   , printSlowItemsOption
 
@@ -233,6 +238,34 @@ formatterOptions formatters = [
     setTimes v config = config {configTimes = v}
 
     setPrintCpuTime config = config {configPrintCpuTime = True}
+
+ignoreHookTimesOption :: Option Config
+ignoreHookTimesOption = option "ignore-hook-times" (OptArg "VALUE" setConfigIgnoreHookTimes) help
+  where
+    options :: [(String, IgnoreHookTimes)]
+    options = map (renderIgnoreHookTimes &&& id) [minBound .. maxBound]
+
+    renderIgnoreHookTimes :: IgnoreHookTimes -> String
+    renderIgnoreHookTimes value = case value of
+      IgnoreAll -> "all"
+      IgnoreGlobal -> "global"
+      IgnoreNone -> "none"
+
+    ignoreHookTimesHelp :: IgnoreHookTimes -> String
+    ignoreHookTimesHelp value = case value of
+      IgnoreAll -> "exclude all hooks from reported times"
+      IgnoreGlobal -> "exclude global hooks from reported times"
+      IgnoreNone -> "include all hooks in reported times"
+
+    help :: String
+    help = unlines $ map format options
+      where
+        format (name, value) = name <> ": " <> ignoreHookTimesHelp value
+
+    setConfigIgnoreHookTimes :: Maybe String -> Config -> Maybe Config
+    setConfigIgnoreHookTimes (fromMaybe "all" -> input) c = setValue <$> lookup input options
+      where
+        setValue value = c {configIgnoreHookTimes = value}
 
 printSlowItemsOption :: Option Config
 printSlowItemsOption = Option name (Just 'p') (OptArg "N" arg) "print the N slowest spec items (default: 10)" True

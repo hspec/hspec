@@ -29,7 +29,7 @@ import           Test.Hspec.Core.Format (Format)
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
-import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToResultStatus)
+import           Test.Hspec.Core.Example (IgnoreHookTimes(..), safeEvaluateResultStatus, exceptionToResultStatus)
 
 import qualified NonEmpty
 import           NonEmpty (NonEmpty(..))
@@ -46,6 +46,7 @@ data EvalConfig = EvalConfig {
   evalConfigFormat :: Format
 , evalConfigConcurrentJobs :: Int
 , evalConfigFailFast :: Bool
+, evalConfigIgnoreHookTimes :: IgnoreHookTimes
 }
 
 data Env = Env {
@@ -132,7 +133,7 @@ runFormatter config specs = do
         applyReportProgress item = fmap (. reportProgress timer) item
 
         runningSpecs :: [RunningTree ()]
-        runningSpecs = applyCleanup $ map (fmap applyReportProgress) runningSpecs_
+        runningSpecs = applyCleanup (evalConfigIgnoreHookTimes config) $ map (fmap applyReportProgress) runningSpecs_
 
         getResults :: IO [(Path, Format.Item)]
         getResults = reverse <$> readIORef (envResults env)
@@ -171,35 +172,39 @@ type RunningTree c = Tree c RunningItem
 type RunningItem_ m = Item (Job m Progress (Seconds, Result))
 type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
 
-applyCleanup :: [RunningTree (IO ())] -> [RunningTree ()]
-applyCleanup = map go
+applyCleanup :: IgnoreHookTimes -> [RunningTree (IO ())] -> [RunningTree ()]
+applyCleanup ignoreHookTimes = map go
   where
     go t = case t of
       Node label xs -> Node label (go <$> xs)
-      NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc () (addCleanupToLastLeaf loc cleanup $ go <$> xs)
+      NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc () (addCleanupToLastLeaf ignoreHookTimes loc cleanup $ go <$> xs)
       Leaf a -> Leaf a
 
-addCleanupToLastLeaf :: Maybe (String, Location) -> IO () -> NonEmpty (RunningTree ()) -> NonEmpty (RunningTree ())
-addCleanupToLastLeaf loc cleanup = go
+addCleanupToLastLeaf :: IgnoreHookTimes -> Maybe (String, Location) -> IO () -> NonEmpty (RunningTree ()) -> NonEmpty (RunningTree ())
+addCleanupToLastLeaf ignoreHookTimes loc cleanup = go
   where
     go = NonEmpty.reverse . mapHead goNode . NonEmpty.reverse
 
     goNode node = case node of
       Node description xs -> Node description (go xs)
       NodeWithCleanup loc_ () xs -> NodeWithCleanup loc_ () (go xs)
-      Leaf item -> Leaf (addCleanupToItem loc cleanup item)
+      Leaf item -> Leaf (addCleanupToItem ignoreHookTimes loc cleanup item)
 
 mapHead :: (a -> a) -> NonEmpty a -> NonEmpty a
 mapHead f xs = case xs of
   y :| ys -> f y :| ys
 
-addCleanupToItem :: Maybe (String, Location) -> IO () -> RunningItem -> RunningItem
-addCleanupToItem loc cleanup item = item {
+addCleanupToItem :: IgnoreHookTimes -> Maybe (String, Location) -> IO () -> RunningItem -> RunningItem
+addCleanupToItem ignoreHookTimes loc cleanup item = item {
   itemAction = \ path -> do
     (t1, r1) <- itemAction item path
     (t2, r2) <- measure $ safeEvaluateResultStatus (cleanup >> return Success)
-    let t = t1 + t2
-    return (t, mergeResults loc r1 r2)
+    let
+      duration :: Seconds
+      duration = case ignoreHookTimes of
+        IgnoreNone -> t1 + t2
+        _ -> t1
+    return (duration, mergeResults loc r1 r2)
 }
 
 mergeResults :: Maybe (String, Location) -> Result -> ResultStatus -> Result

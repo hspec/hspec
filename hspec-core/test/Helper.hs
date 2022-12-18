@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Helper (
   module Test.Hspec.Meta
@@ -23,6 +24,8 @@ module Helper (
 
 , withEnvironment
 , inTempDirectory
+
+, onCI
 
 , shouldUseArgs
 
@@ -172,3 +175,6 @@ replace :: Eq a => a -> a -> [a] -> [a]
 replace x y xs = case break (== x) xs of
   (ys, _: zs) -> ys ++ y : zs
   _ -> xs
+
+onCI :: a -> a -> IO a
+onCI regular (const -> ci) = maybe regular ci <$> lookupEnv "CI"

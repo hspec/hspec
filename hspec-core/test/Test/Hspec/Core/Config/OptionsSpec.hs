@@ -121,6 +121,23 @@ spec = do
       it "sets configExternalDiff to Nothing" $ do
         fmap (const ()) . configExternalDiff <$> parseOptions [] Nothing [] ["--diff-command="] `shouldBe` Right Nothing
 
+    context "with --ignore-hook-times" $ do
+      it "accepts 'all'" $ do
+        configIgnoreHookTimes <$> parseOptions [] Nothing [] ["--ignore-hook-times=all"] `shouldBe` Right IgnoreAll
+
+      it "accepts 'global'" $ do
+        configIgnoreHookTimes <$> parseOptions [] Nothing [] ["--ignore-hook-times=global"] `shouldBe` Right IgnoreGlobal
+
+      it "accepts 'none'" $ do
+        configIgnoreHookTimes <$> parseOptions [] Nothing [] ["--ignore-hook-times=none"] `shouldBe` Right IgnoreNone
+
+      it "defaults to 'all'" $ do
+        configIgnoreHookTimes <$> parseOptions [] Nothing [] ["--ignore-hook-times"] `shouldBe` Right IgnoreAll
+
+      it "rejects invalid values" $ do
+        let msg = "my-spec: invalid argument `foo' for `--ignore-hook-times'\nTry `my-spec --help' for more information.\n"
+        void (parseOptions [] Nothing [] ["--ignore-hook-times=foo"]) `shouldBe` Left (ExitFailure 1, msg)
+
     context "with --print-slow-items" $ do
       it "sets configPrintSlowItems to N" $ do
         configPrintSlowItems <$> parseOptions [] Nothing [] ["--print-slow-items=5"] `shouldBe` Right (Just 5)

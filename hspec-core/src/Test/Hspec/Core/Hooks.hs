@@ -33,6 +33,7 @@ import           Test.Hspec.Core.Compat
 
 import           Control.Concurrent
 
+import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
@@ -50,22 +51,63 @@ beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
 beforeWith action = aroundWith $ \e x -> action x >>= e
 
 -- | Run a custom action before the first spec item.
-beforeAll :: HasCallStack => IO a -> SpecWith a -> Spec
+beforeAll :: forall a. HasCallStack => IO a -> SpecWith a -> Spec
 beforeAll action spec = do
-  mvar <- runIO (newMVar Empty)
-  before (memoize mvar action) spec
+  mvar :: MVar (Memoized a) <- runIO (newMVar Empty)
+  let
+    memoizedAction :: () -> IO a
+    memoizedAction () = memoize mvar action
+  beforeWith_IgnoreGlobalHookTimes memoizedAction spec
 
 -- | Run a custom action before the first spec item.
-beforeAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
+beforeAll_ :: forall a. HasCallStack => IO () -> SpecWith a -> SpecWith a
 beforeAll_ action spec = do
-  mvar <- runIO (newMVar Empty)
-  before_ (memoize mvar action) spec
+  mvar :: MVar (Memoized ()) <- runIO (newMVar Empty)
+  let
+    memoizedAction :: a -> IO a
+    memoizedAction a = memoize mvar action >> return a
+  beforeWith_IgnoreGlobalHookTimes memoizedAction spec
 
 -- | Run a custom action with an argument before the first spec item.
-beforeAllWith :: HasCallStack => (b -> IO a) -> SpecWith a -> SpecWith b
+beforeAllWith :: forall a b. HasCallStack => (b -> IO a) -> SpecWith a -> SpecWith b
 beforeAllWith action spec = do
-  mvar <- runIO (newMVar Empty)
-  beforeWith (memoize mvar . action) spec
+  mvar :: MVar (Memoized a) <- runIO (newMVar Empty)
+  let
+    memoizedAction :: b -> IO a
+    memoizedAction b = memoize mvar (action b)
+  beforeWith_IgnoreGlobalHookTimes memoizedAction spec
+
+beforeWith_IgnoreGlobalHookTimes :: forall a b. (b -> IO a) -> SpecWith a -> SpecWith b
+beforeWith_IgnoreGlobalHookTimes = mapSpecItem_ . modifyHook
+  where
+    modifyHook :: (b -> IO a) -> Item a -> Item b
+    modifyHook action item = item { itemExample = \ params originalHook progress -> do
+        let
+          hookWithAction :: (a -> IO ()) -> IO ()
+          hookWithAction = originalHook . (action >=>)
+
+        case paramsIgnoreHookTimes params of
+          IgnoreGlobal -> do
+            mvar :: MVar (Either SomeException (Maybe a)) <- newEmptyMVar
+            try (liftHook Nothing hookWithAction (return . Just)) >>= putMVar mvar
+
+            let
+              hookWithAction_IgnoreGlobalHookTimes :: (a -> IO ()) -> IO ()
+              hookWithAction_IgnoreGlobalHookTimes = \ example -> do
+                -- For QuickCheck properties this function will be called multiple
+                -- times (once for each verification of the property).  After the first
+                -- call the mvar will be empty.  For that reason we use `tryTakeMVar`
+                -- instead of `takeMVar` here.
+                r <- tryTakeMVar mvar
+                case r of
+                  Nothing -> hookWithAction example -- This only ever happens for QuickCheck properties.
+                  Just (Left err) -> throwIO err
+                  Just (Right ma) -> maybe pass example ma
+
+            itemExample item params hookWithAction_IgnoreGlobalHookTimes progress
+          _ -> do
+            itemExample item params hookWithAction progress
+      }
 
 data Memoized a =
     Empty
@@ -107,13 +149,13 @@ around_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
 around_ action = aroundWith $ \e a -> action (e a)
 
 -- | Run a custom action before and/or after every spec item.
-aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+aroundWith :: forall a b. (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundWith = mapSpecItem_ . modifyHook
-
-modifyHook :: (ActionWith a -> ActionWith b) -> Item a -> Item b
-modifyHook action item = item {
-    itemExample = \ params hook -> itemExample item params (hook . action)
-  }
+  where
+    modifyHook :: (ActionWith a -> ActionWith b) -> Item a -> Item b
+    modifyHook action item = item {
+        itemExample = \ params hook -> itemExample item params (hook . action)
+      }
 
 -- | Wrap an action around the given spec.
 aroundAll :: HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec

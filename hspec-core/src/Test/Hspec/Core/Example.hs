@@ -20,6 +20,11 @@ module Test.Hspec.Core.Example (
 , safeEvaluate
 , safeEvaluateExample
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
+
+-- RE-EXPORTED from Test.Hspec.Core.Runner
+, IgnoreHookTimes(..)
+-- END RE-EXPORTED from Test.Hspec.Core.Runner
+
 , safeEvaluateResultStatus
 , exceptionToResultStatus
 , toLocation
@@ -53,12 +58,17 @@ class Example e where
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
 , paramsSmallCheckDepth :: Maybe Int
-} deriving (Show)
+, paramsIgnoreHookTimes :: IgnoreHookTimes
+} deriving Show
+
+data IgnoreHookTimes = IgnoreAll | IgnoreGlobal | IgnoreNone
+  deriving (Eq, Show, Bounded, Enum)
 
 defaultParams :: Params
 defaultParams = Params {
   paramsQuickCheckArgs = QC.stdArgs
 , paramsSmallCheckDepth = Nothing
+, paramsIgnoreHookTimes = IgnoreNone
 }
 
 type Progress = (Int, Int)

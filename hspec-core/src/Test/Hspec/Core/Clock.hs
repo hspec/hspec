@@ -24,7 +24,7 @@ import           Data.Time.Clock.POSIX
 #endif
 
 newtype Seconds = Seconds Double
-  deriving (Eq, Show, Ord, Num, Fractional, PrintfArg)
+  deriving (Eq, Show, Ord, Num, Real, Fractional, RealFrac, PrintfArg)
 
 toMilliseconds :: Seconds -> Int
 toMilliseconds (Seconds s) = floor (s * 1000)

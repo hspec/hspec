@@ -39,6 +39,7 @@ If you need more control over how a spec is run use these primitives individuall
 , Config (..)
 , ColorMode (..)
 , UnicodeMode(..)
+, IgnoreHookTimes (..)
 , Path
 , defaultConfig
 , registerFormatter
@@ -362,6 +363,7 @@ runEvalTree config spec = do
         evalConfigFormat = format
       , evalConfigConcurrentJobs = concurrentJobs
       , evalConfigFailFast = configFailFast config
+      , evalConfigIgnoreHookTimes = configIgnoreHookTimes config
       }
     runFormatter evalConfig spec
 
@@ -396,7 +398,7 @@ specToEvalForest config =
     seed = (fromJust . configQuickCheckSeed) config
 
     params :: Params
-    params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+    params = Params (configQuickCheckArgs config) (configSmallCheckDepth config) (configIgnoreHookTimes config)
 
     randomize :: [Tree c a] -> [Tree c a]
     randomize

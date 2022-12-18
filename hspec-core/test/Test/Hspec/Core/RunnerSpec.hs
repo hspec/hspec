@@ -26,6 +26,7 @@ import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.Runner.Result
+import qualified Test.Hspec.Core.Format as Format
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import qualified Test.Hspec.Core.QuickCheck as H
 
@@ -46,6 +47,17 @@ runPropFoo args = unlines . normalizeSummary . lines <$> do
 person :: Int -> Person
 person = Person "Joe"
 
+recordItems :: H.Spec -> IO [Format.Item]
+recordItems spec_ = do
+  ref <- newIORef []
+  let
+    format :: Format.Format
+    format event = case event of
+      Format.ItemDone _ item -> modifyIORef ref (item :)
+      _ -> pass
+  H.hspecWith H.defaultConfig { H.configFormat = Just $ \ _ -> return format } spec_
+  reverse <$> readIORef ref
+
 spec :: Spec
 spec = do
   describe "hspec" $ do
@@ -53,6 +65,36 @@ spec = do
     let
       hspec args = withArgs ("--format=silent" : args) . H.hspec
       hspec_ = hspec []
+
+    context "with --ignore-hook-times" $ do
+      let
+        recordDurations :: IO [Integer]
+        recordDurations = do
+          (dt, factor) <- (0.01, 100) `onCI` (1, 1)
+          let
+            itemDuration :: Format.Item -> Integer
+            itemDuration item = floor (Format.itemDuration item * factor)
+          fmap (map itemDuration) . recordItems $ do
+            H.beforeAll_ (sleep dt) $ do
+              H.afterAll_ (sleep dt) $ do
+                H.before_ (sleep dt) $ do
+                  H.it "foo" True
+                  H.it "bar" True
+
+      context "with 'none'" $ do
+        it "include all hooks in reported times" $ do
+          withArgs ["--ignore-hook-times=none"] $ do
+            recordDurations `shouldReturn` [2, 2]
+
+      context "with 'global'" $ do
+        it "exclude global hooks from reported times" $ do
+          withArgs ["--ignore-hook-times=global"] $ do
+            recordDurations `shouldReturn` [1, 1]
+
+      context "with 'all'" $ do
+        it "exclude all hooks from reported times" $ do
+          withArgs ["--ignore-hook-times=all"] $ do
+            recordDurations `shouldReturn` [0, 0]
 
     it "evaluates examples Unmasked" $ do
       mvar <- newEmptyMVar
