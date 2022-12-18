@@ -29,8 +29,54 @@ evaluateExampleWith action e = H.evaluateExample e defaultParams (action . ($ ()
 evaluateExampleWithArgument :: H.Example e => (ActionWith (H.Arg e) -> IO ()) -> e -> IO Result
 evaluateExampleWithArgument action e = H.evaluateExample e defaultParams action noOpProgressCallback
 
+bottom :: a
+bottom = throw DivideByZero
+
 spec :: Spec
 spec = do
+  describe "safeEvaluate" $ do
+    let
+      status :: ResultStatus
+      status = Failure Nothing (Error Nothing $ toException DivideByZero)
+
+      err :: Result
+      err = Result "" status
+
+    it "forces Result" $ do
+      H.safeEvaluate (return $ Result "" bottom) `shouldReturn` err
+
+    it "handles ResultStatus exceptions" $ do
+      H.safeEvaluate (throwIO status) `shouldReturn` err
+
+    it "forces ResultStatus exceptions" $ do
+      H.safeEvaluate (throwIO $ Failure Nothing bottom) `shouldReturn` err
+
+    it "handles other exceptions" $ do
+      H.safeEvaluate (throwIO DivideByZero) `shouldReturn` err
+
+    it "forces other exceptions" $ do
+      H.safeEvaluate (throwIO $ ErrorCall bottom) `shouldReturn` err
+
+  describe "safeEvaluateResultStatus" $ do
+    let
+      err :: ResultStatus
+      err = Failure Nothing (Error Nothing $ toException DivideByZero)
+
+    it "forces ResultStatus" $ do
+      H.safeEvaluateResultStatus (return $ Failure Nothing bottom) `shouldReturn` err
+
+    it "handles ResultStatus exceptions" $ do
+      H.safeEvaluateResultStatus (throwIO err) `shouldReturn` err
+
+    it "forces ResultStatus exceptions" $ do
+      H.safeEvaluateResultStatus (throwIO $ Failure Nothing bottom) `shouldReturn` err
+
+    it "handles other exceptions" $ do
+      H.safeEvaluateResultStatus (throwIO DivideByZero) `shouldReturn` err
+
+    it "forces other exceptions" $ do
+      H.safeEvaluateResultStatus (throwIO $ ErrorCall bottom) `shouldReturn` err
+
   describe "safeEvaluateExample" $ do
     context "for Expectation" $ do
       it "returns Failure if an expectation does not hold" $ do
