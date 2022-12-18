@@ -18,7 +18,12 @@ runSpec = captureLines . H.hspecResult
 
 spec :: Spec
 spec = do
-  let runSpecM = fmap snd . H.runSpecM
+  let
+    runSpecM :: H.SpecWith a -> IO [H.SpecTree a]
+    runSpecM = fmap snd . H.runSpecM
+
+    runItem :: Item () -> IO Result
+    runItem item = itemExample item defaultParams ($ ()) noOpProgressCallback
 
   describe "getSpecDescriptionPath" $ do
     it "returns the spec path" $ do
@@ -51,8 +56,7 @@ spec = do
   describe "xdescribe" $ do
     it "creates a tree of pending spec items" $ do
       [Node _ [Leaf item]] <- runSpecM (H.xdescribe "" $ H.it "whatever" True)
-      r <- itemExample item defaultParams ($ ()) noOpProgressCallback
-      r `shouldBe` Result "" (Pending Nothing Nothing)
+      runItem item `shouldReturn` Result "" (Pending Nothing Nothing)
 
   describe "it" $ do
     it "takes a description of a desired behavior" $ do
@@ -61,8 +65,7 @@ spec = do
 
     it "takes an example of that behavior" $ do
       [Leaf item] <- runSpecM (H.it "whatever" True)
-      r <- itemExample item defaultParams ($ ()) noOpProgressCallback
-      r `shouldBe` Result "" Success
+      runItem item `shouldReturn` Result "" Success
 
     it "adds source locations" $ do
       [Leaf item] <- runSpecM (H.it "foo" True)
@@ -81,8 +84,7 @@ spec = do
   describe "xit" $ do
     it "creates a pending spec item" $ do
       [Leaf item] <- runSpecM (H.xit "whatever" True)
-      r <- itemExample item defaultParams ($ ()) noOpProgressCallback
-      r `shouldBe` Result "" (Pending Nothing Nothing)
+      runItem item `shouldReturn` Result "" (Pending Nothing Nothing)
 
   describe "pending" $ do
     it "specifies a pending example" $ do

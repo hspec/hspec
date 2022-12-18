@@ -80,7 +80,6 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Char
-import           Data.Maybe
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example (Location(..))

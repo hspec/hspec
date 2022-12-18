@@ -17,7 +17,6 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Data.Char
-import           Data.Maybe
 import           GHC.IO.Exception
 
 #ifdef mingw32_HOST_OS

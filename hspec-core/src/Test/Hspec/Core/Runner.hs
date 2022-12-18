@@ -86,7 +86,6 @@ If you need more control over how a spec is run use these primitives individuall
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.Maybe
 import           NonEmpty (nonEmpty)
 import           System.IO
 import           System.Environment (getArgs, withArgs)
@@ -99,6 +98,7 @@ import           System.Console.ANSI (hSupportsANSI, hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util (Path)
+import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
@@ -150,7 +150,7 @@ applyDryRun c
     removeCleanup _ = pass
 
     markSuccess :: EvalItem -> EvalItem
-    markSuccess item = item {evalItemAction = \ _ -> return $ Result "" Success}
+    markSuccess item = item {evalItemAction = \ _ -> return (0, Result "" Success)}
 
 -- | Run a given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
@@ -392,8 +392,13 @@ specToEvalForest config =
   >>> randomize
   >>> pruneForest
   where
+    seed :: Integer
     seed = (fromJust . configQuickCheckSeed) config
+
+    params :: Params
     params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+
+    randomize :: [Tree c a] -> [Tree c a]
     randomize
       | configRandomize config = randomizeForest seed
       | otherwise = id
@@ -415,7 +420,12 @@ toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
 toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
-    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem requirement loc (fromMaybe False isParallelizable) (e params withUnit)
+    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem {
+      evalItemDescription = requirement
+    , evalItemLocation = loc
+    , evalItemParallelize = fromMaybe False isParallelizable
+    , evalItemAction = \ progress -> measure $ e params withUnit progress
+    }
 
     withUnit :: ActionWith () -> IO ()
     withUnit action = action ()

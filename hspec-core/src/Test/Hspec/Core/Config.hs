@@ -18,7 +18,6 @@ module Test.Hspec.Core.Config (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.Maybe
 import           System.IO
 import           System.IO.Error
 import           System.Exit

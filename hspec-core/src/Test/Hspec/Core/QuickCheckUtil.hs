@@ -22,7 +22,6 @@ module Test.Hspec.Core.QuickCheckUtil (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.Maybe
 import           Data.Int
 import           System.Random
 
