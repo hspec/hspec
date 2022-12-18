@@ -90,37 +90,44 @@ instance NFData FailureReason where
     NoReason -> ()
     Reason r -> r `deepseq` ()
     ExpectedButGot p e a  -> p `deepseq` e `deepseq` a `deepseq` ()
-    Error m e -> m `deepseq` e `seq` ()
+    Error m e -> m `deepseq` show e `deepseq` ()
 
 instance Exception ResultStatus
 
-safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-safeEvaluateExample example params around progress = safeEvaluate $ forceResult <$> evaluateExample example params around progress
-  where
-    forceResult :: Result -> Result
-    forceResult r@(Result info status) = info `deepseq` (forceResultStatus status) `seq` r
+forceResult :: Result -> Result
+forceResult r@(Result info status) = info `deepseq` (forceResultStatus status) `seq` r
 
-    forceResultStatus :: ResultStatus -> ResultStatus
-    forceResultStatus r = case r of
-      Success -> r
-      Pending _ m -> m `deepseq` r
-      Failure _ m -> m `deepseq` r
+forceResultStatus :: ResultStatus -> ResultStatus
+forceResultStatus r = case r of
+  Success -> r
+  Pending _ m -> m `deepseq` r
+  Failure _ m -> m `deepseq` r
+
+safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+safeEvaluateExample example params around progress = safeEvaluate $ evaluateExample example params around progress
 
 safeEvaluate :: IO Result -> IO Result
 safeEvaluate action = do
-  r <- safeTry action
-  return $ case r of
-    Left e -> Result "" (toResultStatus e)
-    Right result -> result
+  r <- safeTry $ forceResult <$> action
+  case r of
+    Left e -> Result "" <$> exceptionToResultStatus e
+    Right result -> return result
 
 safeEvaluateResultStatus :: IO ResultStatus -> IO ResultStatus
-safeEvaluateResultStatus action = either toResultStatus id <$> safeTry action
+safeEvaluateResultStatus action = do
+  r <- safeTry $ forceResultStatus <$> action
+  case r of
+    Left e -> exceptionToResultStatus e
+    Right status -> return status
 
-toResultStatus :: SomeException -> ResultStatus
-toResultStatus e
-  | Just result <- fromException e = result
-  | Just hunit <- fromException e = hunitFailureToResult Nothing hunit
-  | otherwise = Failure Nothing $ Error Nothing e
+exceptionToResultStatus :: SomeException -> IO ResultStatus
+exceptionToResultStatus = safeEvaluateResultStatus . pure . toResultStatus
+  where
+    toResultStatus :: SomeException -> ResultStatus
+    toResultStatus e
+      | Just result <- fromException e = result
+      | Just hunit <- fromException e = hunitFailureToResult Nothing hunit
+      | otherwise = Failure Nothing $ Error Nothing e
 
 instance Example Result where
   type Arg Result = ()
