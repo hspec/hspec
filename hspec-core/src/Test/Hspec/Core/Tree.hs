@@ -30,6 +30,7 @@ import           Data.CallStack (SrcLoc(..))
 import qualified Data.CallStack as CallStack
 
 import           Test.Hspec.Core.Example
+import           Test.Hspec.Core.Clock
 
 -- | Internal tree data structure
 data Tree c a =
@@ -111,7 +112,7 @@ data Item a = Item {
 , itemIsFocused :: Bool
 
   -- | Example for behavior
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO (Seconds, Result)
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
@@ -130,7 +131,8 @@ specItem s e = Leaf Item {
   , itemLocation = location
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
-  , itemExample = safeEvaluateExample e
+  , itemExample = \ params hook progress -> do
+      measure $ safeEvaluateExample e params hook progress
   }
   where
     requirement :: HasCallStack => String

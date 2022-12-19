@@ -128,7 +128,7 @@ shouldUseArgs args p = do
 removeLocations :: H.SpecWith a -> H.SpecWith a
 removeLocations = H.mapSpecItem_ $ \ item -> item {
   H.itemLocation = Nothing
-, H.itemExample = \ params action progressCallback -> removeResultLocation <$> H.itemExample item params action progressCallback
+, H.itemExample = \ params action progressCallback -> fmap removeResultLocation <$> H.itemExample item params action progressCallback
 }
 
 removeResultLocation :: Result -> Result

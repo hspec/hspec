@@ -290,11 +290,11 @@ failFocused item = item {itemExample = example}
     failure :: ResultStatus
     failure = Failure Nothing (Reason "item is focused; failing due to --fail-on=focused")
 
-    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO (Seconds, Result)
     example
       | itemIsFocused item = \ params hook p -> do
-          Result info status <- itemExample item params hook p
-          return $ Result info $ case status of
+          (t, Result info status) <- itemExample item params hook p
+          return $ (,) t . Result info $ case status of
             Success -> failure
             Pending _ _ -> failure
             Failure{} -> status
@@ -308,10 +308,10 @@ failPendingItems config
 failPending :: forall a. Item a -> Item a
 failPending item = item {itemExample = example}
   where
-    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO (Seconds, Result)
     example params hook p = do
-      Result info status <- itemExample item params hook p
-      return $ Result info $ case status of
+      (t, Result info status) <- itemExample item params hook p
+      return $ (,) t . Result info $ case status of
         Pending loc _ -> Failure loc (Reason "item is pending; failing due to --fail-on=pending")
         _ -> status
 
@@ -424,7 +424,7 @@ toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
-    , evalItemAction = \ progress -> measure $ e params withUnit progress
+    , evalItemAction = \ progress -> e params withUnit progress
     }
 
     withUnit :: ActionWith () -> IO ()
