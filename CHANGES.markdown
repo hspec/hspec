@@ -1,5 +1,7 @@
-## Changes in 2.10.8 (TBD)
-  - Add `xprop` and `fprop`, which use `xit` and `fit`
+## Changes in 2.10.8 (2022-12-19)
+  - Add pretty-printing support for rational numbers
+  - Force / evaluate exceptions recursively (#763)
+  - Add `xprop` and `fprop`, which use `xit` and `fit` (thanks @lehins)
 
 ## Changes in 2.10.7 (2022-12-03)
   - Do not depend on `ghc` for pretty-printing (#750, #752)

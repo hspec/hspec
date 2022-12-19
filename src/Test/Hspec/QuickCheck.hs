@@ -24,8 +24,10 @@ import           Test.Hspec.Core.QuickCheck
 --
 -- is a shortcut for
 --
--- > it ".." $ property $
--- >   ..
+-- @
+-- `it` ".." $ `property` $
+--   ..
+-- @
 prop :: (HasCallStack, Testable prop) => String -> prop -> Spec
 prop s = it s . property
 
@@ -36,8 +38,10 @@ prop s = it s . property
 --
 -- is a shortcut for
 --
--- > xit ".." $ property $
--- >   ..
+-- @
+-- `xit` ".." $ `property` $
+--   ..
+-- @
 xprop :: (HasCallStack, Testable prop) => String -> prop -> Spec
 xprop s = xit s . property
 
@@ -48,7 +52,9 @@ xprop s = xit s . property
 --
 -- is a shortcut for
 --
--- > fit ".." $ property $
--- >   ..
+-- @
+-- `fit` ".." $ `property` $
+--   ..
+-- @
 fprop :: (HasCallStack, Testable prop) => String -> prop -> Spec
 fprop s = fit s . property
