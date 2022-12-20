@@ -423,7 +423,7 @@ toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
     toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem {
       evalItemDescription = requirement
     , evalItemLocation = loc
-    , evalItemParallelize = fromMaybe False isParallelizable
+    , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
     , evalItemAction = \ progress -> measure $ e params withUnit progress
     }
 
