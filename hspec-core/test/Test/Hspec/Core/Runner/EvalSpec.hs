@@ -73,13 +73,3 @@ spec = do
         ref <- newIORef []
         traverse_ (modifyIORef ref . (:) ) tree
         reverse <$> readIORef ref `shouldReturn` [1 .. 4]
-
-  describe "runSequentially" $ do
-    it "runs actions sequentially" $ do
-      ref <- newIORef []
-      jobA <- runSequentially $ \ _ -> modifyIORef ref (23 :)
-      jobB <- runSequentially $ \ _ -> modifyIORef ref (42 :)
-      jobWaitForResult jobB (\_ -> pass)
-      readIORef ref `shouldReturn` [42 :: Int]
-      jobWaitForResult jobA (\_ -> pass)
-      readIORef ref `shouldReturn` [23, 42]

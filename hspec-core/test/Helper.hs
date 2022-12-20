@@ -8,6 +8,7 @@ module Helper (
 , module Test.Hspec.Core.Compat
 , module Test.QuickCheck
 , module System.IO.Silently
+, Seconds(..)
 , sleep
 , timeout
 , defaultParams
