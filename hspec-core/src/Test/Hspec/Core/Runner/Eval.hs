@@ -151,7 +151,7 @@ runFormatter config specs = do
 
 cancelMany :: [Async a] -> IO ()
 cancelMany asyncs = do
-  mapM_ (killThread . asyncThreadId) asyncs
+  mapM_ (flip throwTo AsyncCancelled . asyncThreadId) asyncs
   mapM_ waitCatch asyncs
 
 data Item a = Item {
