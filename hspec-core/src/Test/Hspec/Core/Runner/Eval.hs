@@ -68,6 +68,7 @@ data EvalConfig = EvalConfig {
 
 data Env = Env {
   envConfig :: EvalConfig
+, envFailed :: IORef Bool
 , envResults :: IORef [(Path, Format.Item)]
 }
 
@@ -78,13 +79,20 @@ formatEvent event = do
 
 type EvalM = ReaderT Env IO
 
+setFailed :: EvalM ()
+setFailed = do
+  ref <- asks envFailed
+  liftIO $ writeIORef ref True
+
+hasFailed :: EvalM Bool
+hasFailed = do
+  ref <- asks envFailed
+  liftIO $ readIORef ref
+
 addResult :: Path -> Format.Item -> EvalM ()
 addResult path item = do
   ref <- asks envResults
   liftIO $ modifyIORef ref ((path, item) :)
-
-getResults :: EvalM [(Path, Format.Item)]
-getResults = reverse <$> (asks envResults >>= liftIO . readIORef)
 
 reportItem :: Path -> Maybe Location -> EvalM (Seconds, Result)  -> EvalM ()
 reportItem path loc action = do
@@ -96,6 +104,12 @@ reportItemStarted = formatEvent . Format.ItemStarted
 
 reportItemDone :: Path -> Format.Item -> EvalM ()
 reportItemDone path item = do
+  let
+    isFailure = case Format.itemResult item of
+      Format.Success{} -> False
+      Format.Pending{} -> False
+      Format.Failure{} -> True
+  when isFailure setFailed
   addResult path item
   formatEvent $ Format.ItemDone path item
 
@@ -126,7 +140,7 @@ type EvalTree = Tree (IO ()) EvalItem
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: EvalConfig -> [EvalTree] -> IO ([(Path, Format.Item)])
 runFormatter config specs = do
-  ref <- newIORef []
+  env <- mkEnv
 
   let
     start :: IO [RunningTree_ IO]
@@ -145,14 +159,19 @@ runFormatter config specs = do
         runningSpecs :: [RunningTree ()]
         runningSpecs = applyCleanup $ map (fmap applyReportProgress) runningSpecs_
 
+        getResults :: IO [(Path, Format.Item)]
+        getResults = reverse <$> readIORef (envResults env)
+
       format Format.Started
-      runReaderT (run runningSpecs) (Env config ref) `finally` do
-        results <- reverse <$> readIORef ref
+      runReaderT (run runningSpecs) env `finally` do
+        results <- getResults
         format (Format.Done results)
 
-      results <- reverse <$> readIORef ref
-      return results
+      getResults
   where
+    mkEnv :: IO Env
+    mkEnv = Env config <$> newIORef False <*> newIORef []
+
     format :: Format
     format = evalConfigFormat config
 
@@ -352,13 +371,5 @@ sequenceActions failFast = go
       action
       stopNow <- case failFast of
         False -> return False
-        True -> any itemIsFailure <$> getResults
+        True -> hasFailed
       unless stopNow (go actions)
-
-    itemIsFailure :: (Path, Format.Item) -> Bool
-    itemIsFailure = isFailure . Format.itemResult . snd
-      where
-        isFailure r = case r of
-          Format.Success{} -> False
-          Format.Pending{} -> False
-          Format.Failure{} -> True
