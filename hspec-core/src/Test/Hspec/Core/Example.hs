@@ -21,6 +21,7 @@ module Test.Hspec.Core.Example (
 , safeEvaluateExample
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
 , safeEvaluateResultStatus
+, exceptionToResultStatus
 , toLocation
 ) where
 

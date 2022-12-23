@@ -68,12 +68,12 @@ newSemaphore capacity = do
   sem <- newQSem capacity
   return $ Semaphore (waitQSem sem) (signalQSem sem)
 
-enqueueJob :: MonadIO m => JobQueue -> Concurrency -> Job IO progress a -> IO (Job m progress a)
+enqueueJob :: MonadIO m => JobQueue -> Concurrency -> Job IO progress a -> IO (Job m progress (Either SomeException a))
 enqueueJob (JobQueue sem cancelQueue) concurrency = case concurrency of
   Sequential -> runSequentially cancelQueue
   Concurrent -> runConcurrently sem cancelQueue
 
-runSequentially :: forall m progress a. MonadIO m => CancelQueue -> Job IO progress a -> IO (Job m progress a)
+runSequentially :: forall m progress a. MonadIO m => CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
 runSequentially cancelQueue action = do
   barrier <- newEmptyMVar
   let
@@ -86,33 +86,34 @@ runSequentially cancelQueue action = do
   job <- runConcurrently (Semaphore wait pass) cancelQueue action
   return $ \ notifyPartial -> signal >> job notifyPartial
 
-data Result progress a = Partial progress | Return a
+data Partial progress a = Partial progress | Done
 
-runConcurrently :: forall m progress a. MonadIO m => Semaphore -> CancelQueue -> Job IO progress a -> IO (Job m progress a)
+runConcurrently :: forall m progress a. MonadIO m => Semaphore -> CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
 runConcurrently (Semaphore wait signal) cancelQueue action = do
-  result :: MVar (Result progress a) <- newEmptyMVar
+  result :: MVar (Partial progress a) <- newEmptyMVar
   let
-    worker :: IO ()
+    worker :: IO a
     worker = bracket_ wait signal $ do
-      action partialResult >>= finalResult
+      interruptible (action partialResult) `finally` done
       where
         partialResult :: progress -> IO ()
         partialResult = replaceMVar result . Partial
 
-        finalResult :: a -> IO ()
-        finalResult = replaceMVar result . Return
+        done :: IO ()
+        done = replaceMVar result Done
 
-    waitForResult :: (progress -> m ()) -> m a
+    pushOnCancelQueue :: Async a -> IO ()
+    pushOnCancelQueue = (modifyIORef cancelQueue . (:) . void)
+
+  job <- bracket (async worker) pushOnCancelQueue return
+
+  let
+    waitForResult :: (progress -> m ()) -> m (Either SomeException a)
     waitForResult notifyPartial = do
       r <- liftIO (takeMVar result)
       case r of
         Partial progress -> notifyPartial progress >> waitForResult notifyPartial
-        Return a -> return a
-
-    pushOnCancelQueue :: Async () -> IO ()
-    pushOnCancelQueue = (modifyIORef cancelQueue . (:))
-
-  _ <- bracket (async $ interruptible worker) pushOnCancelQueue return
+        Done -> liftIO $ waitCatch job
 
   return waitForResult
 
