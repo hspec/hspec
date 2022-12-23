@@ -699,6 +699,16 @@ spec = do
         H.it "foobar" throwException_
       `shouldReturn` H.Summary 1 1
 
+    it "handles unguarded exceptions in runner" $ do
+      let
+        throwExceptionThatIsNotGuardedBy_safeTry :: H.Item () -> H.Item ()
+        throwExceptionThatIsNotGuardedBy_safeTry item = item {
+          H.itemExample = \ _params _hook _progress -> throwIO DivideByZero
+        }
+      hspecResult_ $ H.mapSpecItem_ throwExceptionThatIsNotGuardedBy_safeTry $ do
+        H.it "foo" True
+      `shouldReturn` H.Summary 1 1
+
     it "uses the specdoc formatter by default" $ do
       _:r:_ <- captureLines . H.hspecResult $ do
         H.describe "Foo.Bar" $ do

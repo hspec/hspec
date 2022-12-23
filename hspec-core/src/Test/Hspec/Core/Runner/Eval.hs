@@ -30,7 +30,7 @@ import           Test.Hspec.Core.Format (Format)
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
-import           Test.Hspec.Core.Example (safeEvaluateResultStatus)
+import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToResultStatus)
 
 import qualified NonEmpty
 import           NonEmpty (NonEmpty(..))
@@ -227,8 +227,11 @@ enqueueItem queue EvalItem{..} = do
   return Item {
     itemDescription = evalItemDescription
   , itemLocation = evalItemLocation
-  , itemAction = job
+  , itemAction = job >=> liftIO . either exceptionToResult return
   }
+  where
+    exceptionToResult :: SomeException -> IO (Seconds, Result)
+    exceptionToResult err = (,) 0 . Result "" <$> exceptionToResultStatus err
 
 eval :: [RunningTree ()] -> EvalM ()
 eval specs = do
