@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.Core.Formatters.Pretty.ParserSpec (spec, Person(..)) where
 
 import           Prelude ()

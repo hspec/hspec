@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
 , EvalTree

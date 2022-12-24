@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ConstraintKinds #-}
 
 module Test.Hspec.Core.Tree (
 -- RE-EXPORTED from Test.Hspec.Core.Spec

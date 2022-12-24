@@ -23,6 +23,8 @@ extra-source-files:
 
 ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
+default-extensions: ConstraintKinds
+
 dependencies:
   - base >= 4.5.0.0 && < 5
   - random

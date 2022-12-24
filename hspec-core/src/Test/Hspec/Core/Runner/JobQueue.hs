@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ConstraintKinds #-}
 
 #if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
 -- Control.Concurrent.QSem is deprecated in base-4.6.0.*
