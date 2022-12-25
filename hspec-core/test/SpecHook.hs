@@ -11,7 +11,7 @@ ignoreHspecConfig action = do
   let filteredEnv = ("IGNORE_DOT_HSPEC", "yes") : filter p env
   withEnvironment filteredEnv action
   where
-    p (name, _value) = name == "COMSPEC" || name == "PATH"
+    p (name, _value) = name == "COMSPEC" || name == "PATH" || name == "CI"
 
 hook :: Spec -> Spec
 hook = aroundAll_ ignoreHspecConfig

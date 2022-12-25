@@ -29,20 +29,29 @@ RUNNER OPTIONS
                                 processors)
 
 FORMATTER OPTIONS
-  -f NAME  --format=NAME           use a custom formatter; this can be one of
-                                   checks, specdoc, progress, failed-examples or
-                                   silent
-           --[no-]color            colorize the output
-           --[no-]unicode          output unicode
-           --[no-]diff             show colorized diffs
-           --diff-context=N        output N lines of diff context (default: 3)
-                                   use a value of 'full' to see the full context
-           --diff-command=CMD      use an external diff command
-                                   example: --diff-command="git diff"
-           --[no-]pretty           try to pretty-print diff values
-           --[no-]times            report times for individual spec items
-           --print-cpu-time        include used CPU time in summary
-  -p[N]    --print-slow-items[=N]  print the N slowest spec items (default: 10)
+  -f NAME  --format=NAME                use a custom formatter; this can be one
+                                        of checks, specdoc, progress,
+                                        failed-examples or silent
+           --[no-]color                 colorize the output
+           --[no-]unicode               output unicode
+           --[no-]diff                  show colorized diffs
+           --diff-context=N             output N lines of diff context (default:
+                                        3)
+                                        use a value of 'full' to see the full
+                                        context
+           --diff-command=CMD           use an external diff command
+                                        example: --diff-command="git diff"
+           --[no-]pretty                try to pretty-print diff values
+           --[no-]times                 report times for individual spec items
+           --ignore-hook-times[=VALUE]  all: exclude all hooks from reported
+                                        times
+                                        global: exclude global hooks from
+                                        reported times
+                                        none: include all hooks in reported
+                                        times
+           --print-cpu-time             include used CPU time in summary
+  -p[N]    --print-slow-items[=N]       print the N slowest spec items (default:
+                                        10)
 
 OPTIONS FOR QUICKCHECK
   -a N  --qc-max-success=N  maximum number of successful tests before a

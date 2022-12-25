@@ -3,6 +3,7 @@ module Test.Hspec.Core.Config (
   Config (..)
 , ColorMode(..)
 , UnicodeMode(..)
+, IgnoreHookTimes(..)
 , defaultConfig
 , readConfig
 , configAddFilter
@@ -28,7 +29,7 @@ import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Config.Options
-import           Test.Hspec.Core.Config.Definition (Config(..), ColorMode(..), UnicodeMode(..), defaultConfig, filterOr)
+import           Test.Hspec.Core.Config.Definition (Config(..), ColorMode(..), UnicodeMode(..), IgnoreHookTimes(..), defaultConfig, filterOr)
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Example (Params(..), defaultParams)

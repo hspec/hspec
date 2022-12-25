@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Helper (
   module Test.Hspec.Meta
@@ -24,6 +24,8 @@ module Helper (
 
 , withEnvironment
 , inTempDirectory
+
+, onCI
 
 , shouldUseArgs
 
@@ -129,7 +131,7 @@ shouldUseArgs args p = do
 removeLocations :: H.SpecWith a -> H.SpecWith a
 removeLocations = H.mapSpecItem_ $ \ item -> item {
   H.itemLocation = Nothing
-, H.itemExample = \ params action progressCallback -> removeResultLocation <$> H.itemExample item params action progressCallback
+, H.itemExample = \ params action progressCallback -> fmap removeResultLocation <$> H.itemExample item params action progressCallback
 }
 
 removeResultLocation :: Result -> Result
@@ -173,3 +175,6 @@ replace :: Eq a => a -> a -> [a] -> [a]
 replace x y xs = case break (== x) xs of
   (ys, _: zs) -> ys ++ y : zs
   _ -> xs
+
+onCI :: a -> a -> IO a
+onCI regular (const -> ci) = maybe regular ci <$> lookupEnv "CI"

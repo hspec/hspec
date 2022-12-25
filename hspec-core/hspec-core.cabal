@@ -32,6 +32,8 @@ library
   hs-source-dirs:
       src
       vendor
+  default-extensions:
+      ConstraintKinds
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
@@ -114,6 +116,8 @@ test-suite spec
       src
       vendor
       test
+  default-extensions:
+      ConstraintKinds
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   cpp-options: -DTEST
   build-depends:

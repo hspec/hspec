@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ConstraintKinds #-}
 
 module Test.Hspec.Core.Tree (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
@@ -31,6 +30,7 @@ import           Data.CallStack (SrcLoc(..))
 import qualified Data.CallStack as CallStack
 
 import           Test.Hspec.Core.Example
+import           Test.Hspec.Core.Clock
 
 -- | Internal tree data structure
 data Tree c a =
@@ -112,7 +112,7 @@ data Item a = Item {
 , itemIsFocused :: Bool
 
   -- | Example for behavior
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO (Seconds, Result)
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
@@ -131,13 +131,28 @@ specItem s e = Leaf Item {
   , itemLocation = location
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
-  , itemExample = safeEvaluateExample e
+  , itemExample = \ params hook progress -> do
+      case paramsIgnoreHookTimes params of
+        IgnoreAll -> do
+          ref <- newIORef 0
+          r <- safeEvaluateExample e params (ignoreHookTimes ref hook) progress
+          t <- readIORef ref
+          return (t, r)
+        _ -> do
+          measure $ safeEvaluateExample e params hook progress
   }
   where
     requirement :: HasCallStack => String
     requirement
       | null s = fromMaybe "(unspecified behavior)" defaultDescription
       | otherwise = s
+
+    ignoreHookTimes :: IORef Seconds -> (ActionWith a -> IO ()) -> ActionWith a -> IO ()
+    ignoreHookTimes ref hook example = do
+      hook $ \ a -> do
+        (t, r) <- measure (example a)
+        modifyIORef ref (+ t)
+        return r
 
 location :: HasCallStack => Maybe Location
 location = snd <$> callSite
