@@ -16,7 +16,7 @@ build-type:       Simple
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
-homepage:         http://hspec.github.io/
+homepage:         https://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
 description:      Hspec is a testing framework for Haskell.  Some of Hspec's distinctive
                   features are:
@@ -29,7 +29,7 @@ description:      Hspec is a testing framework for Haskell.  Some of Hspec's dis
                   .
                   * automatic discovery of test files
                   .
-                  The Hspec Manual is at <http://hspec.github.io/>.
+                  The Hspec Manual is at <https://hspec.github.io/>.
 extra-source-files:
     version.yaml
     CHANGES.markdown

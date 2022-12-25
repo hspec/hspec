@@ -6,7 +6,7 @@ copyright:
 maintainer: Simon Hengel <sol@typeful.net>
 category: Testing
 stability: experimental
-homepage: http://hspec.github.io/
+homepage: https://hspec.github.io/
 synopsis: Contributed functionality for Hspec
 description: Contributed functionality for Hspec
 

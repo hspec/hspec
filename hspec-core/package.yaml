@@ -13,7 +13,7 @@ copyright:
 maintainer: Simon Hengel <sol@typeful.net>
 category: Testing
 stability: experimental
-homepage: http://hspec.github.io/
+homepage: https://hspec.github.io/
 
 github: hspec/hspec/hspec-core
 
