@@ -1,0 +1,2 @@
+  - Export `modifyConfig` from `Test.Hspec.Core.Runner`
+  - Re-export more types from `Test.Hspec.Core.Runner`

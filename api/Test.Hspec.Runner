@@ -50,10 +50,14 @@ data ResultItemStatus
   | ResultItemSuccess
   | ResultItemPending
   | ResultItemFailure
+type Spec :: *
+type Spec = SpecWith ()
 type SpecResult :: *
 data SpecResult = hspec-core:Test.Hspec.Core.Runner.Result.SpecResult
   specResultItems :: [ResultItem]
   specResultSuccess :: !Bool
+type SpecWith :: * -> *
+type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
 type Summary :: *
 data Summary = Summary
   summaryExamples :: {-# UNPACK #-}Int
@@ -65,18 +69,19 @@ data UnicodeMode
   | UnicodeAlways
 configAddFilter :: (Path -> Bool) -> Config -> Config
 defaultConfig :: Config
-evalSpec :: Config -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> IO (Config, [hspec-core:Test.Hspec.Core.Tree.SpecTree a])
+evalSpec :: Config -> SpecWith a -> IO (Config, [hspec-core:Test.Hspec.Core.Tree.SpecTree a])
 evaluateResult :: SpecResult -> IO ()
 evaluateSummary :: Summary -> IO ()
-hspec :: hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> IO ()
-hspecResult :: hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> IO Summary
-hspecWith :: Config -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> IO ()
-hspecWithResult :: Config -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> IO Summary
+hspec :: Spec -> IO ()
+hspecResult :: Spec -> IO Summary
+hspecWith :: Config -> Spec -> IO ()
+hspecWithResult :: Config -> Spec -> IO Summary
 isSuccess :: Summary -> Bool
+modifyConfig :: (Config -> Config) -> SpecWith a
 readConfig :: Config -> [String] -> IO Config
 registerDefaultFormatter :: (String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format) -> Config -> Config
 registerFormatter :: (String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format) -> Config -> Config
 resultItemIsFailure :: ResultItem -> Bool
-runSpec :: hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> Config -> IO Summary
+runSpec :: Spec -> Config -> IO Summary
 runSpecForest :: [hspec-core:Test.Hspec.Core.Tree.SpecTree ()] -> Config -> IO SpecResult
 toSummary :: SpecResult -> Summary
