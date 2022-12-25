@@ -339,7 +339,7 @@ runnerOptions = [
       showFailOn item <> ": " <> help item
       where
         help item = case item of
-          FailOnEmpty -> "fail if no spec items have been run"
+          FailOnEmpty -> "fail if all spec items have been filtered"
           FailOnFocused -> "fail on focused spec items"
           FailOnPending -> "fail on pending spec items"
 

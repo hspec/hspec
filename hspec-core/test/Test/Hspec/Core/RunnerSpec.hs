@@ -270,15 +270,12 @@ spec = do
 
     context "with --fail-on=empty" $ do
       it "fails if no spec items have been run" $ do
-        (out, r) <- capture . try . withArgs ["--skip=", "--fail-on=empty"] . H.hspec $ do
+        (out, r) <- hCapture [stdout, stderr] . try . withProgName "spec" . withArgs ["--skip=", "--fail-on=empty"] . H.hspec $ do
           H.it "foo" True
           H.it "bar" True
           H.it "baz" True
         unlines (normalizeSummary (lines out)) `shouldBe` unlines [
-            ""
-          , ""
-          , "Finished in 0.0000 seconds"
-          , "0 examples, 0 failures"
+            "spec: all spec items have been filtered; failing due to --fail-on=empty"
           ]
         r `shouldBe` Left (ExitFailure 1)
 
