@@ -1,0 +1,69 @@
+checks :: Formatter
+failed_examples :: Formatter
+formatLocation :: hspec-core:Test.Hspec.Core.Example.Location.Location -> String
+progress :: Formatter
+silent :: Formatter
+specdoc :: Formatter
+type FailureReason :: *
+data FailureReason
+  | NoReason
+  | Reason String
+  | ExpectedButGot (Maybe String) String String
+  | Error (Maybe String) GHC.Exception.Type.SomeException
+type FailureRecord :: *
+data FailureRecord = FailureRecord
+  failureRecordLocation :: Maybe hspec-core:Test.Hspec.Core.Example.Location.Location
+  failureRecordPath :: Test.Hspec.Core.Util.Path
+  failureRecordMessage :: FailureReason
+type role FormatM nominal
+type FormatM :: * -> *
+newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.State.Lazy.StateT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
+type Formatter :: *
+data Formatter = Formatter
+  formatterStarted :: FormatM ()
+  formatterGroupStarted :: Test.Hspec.Core.Util.Path -> FormatM ()
+  formatterGroupDone :: Test.Hspec.Core.Util.Path -> FormatM ()
+  formatterProgress :: Test.Hspec.Core.Util.Path -> hspec-core:Test.Hspec.Core.Example.Progress -> FormatM ()
+  formatterItemStarted :: Test.Hspec.Core.Util.Path -> FormatM ()
+  formatterItemDone :: Test.Hspec.Core.Util.Path -> Item -> FormatM ()
+  formatterDone :: FormatM ()
+type Item :: *
+data Item = Item
+  itemLocation :: Maybe hspec-core:Test.Hspec.Core.Example.Location.Location
+  itemDuration :: Seconds
+  itemInfo :: String
+  itemResult :: Result
+type Result :: *
+data Result
+  | Success
+  | Pending (Maybe hspec-core:Test.Hspec.Core.Example.Location.Location) (Maybe String)
+  | Failure (Maybe hspec-core:Test.Hspec.Core.Example.Location.Location) FailureReason
+type Seconds :: *
+newtype Seconds = Seconds Double
+diffContext :: FormatM (Maybe Int)
+externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
+extraChunk :: String -> FormatM ()
+formatException :: GHC.Exception.Type.SomeException -> String
+formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
+getCPUTime :: FormatM (Maybe Seconds)
+getExpectedTotalCount :: FormatM Int
+getFailCount :: FormatM Int
+getFailMessages :: FormatM [FailureRecord]
+getPendingCount :: FormatM Int
+getRealTime :: FormatM Seconds
+getSuccessCount :: FormatM Int
+getTotalCount :: FormatM Int
+missingChunk :: String -> FormatM ()
+outputUnicode :: FormatM Bool
+prettyPrint :: FormatM Bool
+prettyPrintFunction :: FormatM (Maybe (String -> String -> (String, String)))
+printTimes :: FormatM Bool
+useDiff :: FormatM Bool
+usedSeed :: FormatM Integer
+withFailColor :: FormatM a -> FormatM a
+withInfoColor :: FormatM a -> FormatM a
+withPendingColor :: FormatM a -> FormatM a
+withSuccessColor :: FormatM a -> FormatM a
+write :: String -> FormatM ()
+writeLine :: String -> FormatM ()
+writeTransient :: String -> FormatM ()

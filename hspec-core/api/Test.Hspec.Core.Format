@@ -1,0 +1,55 @@
+type Event :: *
+data Event
+  | Started
+  | GroupStarted Path
+  | GroupDone Path
+  | Progress Path Progress
+  | ItemStarted Path
+  | ItemDone Path Item
+  | Done [(Path, Item)]
+type Format :: *
+type Format = Event -> IO ()
+type FormatConfig :: *
+data FormatConfig = FormatConfig
+  formatConfigUseColor :: Bool
+  formatConfigReportProgress :: Bool
+  formatConfigOutputUnicode :: Bool
+  formatConfigUseDiff :: Bool
+  formatConfigDiffContext :: Maybe Int
+  formatConfigExternalDiff :: Maybe (String -> String -> IO ())
+  formatConfigPrettyPrint :: Bool
+  formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
+  formatConfigPrintTimes :: Bool
+  formatConfigHtmlOutput :: Bool
+  formatConfigPrintCpuTime :: Bool
+  formatConfigUsedSeed :: Integer
+  formatConfigExpectedTotalCount :: Int
+type Item :: *
+data Item = Item
+  itemLocation :: Maybe Location
+  itemDuration :: Seconds
+  itemInfo :: String
+  itemResult :: Result
+type Result :: *
+data Result
+  | Success
+  | Pending (Maybe Location) (Maybe String)
+  | Failure (Maybe Location) FailureReason
+monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
+type FailureReason :: *
+data FailureReason
+  | NoReason
+  | Reason String
+  | ExpectedButGot (Maybe String) String String
+  | Error (Maybe String) GHC.Exception.Type.SomeException
+type Location :: *
+data Location = Location
+  locationFile :: FilePath
+  locationLine :: Int
+  locationColumn :: Int
+type Path :: *
+type Path = ([String], String)
+type Progress :: *
+type Progress = (Int, Int)
+type Seconds :: *
+newtype Seconds = Seconds Double
