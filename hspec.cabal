@@ -50,6 +50,7 @@ library
     , hspec-expectations ==0.8.2.*
   exposed-modules:
       Test.Hspec
+      Test.Hspec.Config
       Test.Hspec.Discover
       Test.Hspec.Formatters
       Test.Hspec.QuickCheck

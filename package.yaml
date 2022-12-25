@@ -45,6 +45,7 @@ library:
   source-dirs: src
   exposed-modules:
     - Test.Hspec
+    - Test.Hspec.Config
     - Test.Hspec.Discover
     - Test.Hspec.Formatters
     - Test.Hspec.QuickCheck
