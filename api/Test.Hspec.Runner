@@ -1,0 +1,82 @@
+type ColorMode :: *
+data ColorMode
+  | ColorAuto
+  | ColorNever
+  | ColorAlways
+type Config :: *
+data Config = Config
+  configIgnoreConfigFile :: Bool
+  configDryRun :: Bool
+  configFocusedOnly :: Bool
+  configFailOnEmpty :: Bool
+  configFailOnFocused :: Bool
+  configFailOnPending :: Bool
+  configPrintSlowItems :: Maybe Int
+  configPrintCpuTime :: Bool
+  configFailFast :: Bool
+  configRandomize :: Bool
+  configFailureReport :: Maybe FilePath
+  configRerun :: Bool
+  configRerunAllOnSuccess :: Bool
+  configFilterPredicate :: Maybe (Path -> Bool)
+  configSkipPredicate :: Maybe (Path -> Bool)
+  configQuickCheckSeed :: Maybe Integer
+  configQuickCheckMaxSuccess :: Maybe Int
+  configQuickCheckMaxDiscardRatio :: Maybe Int
+  configQuickCheckMaxSize :: Maybe Int
+  configQuickCheckMaxShrinks :: Maybe Int
+  configSmallCheckDepth :: Maybe Int
+  configColorMode :: ColorMode
+  configUnicodeMode :: UnicodeMode
+  configDiff :: Bool
+  configDiffContext :: Maybe Int
+  configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
+  configPrettyPrint :: Bool
+  configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
+  configTimes :: Bool
+  configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
+  configFormat :: Maybe (Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)
+  configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter
+  configHtmlOutput :: Bool
+  configConcurrentJobs :: Maybe Int
+type Path :: *
+type Path = ([String], String)
+type ResultItem :: *
+data ResultItem = hspec-core:Test.Hspec.Core.Runner.Result.ResultItem
+  resultItemPath :: Path
+  resultItemStatus :: ResultItemStatus
+type ResultItemStatus :: *
+data ResultItemStatus
+  | ResultItemSuccess
+  | ResultItemPending
+  | ResultItemFailure
+type SpecResult :: *
+data SpecResult = hspec-core:Test.Hspec.Core.Runner.Result.SpecResult
+  specResultItems :: [ResultItem]
+  specResultSuccess :: !Bool
+type Summary :: *
+data Summary = Summary
+  summaryExamples :: {-# UNPACK #-}Int
+  summaryFailures :: {-# UNPACK #-}Int
+type UnicodeMode :: *
+data UnicodeMode
+  | UnicodeAuto
+  | UnicodeNever
+  | UnicodeAlways
+configAddFilter :: (Path -> Bool) -> Config -> Config
+defaultConfig :: Config
+evalSpec :: Config -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> IO (Config, [hspec-core:Test.Hspec.Core.Tree.SpecTree a])
+evaluateResult :: SpecResult -> IO ()
+evaluateSummary :: Summary -> IO ()
+hspec :: hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> IO ()
+hspecResult :: hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> IO Summary
+hspecWith :: Config -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> IO ()
+hspecWithResult :: Config -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> IO Summary
+isSuccess :: Summary -> Bool
+readConfig :: Config -> [String] -> IO Config
+registerDefaultFormatter :: (String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format) -> Config -> Config
+registerFormatter :: (String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format) -> Config -> Config
+resultItemIsFailure :: ResultItem -> Bool
+runSpec :: hspec-core:Test.Hspec.Core.Spec.Monad.Spec -> Config -> IO Summary
+runSpecForest :: [hspec-core:Test.Hspec.Core.Tree.SpecTree ()] -> Config -> IO SpecResult
+toSummary :: SpecResult -> Summary
