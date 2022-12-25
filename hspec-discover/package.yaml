@@ -7,12 +7,12 @@ author:           Simon Hengel <sol@typeful.net>
 maintainer:       Simon Hengel <sol@typeful.net>
 category:         Testing
 stability:        experimental
-homepage:         http://hspec.github.io/
+homepage:         https://hspec.github.io/
 synopsis:         Automatically discover and run Hspec tests
 description: |
   Automatically discover and run Hspec tests
 
-  <http://hspec.github.io/hspec-discover.html>
+  <https://hspec.github.io/hspec-discover.html>
 
 github: hspec/hspec/hspec-discover
 

@@ -512,7 +512,7 @@ Internal changes:
    `--print-cpu-time`.
 
 ## Changes in 1.4.0
- - We now have a manual at http://hspec.github.io/.  The sources are in
+ - We now have a manual at https://hspec.github.io/.  The sources are in
    `doc/`.  It's still work in progress.  Contributions are very welcome!
  - The Haddock documentation now indicates the stability of each exposed
    module.  `Test.Hspec` is now considered stable.
@@ -713,7 +713,7 @@ main = hspecX [
 ### A new monadic API for custom Formatters
 
 For all the details, have a look at the [docs]
-(http://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Formatters.html).
+(https://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec-Formatters.html).
 
 
 ### The total time required to run a spec is now included in the summary

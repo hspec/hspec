@@ -3,7 +3,7 @@
 -- | A preprocessor that finds and combines specs.
 --
 -- /NOTE:/ This module is not meant for public consumption.  For user
--- documentation look at http://hspec.github.io/hspec-discover.html.
+-- documentation look at https://hspec.github.io/hspec-discover.html.
 module Test.Hspec.Discover.Run (
   run
 
@@ -149,7 +149,7 @@ toSpecs = fromForest []
     mkModule :: [String] -> String
     mkModule = intercalate "." . reverse
 
--- See `Cabal.Distribution.ModuleName` (http://git.io/bj34)
+-- See `Cabal.Distribution.ModuleName` (https://git.io/bj34)
 isValidModuleName :: String -> Bool
 isValidModuleName [] = False
 isValidModuleName (c:cs) = isUpper c && all isValidModuleChar cs

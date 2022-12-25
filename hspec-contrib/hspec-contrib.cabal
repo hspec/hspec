@@ -15,7 +15,7 @@ build-type:     Simple
 category:       Testing
 stability:      experimental
 bug-reports:    https://github.com/hspec/hspec/issues
-homepage:       http://hspec.github.io/
+homepage:       https://hspec.github.io/
 synopsis:       Contributed functionality for Hspec
 description:    Contributed functionality for Hspec
 
