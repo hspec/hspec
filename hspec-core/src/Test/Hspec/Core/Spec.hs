@@ -73,6 +73,10 @@ module Test.Hspec.Core.Spec (
 , Test.Hspec.Core.Tree.location
 
 , focusForest
+
+-- * Re-exports
+, HasCallStack
+, Expectation
 ) where
 
 import           Prelude ()

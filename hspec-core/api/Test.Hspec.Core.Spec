@@ -1,22 +1,22 @@
-context :: GHC.Stack.Types.HasCallStack => String -> SpecWith a -> SpecWith a
-describe :: GHC.Stack.Types.HasCallStack => String -> SpecWith a -> SpecWith a
-fcontext :: GHC.Stack.Types.HasCallStack => String -> SpecWith a -> SpecWith a
-fdescribe :: GHC.Stack.Types.HasCallStack => String -> SpecWith a -> SpecWith a
-fit :: (GHC.Stack.Types.HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+context :: HasCallStack => String -> SpecWith a -> SpecWith a
+describe :: HasCallStack => String -> SpecWith a -> SpecWith a
+fcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
+fdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
+fit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 focus :: SpecWith a -> SpecWith a
 focusForest :: [SpecTree a] -> [SpecTree a]
-fspecify :: (GHC.Stack.Types.HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+fspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 getSpecDescriptionPath :: SpecM a [String]
-it :: (GHC.Stack.Types.HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+it :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 parallel :: SpecWith a -> SpecWith a
-pending :: GHC.Stack.Types.HasCallStack => Test.Hspec.Expectations.Expectation
-pendingWith :: GHC.Stack.Types.HasCallStack => String -> Test.Hspec.Expectations.Expectation
+pending :: HasCallStack => Expectation
+pendingWith :: HasCallStack => String -> Expectation
 sequential :: SpecWith a -> SpecWith a
-specify :: (GHC.Stack.Types.HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
-xcontext :: GHC.Stack.Types.HasCallStack => String -> SpecWith a -> SpecWith a
-xdescribe :: GHC.Stack.Types.HasCallStack => String -> SpecWith a -> SpecWith a
-xit :: (GHC.Stack.Types.HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
-xspecify :: (GHC.Stack.Types.HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+specify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+xcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
+xdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
+xit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
+xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 type ActionWith :: * -> *
 type ActionWith a = a -> IO ()
 type Example :: * -> Constraint
@@ -26,12 +26,16 @@ class Example e where
     Default: ()
   evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
   {-# MINIMAL evaluateExample #-}
+type Expectation :: *
+type Expectation = Test.HUnit.Lang.Assertion
 type FailureReason :: *
 data FailureReason
   | NoReason
   | Reason String
   | ExpectedButGot (Maybe String) String String
   | Error (Maybe String) GHC.Exception.Type.SomeException
+type HasCallStack :: Constraint
+type HasCallStack = ?callStack::GHC.Stack.Types.CallStack :: Constraint
 type Item :: * -> *
 data Item a = Item
   itemRequirement :: String
@@ -84,7 +88,7 @@ filterForestWithLabels :: ([String] -> a -> Bool) -> [Tree c a] -> [Tree c a]
 filterTree :: (a -> Bool) -> Tree c a -> Maybe (Tree c a)
 filterTreeWithLabels :: ([String] -> a -> Bool) -> Tree c a -> Maybe (Tree c a)
 fromSpecList :: [SpecTree a] -> SpecWith a
-location :: GHC.Stack.Types.HasCallStack => Maybe Location
+location :: HasCallStack => Maybe Location
 mapSpecForest :: ([SpecTree a] -> [SpecTree b]) -> SpecM a r -> SpecM b r
 mapSpecItem :: (ActionWith a -> ActionWith b) -> (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem_ :: (Item a -> Item b) -> SpecWith a -> SpecWith b
@@ -96,5 +100,5 @@ runIO :: IO r -> SpecM a r
 runSpecM :: SpecWith a -> IO (base:Data.Semigroup.Internal.Endo hspec-core:Test.Hspec.Core.Config.Definition.Config, [SpecTree a])
 safeEvaluate :: IO Result -> IO Result
 safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-specGroup :: GHC.Stack.Types.HasCallStack => String -> [SpecTree a] -> SpecTree a
-specItem :: (GHC.Stack.Types.HasCallStack, Example e) => String -> e -> SpecTree (Arg e)
+specGroup :: HasCallStack => String -> [SpecTree a] -> SpecTree a
+specItem :: (HasCallStack, Example e) => String -> e -> SpecTree (Arg e)
