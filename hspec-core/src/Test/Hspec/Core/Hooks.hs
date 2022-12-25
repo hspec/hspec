@@ -4,7 +4,12 @@
 {-# LANGUAGE ConstraintKinds #-}
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
-  before
+-- * Types
+  Spec
+, SpecWith
+, ActionWith
+-- * Hooks
+, before
 , before_
 , beforeWith
 , beforeAll

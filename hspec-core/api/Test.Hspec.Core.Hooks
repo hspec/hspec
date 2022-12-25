@@ -1,18 +1,24 @@
-after :: hspec-core:Test.Hspec.Core.Example.ActionWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-afterAll :: GHC.Stack.Types.HasCallStack => hspec-core:Test.Hspec.Core.Example.ActionWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-afterAll_ :: GHC.Stack.Types.HasCallStack => IO () -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-after_ :: IO () -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-around :: (hspec-core:Test.Hspec.Core.Example.ActionWith a -> IO ()) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
-aroundAll :: GHC.Stack.Types.HasCallStack => (hspec-core:Test.Hspec.Core.Example.ActionWith a -> IO ()) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
-aroundAllWith :: GHC.Stack.Types.HasCallStack => (hspec-core:Test.Hspec.Core.Example.ActionWith a -> hspec-core:Test.Hspec.Core.Example.ActionWith b) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith b
-aroundAll_ :: GHC.Stack.Types.HasCallStack => (IO () -> IO ()) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-aroundWith :: (hspec-core:Test.Hspec.Core.Example.ActionWith a -> hspec-core:Test.Hspec.Core.Example.ActionWith b) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith b
-around_ :: (IO () -> IO ()) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-before :: IO a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
-beforeAll :: GHC.Stack.Types.HasCallStack => IO a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
-beforeAllWith :: GHC.Stack.Types.HasCallStack => (b -> IO a) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith b
-beforeAll_ :: GHC.Stack.Types.HasCallStack => IO () -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-beforeWith :: (b -> IO a) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith b
-before_ :: IO () -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-ignoreSubject :: hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith () -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
-mapSubject :: (b -> a) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith b
+after :: ActionWith a -> SpecWith a -> SpecWith a
+afterAll :: GHC.Stack.Types.HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
+afterAll_ :: GHC.Stack.Types.HasCallStack => IO () -> SpecWith a -> SpecWith a
+after_ :: IO () -> SpecWith a -> SpecWith a
+around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
+aroundAll :: GHC.Stack.Types.HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec
+aroundAllWith :: GHC.Stack.Types.HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+aroundAll_ :: GHC.Stack.Types.HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
+aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+around_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
+before :: IO a -> SpecWith a -> Spec
+beforeAll :: GHC.Stack.Types.HasCallStack => IO a -> SpecWith a -> Spec
+beforeAllWith :: GHC.Stack.Types.HasCallStack => (b -> IO a) -> SpecWith a -> SpecWith b
+beforeAll_ :: GHC.Stack.Types.HasCallStack => IO () -> SpecWith a -> SpecWith a
+beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
+before_ :: IO () -> SpecWith a -> SpecWith a
+ignoreSubject :: SpecWith () -> SpecWith a
+mapSubject :: (b -> a) -> SpecWith a -> SpecWith b
+type ActionWith :: * -> *
+type ActionWith a = a -> IO ()
+type Spec :: *
+type Spec = SpecWith ()
+type SpecWith :: * -> *
+type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
