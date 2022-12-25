@@ -94,7 +94,7 @@ import           Test.Hspec.Core.Compat
 import           NonEmpty (nonEmpty)
 import           System.IO
 import           System.Environment (getArgs, withArgs)
-import           System.Exit
+import           System.Exit (exitFailure)
 import           System.Random
 import           Control.Monad.ST
 import           Data.STRef
@@ -278,9 +278,6 @@ runSpecForest spec c_ = do
         then runSpecForest spec c_
         else return result
 
-runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
-runSpecForest_ config spec = runEvalTree config (specToEvalForest config spec)
-
 mapItem :: (Item a -> Item b) -> [SpecTree a] -> [SpecTree b]
 mapItem f = map (fmap f)
 
@@ -325,13 +322,17 @@ focusSpec config spec
   | configFocusedOnly config = spec
   | otherwise = focusForest spec
 
-runEvalTree :: Config -> [EvalTree] -> IO SpecResult
-runEvalTree config spec = do
+runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
+runSpecForest_ config spec = do
   let
-      failOnEmpty = configFailOnEmpty config
-      seed = (fromJust . configQuickCheckSeed) config
-      qcArgs = configQuickCheckArgs config
-      !numberOfItems = countSpecItems spec
+    filteredSpec = (specToEvalForest config spec)
+    seed = (fromJust . configQuickCheckSeed) config
+    qcArgs = configQuickCheckArgs config
+    !numberOfItems = countEvalItems filteredSpec
+
+  when (configFailOnEmpty config && numberOfItems == 0) $ do
+    when (countSpecItems spec /= 0) $ do
+      die "all spec items have been filtered; failing due to --fail-on=empty"
 
   concurrentJobs <- case configConcurrentJobs config of
     Nothing -> getDefaultConcurrentJobs
@@ -340,7 +341,7 @@ runEvalTree config spec = do
   (reportProgress, useColor) <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
-  results <- fmap (toSpecResult failOnEmpty) . withHiddenCursor reportProgress stdout $ do
+  results <- fmap toSpecResult . withHiddenCursor reportProgress stdout $ do
     let
       formatConfig = FormatConfig {
         formatConfigUseColor = useColor
@@ -368,7 +369,7 @@ runEvalTree config spec = do
       , evalConfigConcurrentJobs = concurrentJobs
       , evalConfigFailFast = configFailFast config
       }
-    runFormatter evalConfig spec
+    runFormatter evalConfig filteredSpec
 
   let
     failures :: [Path]
@@ -512,5 +513,8 @@ randomizeForest seed t = runST $ do
   ref <- newSTRef (mkStdGen $ fromIntegral seed)
   shuffleForest ref t
 
-countSpecItems :: [Eval.Tree c a] -> Int
+countEvalItems :: [Eval.Tree c a] -> Int
+countEvalItems = getSum . foldMap (foldMap . const $ Sum 1)
+
+countSpecItems :: [Tree c a] -> Int
 countSpecItems = getSum . foldMap (foldMap . const $ Sum 1)

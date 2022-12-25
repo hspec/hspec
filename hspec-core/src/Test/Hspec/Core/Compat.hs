@@ -20,6 +20,10 @@ import           Data.Maybe as Imports
 import           Data.Foldable as Imports
 import           Data.CallStack as Imports (HasCallStack)
 
+import           System.IO
+import           System.Exit
+import           System.Environment
+
 #if MIN_VERSION_base(4,11,0)
 import           Data.Functor as Imports
 #endif
@@ -74,7 +78,6 @@ import           Text.Read as Imports (readMaybe)
 import           System.Environment as Imports (lookupEnv)
 #else
 import           Text.Read
-import           System.Environment
 import qualified Text.ParserCombinators.ReadP as P
 #endif
 
@@ -183,3 +186,9 @@ pass = pure ()
 pass :: Monad m => m ()
 pass = return ()
 #endif
+
+die :: String -> IO a
+die err = do
+  name <- getProgName
+  hPutStrLn stderr $ name <> ": " <> err
+  exitFailure
