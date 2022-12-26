@@ -18,7 +18,7 @@ jobs:
         with:
           prefix: null
 
-      - run: cabal sdist hspec.cabal hspec-discover hspec-core
+      - run: cabal sdist hspec.cabal hspec-discover hspec-core hspec-api
 
       - uses: haskell-actions/hackage-publish@v1.1
         with:
