@@ -29,9 +29,10 @@ jobs:
 
       - run: cabal update
       - run: mkdir -p $HOME/.local/bin/
-      - run: cd util/api-dump/ && cabal install --installdir=$HOME/.local/bin/
-      - run: cabal build
-      - run: api-dump && cd hspec-core && api-dump
+      - working-directory: util/api-dump/
+        run: cabal install --installdir=$HOME/.local/bin/
+
+      - run: util/dump-api
 
       - name: Check for uncommitted changes
         run: git diff --quiet || (git diff && false)

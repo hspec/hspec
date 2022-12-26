@@ -2,6 +2,7 @@ packages:
   hspec.cabal
   hspec-discover
   hspec-core
+  hspec-api
   hspec-contrib
   hspec-discover/example
   hspec-discover/integration-test
@@ -13,6 +14,9 @@ package hspec-discover
   ghc-options: -Werror
 
 package hspec-core
+  ghc-options: -Werror
+
+package hspec-api
   ghc-options: -Werror
 
 package hspec-contrib
