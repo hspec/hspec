@@ -3,7 +3,7 @@ gem 'redcarpet'
 gem 'RedCloth'
 gem 'jekyll'
 
-gem 'pygments.rb', git: 'https://github.com/hspec/pygments.rb', :tag => 'v1.1.2-hspec'
+gem 'pygments.rb'
 
 gem "therubyracer" # required by less
 
