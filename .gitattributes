@@ -1,1 +1,2 @@
 *.cabal linguist-generated=true
+/doc/_site/**/* linguist-generated=true

@@ -2,6 +2,7 @@ jekyll=./bundle exec jekyll
 
 all: setup
 	$(jekyll) build
+	sed -i 's/[ \t]*$$//' _site/*.html
 
 watch: setup
 	$(jekyll) build --watch
