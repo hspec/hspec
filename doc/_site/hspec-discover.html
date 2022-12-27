@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- TODO: Restrict font variants to what we are actually using! -->
+    <!-- link href='https://fonts.googleapis.com/css?family=Arimo:700italic,700,400italic,400|Cousine:700italic,700,400italic,400' rel='stylesheet' type='text/css'-->
+
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+    <title>Automatic spec discovery - Hspec: A Testing Framework for Haskell</title>
+
+  </head>
+  <body>
+    <a class="header" href="/">
+      <div class="container">
+        <h1>Hspec: <span class="sub">A Testing Framework for Haskell</span></h1>
+      </div>
+    </a>
+
+    <div class="container flex-container">
+      <div class="flex-item toc">
+        <h1>Contents</h1>
+        <ul>
+
+
+
+          <li>
+
+            <a href="/writing-specs.html">Writing tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/running-specs.html">Running tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/options.html">Passing options to Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/expectations.html">Setting expectations</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/quickcheck.html">Using QuickCheck with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hunit.html">Interoperability with HUnit</a>
+
+          </li>
+
+
+
+          <li>
+
+            Automatic spec discovery
+            <ul>
+<li>
+<a href="#generating-a-test-driver">Generating a test driver</a>
+</li>
+<li>
+<a href="#using-a-custom-main-function">Using a custom main function</a>
+</li>
+<li>
+<a href="#spec-hooks">Spec hooks</a>
+</li>
+</ul>
+
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/match.html">Running individual spec items</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/rerun.html">Speeding up the edit-compile-test cycle</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/parallel-spec-execution.html">Parallel spec execution</a>
+
+          </li>
+
+        </ul>
+      </div>
+
+      <div class="flex-item content">
+        <noscript>
+          <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
+          you'll get some non-essential but convenient user interface
+          enhancements.</em>
+        </noscript>
+
+
+        <h1>Automatic spec discovery</h1>
+
+
+        <h2 id="generating-a-test-driver">Generating a test driver</h2>
+
+<p>It is a useful convention to have one spec file for each source file.  That way
+it is straightforward to find the corresponding spec for a given piece of code.
+So let&#39;s assume we have a project with the following directory layout:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>src/
+├── Foo.hs
+├── Foo/
+│   └── Bar.hs
+└── Baz.hs
+test/
+├── FooSpec.hs
+├── Foo/
+│   └── BarSpec.hs
+└── BazSpec.hs
+</code></pre></div>
+<p>The <code>src</code> directory contains three modules <code>Foo</code>, <code>Foo.Bar</code> and <code>Baz</code>.  The
+<code>test</code> directory contains corresponding specs <code>FooSpec</code>, <code>Foo.BarSpec</code> and
+<code>BazSpec</code>.</p>
+
+<p>Now if we want to run all specs in one go we have to write the following
+boilerplate:</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="kr">import</span> <span class="nn">Test.Hspec</span>
+
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">FooSpec</span>
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">Foo.BarSpec</span>
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">BazSpec</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="n">spec</span>
+
+<span class="nf">spec</span> <span class="ow">::</span> <span class="kt">Spec</span>
+<span class="nf">spec</span> <span class="ow">=</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;Foo&quot;</span>     <span class="kt">FooSpec</span><span class="o">.</span><span class="n">spec</span>
+  describe <span class="sd">&quot;Foo.Bar&quot;</span> <span class="kt">Foo</span><span class="o">.</span><span class="kt">BarSpec</span><span class="o">.</span><span class="n">spec</span>
+  describe <span class="sd">&quot;Baz&quot;</span>     <span class="kt">BazSpec</span><span class="o">.</span><span class="n">spec</span>
+</code></pre></div>
+<p>This is error prone, and neither challenging nor interesting.  So it should be
+automated.  Hspec provides a solution for that.  We make creative use of GHC&#39;s
+support for custom preprocessors.  The developer only has to create a
+<em>test driver</em> that contains a single line:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="c1">-- file test/Spec.hs</span>
+<span class="cm">{-# OPTIONS_GHC -F -pgmF hspec-discover #-}</span>
+</code></pre></div>
+<p>This instructs GHC to invoke <code>hspec-discover</code> as a preprocessor on
+the source file.  The rest of the source file is empty, so there is nothing to
+preprocess.  Rather than preprocessing, <code>hspec-discover</code> scans the file system for all spec
+files belonging to a project and generates the required boilerplate.
+<code>hspec-discover</code> does not parse any source files, it instead relies on the
+following conventions:</p>
+
+<ul>
+<li>Spec files have to be placed into the same directory as the test driver, or
+into a subdirectory.</li>
+<li>The name of a spec file has to end in <code>Spec.hs</code>; the module name has to
+match the file name.</li>
+<li>Each spec file has to export a top-level binding <code>spec</code> of type <a href="https://hackage.haskell.org/package/hspec/docs/Test-Hspec.html#t:Spec"><code>Spec</code></a>.</li>
+</ul>
+
+<p>A complete example is at <a href="https://github.com/hspec/hspec-example">https://github.com/hspec/hspec-example</a>.</p>
+
+<h2 id="using-a-custom-main-function">Using a custom main function</h2>
+
+<p><code>hspec-discover</code> gives you a default <code>main</code> function and in many cases this is
+exactly what you want.  However, sometimes it is useful to customize the used
+main function.  This can be achieved by passing the <code>--module-name</code> option to
+<code>hspec-discover</code>.  It tells <code>hspec-discover</code> to use a module name different
+from <code>Main</code>.  That way you can import it from your own <code>Main</code> module.</p>
+
+<p>Here is an example that shows how this can be utilized to specify a different
+default formatter:</p>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="c1">-- file test/Spec.hs</span>
+<span class="cm">{-# OPTIONS_GHC -F -pgmF hspec-discover -optF --module-name=Spec #-}</span>
+</code></pre></div><div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="c1">-- file test/Main.hs</span>
+<span class="kr">module</span> <span class="nn">Main</span> <span class="kr">where</span>
+
+<span class="kr">import</span> <span class="nn">Test.Hspec.Runner</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec.Formatters</span>
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">Spec</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspecWith</span> <span class="n">defaultConfig</span> <span class="p">{</span><span class="n">configFormatter</span> <span class="ow">=</span> <span class="kt">Just</span> <span class="n">progress</span><span class="p">}</span> <span class="kt">Spec</span><span class="o">.</span><span class="n">spec</span>
+</code></pre></div>
+<h2 id="spec-hooks">Spec hooks</h2>
+
+<div class="note"><p><strong>Note:</strong> This section assumes that you are using <code>hspec-2.8.3</code> or later.</p>
+</div>
+
+<p><a href="writing-specs.html#using-hooks">Using hooks</a> shows how to use hooks to run
+custom <code>IO</code> actions before every spec item in a test module, or a subtree of
+spec items from that module.</p>
+
+<p><em>Spec hooks</em> lift this concept to the level of test suites.</p>
+
+<p><code>hspec-discover</code> looks for files that are named <code>SpecHook.hs</code>.  Hooks defined
+in these files are applied to the test suite as a whole, or to a subtree of it.</p>
+
+<ul>
+<li>Spec hooks have to be placed into the same directory as the test driver, or
+into a subdirectory.</li>
+<li>The name of a spec hook file has to be <code>SpecHook.hs</code>; the module name has to
+match the file name.</li>
+<li>Each spec hook file has to export a top-level binding <code>hook</code> of type <code>SpecWith a -&gt; SpecWith b</code>.</li>
+</ul>
+
+<p>Here is an example that shows how this can be utilized to:</p>
+
+<ul>
+<li>Silence log messages for the whole test suite</li>
+<li>Open a database connection for all tests defined under <code>Database.Models</code></li>
+</ul>
+<div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="c1">-- file test/Spec.hs</span>
+<span class="cm">{-# OPTIONS_GHC -F -pgmF hspec-discover #-}</span>
+</code></pre></div><div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="c1">-- file test/SpecHook.hs</span>
+<span class="kr">module</span> <span class="nn">SpecHook</span> <span class="kr">where</span>
+
+<span class="kr">import</span>           <span class="nn">Test.Hspec</span>
+<span class="kr">import</span>           <span class="nn">System.Logging.Facade.Sink</span>
+
+<span class="nf">hook</span> <span class="ow">::</span> <span class="kt">Spec</span> <span class="ow">-&gt;</span> <span class="kt">Spec</span>
+<span class="nf">hook</span> <span class="ow">=</span> <span class="n">aroundAll_</span> <span class="p">(</span><span class="n">withLogSink</span> <span class="o">$</span> <span class="nf">\</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">return</span> <span class="nb">()</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span></span><span class="c1">-- file test/Database/Models/SpecHook.hs</span>
+<span class="kr">module</span> <span class="nn">Database.Models.SpecHook</span> <span class="kr">where</span>
+
+<span class="kr">import</span>           <span class="nn">Test.Hspec</span>
+
+<span class="kr">data</span> <span class="kt">Connection</span>
+
+<span class="nf">withConnection</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Connection</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="n">a</span>
+<span class="nf">withConnection</span> <span class="ow">=</span> <span class="n">undefined</span>
+
+<span class="nf">hook</span> <span class="ow">::</span> <span class="kt">SpecWith</span> <span class="kt">Connection</span> <span class="ow">-&gt;</span> <span class="kt">Spec</span>
+<span class="nf">hook</span> <span class="ow">=</span> <span class="n">around</span> <span class="n">withConnection</span>
+</code></pre></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div style="margin-left: 10px">
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=watch&amp;count=true"></iframe>
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=fork&amp;count=true"></iframe>
+      </div>
+      <div class="follow-me">
+        <a href="https://twitter.com/solirc_" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @solirc_</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="js/jquery.scrollintoview.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>
