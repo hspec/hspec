@@ -1,30 +1,23 @@
 jekyll=./bundle exec jekyll
 
-all:
+all: setup
 	$(jekyll) build
 
-watch:
+watch: setup
 	$(jekyll) build --watch
 
-serve:
+serve: setup
 	$(jekyll) serve --host=0.0.0.0
 
+setup: bin/hspec-discover
 
-# only generate css + copy js
-less:
-	lessc css/custom.less > _site/css/custom.css
-	cp js/*.js _site/js
-
-watch-less: less
-	watchr -e 'watch("(^js/.*\.js)|(^css/.*\.less)") {system "make less"};'
-
-setup:
-	rm -rf vendor
+bin/hspec-discover:
 	./bundle install
-	ln -s /usr/bin/python2 vendor/bundle/bin/python
 	rm -f .ghc.environment.*
 	cabal install HUnit QuickCheck hspec hspec-contrib --lib --package-env .
+	cabal install --installdir=bin hspec-discover
 
 clean:
 	-rm -rf _site
-	-rm -rf .cache
+	-rm -rf _cache
+	-rm -rf bin

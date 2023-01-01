@@ -8,10 +8,9 @@ exclude:
   - css/use.less
   - css/pygments.less
   - css/pygments.trac.less
-  - tinc.yaml
   - README.markdown
-  - vendor
   - bundle
+  - bin
 
 highlighter: pygments
 

@@ -11,6 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - run: cabal check
+
       - uses: sol/haskell-autotag@v1
         id: autotag
         with:
