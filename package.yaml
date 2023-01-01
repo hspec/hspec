@@ -3,7 +3,7 @@ _: !include version.yaml
 name:             hspec
 version: *version
 copyright:
-  - (c) 2011-2022 Simon Hengel
+  - (c) 2011-2023 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
   - (c) 2011 Greg Weber
 maintainer:       Simon Hengel <sol@typeful.net>
