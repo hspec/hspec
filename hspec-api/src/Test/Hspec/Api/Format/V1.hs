@@ -25,7 +25,8 @@ module Test.Hspec.Api.Format.V1 (
 , modifyConfig
 ) where
 
-import           Test.Hspec.Core.Runner (SpecWith, Config, modifyConfig)
+import           Test.Hspec.Core.Runner (Config)
+import           Test.Hspec.Core.Spec (modifyConfig, SpecWith)
 import qualified Test.Hspec.Core.Runner as Runner
 import           Test.Hspec.Core.Format hiding (FormatConfig(..))
 import qualified Test.Hspec.Core.Format as Latest

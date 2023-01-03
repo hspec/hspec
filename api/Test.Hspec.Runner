@@ -77,7 +77,6 @@ hspecResult :: Spec -> IO Summary
 hspecWith :: Config -> Spec -> IO ()
 hspecWithResult :: Config -> Spec -> IO Summary
 isSuccess :: Summary -> Bool
-modifyConfig :: (Config -> Config) -> SpecWith a
 readConfig :: Config -> [String] -> IO Config
 registerDefaultFormatter :: (String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format) -> Config -> Config
 registerFormatter :: (String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format) -> Config -> Config
