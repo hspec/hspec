@@ -82,6 +82,5 @@ data UnicodeMode
   | UnicodeAlways
 configAddFilter :: (Path -> Bool) -> Config -> Config
 defaultConfig :: Config
-modifyConfig :: (Config -> Config) -> SpecWith a
 readConfig :: Config -> [String] -> IO Config
 resultItemIsFailure :: ResultItem -> Bool
