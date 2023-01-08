@@ -1,2 +1,0 @@
-  - Provide a new package `hspec-api`, a stable API that can be used to extend
-    Hspec's functionality.
