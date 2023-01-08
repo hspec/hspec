@@ -324,7 +324,7 @@ focusSpec config spec
 runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
 runSpecForest_ config spec = do
   let
-    filteredSpec = (specToEvalForest config spec)
+    filteredSpec = specToEvalForest config spec
     seed = (fromJust . configQuickCheckSeed) config
     qcArgs = configQuickCheckArgs config
     !numberOfItems = countEvalItems filteredSpec
@@ -449,8 +449,8 @@ doNotLeakCommandLineArgumentsToExamples :: IO a -> IO a
 doNotLeakCommandLineArgumentsToExamples = withArgs []
 
 withHiddenCursor :: Bool -> Handle -> IO a -> IO a
-withHiddenCursor useColor h
-  | useColor  = bracket_ (hHideCursor h) (hShowCursor h)
+withHiddenCursor reportProgress h
+  | reportProgress  = bracket_ (hHideCursor h) (hShowCursor h)
   | otherwise = id
 
 colorOutputSupported :: ColorMode -> IO Bool -> IO (Bool, Bool)
