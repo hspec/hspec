@@ -198,7 +198,7 @@ newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
 runFormatM :: FormatConfig -> FormatM a -> IO a
 runFormatM config (FormatM action) = withLineBuffering $ do
   time <- getMonotonicTime
-  cpuTime <- if (formatConfigPrintCpuTime config) then Just <$> CPUTime.getCPUTime else pure Nothing
+  cpuTime <- if formatConfigPrintCpuTime config then Just <$> CPUTime.getCPUTime else pure Nothing
 
   let
     progress = formatConfigReportProgress config && not (formatConfigHtmlOutput config)
@@ -245,9 +245,9 @@ getExpectedTotalCount = getConfig formatConfigExpectedTotalCount
 writeTransient :: String -> FormatM ()
 writeTransient new = do
   reportProgress <- getConfig formatConfigReportProgress
-  when (reportProgress) $ do
+  when reportProgress $ do
     h <- getHandle
-    write $ new
+    write new
     liftIO $ IO.hFlush h
     write $ "\r" ++ replicate (length new) ' ' ++ "\r"
 
@@ -347,7 +347,7 @@ getCPUTime :: FormatM (Maybe Seconds)
 getCPUTime = do
   t1  <- liftIO CPUTime.getCPUTime
   mt0 <- gets stateCpuStartTime
-  return $ toSeconds <$> ((-) <$> pure t1 <*> mt0)
+  return $ toSeconds <$> ((t1 -) <$> mt0)
   where
     toSeconds x = Seconds (fromIntegral x / (10.0 ^ (12 :: Integer)))
 
