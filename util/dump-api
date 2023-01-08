@@ -1,7 +1,0 @@
-#!/bin/bash
-set -o nounset
-set -o errexit
-
-(                 cabal build && api-dump)
-(cd hspec-core && cabal build && api-dump)
-(cd hspec-api  && cabal build && api-dump)
