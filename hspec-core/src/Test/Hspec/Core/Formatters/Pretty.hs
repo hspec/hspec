@@ -5,6 +5,7 @@ module Test.Hspec.Core.Formatters.Pretty (
 #ifdef TEST
 , pretty
 , recoverString
+, recoverMultiLineString
 #endif
 ) where
 
@@ -20,25 +21,27 @@ import           Test.Hspec.Core.Formatters.Pretty.Unicode
 import           Test.Hspec.Core.Formatters.Pretty.Parser
 
 pretty2 :: Bool -> String -> String -> (String, String)
-pretty2 unicode expected actual = case (recoverString unicode expected, recoverString unicode actual) of
+pretty2 unicode expected actual = case (recoverMultiLineString unicode expected, recoverMultiLineString unicode actual) of
   (Just expected_, Just actual_) -> (expected_, actual_)
   _ -> case (pretty unicode expected, pretty unicode actual) of
-    (Just expected_, Just actual_) -> (expected_, actual_)
-    _ -> (rec expected, rec actual)
-  where
-    rec = if unicode then urecover else id
+    (Just expected_, Just actual_) | expected_ /= actual_ -> (expected_, actual_)
+    _ -> (expected, actual)
 
-    urecover :: String -> String
-    urecover xs = maybe xs ushow $ readMaybe xs
+recoverString :: String -> Maybe String
+recoverString xs = case xs of
+  '"' : _ -> case reverse xs of
+    '"' : _ -> readMaybe xs
+    _ -> Nothing
+  _ -> Nothing
 
-recoverString :: Bool -> String -> Maybe String
-recoverString unicode input = case readMaybe input of
+recoverMultiLineString :: Bool -> String -> Maybe String
+recoverMultiLineString unicode input = case recoverString input of
   Just r | shouldParseBack r -> Just r
   _ -> Nothing
   where
     shouldParseBack = (&&) <$> all isSafe <*> isMultiLine
     isMultiLine = lines >>> length >>> (> 1)
-    isSafe c = (unicode || isAscii c) && (not $ isControl c) || c == '\n'
+    isSafe c = (unicode || isAscii c) && not (isControl c) || c == '\n'
 
 pretty :: Bool -> String -> Maybe String
 pretty unicode = parseValue >=> render_

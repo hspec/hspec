@@ -1,3 +1,12 @@
+## Changes in 2.10.9 (2023-01-13)
+  - Print error message on `-—fail-on=empty`
+  - Only fail on `-—fail-on=empty` if at least one spec item has been filtered
+  - Re-export more types from `Test.Hspec.Core.Runner`
+  - Fix a pretty-printing bug where `[]` would be pretty-printed as `""`
+  - Don't pretty-print if the expected and actual value would be equal after
+    pretty-printing
+  - Prevent deadlocks on unguarded exceptions in runner (#771)
+
 ## Changes in 2.10.8 (2022-12-19)
   - Add pretty-printing support for rational numbers
   - Force / evaluate exceptions recursively (#763)
