@@ -18,14 +18,6 @@ spec = do
     it "can be deconstructed via accessor functions" $ do
       (summaryExamples &&& summaryFailures) summary `shouldBe` (2, 1)
 
-    it "can be deconstructed via pattern matching" $ do
-      let Summary examples failures = summary
-      (examples, failures) `shouldBe` (2, 1)
-
-    it "can be deconstructed via RecordWildCards" $ do
-      let Summary{..} = summary
-      (summaryExamples, summaryFailures) `shouldBe` (2, 1)
-
   describe "specResultSuccess" $ do
     context "when all spec items passed" $ do
       it "returns True" $ do

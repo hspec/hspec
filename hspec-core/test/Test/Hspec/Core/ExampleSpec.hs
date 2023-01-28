@@ -16,6 +16,7 @@ import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Example as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
+import           Test.Hspec.Core.Runner.Result (toSummary_)
 
 safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO Result
 safeEvaluateExample e = H.safeEvaluateExample e defaultParams ($ ()) noOpProgressCallback
@@ -250,8 +251,8 @@ spec = do
         mockCounter e `shouldReturn` 100
 
       it "can be used with expectations/HUnit assertions" $ do
-        silence . H.hspecResult $ do
+        fmap toSummary_ . silence . H.hspecResult $ do
           H.describe "readIO" $ do
             H.it "is inverse to show" $ property $ \x -> do
               (readIO . show) x `shouldReturn` (x :: Int)
-        `shouldReturn` H.Summary 1 0
+        `shouldReturn` (1, 0)

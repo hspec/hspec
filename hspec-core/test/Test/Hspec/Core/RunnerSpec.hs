@@ -679,7 +679,7 @@ spec = do
 
   describe "hspecResult" $ do
     let
-      hspecResult args = withArgs ("--format=silent" : args) . H.hspecResult
+      hspecResult args = fmap toSummary_ . withArgs ("--format=silent" : args) . H.hspecResult
       hspecResult_ = hspecResult []
 
     it "returns a summary of the test run" $ do
@@ -689,12 +689,12 @@ spec = do
         H.it "foo" False
         H.it "foo" True
         H.it "foo" True
-      `shouldReturn` H.Summary 5 2
+      `shouldReturn` (5, 2)
 
     it "treats uncaught exceptions as failure" $ do
       hspecResult_  $ do
         H.it "foobar" throwException_
-      `shouldReturn` H.Summary 1 1
+      `shouldReturn` (1, 1)
 
     it "handles unguarded exceptions in runner" $ do
       let
@@ -704,7 +704,7 @@ spec = do
         }
       hspecResult_ $ H.mapSpecItem_ throwExceptionThatIsNotGuardedBy_safeTry $ do
         H.it "foo" True
-      `shouldReturn` H.Summary 1 1
+      `shouldReturn` (1, 1)
 
     it "uses the specdoc formatter by default" $ do
       _:r:_ <- captureLines . H.hspecResult $ do
@@ -721,7 +721,7 @@ spec = do
     it "does not let escape error thunks from failure messages" $ do
       r <- hspecResult_ $ do
         H.it "some example" (H.Result "" $ H.Failure Nothing . H.Reason $ "foobar" ++ undefined)
-      r `shouldBe` H.Summary 1 1
+      r `shouldBe` (1, 1)
 
     it "runs specs in parallel" $ do
       let n = 100
@@ -729,7 +729,7 @@ spec = do
           dt = t * (fromIntegral n / 2)
       r <- timeout dt . hspecResult ["-j", show n] . H.parallel $ do
         replicateM_ n (H.it "foo" $ sleep t)
-      r `shouldBe` Just (H.Summary n 0)
+      r `shouldBe` Just (n, 0)
 
     context "with -j" $ do
       it "limits parallelism" $ do
@@ -744,7 +744,7 @@ spec = do
             stop = atomicModifyIORef currentRef $ \x -> (pred x, ())
         r <- hspecResult ["-j", show j] . H.parallel $ do
           replicateM_ n $ H.it "foo" $ bracket_ start stop $ sleep t
-        r `shouldBe` H.Summary n 0
+        r `shouldBe` (n, 0)
         high <- readIORef highRef
         high `shouldBe` j
 

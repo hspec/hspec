@@ -1,0 +1,1 @@
+  - Make `Summary` a synonym for `SpecResult`

@@ -12,12 +12,15 @@ module Test.Hspec.Core.Runner.Result (
 
 , ResultItemStatus(..)
 
-, Summary(..)
+, Summary
+, summaryExamples
+, summaryFailures
 , toSummary
 , isSuccess
 -- END RE-EXPORTED from Test.Hspec.Core.Runner
 
 , toSpecResult
+, toSummary_
 ) where
 
 import           Prelude ()
@@ -51,6 +54,28 @@ data ResultItem = ResultItem {
 } deriving (Eq, Show)
 
 -- |
+-- @since 2.11.0
+instance Monoid SpecResult where
+  mempty = mkSpecResult []
+#if MIN_VERSION_base(4,11,0)
+-- |
+-- @since 2.11.0
+instance Semigroup SpecResult where
+#endif
+  r1
+#if MIN_VERSION_base(4,11,0)
+    <>
+#else
+    `mappend`
+#endif
+    r2 = mkSpecResult (specResultItems r1 <> specResultItems r2)
+
+mkSpecResult :: [ResultItem] -> SpecResult
+mkSpecResult items = SpecResult items success
+  where
+    success = all (not . resultItemIsFailure) items
+
+-- |
 -- @since 2.10.0
 resultItemIsFailure :: ResultItem -> Bool
 resultItemIsFailure item = case resultItemStatus item of
@@ -65,10 +90,7 @@ data ResultItemStatus =
   deriving (Eq, Show)
 
 toSpecResult :: [(Path, Format.Item)] -> SpecResult
-toSpecResult results = SpecResult items success
-  where
-    items = map toResultItem results
-    success = all (not . resultItemIsFailure) items
+toSpecResult = mkSpecResult . map toResultItem
 
 toResultItem :: (Path, Format.Item) -> ResultItem
 toResultItem (path, item) = ResultItem path status
@@ -79,33 +101,24 @@ toResultItem (path, item) = ResultItem path status
       Format.Failure{} -> ResultItemFailure
 
 -- | Summary of a test run.
-data Summary = Summary {
-  summaryExamples :: !Int
-, summaryFailures :: !Int
-} deriving (Eq, Show)
+type Summary = SpecResult
 
-instance Monoid Summary where
-  mempty = Summary 0 0
-#if MIN_VERSION_base(4,11,0)
-instance Semigroup Summary where
-#endif
-  (Summary x1 x2)
-#if MIN_VERSION_base(4,11,0)
-    <>
-#else
-    `mappend`
-#endif
-    (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
-
-toSummary :: SpecResult -> Summary
-toSummary result = Summary {
-  summaryExamples = length items
-, summaryFailures = length failures
-} where
+toSummary_ :: SpecResult -> (Int, Int)
+toSummary_ result = (length items, length failures)
+  where
     items = specResultItems result
     failures = filter resultItemIsFailure items
+
+toSummary :: SpecResult -> Summary
+toSummary = id
 
 -- | `True` if the given `Summary` indicates that there were no
 -- failures, `False` otherwise.
 isSuccess :: Summary -> Bool
-isSuccess summary = summaryFailures summary == 0
+isSuccess = specResultSuccess
+
+summaryExamples :: SpecResult -> Int
+summaryExamples = fst . toSummary_
+
+summaryFailures :: SpecResult -> Int
+summaryFailures = snd . toSummary_
