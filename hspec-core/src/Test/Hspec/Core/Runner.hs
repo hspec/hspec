@@ -70,7 +70,9 @@ If you need more control over how a spec is run use these primitives individuall
 , runSpec
 
 -- ** Summary
-, Summary (..)
+, Summary
+, summaryExamples
+, summaryFailures
 , toSummary
 , isSuccess
 , evaluateSummary
@@ -226,13 +228,13 @@ hspecWithResult :: Config -> Spec -> IO Summary
 hspecWithResult defaults = evalSpec defaults >=> \ (config, spec) ->
       getArgs
   >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . fmap toSummary . runSpecForest spec
+  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
 
 -- |
 -- /Note/: `runSpec` is deprecated. It ignores any modifications applied
 -- through `modifyConfig`.  Use `evalSpec` and `runSpecForest` instead.
 runSpec :: Spec -> Config -> IO Summary
-runSpec spec config = evalSpec defaultConfig spec >>= fmap toSummary . flip runSpecForest config . snd
+runSpec spec config = evalSpec defaultConfig spec >>= flip runSpecForest config . snd
 
 -- |
 -- `runSpecForest` is the most basic primitive to run a spec. `hspec` is

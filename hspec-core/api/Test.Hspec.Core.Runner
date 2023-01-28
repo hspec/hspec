@@ -70,9 +70,7 @@ data SpecResult = hspec-core:Test.Hspec.Core.Runner.Result.SpecResult
 type SpecWith :: * -> *
 type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
 type Summary :: *
-data Summary = Summary
-  summaryExamples :: {-# UNPACK #-}Int
-  summaryFailures :: {-# UNPACK #-}Int
+type Summary = SpecResult
 type UnicodeMode :: *
 data UnicodeMode
   | UnicodeAuto
@@ -83,4 +81,6 @@ defaultConfig :: Config
 isSuccess :: Summary -> Bool
 readConfig :: Config -> [String] -> IO Config
 resultItemIsFailure :: ResultItem -> Bool
+summaryExamples :: SpecResult -> Int
+summaryFailures :: SpecResult -> Int
 toSummary :: SpecResult -> Summary
