@@ -201,11 +201,6 @@ hspecWith defaults = evalSpec defaults >=> \ (config, spec) ->
   >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
   >>= evaluateResult
 
--- | `True` if the given `Summary` indicates that there were no
--- failures, `False` otherwise.
-isSuccess :: Summary -> Bool
-isSuccess summary = summaryFailures summary == 0
-
 -- | Exit with `exitFailure` if the given `Summary` indicates that there was at
 -- least one failure.
 evaluateSummary :: Summary -> IO ()
@@ -378,14 +373,6 @@ runSpecForest_ config spec = do
 
   return results
 
-toSummary :: SpecResult -> Summary
-toSummary result = Summary {
-  summaryExamples = length items
-, summaryFailures = length failures
-} where
-    items = specResultItems result
-    failures = filter resultItemIsFailure items
-
 specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
 specToEvalForest config =
       failFocusedItems config
@@ -487,25 +474,6 @@ rerunAll config mOldFailureReport result = case mOldFailureReport of
     && configRerun config
     && specResultSuccess result
     && (not . null) (failureReportPaths oldFailureReport)
-
--- | Summary of a test run.
-data Summary = Summary {
-  summaryExamples :: !Int
-, summaryFailures :: !Int
-} deriving (Eq, Show)
-
-instance Monoid Summary where
-  mempty = Summary 0 0
-#if MIN_VERSION_base(4,11,0)
-instance Semigroup Summary where
-#endif
-  (Summary x1 x2)
-#if MIN_VERSION_base(4,11,0)
-    <>
-#else
-    `mappend`
-#endif
-    (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
 
 randomizeForest :: Integer -> [Tree c a] -> [Tree c a]
 randomizeForest seed t = runST $ do

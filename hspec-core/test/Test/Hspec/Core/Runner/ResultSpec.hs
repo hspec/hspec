@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Test.Hspec.Core.Runner.ResultSpec (spec) where
 
 import           Prelude ()
@@ -9,11 +10,23 @@ import           Test.Hspec.Core.Runner.Result
 
 spec :: Spec
 spec = do
-  describe "specResultSuccess" $ do
+  describe "Summary" $ do
     let
-      failure = Failure Nothing NoReason
-      item result = (([], ""), Item Nothing 0 "" result)
+      summary :: Summary
+      summary = toSummary $ toSpecResult [item Success, item failure]
 
+    it "can be deconstructed via accessor functions" $ do
+      (summaryExamples &&& summaryFailures) summary `shouldBe` (2, 1)
+
+    it "can be deconstructed via pattern matching" $ do
+      let Summary examples failures = summary
+      (examples, failures) `shouldBe` (2, 1)
+
+    it "can be deconstructed via RecordWildCards" $ do
+      let Summary{..} = summary
+      (summaryExamples, summaryFailures) `shouldBe` (2, 1)
+
+  describe "specResultSuccess" $ do
     context "when all spec items passed" $ do
       it "returns True" $ do
         specResultSuccess (toSpecResult [item Success]) `shouldBe` True
@@ -25,3 +38,6 @@ spec = do
     context "with an empty result list" $ do
       it "returns True" $ do
         specResultSuccess (toSpecResult []) `shouldBe` True
+  where
+    failure = Failure Nothing NoReason
+    item result = (([], ""), Item Nothing 0 "" result)
