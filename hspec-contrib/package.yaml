@@ -1,5 +1,5 @@
 name: hspec-contrib
-version: 0.5.1.1
+version: 0.5.2
 copyright:
   - (c) 2011-2023 Simon Hengel
   - (c) 2014 Junji Hashimoto
@@ -16,6 +16,7 @@ ghc-options: -Wall
 
 dependencies:
   - base == 4.*
+  - call-stack
   - hspec-core >= 2.5.0
   - HUnit
 
