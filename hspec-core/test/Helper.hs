@@ -129,9 +129,9 @@ hspecSilent = H.hspecWith silentConfig
 hspecResultSilent :: H.Spec -> IO H.Summary
 hspecResultSilent = H.hspecWithResult silentConfig
 
-shouldUseArgs :: HasCallStack => [String] -> (Args -> Bool) -> Expectation
-shouldUseArgs args p = do
-  spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
+shouldUseArgs :: HasCallStack => (Eq n, Show n) => [String] -> (Args -> n,  n) -> Expectation
+shouldUseArgs args (accessor, expected) = do
+  spy <- newIORef stdArgs
   let
     interceptArgs :: H.Item a -> H.Item a
     interceptArgs item = item {
@@ -140,9 +140,9 @@ shouldUseArgs args p = do
         H.itemExample item params action progressCallback
     }
     spec :: H.Spec
-    spec = H.mapSpecItem_ interceptArgs $ H.it "foo" True
+    spec = H.mapSpecItem_ interceptArgs $ H.it "" True
   withArgs args $ hspecSilent spec
-  readIORef spy >>= (`shouldSatisfy` p)
+  accessor <$> readIORef spy `shouldReturn` expected
 
 removeLocations :: H.SpecWith a -> H.SpecWith a
 removeLocations = H.mapSpecItem_ $ \ item -> item {

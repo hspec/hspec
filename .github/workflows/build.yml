@@ -79,7 +79,7 @@ jobs:
           test/regression/issue-169/run.sh
           cabal install --lib --package-env test/regression/issue-270/
           test/regression/issue-270/run.sh
-        if: startsWith(matrix.ghc, '8.') && matrix.ghc != '8.0.1'
+        if: "!startsWith(matrix.ghc, '7.')"
 
   success:
     needs: build

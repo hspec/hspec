@@ -33,9 +33,6 @@ import qualified Test.Hspec.Core.Hooks as H
 
 import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (Person(..))
 
-quickCheckOptions :: [([Char], Args -> Int)]
-quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]
-
 runPropFoo :: [String] -> IO String
 runPropFoo args = unlines . normalizeSummary . lines <$> do
   capture_ . ignoreExitCode . withArgs args . H.hspec .  H.modifyMaxSuccess (const 1000000) $ do
@@ -115,64 +112,89 @@ spec = do
         }
 
     context "with --rerun" $ do
-      let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
-            H.it "example 1" True
-            H.it "example 2" False
-            H.it "example 3" False
-            H.it "example 4" True
-            H.it "example 5" False
+      let
+        failingSpec = do
+          H.it "example 1" True
+          H.it "example 2" False
+          H.it "example 3" False
+          H.it "example 4" True
+          H.it "example 5" False
 
-      it "reruns examples that previously failed" $ do
-        r0 <- runSpec
-        r0 `shouldSatisfy` elem "5 examples, 3 failures"
+        succeedingSpec = do
+          H.it "example 1" True
+          H.it "example 2" True
+          H.it "example 3" True
+          H.it "example 4" True
+          H.it "example 5" True
 
-        r1 <- withArgs ["--rerun"] runSpec
-        r1 `shouldSatisfy` elem "3 examples, 3 failures"
+        run = captureLines . H.hspecResult
+        rerun = withArgs ["--rerun"] . run
 
-      it "reuses the same seed" $ do
+      it "reuses same --seed" $ do
         r <- runPropFoo ["--seed", "42"]
         runPropFoo ["--rerun"] `shouldReturn` r
 
-      forM_ quickCheckOptions $ \(name, accessor) -> do
-        it ("reuses same " ++ name) $ do
-          [name, "23"] `shouldUseArgs` ((== 23) . accessor)
-          ["--rerun"] `shouldUseArgs` ((== 23) . accessor)
+      it "reuses same --qc-max-success" $ do
+        n <- generate arbitrary
+        ["--qc-max-success", show n] `shouldUseArgs` (QC.maxSuccess, n)
+        ["--rerun"] `shouldUseArgs` (QC.maxSuccess, n)
 
-      context "when no examples failed previously" $ do
+      it "reuses same --qc-max-discard" $ do
+        n <- generate arbitrary
+        ["--qc-max-discard", show n] `shouldUseArgs` (QC.maxDiscardRatio, n)
+        ["--rerun"] `shouldUseArgs` (QC.maxDiscardRatio, n)
+
+      it "reuses same --qc-max-size" $ do
+        n <- generate arbitrary
+        ["--qc-max-size", show n] `shouldUseArgs` (QC.maxSize, n)
+        ["--rerun"] `shouldUseArgs` (QC.maxSize, n)
+
+      context "with failing examples" $ do
+        it "only reruns failing examples" $ do
+          r0 <- run failingSpec
+          last r0 `shouldBe` "5 examples, 3 failures"
+
+          r1 <- rerun failingSpec
+          last r1 `shouldBe` "3 examples, 3 failures"
+
+      context "without failing examples" $ do
         it "runs all examples" $ do
-          let run = capture_ . H.hspec $ do
-                H.it "example 1" True
-                H.it "example 2" True
-                H.it "example 3" True
+          r0 <- run succeedingSpec
+          last r0 `shouldBe` "5 examples, 0 failures"
 
-          r0 <- run
-          r0 `shouldContain` "3 examples, 0 failures"
-
-          r1 <- withArgs ["--rerun"] run
-          r1 `shouldContain` "3 examples, 0 failures"
+          r1 <- rerun succeedingSpec
+          last r1 `shouldBe` "5 examples, 0 failures"
 
       context "when there is no failure report in the environment" $ do
-        it "runs everything" $ do
+        it "runs all examples" $ do
           unsetEnv "HSPEC_FAILURES"
-          r <- hSilence [stderr] $ withArgs ["--rerun"] runSpec
+          r <- hSilence [stderr] $ rerun failingSpec
           r `shouldSatisfy` elem "5 examples, 3 failures"
 
         it "prints a warning to stderr" $ do
           unsetEnv "HSPEC_FAILURES"
-          r <- hCapture_ [stderr] $ withArgs ["--rerun"] runSpec
+          r <- hCapture_ [stderr] $ rerun failingSpec
           r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
 
       context "when parsing of failure report fails" $ do
-        it "runs everything" $ do
+        it "runs all examples" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hSilence [stderr] $ withArgs ["--rerun"] runSpec
+          r <- hSilence [stderr] $ rerun failingSpec
           r `shouldSatisfy` elem "5 examples, 3 failures"
 
         it "prints a warning to stderr" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hCapture_ [stderr] $ withArgs ["--rerun"] runSpec
+          r <- hCapture_ [stderr] $ rerun failingSpec
           r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
 
+      context "with --rerun-all-on-success" $ do
+        let rerunAllOnSuccess = withArgs ["--rerun", "--rerun-all-on-success"] . run
+        context "after a previously failing rerun succeeds for the first time" $ do
+          it "runs the whole test suite" $ do
+            _ <- run failingSpec
+            output <- rerunAllOnSuccess succeedingSpec
+            output `shouldSatisfy` elem "3 examples, 0 failures"
+            last output `shouldBe` "5 examples, 0 failures"
 
     it "does not leak command-line options to examples" $ do
       hspec ["--diff"] $ do
@@ -618,16 +640,16 @@ spec = do
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do
-          ["--qc-max-success", "23"] `shouldUseArgs` ((== 23) . QC.maxSuccess)
-          ["--rerun", "--qc-max-success", "42"] `shouldUseArgs` ((== 42) . QC.maxSuccess)
+          ["--qc-max-success", "23"] `shouldUseArgs` (QC.maxSuccess, 23)
+          ["--rerun", "--qc-max-success", "42"] `shouldUseArgs` (QC.maxSuccess, 42)
 
     context "with --qc-max-size" $ do
       it "passes specified size to QuickCheck properties" $ do
-        ["--qc-max-size", "23"] `shouldUseArgs` ((== 23) . QC.maxSize)
+        ["--qc-max-size", "23"] `shouldUseArgs` (QC.maxSize, 23)
 
     context "with --qc-max-discard" $ do
       it "uses specified discard ratio to QuickCheck properties" $ do
-        ["--qc-max-discard", "23"] `shouldUseArgs` ((== 23) . QC.maxDiscardRatio)
+        ["--qc-max-discard", "23"] `shouldUseArgs` (QC.maxDiscardRatio, 23)
 
     context "with --seed" $ do
       it "uses specified seed" $ do
