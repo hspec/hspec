@@ -220,10 +220,35 @@ hspecWithResult :: Config -> Spec -> IO Summary
 hspecWithResult config = fmap toSummary . hspecWithSpecResult config
 
 hspecWithSpecResult :: Config -> Spec -> IO SpecResult
-hspecWithSpecResult defaults = evalSpec defaults >=> \ (config, spec) ->
-      getArgs
-  >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
+hspecWithSpecResult defaults spec = do
+  (c, forest) <- evalSpec defaults spec
+  config <- getArgs >>= readConfig c
+  oldFailureReport <- readFailureReportOnRerun config
+
+  let
+    normalMode :: IO SpecResult
+    normalMode = doNotLeakCommandLineArgumentsToExamples $ runSpecForest_ oldFailureReport forest config
+
+    rerunAllMode :: IO SpecResult
+    rerunAllMode = do
+      result <- normalMode
+      if rerunAll config oldFailureReport result then
+        hspecWithSpecResult defaults spec
+      else
+        return result
+
+  -- With --rerun-all we may run the spec twice. For that reason GHC can not
+  -- optimize away the spec tree. That means that the whole spec tree has to
+  -- be constructed in memory and we loose constant space behavior.
+  --
+  -- By separating between rerunAllMode and normalMode here, we retain
+  -- constant space behavior in normalMode.
+  --
+  -- see: https://github.com/hspec/hspec/issues/169
+  if configRerunAllOnSuccess config then do
+    rerunAllMode
+  else do
+    normalMode
 
 -- |
 -- /Note/: `runSpec` is deprecated. It ignores any modifications applied
@@ -245,29 +270,9 @@ runSpec spec config = evalSpec defaultConfig spec >>= fmap toSummary . flip runS
 --
 -- @since 2.10.0
 runSpecForest :: [SpecTree ()] -> Config -> IO SpecResult
-runSpecForest spec c_ = do
-  oldFailureReport <- readFailureReportOnRerun c_
-
-  c <- ensureSeed (applyFailureReport oldFailureReport c_)
-
-  if configRerunAllOnSuccess c
-    -- With --rerun-all we may run the spec twice. For that reason GHC can not
-    -- optimize away the spec tree. That means that the whole spec tree has to
-    -- be constructed in memory and we loose constant space behavior.
-    --
-    -- By separating between rerunAllMode and normalMode here, we retain
-    -- constant space behavior in normalMode.
-    --
-    -- see: https://github.com/hspec/hspec/issues/169
-    then rerunAllMode c oldFailureReport
-    else normalMode c
-  where
-    normalMode c = runSpecForest_ c spec
-    rerunAllMode c oldFailureReport = do
-      result <- runSpecForest_ c spec
-      if rerunAll c oldFailureReport result
-        then runSpecForest spec c_
-        else return result
+runSpecForest spec config = do
+  oldFailureReport <- readFailureReportOnRerun config
+  runSpecForest_ oldFailureReport spec config
 
 mapItem :: (Item a -> Item b) -> [SpecTree a] -> [SpecTree b]
 mapItem f = map (fmap f)
@@ -313,8 +318,10 @@ focusSpec config spec
   | configFocusedOnly config = spec
   | otherwise = focusForest spec
 
-runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
-runSpecForest_ config spec = do
+runSpecForest_ :: Maybe FailureReport -> [SpecTree ()] -> Config -> IO SpecResult
+runSpecForest_ oldFailureReport spec c_ = do
+
+  config <- ensureSeed (applyFailureReport oldFailureReport c_)
 
   colorMode <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
@@ -329,9 +336,7 @@ runSpecForest_ config spec = do
     when (countSpecItems spec /= 0) $ do
       die "all spec items have been filtered; failing due to --fail-on=empty"
 
-  concurrentJobs <- case configConcurrentJobs config of
-    Nothing -> getDefaultConcurrentJobs
-    Just n -> return n
+  concurrentJobs <- maybe getDefaultConcurrentJobs return $ configConcurrentJobs config
 
   results <- fmap toSpecResult . withHiddenCursor (progressReporting colorMode) stdout $ do
     let
