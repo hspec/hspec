@@ -25,6 +25,8 @@ module Helper (
 , withEnvironment
 , inTempDirectory
 
+, hspecSilent
+, hspecResultSilent
 , shouldUseArgs
 
 , removeLocations
@@ -60,6 +62,7 @@ import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureR
 import           Test.Hspec.Core.Example.Location (workaroundForIssue19236)
 import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
+import           Test.Hspec.Core.Formatters.V2 (formatterToFormat, silent)
 
 import           Data.Orphans()
 
@@ -117,13 +120,28 @@ defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just
 noOpProgressCallback :: H.ProgressCallback
 noOpProgressCallback _ = pass
 
+silentConfig :: H.Config
+silentConfig = H.defaultConfig {H.configFormat = Just $ formatterToFormat silent}
+
+hspecSilent :: H.Spec -> IO ()
+hspecSilent = H.hspecWith silentConfig
+
+hspecResultSilent :: H.Spec -> IO H.Summary
+hspecResultSilent = H.hspecWithResult silentConfig
+
 shouldUseArgs :: HasCallStack => [String] -> (Args -> Bool) -> Expectation
 shouldUseArgs args p = do
   spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
-  let interceptArgs item = item {H.itemExample = \params action progressCallback -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params action progressCallback}
-      spec = H.mapSpecItem_ interceptArgs $
-        H.it "foo" False
-  (silence . ignoreExitCode . withArgs args . H.hspec) spec
+  let
+    interceptArgs :: H.Item a -> H.Item a
+    interceptArgs item = item {
+      H.itemExample = \ params action progressCallback -> do
+        writeIORef spy (H.paramsQuickCheckArgs params)
+        H.itemExample item params action progressCallback
+    }
+    spec :: H.Spec
+    spec = H.mapSpecItem_ interceptArgs $ H.it "foo" True
+  withArgs args $ hspecSilent spec
   readIORef spy >>= (`shouldSatisfy` p)
 
 removeLocations :: H.SpecWith a -> H.SpecWith a

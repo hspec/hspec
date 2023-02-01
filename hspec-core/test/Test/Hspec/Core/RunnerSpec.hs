@@ -26,7 +26,6 @@ import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.Runner.Result
-import qualified Test.Hspec.Core.Formatters.V2 as V2
 import qualified Test.Hspec.Core.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
@@ -51,8 +50,8 @@ spec = do
   describe "hspec" $ do
 
     let
-      hspec args = withArgs ("--format=silent" : args) . H.hspec
-      hspec_ = hspec []
+      hspec args = withArgs args . hspecSilent
+      hspec_ = hspecSilent
 
     it "evaluates examples Unmasked" $ do
       mvar <- newEmptyMVar
@@ -115,7 +114,7 @@ spec = do
           ]
         }
 
-    describe "with --rerun" $ do
+    context "with --rerun" $ do
       let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
             H.it "example 1" True
             H.it "example 2" False
@@ -679,8 +678,8 @@ spec = do
 
   describe "hspecResult" $ do
     let
-      hspecResult args = withArgs ("--format=silent" : args) . H.hspecResult
-      hspecResult_ = hspecResult []
+      hspecResult args = withArgs args . hspecResultSilent
+      hspecResult_ = hspecResultSilent
 
     it "returns a summary of the test run" $ do
       hspecResult_ $ do
@@ -711,12 +710,6 @@ spec = do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` "Foo.Bar"
-
-    it "can use a custom formatter" $ do
-      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ V2.formatterToFormat V2.silent} $ do
-        H.describe "Foo.Bar" $ do
-          H.it "some example" True
-      r `shouldBe` ""
 
     it "does not let escape error thunks from failure messages" $ do
       r <- hspecResult_ $ do

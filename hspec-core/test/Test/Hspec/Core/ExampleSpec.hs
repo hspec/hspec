@@ -243,14 +243,14 @@ spec = do
     context "as a QuickCheck property" $ do
       it "can be quantified" $ do
         e <- newMock
-        silence . H.hspec $ do
+        hspecSilent $ do
           H.it "some behavior" $ property $ \xs -> do
             mockAction e
             (reverse . reverse) xs `shouldBe` (xs :: [Int])
         mockCounter e `shouldReturn` 100
 
       it "can be used with expectations/HUnit assertions" $ do
-        silence . H.hspecResult $ do
+        hspecResultSilent $ do
           H.describe "readIO" $ do
             H.it "is inverse to show" $ property $ \x -> do
               (readIO . show) x `shouldReturn` (x :: Int)

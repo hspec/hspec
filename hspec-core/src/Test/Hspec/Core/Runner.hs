@@ -163,11 +163,7 @@ applyDryRun c
 -- is not always desirable.  Use `evalSpec` and `runSpecForest` if you need
 -- more control over these aspects.
 hspec :: Spec -> IO ()
-hspec = evalSpec defaultConfig >=> \ (config, spec) ->
-      getArgs
-  >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
-  >>= evaluateResult
+hspec = hspecWith defaultConfig
 
 -- |
 -- Evaluate a `Spec` to a forest of `SpecTree`s.  This does not execute any
@@ -195,11 +191,7 @@ ensureSeed c = case configQuickCheckSeed c of
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Spec -> IO ()
-hspecWith defaults = evalSpec defaults >=> \ (config, spec) ->
-      getArgs
-  >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
-  >>= evaluateResult
+hspecWith defaults = hspecWithSpecResult defaults >=> evaluateResult
 
 -- | Exit with `exitFailure` if the given `Summary` indicates that there was at
 -- least one failure.
@@ -223,10 +215,13 @@ hspecResult = hspecWithResult defaultConfig
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult defaults = evalSpec defaults >=> \ (config, spec) ->
+hspecWithResult config = fmap toSummary . hspecWithSpecResult config
+
+hspecWithSpecResult :: Config -> Spec -> IO SpecResult
+hspecWithSpecResult defaults = evalSpec defaults >=> \ (config, spec) ->
       getArgs
   >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . fmap toSummary . runSpecForest spec
+  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
 
 -- |
 -- /Note/: `runSpec` is deprecated. It ignores any modifications applied
