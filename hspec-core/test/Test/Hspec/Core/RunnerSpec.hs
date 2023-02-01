@@ -196,6 +196,14 @@ spec = do
             output `shouldSatisfy` elem "3 examples, 0 failures"
             last output `shouldBe` "5 examples, 0 failures"
 
+          it "reruns runIO-actions" $ do
+            ref <- newIORef (0 :: Int)
+            let succeedingSpecWithRunIO = H.runIO (modifyIORef ref succ) >> succeedingSpec
+
+            _ <- run failingSpec
+            _ <- rerunAllOnSuccess succeedingSpecWithRunIO
+            readIORef ref `shouldReturn` 2
+
     it "does not leak command-line options to examples" $ do
       hspec ["--diff"] $ do
         H.it "foobar" $ do
