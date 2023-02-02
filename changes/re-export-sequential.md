@@ -1,0 +1,1 @@
+  - Re-export `sequential` from `Test.Hspec`
