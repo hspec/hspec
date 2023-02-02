@@ -55,6 +55,7 @@ parallel :: SpecWith a -> SpecWith a
 pending :: HasCallStack => Expectation
 pendingWith :: HasCallStack => String -> Expectation
 runIO :: IO r -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a r
+sequential :: SpecWith a -> SpecWith a
 shouldBe :: (HasCallStack, Show a, Eq a) => a -> a -> Expectation
 shouldContain :: (HasCallStack, Show a, Eq a) => [a] -> [a] -> Expectation
 shouldEndWith :: (HasCallStack, Show a, Eq a) => [a] -> [a] -> Expectation

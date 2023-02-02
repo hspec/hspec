@@ -23,6 +23,7 @@ module Test.Hspec (
 , context
 , example
 , parallel
+, sequential
 , runIO
 
 -- * Pending spec items
