@@ -4,7 +4,6 @@ module Test.Hspec.Core.Runner.EvalSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           Control.Exception
 import           NonEmpty (fromList)
 
 import           Test.Hspec.Core.Spec (FailureReason(..), Result(..), ResultStatus(..), Location(..))
@@ -74,13 +73,3 @@ spec = do
         ref <- newIORef []
         traverse_ (modifyIORef ref . (:) ) tree
         reverse <$> readIORef ref `shouldReturn` [1 .. 4]
-
-  describe "runSequentially" $ do
-    it "runs actions sequentially" $ do
-      ref <- newIORef []
-      (_, actionA) <- runSequentially $ \ _ -> modifyIORef ref (23 :)
-      (_, actionB) <- runSequentially $ \ _ -> modifyIORef ref (42 :)
-      (_, ()) <- actionB (\_ -> return ())
-      readIORef ref `shouldReturn` [42 :: Int]
-      (_, ()) <- actionA (\_ -> return ())
-      readIORef ref `shouldReturn` [23, 42]

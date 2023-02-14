@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- TODO: Restrict font variants to what we are actually using! -->
+    <!-- link href='https://fonts.googleapis.com/css?family=Arimo:700italic,700,400italic,400|Cousine:700italic,700,400italic,400' rel='stylesheet' type='text/css'-->
+
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+    <title>Running individual spec items - Hspec: A Testing Framework for Haskell</title>
+
+  </head>
+  <body>
+    <a class="header" href="/">
+      <div class="container">
+        <h1>Hspec: <span class="sub">A Testing Framework for Haskell</span></h1>
+      </div>
+    </a>
+
+    <div class="container flex-container">
+      <div class="flex-item toc">
+        <h1>Contents</h1>
+        <ul>
+
+
+
+          <li>
+
+            <a href="/writing-specs.html">Writing tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/running-specs.html">Running tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/options.html">Passing options to Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/expectations.html">Setting expectations</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/quickcheck.html">Using QuickCheck with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hunit.html">Interoperability with HUnit</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hspec-discover.html">Automatic spec discovery</a>
+
+          </li>
+
+
+
+          <li>
+
+            Running individual spec items
+
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/rerun.html">Speeding up the edit-compile-test cycle</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/parallel-spec-execution.html">Parallel spec execution</a>
+
+          </li>
+
+        </ul>
+      </div>
+
+      <div class="flex-item content">
+        <noscript>
+          <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
+          you'll get some non-essential but convenient user interface
+          enhancements.</em>
+        </noscript>
+
+
+        <h1>Running individual spec items</h1>
+
+
+        <p>You can run individual spec items that match a given pattern by passing
+<code>--match PATTERN</code> to your test driver.  The <code>PATTERN</code> is matched against</p>
+
+<ul>
+<li>the <em><code>/</code>-separated path</em> of the spec item</li>
+<li>the <em>pretty-printed path</em> of the spec item as it appears in test output</li>
+</ul>
+
+<p>To understand what exactly this means let&#39;s look at an example.</p>
+
+<h3 id="example">Example</h3>
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- Spec.hs</span>
+<span class="kr">import</span>           <span class="nn">Test.Hspec</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;Prelude&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    describe <span class="sd">&quot;reverse&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      it <span class="sd">&quot;reverses a list&quot;</span> <span class="kt">False</span>
+    describe <span class="sd">&quot;show&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      it <span class="sd">&quot;shows its argument&quot;</span> <span class="kt">True</span></code></pre></figure>
+
+<pre>
+<kbd class="shell-input">runhaskell Spec.hs</kbd>
+<samp>
+Prelude
+  reverse
+    reverses a list [<span class="hspec-failure">✘</span>]
+  show
+    shows its argument [<span class="hspec-success">✔</span>]
+
+Failures:
+
+<span class="hspec-info">  Spec.hs:8:7:
+</span>  1) Prelude.reverse reverses a list
+
+  To rerun use: --match "/Prelude/reverse/reverses a list/"
+
+Randomized with seed 921447365
+
+Finished in 0.0005 seconds
+<span class="hspec-failure">2 examples, 1 failure
+</span></samp></pre>
+
+<p>This spec contains one failing spec item.</p>
+
+<p>The <code>/</code>-separated path of that spec item is:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>Prelude/reverse/reverses a list
+</code></pre></div>
+<p>The pretty-printed path as it appears in the test output is:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>Prelude.reverse reverses a list
+</code></pre></div>
+<p>You can rerun the failing spec item by either matching on the <code>/</code>-separated
+path or the pretty-printed path.  Both of the following options lead to the
+same result:</p>
+
+<pre><kbd class="shell-input">runhaskell Spec.hs -m "Prelude/reverse/reverses a list"</kbd></pre>
+
+<pre><kbd class="shell-input">runhaskell Spec.hs -m "Prelude.reverse reverses a list"</kbd></pre>
+
+<p>Or you can match on any substring of one of the above, e.g.:</p>
+
+<pre><kbd class="shell-input">runhaskell Spec.hs -m reverse</kbd></pre>
+
+<div class="note"><p><strong>Note:</strong> Do not rely on the pretty-printed path for scripting purpose; use the <code>/</code>-separated path instead!</p>
+</div>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <div style="margin-left: 10px">
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=watch&amp;count=true"></iframe>
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=fork&amp;count=true"></iframe>
+      </div>
+      <div class="follow-me">
+        <a href="https://twitter.com/solirc_" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @solirc_</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="js/jquery.scrollintoview.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

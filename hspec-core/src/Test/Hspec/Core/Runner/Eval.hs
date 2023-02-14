@@ -2,39 +2,24 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE RankNTypes #-}
-
-#if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
--- Control.Concurrent.QSem is deprecated in base-4.6.0.*
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
-#endif
-
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
 , EvalTree
 , Tree(..)
 , EvalItem(..)
+, Concurrency(..)
 , runFormatter
 #ifdef TEST
 , mergeResults
-, runSequentially
 #endif
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (Monad)
-import qualified Test.Hspec.Core.Compat as M
-
-import qualified Control.Exception as E
-import           Control.Concurrent
-import           Control.Concurrent.Async hiding (cancel)
 
 import           Control.Monad.IO.Class (liftIO)
-import qualified Control.Monad.IO.Class as M
-
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Class
 
@@ -45,20 +30,18 @@ import           Test.Hspec.Core.Format (Format)
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
-import           Test.Hspec.Core.Example (safeEvaluateResultStatus)
+import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToResultStatus)
 
 import qualified NonEmpty
 import           NonEmpty (NonEmpty(..))
+
+import           Test.Hspec.Core.Runner.JobQueue
 
 data Tree c a =
     Node String (NonEmpty (Tree c a))
   | NodeWithCleanup (Maybe (String, Location)) c (NonEmpty (Tree c a))
   | Leaf a
   deriving (Eq, Show, Functor, Foldable, Traversable)
-
--- for compatibility with GHC < 7.10.1
-type Monad m = (Functor m, Applicative m, M.Monad m)
-type MonadIO m = (Monad m, M.MonadIO m)
 
 data EvalConfig = EvalConfig {
   evalConfigFormat :: Format
@@ -68,6 +51,7 @@ data EvalConfig = EvalConfig {
 
 data Env = Env {
   envConfig :: EvalConfig
+, envFailed :: IORef Bool
 , envResults :: IORef [(Path, Format.Item)]
 }
 
@@ -78,13 +62,20 @@ formatEvent event = do
 
 type EvalM = ReaderT Env IO
 
+setFailed :: EvalM ()
+setFailed = do
+  ref <- asks envFailed
+  liftIO $ writeIORef ref True
+
+hasFailed :: EvalM Bool
+hasFailed = do
+  ref <- asks envFailed
+  liftIO $ readIORef ref
+
 addResult :: Path -> Format.Item -> EvalM ()
 addResult path item = do
   ref <- asks envResults
   liftIO $ modifyIORef ref ((path, item) :)
-
-getResults :: EvalM [(Path, Format.Item)]
-getResults = reverse <$> (asks envResults >>= liftIO . readIORef)
 
 reportItem :: Path -> Maybe Location -> EvalM (Seconds, Result)  -> EvalM ()
 reportItem path loc action = do
@@ -96,6 +87,12 @@ reportItemStarted = formatEvent . Format.ItemStarted
 
 reportItemDone :: Path -> Format.Item -> EvalM ()
 reportItemDone path item = do
+  let
+    isFailure = case Format.itemResult item of
+      Format.Success{} -> False
+      Format.Pending{} -> False
+      Format.Failure{} -> True
+  when isFailure setFailed
   addResult path item
   formatEvent $ Format.ItemDone path item
 
@@ -117,8 +114,8 @@ groupDone = formatEvent . Format.GroupDone
 data EvalItem = EvalItem {
   evalItemDescription :: String
 , evalItemLocation :: Maybe Location
-, evalItemParallelize :: Bool
-, evalItemAction :: ProgressCallback -> IO Result
+, evalItemConcurrency :: Concurrency
+, evalItemAction :: ProgressCallback -> IO (Seconds, Result)
 }
 
 type EvalTree = Tree (IO ()) EvalItem
@@ -126,53 +123,62 @@ type EvalTree = Tree (IO ()) EvalItem
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: EvalConfig -> [EvalTree] -> IO ([(Path, Format.Item)])
 runFormatter config specs = do
-  ref <- newIORef []
-
-  let
-    start = parallelizeTree (evalConfigConcurrentJobs config) specs
-    cancel = cancelMany . concatMap toList . map (fmap fst)
-
-  E.bracket start cancel $ \ runningSpecs -> do
+  withJobQueue (evalConfigConcurrentJobs config) $ \ queue -> do
     withTimer 0.05 $ \ timer -> do
+      env <- mkEnv
+      runningSpecs_ <- enqueueItems queue specs
+
+      let
+        applyReportProgress :: RunningItem_ IO -> RunningItem
+        applyReportProgress item = fmap (. reportProgress timer) item
+
+        runningSpecs :: [RunningTree ()]
+        runningSpecs = applyCleanup $ map (fmap applyReportProgress) runningSpecs_
+
+        getResults :: IO [(Path, Format.Item)]
+        getResults = reverse <$> readIORef (envResults env)
+
+        formatItems :: IO ()
+        formatItems = runReaderT (eval runningSpecs) env
+
+        formatDone :: IO ()
+        formatDone = getResults >>= format . Format.Done
 
       format Format.Started
-      runReaderT (run . applyCleanup $ map (fmap (fmap (. reportProgress timer) . snd)) runningSpecs) (Env config ref) `E.finally` do
-        results <- reverse <$> readIORef ref
-        format (Format.Done results)
-
-      results <- reverse <$> readIORef ref
-      return results
+      formatItems `finally` formatDone
+      getResults
   where
+    mkEnv :: IO Env
+    mkEnv = Env config <$> newIORef False <*> newIORef []
+
+    format :: Format
     format = evalConfigFormat config
 
+    reportProgress :: IO Bool -> Path -> Progress -> IO ()
     reportProgress timer path progress = do
       r <- timer
       when r $ do
         format (Format.Progress path progress)
 
-cancelMany :: [Async a] -> IO ()
-cancelMany asyncs = do
-  mapM_ (killThread . asyncThreadId) asyncs
-  mapM_ waitCatch asyncs
-
 data Item a = Item {
-  _itemDescription :: String
-, _itemLocation :: Maybe Location
+  itemDescription :: String
+, itemLocation :: Maybe Location
 , itemAction :: a
 } deriving Functor
 
-type Job m p a = (p -> m ()) -> m a
-
 type RunningItem = Item (Path -> IO (Seconds, Result))
 type RunningTree c = Tree c RunningItem
+
+type RunningItem_ m = Item (Job m Progress (Seconds, Result))
+type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
 
 applyCleanup :: [RunningTree (IO ())] -> [RunningTree ()]
 applyCleanup = map go
   where
     go t = case t of
-      Leaf a -> Leaf a
       Node label xs -> Node label (go <$> xs)
       NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc () (addCleanupToLastLeaf loc cleanup $ go <$> xs)
+      Leaf a -> Leaf a
 
 addCleanupToLastLeaf :: Maybe (String, Location) -> IO () -> NonEmpty (RunningTree ()) -> NonEmpty (RunningTree ())
 addCleanupToLastLeaf loc cleanup = go
@@ -180,9 +186,9 @@ addCleanupToLastLeaf loc cleanup = go
     go = NonEmpty.reverse . mapHead goNode . NonEmpty.reverse
 
     goNode node = case node of
+      Node description xs -> Node description (go xs)
+      NodeWithCleanup loc_ () xs -> NodeWithCleanup loc_ () (go xs)
       Leaf item -> Leaf (addCleanupToItem loc cleanup item)
-      NodeWithCleanup loc_ () zs -> NodeWithCleanup loc_ () (go zs)
-      Node description zs -> Node description (go zs)
 
 mapHead :: (a -> a) -> NonEmpty a -> NonEmpty a
 mapHead f xs = case xs of
@@ -212,62 +218,23 @@ mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
       Just (name, _) -> Just $ "in " ++ name ++ "-hook:"
       Nothing -> Nothing
 
-type RunningItem_ m = (Async (), Item (Job m Progress (Seconds, Result)))
-type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
+enqueueItems :: MonadIO m => JobQueue -> [EvalTree] -> IO [RunningTree_ m]
+enqueueItems queue = mapM (traverse $ enqueueItem queue)
 
-data Semaphore = Semaphore {
-  semaphoreWait :: IO ()
-, semaphoreSignal :: IO ()
-}
-
-parallelizeTree :: MonadIO m => Int -> [EvalTree] -> IO [RunningTree_ m]
-parallelizeTree n specs = do
-  sem <- newQSem n
-  mapM (traverse $ parallelizeItem sem) specs
-
-parallelizeItem :: MonadIO m => QSem -> EvalItem -> IO (RunningItem_ m)
-parallelizeItem sem EvalItem{..} = do
-  (asyncAction, evalAction) <- parallelize (Semaphore (waitQSem sem) (signalQSem sem)) evalItemParallelize (interruptible . evalItemAction)
-  return (asyncAction, Item evalItemDescription evalItemLocation evalAction)
-
-parallelize :: MonadIO m => Semaphore -> Bool -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
-parallelize sem isParallelizable
-  | isParallelizable = runParallel sem
-  | otherwise = runSequentially
-
-runSequentially :: MonadIO m => Job IO p a -> IO (Async (), Job m p (Seconds, a))
-runSequentially action = do
-  mvar <- newEmptyMVar
-  (asyncAction, evalAction) <- runParallel (Semaphore (takeMVar mvar) (return ())) action
-  return (asyncAction, \ notifyPartial -> liftIO (putMVar mvar ()) >> evalAction notifyPartial)
-
-data Parallel p a = Partial p | Return a
-
-runParallel :: forall m p a. MonadIO m => Semaphore -> Job IO p a -> IO (Async (), Job m p (Seconds, a))
-runParallel Semaphore{..} action = do
-  mvar <- newEmptyMVar
-  asyncAction <- async $ E.bracket_ semaphoreWait semaphoreSignal (worker mvar)
-  return (asyncAction, eval mvar)
+enqueueItem :: MonadIO m => JobQueue -> EvalItem -> IO (RunningItem_ m)
+enqueueItem queue EvalItem{..} = do
+  job <- enqueueJob queue evalItemConcurrency evalItemAction
+  return Item {
+    itemDescription = evalItemDescription
+  , itemLocation = evalItemLocation
+  , itemAction = job >=> liftIO . either exceptionToResult return
+  }
   where
-    worker mvar = do
-      let partialCallback = replaceMVar mvar . Partial
-      result <- measure $ action partialCallback
-      replaceMVar mvar (Return result)
+    exceptionToResult :: SomeException -> IO (Seconds, Result)
+    exceptionToResult err = (,) 0 . Result "" <$> exceptionToResultStatus err
 
-    eval :: MVar (Parallel p (Seconds, a)) -> (p -> m ()) -> m (Seconds, a)
-    eval mvar notifyPartial = do
-      r <- liftIO (takeMVar mvar)
-      case r of
-        Partial p -> do
-          notifyPartial p
-          eval mvar notifyPartial
-        Return result -> return result
-
-replaceMVar :: MVar a -> a -> IO ()
-replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
-
-run :: [RunningTree ()] -> EvalM ()
-run specs = do
+eval :: [RunningTree ()] -> EvalM ()
+eval specs = do
   failFast <- asks (evalConfigFailFast . envConfig)
   sequenceActions failFast (concatMap foldSpec specs)
   where
@@ -315,18 +282,10 @@ sequenceActions :: Bool -> [EvalM ()] -> EvalM ()
 sequenceActions failFast = go
   where
     go :: [EvalM ()] -> EvalM ()
-    go [] = return ()
+    go [] = pass
     go (action : actions) = do
       action
       stopNow <- case failFast of
         False -> return False
-        True -> any itemIsFailure <$> getResults
+        True -> hasFailed
       unless stopNow (go actions)
-
-    itemIsFailure :: (Path, Format.Item) -> Bool
-    itemIsFailure = isFailure . Format.itemResult . snd
-      where
-        isFailure r = case r of
-          Format.Success{} -> False
-          Format.Pending{} -> False
-          Format.Failure{} -> True

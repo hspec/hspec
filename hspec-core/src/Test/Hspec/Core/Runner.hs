@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
 -- Stability: provisional
@@ -75,6 +76,10 @@ If you need more control over how a spec is run use these primitives individuall
 , isSuccess
 , evaluateSummary
 
+-- * Re-exports
+, Spec
+, SpecWith
+
 #ifdef TEST
 , rerunAll
 , specToEvalForest
@@ -86,12 +91,10 @@ If you need more control over how a spec is run use these primitives individuall
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.Maybe
 import           NonEmpty (nonEmpty)
 import           System.IO
 import           System.Environment (getArgs, withArgs)
-import           System.Exit
-import qualified Control.Exception as E
+import           System.Exit (exitFailure)
 import           System.Random
 import           Control.Monad.ST
 import           Data.STRef
@@ -100,6 +103,7 @@ import           System.Console.ANSI (hSupportsANSI, hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util (Path)
+import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
@@ -138,9 +142,9 @@ applyFilterPredicates c = filterForestWithLabels p
     skip = fromMaybe (const False) (configSkipPredicate c)
 
     p :: [String] -> EvalItem -> Bool
-    p groups item = include path && not (skip path)
+    p groups item = include path' && not (skip path')
       where
-        path = (groups, evalItemDescription item)
+        path' = (groups, evalItemDescription item)
 
 applyDryRun :: Config -> [EvalItemTree] -> [EvalItemTree]
 applyDryRun c
@@ -148,10 +152,10 @@ applyDryRun c
   | otherwise = id
   where
     removeCleanup :: IO () -> IO ()
-    removeCleanup _ = return ()
+    removeCleanup _ = pass
 
     markSuccess :: EvalItem -> EvalItem
-    markSuccess item = item {evalItemAction = \ _ -> return $ Result "" Success}
+    markSuccess item = item {evalItemAction = \ _ -> return (0, Result "" Success)}
 
 -- | Run a given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
@@ -160,11 +164,7 @@ applyDryRun c
 -- is not always desirable.  Use `evalSpec` and `runSpecForest` if you need
 -- more control over these aspects.
 hspec :: Spec -> IO ()
-hspec = evalSpec defaultConfig >=> \ (config, spec) ->
-      getArgs
-  >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
-  >>= evaluateResult
+hspec = hspecWith defaultConfig
 
 -- |
 -- Evaluate a `Spec` to a forest of `SpecTree`s.  This does not execute any
@@ -192,16 +192,7 @@ ensureSeed c = case configQuickCheckSeed c of
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
 hspecWith :: Config -> Spec -> IO ()
-hspecWith defaults = evalSpec defaults >=> \ (config, spec) ->
-      getArgs
-  >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . runSpecForest spec
-  >>= evaluateResult
-
--- | `True` if the given `Summary` indicates that there were no
--- failures, `False` otherwise.
-isSuccess :: Summary -> Bool
-isSuccess summary = summaryFailures summary == 0
+hspecWith defaults = hspecWithSpecResult defaults >=> evaluateResult
 
 -- | Exit with `exitFailure` if the given `Summary` indicates that there was at
 -- least one failure.
@@ -225,10 +216,38 @@ hspecResult = hspecWithResult defaultConfig
 -- items.  If you need this, you have to check the `Summary` yourself and act
 -- accordingly.
 hspecWithResult :: Config -> Spec -> IO Summary
-hspecWithResult defaults = evalSpec defaults >=> \ (config, spec) ->
-      getArgs
-  >>= readConfig config
-  >>= doNotLeakCommandLineArgumentsToExamples . fmap toSummary . runSpecForest spec
+hspecWithResult config = fmap toSummary . hspecWithSpecResult config
+
+hspecWithSpecResult :: Config -> Spec -> IO SpecResult
+hspecWithSpecResult defaults spec = do
+  (c, forest) <- evalSpec defaults spec
+  config <- getArgs >>= readConfig c
+  oldFailureReport <- readFailureReportOnRerun config
+
+  let
+    normalMode :: IO SpecResult
+    normalMode = doNotLeakCommandLineArgumentsToExamples $ runSpecForest_ oldFailureReport forest config
+
+    rerunAllMode :: IO SpecResult
+    rerunAllMode = do
+      result <- normalMode
+      if rerunAll config oldFailureReport result then
+        hspecWithSpecResult defaults spec
+      else
+        return result
+
+  -- With --rerun-all we may run the spec twice. For that reason GHC can not
+  -- optimize away the spec tree. That means that the whole spec tree has to
+  -- be constructed in memory and we loose constant space behavior.
+  --
+  -- By separating between rerunAllMode and normalMode here, we retain
+  -- constant space behavior in normalMode.
+  --
+  -- see: https://github.com/hspec/hspec/issues/169
+  if configRerunAllOnSuccess config then do
+    rerunAllMode
+  else do
+    normalMode
 
 -- |
 -- /Note/: `runSpec` is deprecated. It ignores any modifications applied
@@ -250,32 +269,9 @@ runSpec spec config = evalSpec defaultConfig spec >>= fmap toSummary . flip runS
 --
 -- @since 2.10.0
 runSpecForest :: [SpecTree ()] -> Config -> IO SpecResult
-runSpecForest spec c_ = do
-  oldFailureReport <- readFailureReportOnRerun c_
-
-  c <- ensureSeed (applyFailureReport oldFailureReport c_)
-
-  if configRerunAllOnSuccess c
-    -- With --rerun-all we may run the spec twice. For that reason GHC can not
-    -- optimize away the spec tree. That means that the whole spec tree has to
-    -- be constructed in memory and we loose constant space behavior.
-    --
-    -- By separating between rerunAllMode and normalMode here, we retain
-    -- constant space behavior in normalMode.
-    --
-    -- see: https://github.com/hspec/hspec/issues/169
-    then rerunAllMode c oldFailureReport
-    else normalMode c
-  where
-    normalMode c = runSpecForest_ c spec
-    rerunAllMode c oldFailureReport = do
-      result <- runSpecForest_ c spec
-      if rerunAll c oldFailureReport result
-        then runSpecForest spec c_
-        else return result
-
-runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
-runSpecForest_ config spec = runEvalTree config (specToEvalForest config spec)
+runSpecForest spec config = do
+  oldFailureReport <- readFailureReportOnRerun config
+  runSpecForest_ oldFailureReport spec config
 
 mapItem :: (Item a -> Item b) -> [SpecTree a] -> [SpecTree b]
 mapItem f = map (fmap f)
@@ -285,10 +281,13 @@ failFocusedItems config
   | configFailOnFocused config = mapItem failFocused
   | otherwise = id
 
-failFocused :: Item a -> Item a
+failFocused :: forall a. Item a -> Item a
 failFocused item = item {itemExample = example}
   where
+    failure :: ResultStatus
     failure = Failure Nothing (Reason "item is focused; failing due to --fail-on=focused")
+
+    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
     example
       | itemIsFocused item = \ params hook p -> do
           Result info status <- itemExample item params hook p
@@ -303,9 +302,10 @@ failPendingItems config
   | configFailOnPending config = mapItem failPending
   | otherwise = id
 
-failPending :: Item a -> Item a
+failPending :: forall a. Item a -> Item a
 failPending item = item {itemExample = example}
   where
+    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
     example params hook p = do
       Result info status <- itemExample item params hook p
       return $ Result info $ case status of
@@ -317,22 +317,25 @@ focusSpec config spec
   | configFocusedOnly config = spec
   | otherwise = focusForest spec
 
-runEvalTree :: Config -> [EvalTree] -> IO SpecResult
-runEvalTree config spec = do
+runSpecForest_ :: Maybe FailureReport -> [SpecTree ()] -> Config -> IO SpecResult
+runSpecForest_ oldFailureReport spec c_ = do
+  config <- ensureSeed (applyFailureReport oldFailureReport c_)
   let
-      failOnEmpty = configFailOnEmpty config
-      seed = (fromJust . configQuickCheckSeed) config
-      qcArgs = configQuickCheckArgs config
-      !numberOfItems = countSpecItems spec
+    filteredSpec = specToEvalForest config spec
+    seed = (fromJust . configQuickCheckSeed) config
+    qcArgs = configQuickCheckArgs config
+    !numberOfItems = countEvalItems filteredSpec
 
-  concurrentJobs <- case configConcurrentJobs config of
-    Nothing -> getDefaultConcurrentJobs
-    Just n -> return n
+  when (configFailOnEmpty config && numberOfItems == 0) $ do
+    when (countSpecItems spec /= 0) $ do
+      die "all spec items have been filtered; failing due to --fail-on=empty"
+
+  concurrentJobs <- maybe getDefaultConcurrentJobs return $ configConcurrentJobs config
 
   (reportProgress, useColor) <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
-  results <- fmap (toSpecResult failOnEmpty) . withHiddenCursor reportProgress stdout $ do
+  results <- fmap toSpecResult . withHiddenCursor reportProgress stdout $ do
     let
       formatConfig = FormatConfig {
         formatConfigUseColor = useColor
@@ -360,7 +363,7 @@ runEvalTree config spec = do
       , evalConfigConcurrentJobs = concurrentJobs
       , evalConfigFailFast = configFailFast config
       }
-    runFormatter evalConfig spec
+    runFormatter evalConfig filteredSpec
 
   let
     failures :: [Path]
@@ -369,14 +372,6 @@ runEvalTree config spec = do
   dumpFailureReport config seed qcArgs failures
 
   return results
-
-toSummary :: SpecResult -> Summary
-toSummary result = Summary {
-  summaryExamples = length items
-, summaryFailures = length failures
-} where
-    items = specResultItems result
-    failures = filter resultItemIsFailure items
 
 specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
 specToEvalForest config =
@@ -389,8 +384,13 @@ specToEvalForest config =
   >>> randomize
   >>> pruneForest
   where
+    seed :: Integer
     seed = (fromJust . configQuickCheckSeed) config
+
+    params :: Params
     params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+
+    randomize :: [Tree c a] -> [Tree c a]
     randomize
       | configRandomize config = randomizeForest seed
       | otherwise = id
@@ -412,7 +412,12 @@ toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
 toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
-    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem requirement loc (fromMaybe False isParallelizable) (e params withUnit)
+    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem {
+      evalItemDescription = requirement
+    , evalItemLocation = loc
+    , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
+    , evalItemAction = \ progress -> measure $ e params withUnit progress
+    }
 
     withUnit :: ActionWith () -> IO ()
     withUnit action = action ()
@@ -431,8 +436,8 @@ doNotLeakCommandLineArgumentsToExamples :: IO a -> IO a
 doNotLeakCommandLineArgumentsToExamples = withArgs []
 
 withHiddenCursor :: Bool -> Handle -> IO a -> IO a
-withHiddenCursor useColor h
-  | useColor  = E.bracket_ (hHideCursor h) (hShowCursor h)
+withHiddenCursor reportProgress h
+  | reportProgress  = bracket_ (hHideCursor h) (hShowCursor h)
   | otherwise = id
 
 colorOutputSupported :: ColorMode -> IO Bool -> IO (Bool, Bool)
@@ -470,29 +475,13 @@ rerunAll config mOldFailureReport result = case mOldFailureReport of
     && specResultSuccess result
     && (not . null) (failureReportPaths oldFailureReport)
 
--- | Summary of a test run.
-data Summary = Summary {
-  summaryExamples :: !Int
-, summaryFailures :: !Int
-} deriving (Eq, Show)
-
-instance Monoid Summary where
-  mempty = Summary 0 0
-#if MIN_VERSION_base(4,11,0)
-instance Semigroup Summary where
-#endif
-  (Summary x1 x2)
-#if MIN_VERSION_base(4,11,0)
-    <>
-#else
-    `mappend`
-#endif
-    (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
-
 randomizeForest :: Integer -> [Tree c a] -> [Tree c a]
 randomizeForest seed t = runST $ do
   ref <- newSTRef (mkStdGen $ fromIntegral seed)
   shuffleForest ref t
 
-countSpecItems :: [Eval.Tree c a] -> Int
+countEvalItems :: [Eval.Tree c a] -> Int
+countEvalItems = getSum . foldMap (foldMap . const $ Sum 1)
+
+countSpecItems :: [Tree c a] -> Int
 countSpecItems = getSum . foldMap (foldMap . const $ Sum 1)

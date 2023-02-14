@@ -1,0 +1,54 @@
+name: hspec-discover-integration-tests
+
+ghc-options: -Wall
+
+dependencies:
+  - base == 4.*
+  - hspec
+
+build-tools: hspec-discover
+
+tests:
+  empty:
+    source-dirs: empty
+    main: Spec.hs
+
+  with-formatter:
+    source-dirs: with-formatter
+    main: Spec.hs
+
+  with-io-formatter:
+    source-dirs: with-io-formatter
+    main: Spec.hs
+    dependencies:
+      - hspec-core
+      - transformers
+
+  with-formatter-empty:
+    source-dirs: with-formatter-empty
+    main: Spec.hs
+
+  with-no-main:
+    source-dirs: with-no-main
+    main: Main.hs
+
+  with-module-name:
+    source-dirs: with-module-name
+    main: Main.hs
+
+  with-no-implicit-prelude:
+    source-dirs: with-no-implicit-prelude
+    main: Spec.hs
+    default-extensions: NoImplicitPrelude
+
+  with-warn-prepositive:
+    source-dirs: empty
+    main: Spec.hs
+    ghc-options: -Wprepositive-qualified-module -Werror
+    when:
+      condition: "!impl(ghc >= 8.10)"
+      buildable: False
+
+  with-spec-hook:
+    source-dirs: with-spec-hook
+    main: Spec.hs

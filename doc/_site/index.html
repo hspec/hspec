@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- TODO: Restrict font variants to what we are actually using! -->
+    <!-- link href='https://fonts.googleapis.com/css?family=Arimo:700italic,700,400italic,400|Cousine:700italic,700,400italic,400' rel='stylesheet' type='text/css'-->
+
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+    <title>Hspec: A Testing Framework for Haskell</title>
+
+  </head>
+  <body>
+    <a class="header" href="/">
+      <div class="container">
+        <h1>Hspec: <span class="sub">A Testing Framework for Haskell</span></h1>
+      </div>
+    </a>
+
+    <div class="container flex-container">
+      <div class="flex-item toc">
+        <h1>Contents</h1>
+        <ul>
+
+
+
+          <li>
+
+            <a href="/writing-specs.html">Writing tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/running-specs.html">Running tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/options.html">Passing options to Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/expectations.html">Setting expectations</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/quickcheck.html">Using QuickCheck with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hunit.html">Interoperability with HUnit</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hspec-discover.html">Automatic spec discovery</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/match.html">Running individual spec items</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/rerun.html">Speeding up the edit-compile-test cycle</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/parallel-spec-execution.html">Parallel spec execution</a>
+
+          </li>
+
+        </ul>
+      </div>
+
+      <div class="flex-item content">
+        <noscript>
+          <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
+          you'll get some non-essential but convenient user interface
+          enhancements.</em>
+        </noscript>
+
+
+
+        <h1 id="users-manual">User&#39;s Manual</h1>
+
+<p>Hspec is a testing framework for <a href="https://www.haskell.org/">Haskell</a>.  Some of
+Hspec&#39;s distinctive features are:</p>
+
+<ul>
+<li>a friendly DSL for defining tests</li>
+<li>integration with QuickCheck, SmallCheck, and HUnit</li>
+<li>parallel test execution</li>
+<li>automatic discovery of test files</li>
+</ul>
+
+<p>Here is an example for the impatient:</p>
+
+<pre><kbd class="shell-input">cabal update && cabal install --package-env=. --lib hspec hspec-contrib QuickCheck HUnit</kbd></pre>
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file Spec.hs</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec</span>
+<span class="kr">import</span> <span class="nn">Test.QuickCheck</span>
+<span class="kr">import</span> <span class="nn">Control.Exception</span> <span class="p">(</span><span class="nf">evaluate</span><span class="p">)</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;Prelude.head&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;returns the first element of a list&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">head</span> <span class="p">[</span><span class="mi">23</span> <span class="o">..</span><span class="p">]</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="p">(</span><span class="mi">23</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">)</span>
+
+    it <span class="sd">&quot;returns the first element of an *arbitrary* list&quot;</span> <span class="o">$</span>
+      <span class="n">property</span> <span class="o">$</span> <span class="nf">\</span><span class="n">x</span> <span class="n">xs</span> <span class="ow">-&gt;</span> <span class="n">head</span> <span class="p">(</span><span class="n">x</span><span class="kt">:</span><span class="n">xs</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">x</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">)</span>
+
+    it <span class="sd">&quot;throws an exception if used with an empty list&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">evaluate</span> <span class="p">(</span><span class="n">head</span> <span class="kt">[]</span><span class="p">)</span> <span class="p">`</span><span class="n">shouldThrow</span><span class="p">`</span> <span class="n">anyException</span></code></pre></figure>
+
+<pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
+<samp>
+Prelude.head
+  returns the first element of a list [<span class="hspec-success">✔</span>]
+  returns the first element of an *arbitrary* list [<span class="hspec-success">✔</span>]
+    +++ OK, passed 100 tests.
+  throws an exception if used with an empty list [<span class="hspec-success">✔</span>]
+
+Finished in 0.0005 seconds
+<span class="hspec-success">3 examples, 0 failures
+</span></samp></pre>
+
+<h2 id="contents">Contents</h2>
+
+<ul>
+
+
+
+  <li>
+
+    <a href="/writing-specs.html">Writing tests with Hspec</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/running-specs.html">Running tests with Hspec</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/options.html">Passing options to Hspec</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/expectations.html">Setting expectations</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/quickcheck.html">Using QuickCheck with Hspec</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/hunit.html">Interoperability with HUnit</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/hspec-discover.html">Automatic spec discovery</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/match.html">Running individual spec items</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/rerun.html">Speeding up the edit-compile-test cycle</a>
+
+  </li>
+
+
+
+  <li>
+
+    <a href="/parallel-spec-execution.html">Parallel spec execution</a>
+
+  </li>
+
+</ul>
+
+<h2 id="other-resources">Other resources</h2>
+
+<ul>
+<li><a href="https://github.com/hspec/hspec">Hspec on GitHub</a></li>
+<li><a href="https://hackage.haskell.org/package/hspec">Hspec on Hackage</a></li>
+<li><a href="https://hackage.haskell.org/packages/archive/hspec/latest/doc/html/Test-Hspec.html">API documentation</a></li>
+</ul>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <div style="margin-left: 10px">
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=watch&amp;count=true"></iframe>
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=fork&amp;count=true"></iframe>
+      </div>
+      <div class="follow-me">
+        <a href="https://twitter.com/solirc_" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @solirc_</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="js/jquery.scrollintoview.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

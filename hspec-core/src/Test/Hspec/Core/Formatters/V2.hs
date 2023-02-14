@@ -21,6 +21,9 @@ module Test.Hspec.Core.Formatters.V2 (
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
 , Formatter (..)
+, Path
+, Progress
+, Location(..)
 , Item(..)
 , Result(..)
 , FailureReason (..)
@@ -80,14 +83,12 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (First)
 
 import           Data.Char
-import           Data.Maybe
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock
-import           Test.Hspec.Core.Example (Location(..))
+import           Test.Hspec.Core.Example (Location(..), Progress)
 import           Text.Printf
 import           Test.Hspec.Core.Formatters.Pretty.Unicode (ushow)
 import           Control.Monad.IO.Class
-import           Control.Exception
 
 -- We use an explicit import list for "Test.Hspec.Formatters.Monad", to make
 -- sure, that we only use the public API to implement formatters.
@@ -140,13 +141,13 @@ import           Test.Hspec.Core.Formatters.Diff
 
 silent :: Formatter
 silent = Formatter {
-  formatterStarted      = return ()
-, formatterGroupStarted = \ _ -> return ()
-, formatterGroupDone    = \ _ -> return ()
-, formatterProgress     = \ _ _ -> return ()
-, formatterItemStarted  = \ _ -> return ()
-, formatterItemDone     = \ _ _ -> return ()
-, formatterDone         = return ()
+  formatterStarted      = pass
+, formatterGroupStarted = \ _ -> pass
+, formatterGroupDone    = \ _ -> pass
+, formatterProgress     = \ _ _ -> pass
+, formatterItemStarted  = \ _ -> pass
+, formatterItemDone     = \ _ _ -> pass
+, formatterDone         = pass
 }
 
 checks :: Formatter
@@ -165,8 +166,8 @@ checks = specdoc {
       Pending {} -> (withPendingColor, fallback "‐" "-")
       Failure {} -> (withFailColor,    fallback "✘" "x")
     case itemResult item of
-      Success {} -> return ()
-      Failure {} -> return ()
+      Success {} -> pass
+      Failure {} -> pass
       Pending _ reason -> withPendingColor $ do
         writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
 } where
@@ -277,7 +278,7 @@ defaultFailedFormatter = do
       write ("  " ++ show n ++ ") ")
       writeLine (formatRequirement path)
       case reason of
-        NoReason -> return ()
+        NoReason -> pass
         Reason err -> withFailColor $ indent err
         ExpectedButGot preface expected_ actual_ -> do
           pretty <- prettyPrintFunction

@@ -7,7 +7,6 @@ module GetOpt.Declarative.Interpret (
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
-import           Data.Maybe
 
 import           System.Console.GetOpt (OptDescr, ArgOrder(..), getOpt)
 import qualified System.Console.GetOpt as GetOpt

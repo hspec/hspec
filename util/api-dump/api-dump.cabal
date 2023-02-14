@@ -1,0 +1,52 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           api-dump
+version:        0.0.0
+copyright:      (c) 2022-2023 Simon Hengel
+build-type:     Simple
+
+executable api-dump
+  main-is: Run.hs
+  other-modules:
+      Format
+      Paths_api_dump
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -main-is Run.main
+  build-depends:
+      base
+    , directory
+    , filepath
+    , hpack
+    , process
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Format
+      Run
+      FormatSpec
+      RunSpec
+      Paths_api_dump
+  hs-source-dirs:
+      src
+      test
+  ghc-options: -Wall
+  cpp-options: -DTEST
+  build-tool-depends:
+      hspec-discover:hspec-discover
+  build-depends:
+      QuickCheck
+    , base
+    , directory
+    , filepath
+    , hpack
+    , hspec ==2.*
+    , process
+  default-language: Haskell2010

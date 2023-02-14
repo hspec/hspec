@@ -16,7 +16,6 @@ import           System.IO
 import           System.Environment (withArgs, withProgName, getArgs)
 import           System.Exit
 import           Control.Concurrent
-import qualified Control.Exception as E
 import           Control.Concurrent.Async
 import           Mock
 import           System.SetEnv
@@ -27,16 +26,12 @@ import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.Runner.Result
-import qualified Test.Hspec.Core.Formatters.V2 as V2
 import qualified Test.Hspec.Core.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
 import qualified Test.Hspec.Core.Hooks as H
 
 import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (Person(..))
-
-quickCheckOptions :: [([Char], Args -> Int)]
-quickCheckOptions = [("--qc-max-success", QC.maxSuccess), ("--qc-max-size", QC.maxSize), ("--qc-max-discard", QC.maxDiscardRatio)]
 
 runPropFoo :: [String] -> IO String
 runPropFoo args = unlines . normalizeSummary . lines <$> do
@@ -52,22 +47,22 @@ spec = do
   describe "hspec" $ do
 
     let
-      hspec args = withArgs ("--format=silent" : args) . H.hspec
-      hspec_ = hspec []
+      hspec args = withArgs args . hspecSilent
+      hspec_ = hspecSilent
 
     it "evaluates examples Unmasked" $ do
       mvar <- newEmptyMVar
       hspec_ $ do
         H.it "foo" $ do
-          E.getMaskingState >>= putMVar mvar
-      takeMVar mvar `shouldReturn` E.Unmasked
+          getMaskingState >>= putMVar mvar
+      takeMVar mvar `shouldReturn` Unmasked
 
     it "runs finalizers" $ do
       mvar <- newEmptyMVar
       ref <- newIORef "did not run finalizer"
       a <- async $ hspec_ $ do
           H.it "foo" $ do
-            (putMVar mvar () >> threadDelay 10000000) `E.finally`
+            (putMVar mvar () >> threadDelay 10000000) `finally`
               writeIORef ref "ran finalizer"
       takeMVar mvar
       cancel a
@@ -116,65 +111,98 @@ spec = do
           ]
         }
 
-    describe "with --rerun" $ do
-      let runSpec = (captureLines . ignoreExitCode . H.hspec) $ do
-            H.it "example 1" True
-            H.it "example 2" False
-            H.it "example 3" False
-            H.it "example 4" True
-            H.it "example 5" False
+    context "with --rerun" $ do
+      let
+        failingSpec = do
+          H.it "example 1" True
+          H.it "example 2" False
+          H.it "example 3" False
+          H.it "example 4" True
+          H.it "example 5" False
 
-      it "reruns examples that previously failed" $ do
-        r0 <- runSpec
-        r0 `shouldSatisfy` elem "5 examples, 3 failures"
+        succeedingSpec = do
+          H.it "example 1" True
+          H.it "example 2" True
+          H.it "example 3" True
+          H.it "example 4" True
+          H.it "example 5" True
 
-        r1 <- withArgs ["--rerun"] runSpec
-        r1 `shouldSatisfy` elem "3 examples, 3 failures"
+        run = captureLines . H.hspecResult
+        rerun = withArgs ["--rerun"] . run
 
-      it "reuses the same seed" $ do
+      it "reuses same --seed" $ do
         r <- runPropFoo ["--seed", "42"]
         runPropFoo ["--rerun"] `shouldReturn` r
 
-      forM_ quickCheckOptions $ \(name, accessor) -> do
-        it ("reuses same " ++ name) $ do
-          [name, "23"] `shouldUseArgs` ((== 23) . accessor)
-          ["--rerun"] `shouldUseArgs` ((== 23) . accessor)
+      it "reuses same --qc-max-success" $ do
+        n <- generate arbitrary
+        ["--qc-max-success", show n] `shouldUseArgs` (QC.maxSuccess, n)
+        ["--rerun"] `shouldUseArgs` (QC.maxSuccess, n)
 
-      context "when no examples failed previously" $ do
+      it "reuses same --qc-max-discard" $ do
+        n <- generate arbitrary
+        ["--qc-max-discard", show n] `shouldUseArgs` (QC.maxDiscardRatio, n)
+        ["--rerun"] `shouldUseArgs` (QC.maxDiscardRatio, n)
+
+      it "reuses same --qc-max-size" $ do
+        n <- generate arbitrary
+        ["--qc-max-size", show n] `shouldUseArgs` (QC.maxSize, n)
+        ["--rerun"] `shouldUseArgs` (QC.maxSize, n)
+
+      context "with failing examples" $ do
+        it "only reruns failing examples" $ do
+          r0 <- run failingSpec
+          last r0 `shouldBe` "5 examples, 3 failures"
+
+          r1 <- rerun failingSpec
+          last r1 `shouldBe` "3 examples, 3 failures"
+
+      context "without failing examples" $ do
         it "runs all examples" $ do
-          let run = capture_ . H.hspec $ do
-                H.it "example 1" True
-                H.it "example 2" True
-                H.it "example 3" True
+          r0 <- run succeedingSpec
+          last r0 `shouldBe` "5 examples, 0 failures"
 
-          r0 <- run
-          r0 `shouldContain` "3 examples, 0 failures"
-
-          r1 <- withArgs ["--rerun"] run
-          r1 `shouldContain` "3 examples, 0 failures"
+          r1 <- rerun succeedingSpec
+          last r1 `shouldBe` "5 examples, 0 failures"
 
       context "when there is no failure report in the environment" $ do
-        it "runs everything" $ do
+        it "runs all examples" $ do
           unsetEnv "HSPEC_FAILURES"
-          r <- hSilence [stderr] $ withArgs ["--rerun"] runSpec
+          r <- hSilence [stderr] $ rerun failingSpec
           r `shouldSatisfy` elem "5 examples, 3 failures"
 
         it "prints a warning to stderr" $ do
           unsetEnv "HSPEC_FAILURES"
-          r <- hCapture_ [stderr] $ withArgs ["--rerun"] runSpec
+          r <- hCapture_ [stderr] $ rerun failingSpec
           r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
 
       context "when parsing of failure report fails" $ do
-        it "runs everything" $ do
+        it "runs all examples" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hSilence [stderr] $ withArgs ["--rerun"] runSpec
+          r <- hSilence [stderr] $ rerun failingSpec
           r `shouldSatisfy` elem "5 examples, 3 failures"
 
         it "prints a warning to stderr" $ do
           setEnv "HSPEC_FAILURES" "some invalid report"
-          r <- hCapture_ [stderr] $ withArgs ["--rerun"] runSpec
+          r <- hCapture_ [stderr] $ rerun failingSpec
           r `shouldBe` "WARNING: Could not read environment variable HSPEC_FAILURES; `--rerun' is ignored!\n"
 
+      context "with --rerun-all-on-success" $ do
+        let rerunAllOnSuccess = withArgs ["--rerun", "--rerun-all-on-success"] . run
+        context "after a previously failing rerun succeeds for the first time" $ do
+          it "runs the whole test suite" $ do
+            _ <- run failingSpec
+            output <- rerunAllOnSuccess succeedingSpec
+            output `shouldSatisfy` elem "3 examples, 0 failures"
+            last output `shouldBe` "5 examples, 0 failures"
+
+          it "reruns runIO-actions" $ do
+            ref <- newIORef (0 :: Int)
+            let succeedingSpecWithRunIO = H.runIO (modifyIORef ref succ) >> succeedingSpec
+
+            _ <- run failingSpec
+            _ <- rerunAllOnSuccess succeedingSpecWithRunIO
+            readIORef ref `shouldReturn` 2
 
     it "does not leak command-line options to examples" $ do
       hspec ["--diff"] $ do
@@ -195,7 +223,7 @@ spec = do
             H.it "baz" True
           putMVar mvar r
         takeMVar sync
-        throwTo threadId E.UserInterrupt
+        throwTo threadId UserInterrupt
         r <- takeMVar mvar
         normalizeSummary r `shouldBe` [
             ""
@@ -221,10 +249,10 @@ spec = do
             H.it "foo" $ do
               putMVar sync ()
               threadDelay 1000000
-          `E.catch` putMVar mvar
+          `catch` putMVar mvar
         takeMVar sync
-        throwTo threadId E.UserInterrupt
-        takeMVar mvar `shouldReturn` E.UserInterrupt
+        throwTo threadId UserInterrupt
+        takeMVar mvar `shouldReturn` UserInterrupt
 
     context "with --dry-run" $ do
       let withDryRun = captureLines . withArgs ["--dry-run"] . H.hspec
@@ -271,15 +299,12 @@ spec = do
 
     context "with --fail-on=empty" $ do
       it "fails if no spec items have been run" $ do
-        (out, r) <- capture . E.try . withArgs ["--skip=", "--fail-on=empty"] . H.hspec $ do
+        (out, r) <- hCapture [stdout, stderr] . try . withProgName "spec" . withArgs ["--skip=", "--fail-on=empty"] . H.hspec $ do
           H.it "foo" True
           H.it "bar" True
           H.it "baz" True
         unlines (normalizeSummary (lines out)) `shouldBe` unlines [
-            ""
-          , ""
-          , "Finished in 0.0000 seconds"
-          , "0 examples, 0 failures"
+            "spec: all spec items have been filtered; failing due to --fail-on=empty"
           ]
         r `shouldBe` Left (ExitFailure 1)
 
@@ -312,7 +337,7 @@ spec = do
         r <- run $ do
           H.it "foo" True
           H.it "bar" $ do
-            void $ E.throwIO (H.Pending Nothing Nothing)
+            void $ throwIO (H.Pending Nothing Nothing)
 
         normalizeSummary r `shouldBe` [
             ""
@@ -368,7 +393,7 @@ spec = do
             H.it "bar" $ do
               -- NOTE: waitQSem should never return here, as we want to
               -- guarantee that the thread is killed before hspec returns
-              (signalQSem child1 >> waitQSem child2 >> writeIORef ref "foo") `E.finally` signalQSem parent
+              (signalQSem child1 >> waitQSem child2 >> writeIORef ref "foo") `finally` signalQSem parent
         signalQSem child2
         waitQSem parent
         readIORef ref `shouldReturn` ""
@@ -623,16 +648,16 @@ spec = do
 
       context "when run with --rerun" $ do
         it "takes precedence" $ do
-          ["--qc-max-success", "23"] `shouldUseArgs` ((== 23) . QC.maxSuccess)
-          ["--rerun", "--qc-max-success", "42"] `shouldUseArgs` ((== 42) . QC.maxSuccess)
+          ["--qc-max-success", "23"] `shouldUseArgs` (QC.maxSuccess, 23)
+          ["--rerun", "--qc-max-success", "42"] `shouldUseArgs` (QC.maxSuccess, 42)
 
     context "with --qc-max-size" $ do
       it "passes specified size to QuickCheck properties" $ do
-        ["--qc-max-size", "23"] `shouldUseArgs` ((== 23) . QC.maxSize)
+        ["--qc-max-size", "23"] `shouldUseArgs` (QC.maxSize, 23)
 
     context "with --qc-max-discard" $ do
       it "uses specified discard ratio to QuickCheck properties" $ do
-        ["--qc-max-discard", "23"] `shouldUseArgs` ((== 23) . QC.maxDiscardRatio)
+        ["--qc-max-discard", "23"] `shouldUseArgs` (QC.maxDiscardRatio, 23)
 
     context "with --seed" $ do
       it "uses specified seed" $ do
@@ -683,8 +708,8 @@ spec = do
 
   describe "hspecResult" $ do
     let
-      hspecResult args = withArgs ("--format=silent" : args) . H.hspecResult
-      hspecResult_ = hspecResult []
+      hspecResult args = withArgs args . hspecResultSilent
+      hspecResult_ = hspecResultSilent
 
     it "returns a summary of the test run" $ do
       hspecResult_ $ do
@@ -700,17 +725,21 @@ spec = do
         H.it "foobar" throwException_
       `shouldReturn` H.Summary 1 1
 
+    it "handles unguarded exceptions in runner" $ do
+      let
+        throwExceptionThatIsNotGuardedBy_safeTry :: H.Item () -> H.Item ()
+        throwExceptionThatIsNotGuardedBy_safeTry item = item {
+          H.itemExample = \ _params _hook _progress -> throwIO DivideByZero
+        }
+      hspecResult_ $ H.mapSpecItem_ throwExceptionThatIsNotGuardedBy_safeTry $ do
+        H.it "foo" True
+      `shouldReturn` H.Summary 1 1
+
     it "uses the specdoc formatter by default" $ do
       _:r:_ <- captureLines . H.hspecResult $ do
         H.describe "Foo.Bar" $ do
           H.it "some example" True
       r `shouldBe` "Foo.Bar"
-
-    it "can use a custom formatter" $ do
-      r <- capture_ . H.hspecWithResult H.defaultConfig {H.configFormat = Just $ V2.formatterToFormat V2.silent} $ do
-        H.describe "Foo.Bar" $ do
-          H.it "some example" True
-      r `shouldBe` ""
 
     it "does not let escape error thunks from failure messages" $ do
       r <- hspecResult_ $ do
@@ -737,7 +766,7 @@ spec = do
               atomicModifyIORef highRef $ \x -> (max x current, ())
             stop = atomicModifyIORef currentRef $ \x -> (pred x, ())
         r <- hspecResult ["-j", show j] . H.parallel $ do
-          replicateM_ n $ H.it "foo" $ E.bracket_ start stop $ sleep t
+          replicateM_ n $ H.it "foo" $ bracket_ start stop $ sleep t
         r `shouldBe` H.Summary n 0
         high <- readIORef highRef
         high `shouldBe` j

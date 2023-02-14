@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- TODO: Restrict font variants to what we are actually using! -->
+    <!-- link href='https://fonts.googleapis.com/css?family=Arimo:700italic,700,400italic,400|Cousine:700italic,700,400italic,400' rel='stylesheet' type='text/css'-->
+
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+    <title>Writing tests with Hspec - Hspec: A Testing Framework for Haskell</title>
+
+  </head>
+  <body>
+    <a class="header" href="/">
+      <div class="container">
+        <h1>Hspec: <span class="sub">A Testing Framework for Haskell</span></h1>
+      </div>
+    </a>
+
+    <div class="container flex-container">
+      <div class="flex-item toc">
+        <h1>Contents</h1>
+        <ul>
+
+
+
+          <li>
+
+            Writing tests with Hspec
+            <ul>
+<li>
+<a href="#using-describe-and-it">Using `describe` and `it`</a>
+</li>
+<li>
+<a href="#using-context">Using `context`</a>
+</li>
+<li>
+<a href="#using-hooks">Using hooks</a>
+</li>
+<li>
+<a href="#using-pending-and-pendingwith">Using `pending` and `pendingWith`</a>
+</li>
+</ul>
+
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/running-specs.html">Running tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/options.html">Passing options to Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/expectations.html">Setting expectations</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/quickcheck.html">Using QuickCheck with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hunit.html">Interoperability with HUnit</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hspec-discover.html">Automatic spec discovery</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/match.html">Running individual spec items</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/rerun.html">Speeding up the edit-compile-test cycle</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/parallel-spec-execution.html">Parallel spec execution</a>
+
+          </li>
+
+        </ul>
+      </div>
+
+      <div class="flex-item content">
+        <noscript>
+          <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
+          you'll get some non-essential but convenient user interface
+          enhancements.</em>
+        </noscript>
+
+
+        <h1>Writing tests with Hspec</h1>
+
+
+        <h2 id="using-describe-and-it">Using `describe` and `it`</h2>
+
+<p>Hspec provides an EDSL to describe tests.</p>
+
+<p><code>describe</code> and <code>it</code> are used to organize tests with Hspec.</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;Prelude.read&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;can parse integers&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">read</span> <span class="s">&quot;10&quot;</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="p">(</span><span class="mi">10</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">)</span>
+
+    it <span class="sd">&quot;can parse floating-point numbers&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">read</span> <span class="s">&quot;2.5&quot;</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="p">(</span><span class="mf">2.5</span> <span class="ow">::</span> <span class="kt">Float</span><span class="p">)</span>
+</code></pre></div>
+<p>A spec can consist of multiple <code>describe</code>s, and <code>describe</code>s can be nested.</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;Prelude&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    describe <span class="sd">&quot;read&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      it <span class="sd">&quot;can parse integers&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+        <span class="n">read</span> <span class="s">&quot;10&quot;</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="p">(</span><span class="mi">10</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">)</span>
+
+    describe <span class="sd">&quot;head&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      it <span class="sd">&quot;returns the first element of a list&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+        <span class="n">head</span> <span class="p">[</span><span class="mi">23</span> <span class="o">..</span><span class="p">]</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="mi">23</span>
+</code></pre></div>
+<h2 id="using-context">Using `context`</h2>
+
+<p><code>context</code> is just an alias for <code>describe</code>.  Use <code>context</code> with <em>when</em> or
+<em>with</em>, e.g.:</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;parse&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    context <span class="sd">&quot;when provided with invalid input&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      it <span class="sd">&quot;returns a parse error&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+        <span class="n">parse</span> <span class="s">&quot;some invalid input&quot;</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="kt">Left</span> <span class="s">&quot;parse error&quot;</span>
+</code></pre></div>
+<h2 id="using-hooks">Using hooks</h2>
+
+<p><code>before_</code> runs a custom <code>IO</code> action before every spec item. For example, if you
+have an action <code>flushDb</code> which flushes your database, you can run it before
+every spec item with:</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="n">before_</span> <span class="n">flushDb</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;/api/users/count&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;returns the number of users&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">post</span> <span class="s">&quot;/api/users/create&quot;</span> <span class="s">&quot;name=Jay&quot;</span>
+      <span class="n">get</span> <span class="s">&quot;/api/users/count&quot;</span> <span class="p">`</span><span class="n">shouldReturn</span><span class="p">`</span> <span class="mi">1</span>
+
+    context <span class="sd">&quot;when there are no users&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      it <span class="sd">&quot;returns 0&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+        <span class="n">get</span> <span class="s">&quot;/api/users/count&quot;</span> <span class="p">`</span><span class="n">shouldReturn</span><span class="p">`</span> <span class="mi">0</span>
+</code></pre></div>
+<p>Similarly, <code>after_</code> runs a custom <code>IO</code> action after every spec item:</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="n">after_</span> <span class="n">truncateDatabase</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;createUser&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;creates a new user&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="kr">let</span> <span class="n">eva</span> <span class="ow">=</span> <span class="kt">User</span> <span class="p">(</span><span class="kt">UserId</span> <span class="mi">3</span><span class="p">)</span> <span class="p">(</span><span class="kt">Name</span> <span class="s">&quot;Eva&quot;</span><span class="p">)</span> <span class="p">(</span><span class="kt">Age</span> <span class="mi">28</span><span class="p">)</span>
+      <span class="n">createUser</span> <span class="n">eva</span>
+      <span class="n">getUser</span> <span class="p">(</span><span class="kt">UserId</span> <span class="mi">3</span><span class="p">)</span> <span class="p">`</span><span class="n">shouldReturn</span><span class="p">`</span> <span class="n">eva</span>
+
+  describe <span class="sd">&quot;countUsers&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;counts all registered users&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">countUsers</span> <span class="p">`</span><span class="n">shouldReturn</span><span class="p">`</span> <span class="mi">0</span>
+</code></pre></div>
+<p><code>around_</code> is passed an <code>IO</code> action for each spec item so that it can perform
+whatever setup and teardown is necessary.</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="nf">serveStubbedApi</span> <span class="ow">::</span> <span class="kt">String</span> <span class="ow">-&gt;</span> <span class="kt">Int</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="kt">Server</span>
+<span class="nf">stopServer</span> <span class="ow">::</span> <span class="kt">Server</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="nb">()</span>
+
+<span class="nf">withStubbedApi</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">withStubbedApi</span> <span class="n">action</span> <span class="ow">=</span>
+  <span class="n">bracket</span> <span class="p">(</span><span class="n">serveStubbedApi</span> <span class="s">&quot;localhost&quot;</span> <span class="mi">80</span><span class="p">)</span>
+          <span class="n">stopServer</span>
+          <span class="p">(</span><span class="n">const</span> <span class="n">action</span><span class="p">)</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="n">around_</span> <span class="n">withStubbedApi</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;api client&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;should authenticate&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">c</span> <span class="ow">&lt;-</span> <span class="n">newClient</span> <span class="p">(</span><span class="kt">Just</span> <span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="s">&quot;pass&quot;</span><span class="p">))</span>
+      <span class="n">get</span> <span class="n">c</span> <span class="s">&quot;/api/auth&quot;</span> <span class="p">`</span><span class="n">shouldReturn</span><span class="p">`</span> <span class="n">status200</span>
+
+    it <span class="sd">&quot;should allow anonymous access&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">c</span> <span class="ow">&lt;-</span> <span class="n">newClient</span> <span class="kt">Nothing</span>
+      <span class="n">get</span> <span class="n">c</span> <span class="s">&quot;/api/dogs&quot;</span> <span class="p">`</span><span class="n">shouldReturn</span><span class="p">`</span> <span class="n">status200</span>
+</code></pre></div>
+<p>Hooks support passing values to spec items (for example, if you wanted
+to open a database connection before each item and pass the connection in).
+This can be done with <code>before</code>, <code>around</code> and <code>after</code>. Here&#39;s an example
+for how to use <code>around</code>:</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="nf">openConnection</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="kt">Connection</span>
+<span class="nf">openConnection</span> <span class="ow">=</span> <span class="o">...</span>
+
+<span class="nf">closeConnection</span> <span class="ow">::</span> <span class="kt">Connection</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">closeConnection</span> <span class="ow">=</span> <span class="o">...</span>
+
+<span class="nf">withDatabaseConnection</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Connection</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="nb">()</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">withDatabaseConnection</span> <span class="ow">=</span> <span class="n">bracket</span> <span class="n">openConnection</span> <span class="n">closeConnection</span>
+
+<span class="nf">spec</span> <span class="ow">::</span> <span class="kt">Spec</span>
+<span class="nf">spec</span> <span class="ow">=</span> <span class="kr">do</span>
+  <span class="n">around</span> <span class="n">withDatabaseConnection</span> <span class="o">$</span> <span class="kr">do</span>
+    describe <span class="sd">&quot;createRecipe&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      it <span class="sd">&quot;creates a new recipe&quot;</span> <span class="o">$</span> <span class="nf">\</span><span class="n">c</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+        <span class="kr">let</span> <span class="n">ingredients</span> <span class="ow">=</span> <span class="p">[</span><span class="kt">Eggs</span><span class="p">,</span> <span class="kt">Butter</span><span class="p">,</span> <span class="kt">Flour</span><span class="p">,</span> <span class="kt">Sugar</span><span class="p">]</span>
+        <span class="n">createRecipe</span> <span class="n">c</span> <span class="p">(</span><span class="kt">Recipe</span> <span class="s">&quot;Cake&quot;</span> <span class="n">ingredients</span><span class="p">)</span>
+        <span class="n">getRecipe</span> <span class="n">c</span> <span class="s">&quot;Cake&quot;</span> <span class="p">`</span><span class="n">shouldReturn</span><span class="p">`</span> <span class="n">ingredients</span>
+</code></pre></div>
+<h2 id="using-pending-and-pendingwith">Using `pending` and `pendingWith`</h2>
+
+<p><code>pending</code>/<code>pendingWith</code> can be used as a kind of TODO list while you are
+writing your specs.  If you think of some behaviour that your code should
+satisfy, but you are working on something else, you can add a spec item and
+just set it to pending.</p>
+<div class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;/login&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;should use correct status codes&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">pending</span>
+
+    it <span class="sd">&quot;should require basic authentication&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">pendingWith</span> <span class="s">&quot;need to fix base64 first&quot;</span>
+</code></pre></div>
+<p>It&#39;s advisable to resolve all pending spec items before committing your changes.</p>
+
+<p>The report produced at the end of a test run counts passed, failed, and pending
+spec items separately, and having unresolved pending spec items does not cause
+your test suite to fail; that is, it can still exit with a status code of 0 if
+there are unresolved pending spec items.</p>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <div style="margin-left: 10px">
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=watch&amp;count=true"></iframe>
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=fork&amp;count=true"></iframe>
+      </div>
+      <div class="follow-me">
+        <a href="https://twitter.com/solirc_" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @solirc_</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="js/jquery.scrollintoview.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

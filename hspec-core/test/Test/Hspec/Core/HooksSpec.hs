@@ -6,8 +6,6 @@ import           Prelude ()
 import           Helper
 import           Mock
 
-import           Control.Exception
-
 import qualified Test.Hspec.Core.Runner as H
 import qualified Test.Hspec.Core.Spec as H
 import           Test.Hspec.Core.Format
@@ -23,7 +21,7 @@ evalSpec :: H.Spec -> IO [([String], Item)]
 evalSpec = fmap normalize . (toEvalForest >=> runFormatter config)
   where
     config = EvalConfig {
-      evalConfigFormat = \ _ -> return ()
+      evalConfigFormat = \ _ -> pass
     , evalConfigConcurrentJobs = 1
     , evalConfigFailFast = False
     }
@@ -154,7 +152,7 @@ spec = do
       it "does not run specified action" $ do
         (rec, retrieve) <- mkAppend
         evalSpec_ $ H.beforeAll (rec "beforeAll" >> return "value") $ do
-          return ()
+          pass
         retrieve `shouldReturn` []
 
   describe "beforeAll_" $ do
@@ -246,7 +244,7 @@ spec = do
         (rec, retrieve) <- mkAppend
         evalSpec_ $ H.beforeAll (return (23 :: Int)) $
           H.beforeAllWith (\_ -> rec "beforeAllWith" >> return "value") $ do
-            return ()
+            pass
         retrieve `shouldReturn` []
 
   describe "after" $ do
@@ -328,7 +326,7 @@ spec = do
     context "when used with an empty list of examples" $ do
       it "does not run specified action" $ do
         evalSpec $ H.before undefined $ H.afterAll undefined $ do
-          return ()
+          pass
         `shouldReturn` []
 
     context "when action throws an exception" $ do
@@ -373,7 +371,7 @@ spec = do
       it "does not run specified action" $ do
         (rec, retrieve) <- mkAppend
         evalSpec_ $ H.afterAll_ (rec "afterAll_") $ do
-          return ()
+          pass
         retrieve `shouldReturn` []
 
     context "when action is pending" $ do
@@ -401,7 +399,7 @@ spec = do
     context "when action is successful" $ do
       it "does not report anything" $ do
         evalSpec $ do
-          H.afterAll_ (return ()) $ do
+          H.afterAll_ pass $ do
             H.it "foo" True
         `shouldReturn` [
           item ["foo"] Success

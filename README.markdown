@@ -1,5 +1,5 @@
 # Documentation
-Read the [User's Manual](http://hspec.github.io/)!
+Read the [User's Manual](https://hspec.github.io/)!
 
 # Development
 

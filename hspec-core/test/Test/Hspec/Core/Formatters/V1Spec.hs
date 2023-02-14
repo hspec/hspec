@@ -6,8 +6,7 @@ import           Prelude ()
 import           Helper
 import           Data.String
 import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Writer
-import qualified Control.Exception as E
+import           Control.Monad.Trans.Writer hiding (pass)
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
@@ -192,7 +191,7 @@ spec = do
           H.describe "foo" $ do
             H.it "example 1" True
           H.describe "bar" $ do
-            return ()
+            pass
           H.describe "baz" $ do
             H.it "example 2" True
 
@@ -283,7 +282,7 @@ failed_examplesSpec formatter = do
 
     it "prints the exception type for requirements that fail due to an uncaught exception" $ do
       r <- runSpec $ do
-        H.it "foobar" (E.throw (E.ErrorCall "baz") :: Bool)
+        H.it "foobar" (throw (ErrorCall "baz") :: Bool)
       r `shouldContain` [
           "  1) foobar"
         , "       uncaught exception: ErrorCall"

@@ -1,12 +1,12 @@
 name: hspec-contrib
-version: 0.5.1.1
+version: 0.5.2
 copyright:
-  - (c) 2011-2022 Simon Hengel
+  - (c) 2011-2023 Simon Hengel
   - (c) 2014 Junji Hashimoto
 maintainer: Simon Hengel <sol@typeful.net>
 category: Testing
 stability: experimental
-homepage: http://hspec.github.io/
+homepage: https://hspec.github.io/
 synopsis: Contributed functionality for Hspec
 description: Contributed functionality for Hspec
 
@@ -16,6 +16,7 @@ ghc-options: -Wall
 
 dependencies:
   - base == 4.*
+  - call-stack
   - hspec-core >= 2.5.0
   - HUnit
 

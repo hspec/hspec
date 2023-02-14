@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- TODO: Restrict font variants to what we are actually using! -->
+    <!-- link href='https://fonts.googleapis.com/css?family=Arimo:700italic,700,400italic,400|Cousine:700italic,700,400italic,400' rel='stylesheet' type='text/css'-->
+
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+    <title>Passing options to Hspec - Hspec: A Testing Framework for Haskell</title>
+
+  </head>
+  <body>
+    <a class="header" href="/">
+      <div class="container">
+        <h1>Hspec: <span class="sub">A Testing Framework for Haskell</span></h1>
+      </div>
+    </a>
+
+    <div class="container flex-container">
+      <div class="flex-item toc">
+        <h1>Contents</h1>
+        <ul>
+
+
+
+          <li>
+
+            <a href="/writing-specs.html">Writing tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/running-specs.html">Running tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            Passing options to Hspec
+            <ul>
+<li>
+<a href="#supported-options">Supported options</a>
+</li>
+<li>
+<a href="#specifying-options-on-the-command-line">Specifying options on the command-line</a>
+</li>
+<li>
+<a href="#specifying-options-in-config-files">Specifying options in config files</a>
+</li>
+<li>
+<a href="#specifying-options-through-environment-variables">Specifying options through environment variables</a>
+</li>
+<li>
+<a href="#precedence-resolution-for-options-that-are-specified-in-multiple-places">Precedence resolution for options that are specified in multiple places</a>
+</li>
+</ul>
+
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/expectations.html">Setting expectations</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/quickcheck.html">Using QuickCheck with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hunit.html">Interoperability with HUnit</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hspec-discover.html">Automatic spec discovery</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/match.html">Running individual spec items</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/rerun.html">Speeding up the edit-compile-test cycle</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/parallel-spec-execution.html">Parallel spec execution</a>
+
+          </li>
+
+        </ul>
+      </div>
+
+      <div class="flex-item content">
+        <noscript>
+          <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
+          you'll get some non-essential but convenient user interface
+          enhancements.</em>
+        </noscript>
+
+
+        <h1>Passing options to Hspec</h1>
+
+
+        <p>The previous section described how to
+<a href="running-specs.html">create a test driver to run a spec</a>.  It is possible to customize how a spec is run by
+passing <em>options</em> to that test driver.</p>
+
+<h2 id="supported-options">Supported options</h2>
+
+<p>You can get a list of supported options by passing <code>--help</code> to
+the test driver:</p>
+
+<pre>
+<kbd class="shell-input">runhaskell Spec.hs --help</kbd>
+<samp>Usage: Spec.hs [OPTION]...
+
+OPTIONS
+              --help              display this help and exit
+              --ignore-dot-hspec  do not read options from ~/.hspec and .hspec
+  -m PATTERN  --match=PATTERN     only run examples that match given PATTERN
+              --skip=PATTERN      skip examples that match given PATTERN
+
+RUNNER OPTIONS
+        --[no-]dry-run          pretend that everything passed; don't verify
+                                anything
+        --[no-]focused-only     do not run anything, unless there are focused
+                                spec items
+        --[no-]fail-on=ITEMS    empty: fail if all spec items have been filtered
+                                focused: fail on focused spec items
+                                pending: fail on pending spec items
+        --[no-]strict           same as --fail-on=focused,pending
+        --[no-]fail-fast        abort on first failure
+        --[no-]randomize        randomize execution order
+  -r    --rerun                 rerun all examples that failed in the previous
+                                test run (only works in combination with
+                                --failure-report or in GHCi)
+        --failure-report=FILE   read/write a failure report for use with --rerun
+        --rerun-all-on-success  run the whole test suite after a previously
+                                failing rerun succeeds for the first time (only
+                                works in combination with --rerun)
+  -j N  --jobs=N                run at most N parallelizable tests
+                                simultaneously (default: number of available
+                                processors)
+
+FORMATTER OPTIONS
+  -f NAME  --format=NAME           use a custom formatter; this can be one of
+                                   checks, specdoc, progress, failed-examples or
+                                   silent
+           --[no-]color            colorize the output
+           --[no-]unicode          output unicode
+           --[no-]diff             show colorized diffs
+           --diff-context=N        output N lines of diff context (default: 3)
+                                   use a value of 'full' to see the full context
+           --diff-command=CMD      use an external diff command
+                                   example: --diff-command="git diff"
+           --[no-]pretty           try to pretty-print diff values
+           --[no-]times            report times for individual spec items
+           --print-cpu-time        include used CPU time in summary
+  -p[N]    --print-slow-items[=N]  print the N slowest spec items (default: 10)
+
+OPTIONS FOR QUICKCHECK
+  -a N  --qc-max-success=N  maximum number of successful tests before a
+                            QuickCheck property succeeds
+        --qc-max-discard=N  maximum number of discarded tests per successful
+                            test before giving up
+        --qc-max-size=N     size to use for the biggest test cases
+        --qc-max-shrinks=N  maximum number of shrinks to perform before giving
+                            up (a value of 0 turns shrinking off)
+        --seed=N            used seed for QuickCheck properties
+
+OPTIONS FOR SMALLCHECK
+    --depth=N  maximum depth of generated test values for SmallCheck properties
+</samp>
+</pre>
+
+<h2 id="specifying-options-on-the-command-line">Specifying options on the command-line</h2>
+
+<p>How to specify command-line options depends on how you run your tests.  This
+section describes how to pass command-line options to Hspec via Cabal and
+Stack, and from withing a GHCi-session.</p>
+
+<h3 id="cabal">Cabal</h3>
+
+<p>If you are using Cabal you can use <code>--test-option</code> to pass command-line options
+to Hspec:</p>
+
+<pre><kbd class="shell-input">cabal test --test-show-details=direct --test-option=--format=progress</kbd></pre>
+
+<pre><kbd class="shell-input">cabal test --test-show-details=direct --test-option=--match --test-option="some spec item"</kbd></pre>
+
+<div class="note"><p><strong>Note:</strong> When running Hspec tests via Cabal, it is recommended to always specify <code>--test-show-details=direct</code>.</p>
+</div>
+
+<div class="note"><p><strong>Note:</strong> With older versions of Cabal use <code>--show-details=direct</code> instead of <code>--test-show-details=direct</code>.</p>
+</div>
+
+<h3 id="stack">Stack</h3>
+
+<p>If you are using <code>stack</code> you can use <code>--test-arguments</code> to pass command-line
+options to Hspec:</p>
+
+<pre><kbd class="shell-input">stack test --test-arguments=--format=progress</kbd></pre>
+
+<pre><kbd class="shell-input">stack test --test-arguments='--match "some spec item"'</kbd></pre>
+
+<h3 id="ghci">GHCi</h3>
+
+<p>If you run your tests from within a GHCi-session you can specify command-line
+options right after <code>:main</code>:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>*Main&gt; :main --format=progress
+</code></pre></div><div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>*Main&gt; :main --match &quot;some spec item&quot;
+</code></pre></div>
+<h2 id="specifying-options-in-config-files">Specifying options in config files</h2>
+
+<div class="note"><p><strong>Note:</strong> This section assumes that you are using <code>hspec-2.4.0</code> or later.</p>
+</div>
+
+<p>Hspec reads options from two config files:</p>
+
+<ul>
+<li><code>~/.hspec</code> (a file named <code>.hspec</code> in the user&#39;s <em>home directory</em>)</li>
+<li><code>.hspec</code> (a file named <code>.hspec</code> in the <em>current directory</em>)</li>
+</ul>
+
+<p>Example:
+<pre><kbd class="shell-input">echo --format=progress &gt;&gt; .hspec</kbd></pre>
+or
+<pre><kbd class="shell-input">echo --format=progress &gt;&gt; ~/.hspec</kbd></pre></p>
+
+<h2 id="specifying-options-through-environment-variables">Specifying options through environment variables</h2>
+
+<div class="note"><p><strong>Note:</strong> This section assumes that you are using <code>hspec-2.8.4</code> or later.</p>
+</div>
+
+<p>All of Hspec&#39;s options can be specified through environment variables:</p>
+
+<pre><kbd class="shell-input">HSPEC_FORMAT=progress cabal test --test-show-details=direct</kbd></pre>
+
+<p>Option names are converted to environment variable names by:</p>
+
+<ul>
+<li>Converting all letters to uppercase</li>
+<li>Replacing all dashes with underscores</li>
+<li>Prepending <code>HSPEC_</code></li>
+</ul>
+
+<p>For flags, like <code>--color</code>/<code>--no-color</code>, there is only one corresponding environment variable with valid values of <code>yes</code>/<code>no</code>:</p>
+
+<pre><kbd class="shell-input">HSPEC_COLOR=yes cabal test --test-show-details=direct</kbd></pre>
+
+<p>In addition, Hspec reads options from the environment variable <code>HSPEC_OPTIONS</code>. This is deprecated and will be removed at some point in the future.</p>
+
+<h2 id="precedence-resolution-for-options-that-are-specified-in-multiple-places">Precedence resolution for options that are specified in multiple places</h2>
+
+<p>If the same option is specified in multiple places, precedence is resolved as follows:</p>
+
+<ul>
+<li>options from <code>~/.hspec</code> take the lowest precedence</li>
+<li>options from <code>.hspec</code> take precedence over options from <code>~/.hspec</code></li>
+<li>options from environment variables take precedence over options from <code>.hspec</code></li>
+<li>command-line options take the highest precedence</li>
+</ul>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <div style="margin-left: 10px">
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=watch&amp;count=true"></iframe>
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=fork&amp;count=true"></iframe>
+      </div>
+      <div class="follow-me">
+        <a href="https://twitter.com/solirc_" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @solirc_</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="js/jquery.scrollintoview.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

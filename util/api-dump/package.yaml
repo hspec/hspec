@@ -1,0 +1,27 @@
+name: api-dump
+copyright: (c) 2022-2023 Simon Hengel
+
+ghc-options: -Wall
+
+dependencies:
+  - base
+  - process
+  - filepath
+  - directory
+  - hpack
+
+source-dirs: src
+
+executable:
+  main: Run.main
+
+tests:
+  spec:
+    cpp-options: -DTEST
+    build-tools: hspec-discover
+    main: Spec.hs
+    source-dirs:
+      - test
+    dependencies:
+      - hspec == 2.*
+      - QuickCheck

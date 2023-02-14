@@ -25,7 +25,7 @@ item = Item {
 spec :: Spec
 spec = do
   describe "printSlowSpecItems" $ do
-    let format = printSlowSpecItems 2 $ \ _ -> return ()
+    let format = printSlowSpecItems 2 $ \ _ -> pass
     it "prints slow spec items" $ do
       capture_ $ format $ Done [
             ((["foo", "bar"], "one"), item {itemDuration = 0.100})

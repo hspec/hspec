@@ -1,11 +1,27 @@
 {-# LANGUAGE RecordWildCards #-}
-module Test.Hspec.Core.QuickCheckUtil where
+{-# LANGUAGE CPP #-}
+module Test.Hspec.Core.QuickCheckUtil (
+  liftHook
+, aroundProperty
+
+, QuickCheckResult(..)
+, Status(..)
+, QuickCheckFailure(..)
+, parseQuickCheckResult
+
+, formatNumbers
+
+, mkGen
+, newSeed
+#ifdef TEST
+, stripSuffix
+, splitBy
+#endif
+) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Exception
-import           Data.Maybe
 import           Data.Int
 import           System.Random
 
@@ -21,17 +37,21 @@ import           Test.QuickCheck.State (State(..))
 
 import           Test.Hspec.Core.Util
 
+liftHook :: r -> ((a -> IO ()) -> IO ()) -> (a -> IO r) -> IO r
+liftHook def hook inner = do
+  ref <- newIORef def
+  hook $ inner >=> writeIORef ref
+  readIORef ref
+
 aroundProperty :: ((a -> IO ()) -> IO ()) -> (a -> Property) -> Property
-aroundProperty action p = MkProperty . MkGen $ \r n -> aroundProp action $ \a -> (unGen . unProperty $ p a) r n
+aroundProperty hook p = MkProperty . MkGen $ \r n -> aroundProp hook $ \a -> (unGen . unProperty $ p a) r n
 
 aroundProp :: ((a -> IO ()) -> IO ()) -> (a -> Prop) -> Prop
-aroundProp action p = MkProp $ aroundRose action (\a -> unProp $ p a)
+aroundProp hook p = MkProp $ aroundRose hook (\a -> unProp $ p a)
 
 aroundRose :: ((a -> IO ()) -> IO ()) -> (a -> Rose QCP.Result) -> Rose QCP.Result
-aroundRose action r = ioRose $ do
-  ref <- newIORef (return QCP.succeeded)
-  action $ \a -> reduceRose (r a) >>= writeIORef ref
-  readIORef ref
+aroundRose hook r = ioRose $ do
+  liftHook (return QCP.succeeded) hook $ \ a -> reduceRose (r a)
 
 newSeed :: IO Int
 newSeed = fst . randomR (0, fromIntegral (maxBound :: Int32)) <$>

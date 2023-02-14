@@ -8,6 +8,7 @@ module Helper (
 , module Test.Hspec.Core.Compat
 , module Test.QuickCheck
 , module System.IO.Silently
+, Seconds(..)
 , sleep
 , timeout
 , defaultParams
@@ -24,6 +25,8 @@ module Helper (
 , withEnvironment
 , inTempDirectory
 
+, hspecSilent
+, hspecResultSilent
 , shouldUseArgs
 
 , removeLocations
@@ -41,8 +44,6 @@ import           Test.Hspec.Core.Compat
 import           Data.Char
 import           System.Environment (withArgs, getEnvironment)
 import           System.Exit
-import qualified Control.Exception as E
-import           Control.Exception
 import           System.IO.Silently
 import           System.SetEnv
 import           System.FilePath
@@ -61,13 +62,14 @@ import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureR
 import           Test.Hspec.Core.Example.Location (workaroundForIssue19236)
 import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
+import           Test.Hspec.Core.Formatters.V2 (formatterToFormat, silent)
 
 import           Data.Orphans()
 
-exceptionEq :: E.SomeException -> E.SomeException -> Bool
+exceptionEq :: SomeException -> SomeException -> Bool
 exceptionEq a b
-  | Just ea <- E.fromException a, Just eb <- E.fromException b = ea == (eb :: E.ErrorCall)
-  | Just ea <- E.fromException a, Just eb <- E.fromException b = ea == (eb :: E.ArithException)
+  | Just ea <- fromException a, Just eb <- fromException b = ea == (eb :: ErrorCall)
+  | Just ea <- fromException a, Just eb <- fromException b = ea == (eb :: ArithException)
   | otherwise = throw (HUnit.HUnitFailure Nothing $ HUnit.ExpectedButGot Nothing (formatException b) (formatException a))
 
 deriving instance Eq FailureReason
@@ -81,16 +83,16 @@ instance Eq SomeException where
   (==) = exceptionEq
 
 throwException :: IO a
-throwException = E.throwIO DivideByZero
+throwException = throwIO DivideByZero
 
 throwException_ :: IO ()
 throwException_ = throwException
 
 ignoreExitCode :: IO () -> IO ()
-ignoreExitCode action = action `E.catch` \e -> let _ = e :: ExitCode in return ()
+ignoreExitCode action = action `catch` \e -> let _ = e :: ExitCode in pass
 
 ignoreUserInterrupt :: IO () -> IO ()
-ignoreUserInterrupt action = E.catchJust (guard . (== E.UserInterrupt)) action return
+ignoreUserInterrupt action = catchJust (guard . (== UserInterrupt)) action return
 
 captureLines :: IO a -> IO [String]
 captureLines = fmap lines . capture_
@@ -116,16 +118,31 @@ defaultParams :: H.Params
 defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000}}
 
 noOpProgressCallback :: H.ProgressCallback
-noOpProgressCallback _ = return ()
+noOpProgressCallback _ = pass
 
-shouldUseArgs :: HasCallStack => [String] -> (Args -> Bool) -> Expectation
-shouldUseArgs args p = do
-  spy <- newIORef (H.paramsQuickCheckArgs defaultParams)
-  let interceptArgs item = item {H.itemExample = \params action progressCallback -> writeIORef spy (H.paramsQuickCheckArgs params) >> H.itemExample item params action progressCallback}
-      spec = H.mapSpecItem_ interceptArgs $
-        H.it "foo" False
-  (silence . ignoreExitCode . withArgs args . H.hspec) spec
-  readIORef spy >>= (`shouldSatisfy` p)
+silentConfig :: H.Config
+silentConfig = H.defaultConfig {H.configFormat = Just $ formatterToFormat silent}
+
+hspecSilent :: H.Spec -> IO ()
+hspecSilent = H.hspecWith silentConfig
+
+hspecResultSilent :: H.Spec -> IO H.Summary
+hspecResultSilent = H.hspecWithResult silentConfig
+
+shouldUseArgs :: HasCallStack => (Eq n, Show n) => [String] -> (Args -> n,  n) -> Expectation
+shouldUseArgs args (accessor, expected) = do
+  spy <- newIORef stdArgs
+  let
+    interceptArgs :: H.Item a -> H.Item a
+    interceptArgs item = item {
+      H.itemExample = \ params action progressCallback -> do
+        writeIORef spy (H.paramsQuickCheckArgs params)
+        H.itemExample item params action progressCallback
+    }
+    spec :: H.Spec
+    spec = H.mapSpecItem_ interceptArgs $ H.it "" True
+  withArgs args $ hspecSilent spec
+  accessor <$> readIORef spy `shouldReturn` expected
 
 removeLocations :: H.SpecWith a -> H.SpecWith a
 removeLocations = H.mapSpecItem_ $ \ item -> item {

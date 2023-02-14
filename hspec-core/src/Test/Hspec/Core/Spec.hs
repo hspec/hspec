@@ -73,13 +73,15 @@ module Test.Hspec.Core.Spec (
 , Test.Hspec.Core.Tree.location
 
 , focusForest
+
+-- * Re-exports
+, HasCallStack
+, Expectation
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import qualified Control.Exception as E
-import           Data.CallStack
 import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Trans.Reader (asks)
 
@@ -188,16 +190,16 @@ setParallelizable value item = item {itemIsParallelizable = itemIsParallelizable
 -- >   it "can format text in a way that everyone likes" $
 -- >     pending
 pending :: HasCallStack => Expectation
-pending = E.throwIO (Pending location Nothing)
+pending = throwIO (Pending location Nothing)
 
 pending_ :: Expectation
-pending_ = (E.throwIO (Pending Nothing Nothing))
+pending_ = (throwIO (Pending Nothing Nothing))
 
 -- |
 -- `pendingWith` is similar to `pending`, but it takes an additional string
 -- argument that can be used to specify the reason for why the spec item is pending.
 pendingWith :: HasCallStack => String -> Expectation
-pendingWith = E.throwIO . Pending location . Just
+pendingWith = throwIO . Pending location . Just
 
 -- | Get the path of `describe` labels, from the root all the way in to the
 -- call-site of this function.

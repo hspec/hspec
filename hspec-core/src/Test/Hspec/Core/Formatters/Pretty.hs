@@ -5,6 +5,7 @@ module Test.Hspec.Core.Formatters.Pretty (
 #ifdef TEST
 , pretty
 , recoverString
+, recoverMultiLineString
 #endif
 ) where
 
@@ -20,49 +21,46 @@ import           Test.Hspec.Core.Formatters.Pretty.Unicode
 import           Test.Hspec.Core.Formatters.Pretty.Parser
 
 pretty2 :: Bool -> String -> String -> (String, String)
-pretty2 unicode expected actual = case (recoverString unicode expected, recoverString unicode actual) of
+pretty2 unicode expected actual = case (recoverMultiLineString unicode expected, recoverMultiLineString unicode actual) of
   (Just expected_, Just actual_) -> (expected_, actual_)
   _ -> case (pretty unicode expected, pretty unicode actual) of
-    (Just expected_, Just actual_) -> (expected_, actual_)
-#if __GLASGOW_HASKELL__ >= 802
+    (Just expected_, Just actual_) | expected_ /= actual_ -> (expected_, actual_)
     _ -> (expected, actual)
-#else
-    _ -> (rec expected, rec actual)
-  where
-    rec = if unicode then urecover else id
 
-    urecover :: String -> String
-    urecover xs = maybe xs ushow $ readMaybe xs
-#endif
+recoverString :: String -> Maybe String
+recoverString xs = case xs of
+  '"' : _ -> case reverse xs of
+    '"' : _ -> readMaybe xs
+    _ -> Nothing
+  _ -> Nothing
 
-recoverString :: Bool -> String -> Maybe String
-recoverString unicode input = case readMaybe input of
+recoverMultiLineString :: Bool -> String -> Maybe String
+recoverMultiLineString unicode input = case recoverString input of
   Just r | shouldParseBack r -> Just r
   _ -> Nothing
   where
     shouldParseBack = (&&) <$> all isSafe <*> isMultiLine
     isMultiLine = lines >>> length >>> (> 1)
-    isSafe c = (unicode || isAscii c) && (not $ isControl c) || c == '\n'
+    isSafe c = (unicode || isAscii c) && not (isControl c) || c == '\n'
 
 pretty :: Bool -> String -> Maybe String
-pretty unicode = parseExpression >=> render_
+pretty unicode = parseValue >=> render_
   where
-    render_ :: Expression -> Maybe String
-    render_ expr = guard (shouldParseBack expr) >> Just (renderExpression unicode expr)
+    render_ :: Value -> Maybe String
+    render_ value = guard (shouldParseBack value) >> Just (renderValue unicode value)
 
-    shouldParseBack :: Expression -> Bool
+    shouldParseBack :: Value -> Bool
     shouldParseBack = go
       where
-        go expr = case expr of
-          Literal (String _) -> True
-          Literal _ -> False
-          Id _ -> False
-          App (Id _) e -> go e
-          App _ _ -> False
-          Parentheses e -> go e
+        go value = case value of
+          Char _ -> False
+          String _ -> True
+          Rational _ _ -> False
+          Number _ -> False
+          Record _ _ -> True
+          Constructor _ xs -> any go xs
           Tuple xs -> any go xs
           List xs -> any go xs
-          Record _ _ -> True
 
 newtype Builder = Builder ShowS
 
@@ -91,24 +89,19 @@ shows = Builder . Show.shows
 instance IsString Builder where
   fromString = Builder . showString
 
-renderExpression :: Bool -> Expression -> String
-renderExpression unicode = runBuilder . render
+renderValue :: Bool -> Value -> String
+renderValue unicode = runBuilder . render
   where
-    renderLiteral lit = case lit of
+    render :: Value -> Builder
+    render value = case value of
       Char c -> shows c
       String str -> if unicode then Builder $ ushows str else shows str
-      Integer n -> shows n
-      Rational n -> fromString n
-
-    render :: Expression -> Builder
-    render expr = case expr of
-      Literal lit -> renderLiteral lit
-      Id name -> fromString name
-      App a b -> render a <> " " <> render b
-      Parentheses e@Record{} -> render e
-      Parentheses e -> "(" <> render e <> ")"
+      Rational n d -> render n <> " % " <> render d
+      Number n -> fromString n
+      Record name fields -> fromString name <> " {\n  " <> (intercalate ",\n  " $ map renderField fields) <> "\n}"
+      Constructor name values -> intercalate " " (fromString name : map render values)
+      Tuple [e@Record{}] -> render e
       Tuple xs -> "(" <> intercalate ", " (map render xs) <> ")"
       List xs -> "[" <> intercalate ", " (map render xs) <> "]"
-      Record name fields -> fromString name <> " {\n  " <> (intercalate ",\n  " $ map renderField fields) <> "\n}"
 
     renderField (name, value) = fromString name <> " = " <> render value

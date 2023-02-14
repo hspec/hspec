@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- TODO: Restrict font variants to what we are actually using! -->
+    <!-- link href='https://fonts.googleapis.com/css?family=Arimo:700italic,700,400italic,400|Cousine:700italic,700,400italic,400' rel='stylesheet' type='text/css'-->
+
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+    <title>Interoperability with HUnit - Hspec: A Testing Framework for Haskell</title>
+
+  </head>
+  <body>
+    <a class="header" href="/">
+      <div class="container">
+        <h1>Hspec: <span class="sub">A Testing Framework for Haskell</span></h1>
+      </div>
+    </a>
+
+    <div class="container flex-container">
+      <div class="flex-item toc">
+        <h1>Contents</h1>
+        <ul>
+
+
+
+          <li>
+
+            <a href="/writing-specs.html">Writing tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/running-specs.html">Running tests with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/options.html">Passing options to Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/expectations.html">Setting expectations</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/quickcheck.html">Using QuickCheck with Hspec</a>
+
+          </li>
+
+
+
+          <li>
+
+            Interoperability with HUnit
+            <ul>
+<li>
+<a href="#using-hunit-assertions">Using HUnit assertions</a>
+</li>
+<li>
+<a href="#running-a-hunit-test-suite-with-hspec">Running a HUnit test suite with Hspec</a>
+</li>
+</ul>
+
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/hspec-discover.html">Automatic spec discovery</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/match.html">Running individual spec items</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/rerun.html">Speeding up the edit-compile-test cycle</a>
+
+          </li>
+
+
+
+          <li>
+
+            <a href="/parallel-spec-execution.html">Parallel spec execution</a>
+
+          </li>
+
+        </ul>
+      </div>
+
+      <div class="flex-item content">
+        <noscript>
+          <em>Tip: JavaScript is disabled in your browser.  If you enable JavaScript
+          you'll get some non-essential but convenient user interface
+          enhancements.</em>
+        </noscript>
+
+
+        <h1>Interoperability with HUnit</h1>
+
+
+        <h2 id="using-hunit-assertions">Using HUnit assertions</h2>
+
+<p>Hspec&#39;s <a href="expectations.html">expectation language</a> is built on top of
+<a href="https://hackage.haskell.org/package/HUnit">HUnit</a>, hence it is possible to use
+HUnit assertions instead.  E.g. <code>shouldBe</code> is just another name for HUnit&#39;s
+<a href="https://hackage.haskell.org/package/HUnit/docs/Test-HUnit-Base.html#v:-64--63--61-"><code>@?=</code></a>.  You can use whatever you prefer and it will work
+seamlessly.</p>
+
+<div>
+  <h5 class="foldable">Example code:</h5>
+  <div>
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file Spec.hs</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec</span>
+<span class="kr">import</span> <span class="nn">Test.HUnit</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;reverse&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;reverses a list&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">reverse</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">@?=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">]</span></code></pre></figure>
+
+<pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
+<samp>
+reverse
+  reverses a list [<span class="hspec-success">✔</span>]
+
+Finished in 0.0005 seconds
+<span class="hspec-success">1 example, 0 failures
+</span></samp></pre>
+
+  </div>
+</div>
+
+<h2 id="running-a-hunit-test-suite-with-hspec">Running a HUnit test suite with Hspec</h2>
+
+<p><a href="https://hackage.haskell.org/package/hspec-contrib/docs/Test-Hspec-Contrib-HUnit.html#v:fromHUnitTest"><code>fromHUnitTest</code></a> from the
+<a href="https://hackage.haskell.org/package/hspec-contrib"><code>hspec-contrib</code></a> package can
+be used to convert a HUnit test suite to a <code>Spec</code>.  This can be used to run
+existing HUnit tests with Hspec.  Ordinary spec items and HUnit tests can be
+freely intermixed.</p>
+
+<div>
+  <h5 class="foldable">Example code:</h5>
+  <div>
+
+<figure class="highlight"><pre><code class="language-hspec" data-lang="hspec"><span></span><span class="c1">-- file Spec.hs</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec</span>
+<span class="kr">import</span> <span class="nn">Test.Hspec.Contrib.HUnit</span> <span class="p">(</span><span class="nf">fromHUnitTest</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Test.HUnit</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">hspec</span> <span class="o">$</span> <span class="kr">do</span>
+  describe <span class="sd">&quot;some ordinary spec items&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    it <span class="sd">&quot;returns the first element of a list&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+      <span class="n">head</span> <span class="p">[</span><span class="mi">23</span> <span class="o">..</span><span class="p">]</span> <span class="p">`</span><span class="n">shouldBe</span><span class="p">`</span> <span class="p">(</span><span class="mi">23</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">)</span>
+
+  describe <span class="sd">&quot;some legacy HUnit tests&quot;</span> <span class="o">$</span> <span class="kr">do</span>
+    <span class="n">fromHUnitTest</span> <span class="n">testSuite</span>
+
+
+<span class="c1">-- | A HUnit test suite</span>
+<span class="nf">testSuite</span> <span class="ow">::</span> <span class="kt">Test</span>
+<span class="nf">testSuite</span> <span class="ow">=</span> <span class="kt">TestList</span> <span class="p">[</span>
+    <span class="kt">TestLabel</span> <span class="s">&quot;test_read_is_inverse_to_show&quot;</span> <span class="n">test_read_is_inverse_to_show</span>
+  <span class="p">,</span> <span class="kt">TestLabel</span> <span class="s">&quot;test_23_is_equal_to_42&quot;</span> <span class="n">test_23_is_equal_to_42</span>
+  <span class="p">]</span>
+
+<span class="nf">test_read_is_inverse_to_show</span> <span class="ow">::</span> <span class="kt">Test</span>
+<span class="nf">test_read_is_inverse_to_show</span> <span class="ow">=</span> <span class="kt">TestCase</span> <span class="o">$</span> <span class="kr">do</span>
+  <span class="p">(</span><span class="n">read</span> <span class="o">.</span> <span class="n">show</span><span class="p">)</span> <span class="p">(</span><span class="mi">23</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">)</span> <span class="o">@?=</span> <span class="p">(</span><span class="mi">23</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">)</span>
+
+<span class="c1">-- a failing test case</span>
+<span class="nf">test_23_is_equal_to_42</span> <span class="ow">::</span> <span class="kt">Test</span>
+<span class="nf">test_23_is_equal_to_42</span> <span class="ow">=</span> <span class="kt">TestCase</span> <span class="o">$</span> <span class="kr">do</span>
+  <span class="mi">23</span> <span class="o">@?=</span> <span class="p">(</span><span class="mi">42</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">)</span></code></pre></figure>
+
+<pre><kbd class="shell-input">runhaskell Spec.hs</kbd>
+<samp>
+some ordinary spec items
+  returns the first element of a list [<span class="hspec-success">✔</span>]
+some legacy HUnit tests
+  test_read_is_inverse_to_show [<span class="hspec-success">✔</span>]
+  test_23_is_equal_to_42 [<span class="hspec-failure">✘</span>]
+
+Failures:
+
+<span class="hspec-info">  Spec.hs:29:6:
+</span>  1) some legacy HUnit tests test_23_is_equal_to_42
+<span class="hspec-failure">       expected: </span><span class="hspec-failure">42</span>
+<span class="hspec-failure">        but got: </span><span class="hspec-success">23</span>
+
+  To rerun use: --match "/some legacy HUnit tests/test_23_is_equal_to_42/"
+
+Randomized with seed 921447365
+
+Finished in 0.0005 seconds
+<span class="hspec-failure">3 examples, 1 failure
+</span></samp></pre>
+
+  </div>
+</div>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <div style="margin-left: 10px">
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=watch&amp;count=true"></iframe>
+        <iframe width="90px" scrolling="0" height="20px" frameborder="0" allowtransparency="true" src="https://ghbtns.com/github-btn.html?user=hspec&amp;repo=hspec&amp;type=fork&amp;count=true"></iframe>
+      </div>
+      <div class="follow-me">
+        <a href="https://twitter.com/solirc_" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @solirc_</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="js/jquery.scrollintoview.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

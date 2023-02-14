@@ -1,21 +1,21 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hspec-contrib
-version:        0.5.1.1
+version:        0.5.2
 license:        MIT
 license-file:   LICENSE
-copyright:      (c) 2011-2022 Simon Hengel,
+copyright:      (c) 2011-2023 Simon Hengel,
                 (c) 2014 Junji Hashimoto
 maintainer:     Simon Hengel <sol@typeful.net>
 build-type:     Simple
 category:       Testing
 stability:      experimental
 bug-reports:    https://github.com/hspec/hspec/issues
-homepage:       http://hspec.github.io/
+homepage:       https://hspec.github.io/
 synopsis:       Contributed functionality for Hspec
 description:    Contributed functionality for Hspec
 
@@ -31,9 +31,11 @@ library
   build-depends:
       HUnit
     , base ==4.*
+    , call-stack
     , hspec-core >=2.5.0
   exposed-modules:
       Test.Hspec.Contrib.HUnit
+      Test.Hspec.Contrib.Mocks.V1
       Test.Hspec.Contrib.Retry
   other-modules:
       Paths_hspec_contrib
@@ -47,6 +49,7 @@ test-suite spec
   other-modules:
       Helper
       Test.Hspec.Contrib.HUnitSpec
+      Test.Hspec.Contrib.Mocks.V1Spec
       Test.Hspec.Contrib.RetrySpec
       Paths_hspec_contrib
   ghc-options: -Wall
@@ -56,6 +59,7 @@ test-suite spec
       HUnit
     , QuickCheck
     , base ==4.*
+    , call-stack
     , hspec
     , hspec-contrib
     , hspec-core >=2.6.0

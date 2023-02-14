@@ -21,6 +21,8 @@ module Test.Hspec.Core.Example (
 , safeEvaluateExample
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
 , safeEvaluateResultStatus
+, exceptionToResultStatus
+, toLocation
 ) where
 
 import           Prelude ()
@@ -28,9 +30,8 @@ import           Test.Hspec.Core.Compat
 
 import qualified Test.HUnit.Lang as HUnit
 
-import           Data.CallStack
+import           Data.CallStack (SrcLoc(..))
 
-import           Control.Exception
 import           Control.DeepSeq
 import           Data.Typeable (Typeable)
 import qualified Test.QuickCheck as QC
@@ -90,37 +91,44 @@ instance NFData FailureReason where
     NoReason -> ()
     Reason r -> r `deepseq` ()
     ExpectedButGot p e a  -> p `deepseq` e `deepseq` a `deepseq` ()
-    Error m e -> m `deepseq` e `seq` ()
+    Error m e -> m `deepseq` show e `deepseq` ()
 
 instance Exception ResultStatus
 
-safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-safeEvaluateExample example params around progress = safeEvaluate $ forceResult <$> evaluateExample example params around progress
-  where
-    forceResult :: Result -> Result
-    forceResult r@(Result info status) = info `deepseq` (forceResultStatus status) `seq` r
+forceResult :: Result -> Result
+forceResult r@(Result info status) = info `deepseq` (forceResultStatus status) `seq` r
 
-    forceResultStatus :: ResultStatus -> ResultStatus
-    forceResultStatus r = case r of
-      Success -> r
-      Pending _ m -> m `deepseq` r
-      Failure _ m -> m `deepseq` r
+forceResultStatus :: ResultStatus -> ResultStatus
+forceResultStatus r = case r of
+  Success -> r
+  Pending _ m -> m `deepseq` r
+  Failure _ m -> m `deepseq` r
+
+safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+safeEvaluateExample example params around progress = safeEvaluate $ evaluateExample example params around progress
 
 safeEvaluate :: IO Result -> IO Result
 safeEvaluate action = do
-  r <- safeTry action
-  return $ case r of
-    Left e -> Result "" (toResultStatus e)
-    Right result -> result
+  r <- safeTry $ forceResult <$> action
+  case r of
+    Left e -> Result "" <$> exceptionToResultStatus e
+    Right result -> return result
 
 safeEvaluateResultStatus :: IO ResultStatus -> IO ResultStatus
-safeEvaluateResultStatus action = either toResultStatus id <$> safeTry action
+safeEvaluateResultStatus action = do
+  r <- safeTry $ forceResultStatus <$> action
+  case r of
+    Left e -> exceptionToResultStatus e
+    Right status -> return status
 
-toResultStatus :: SomeException -> ResultStatus
-toResultStatus e
-  | Just result <- fromException e = result
-  | Just hunit <- fromException e = hunitFailureToResult Nothing hunit
-  | otherwise = Failure Nothing $ Error Nothing e
+exceptionToResultStatus :: SomeException -> IO ResultStatus
+exceptionToResultStatus = safeEvaluateResultStatus . pure . toResultStatus
+  where
+    toResultStatus :: SomeException -> ResultStatus
+    toResultStatus e
+      | Just result <- fromException e = result
+      | Just hunit <- fromException e = hunitFailureToResult Nothing hunit
+      | otherwise = Failure Nothing $ Error Nothing e
 
 instance Example Result where
   type Arg Result = ()
@@ -128,10 +136,8 @@ instance Example Result where
 
 instance Example (a -> Result) where
   type Arg (a -> Result) = a
-  evaluateExample example _params action _callback = do
-    ref <- newIORef (Result "" Success)
-    action (evaluate . example >=> writeIORef ref)
-    readIORef ref
+  evaluateExample example _params hook _callback = do
+    liftHook (Result "" Success) hook (evaluate . example)
 
 instance Example Bool where
   type Arg Bool = ()
@@ -139,10 +145,8 @@ instance Example Bool where
 
 instance Example (a -> Bool) where
   type Arg (a -> Bool) = a
-  evaluateExample p _params action _callback = do
-    ref <- newIORef (Result "" Success)
-    action (evaluate . example >=> writeIORef ref)
-    readIORef ref
+  evaluateExample p _params hook _callback = do
+    liftHook (Result "" Success) hook (evaluate . example)
     where
       example a
         | p a = Result "" Success
@@ -166,16 +170,19 @@ hunitFailureToResult pre e = case e of
     where
       location = case mLoc of
         Nothing -> Nothing
-        Just loc -> Just $ Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
+        Just loc -> Just $ toLocation loc
   where
     addPre :: String -> String
     addPre xs = case pre of
       Just x -> x ++ "\n" ++ xs
       Nothing -> xs
 
+toLocation :: SrcLoc -> Location
+toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
+
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
-  evaluateExample e _ action _ = action e >> return (Result "" Success)
+  evaluateExample e _ hook _ = hook e >> return (Result "" Success)
 
 instance Example QC.Property where
   type Arg QC.Property = ()
@@ -183,8 +190,8 @@ instance Example QC.Property where
 
 instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = a
-  evaluateExample p c action progressCallback = do
-    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty action p)
+  evaluateExample p c hook progressCallback = do
+    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty hook p)
     return $ fromQuickCheckResult r
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $

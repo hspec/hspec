@@ -6,10 +6,6 @@ to build the documentation locally; the `bundle` command has to be on your
 
 If you are building the documentation for the first time, run:
 
-```console
-$ make setup
-```
-
 To build the documentation, run:
 
 ```console

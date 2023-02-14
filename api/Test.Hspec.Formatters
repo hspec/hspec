@@ -1,0 +1,52 @@
+type FailureReason :: *
+data FailureReason
+  | NoReason
+  | Reason String
+  | ExpectedButGot (Maybe String) String String
+  | Error (Maybe String) GHC.Exception.Type.SomeException
+type FailureRecord :: *
+data FailureRecord = FailureRecord
+  failureRecordLocation :: Maybe hspec-core:Test.Hspec.Core.Example.Location.Location
+  failureRecordPath :: Test.Hspec.Core.Util.Path
+  failureRecordMessage :: FailureReason
+type FormatM :: * -> *
+type FormatM = hspec-core:Test.Hspec.Core.Formatters.V1.Free.Free hspec-core:Test.Hspec.Core.Formatters.V1.Monad.FormatF :: * -> *
+type Formatter :: *
+data Formatter = Formatter
+  headerFormatter :: FormatM ()
+  exampleGroupStarted :: [String] -> String -> FormatM ()
+  exampleGroupDone :: FormatM ()
+  exampleStarted :: Test.Hspec.Core.Util.Path -> FormatM ()
+  exampleProgress :: Test.Hspec.Core.Util.Path -> hspec-core:Test.Hspec.Core.Example.Progress -> FormatM ()
+  exampleSucceeded :: Test.Hspec.Core.Util.Path -> String -> FormatM ()
+  exampleFailed :: Test.Hspec.Core.Util.Path -> String -> FailureReason -> FormatM ()
+  examplePending :: Test.Hspec.Core.Util.Path -> String -> Maybe String -> FormatM ()
+  failedFormatter :: FormatM ()
+  footerFormatter :: FormatM ()
+type Seconds :: *
+newtype Seconds = Seconds Double
+checks :: Formatter
+extraChunk :: String -> FormatM ()
+failed_examples :: Formatter
+formatException :: GHC.Exception.Type.SomeException -> String
+formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
+getCPUTime :: FormatM (Maybe Seconds)
+getFailCount :: FormatM Int
+getFailMessages :: FormatM [FailureRecord]
+getPendingCount :: FormatM Int
+getRealTime :: FormatM Seconds
+getSuccessCount :: FormatM Int
+getTotalCount :: FormatM Int
+missingChunk :: String -> FormatM ()
+progress :: Formatter
+silent :: Formatter
+specdoc :: Formatter
+useDiff :: FormatM Bool
+usedSeed :: FormatM Integer
+withFailColor :: FormatM a -> FormatM a
+withInfoColor :: FormatM a -> FormatM a
+withPendingColor :: FormatM a -> FormatM a
+withSuccessColor :: FormatM a -> FormatM a
+write :: String -> FormatM ()
+writeLine :: String -> FormatM ()
+writeTransient :: String -> FormatM ()

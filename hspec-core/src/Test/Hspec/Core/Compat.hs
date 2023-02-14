@@ -4,6 +4,7 @@ module Test.Hspec.Core.Compat (
 , module Test.Hspec.Core.Compat
 ) where
 
+import           Control.Exception as Imports
 import           Control.Arrow as Imports ((>>>), (&&&), first, second)
 import           Control.Applicative as Imports
 import           Control.Monad as Imports hiding (
@@ -15,7 +16,13 @@ import           Control.Monad as Imports hiding (
   , sequence
   , sequence_
   )
+import           Data.Maybe as Imports
 import           Data.Foldable as Imports
+import           Data.CallStack as Imports (HasCallStack)
+
+import           System.IO
+import           System.Exit
+import           System.Environment
 
 #if MIN_VERSION_base(4,11,0)
 import           Data.Functor as Imports
@@ -70,9 +77,7 @@ import           Data.IORef as Imports
 import           Text.Read as Imports (readMaybe)
 import           System.Environment as Imports (lookupEnv)
 #else
-import           Control.Exception
 import           Text.Read
-import           System.Environment
 import qualified Text.ParserCombinators.ReadP as P
 #endif
 
@@ -83,9 +88,7 @@ import           Data.Ord (comparing)
 import           Data.Typeable (tyConModule, tyConName)
 import           Control.Concurrent
 
-#if MIN_VERSION_base(4,9,0)
-import           Control.Exception as Imports (interruptible)
-#else
+#if !MIN_VERSION_base(4,9,0)
 import           GHC.IO
 #endif
 
@@ -105,7 +108,7 @@ modifyIORef' ref f = do
 atomicWriteIORef :: IORef a -> a -> IO ()
 atomicWriteIORef ref a = do
     x <- atomicModifyIORef ref (\_ -> (a, ()))
-    x `seq` return ()
+    x `seq` pass
 
 -- | Parse a string using the 'Read' instance.
 -- Succeeds if there is exactly one valid result.
@@ -175,3 +178,17 @@ infixl 1 <&>
 
 endsWith :: Eq a => [a] -> [a] -> Bool
 endsWith = flip isSuffixOf
+
+#if MIN_VERSION_base(4,8,0)
+pass :: Applicative m => m ()
+pass = pure ()
+#else
+pass :: Monad m => m ()
+pass = return ()
+#endif
+
+die :: String -> IO a
+die err = do
+  name <- getProgName
+  hPutStrLn stderr $ name <> ": " <> err
+  exitFailure

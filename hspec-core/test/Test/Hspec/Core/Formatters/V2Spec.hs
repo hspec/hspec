@@ -2,7 +2,6 @@ module Test.Hspec.Core.Formatters.V2Spec (spec) where
 
 import           Prelude ()
 import           Helper
-import qualified Control.Exception as E
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Spec as Spec
@@ -101,7 +100,7 @@ spec = do
       formatter = checks
       config = H.defaultConfig { H.configFormat = Just $ formatterToFormat formatter }
 
-    it "" $ do
+    it "prints unicode check marks" $ do
       r <- captureLines . H.hspecWithResult config $ do
         H.it "foo" True
       normalizeSummary r `shouldBe` [
@@ -112,7 +111,7 @@ spec = do
         , "1 example, 0 failures"
         ]
 
-    it "" $ do
+    it "uses ASCII as a fallback" $ do
       r <- captureLines . H.hspecWithResult config { H.configUnicodeMode = H.UnicodeNever } $ do
         H.it "foo" True
       normalizeSummary r `shouldBe` [
@@ -192,7 +191,7 @@ spec = do
           H.describe "foo" $ do
             H.it "example 1" True
           H.describe "bar" $ do
-            return ()
+            pass
           H.describe "baz" $ do
             H.it "example 2" True
 
@@ -292,7 +291,7 @@ failed_examplesSpec formatter = do
 
     it "prints the exception type for requirements that fail due to an uncaught exception" $ do
       r <- runSpec $ do
-        H.it "foobar" (E.throw (E.ErrorCall "baz") :: Bool)
+        H.it "foobar" (throw (ErrorCall "baz") :: Bool)
       r `shouldContain` [
           "  1) foobar"
         , "       uncaught exception: ErrorCall"

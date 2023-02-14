@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 module Test.Hspec.Core.Formatters.PrettySpec (spec) where
 
 import           Prelude ()
@@ -20,23 +19,53 @@ spec = do
         it "does not recover unicode" $ do
           pretty2 False (show "foo\955bar") (show "foo-bar") `shouldBe` ("\"foo\\955bar\"", "\"foo-bar\"")
 
+      context "when expected and actual would be equal after pretty-printing" $ do
+        it "returns the original values unmodified" $ do
+          pretty2 True (show "foo") (show "foo" <> "   ") `shouldBe` (show "foo", show "foo" <> "   ")
+
   describe "recoverString" $ do
-    it "parses back multi-line string literals" $ do
-      recoverString True (show "foo\nbar\nbaz\n") `shouldBe` Just "foo\nbar\nbaz\n"
+    it "recovers a string" $ do
+      recoverString (show "foo") `shouldBe` Just "foo"
 
-    it "does not parse back string literals that contain control characters" $ do
-      recoverString True (show "foo\n\tbar\nbaz\n") `shouldBe` Nothing
+    it "recovers the empty string" $ do
+      recoverString (show "") `shouldBe` Just ""
 
-    it "does not parse back string literals that span a single line" $ do
-      recoverString True (show "foo\n") `shouldBe` Nothing
+    it "does not recover a string with leading space" $ do
+      recoverString ("   " <> show "foo") `shouldBe` Nothing
+
+    it "does not recover a string with trailing space" $ do
+      recoverString (show "foo" <> "   ") `shouldBe` Nothing
+
+    it "does not recover an empty list" $ do
+      recoverString "[]" `shouldBe` Nothing
+
+  describe "recoverMultiLineString" $ do
+    let
+      multiLineString :: String
+      multiLineString = "foo\nbar\nbaz\n"
+
+    it "recovers multi-line string literals" $ do
+      recoverMultiLineString True (show multiLineString) `shouldBe` Just multiLineString
+
+    it "does not recover string literals that contain control characters" $ do
+      recoverMultiLineString True (show "foo\n\tbar\nbaz\n") `shouldBe` Nothing
+
+    it "does not recover string literals that span a single line" $ do
+      recoverMultiLineString True (show "foo\n") `shouldBe` Nothing
+
+    it "does not recover a string with trailing space" $ do
+      recoverMultiLineString True ("   " <> show multiLineString) `shouldBe` Nothing
+
+    it "does not recover a string with trailing space" $ do
+      recoverMultiLineString True (show multiLineString <> "   ") `shouldBe` Nothing
 
     context "when unicode is True" $ do
-      it "parses back string literals that contain unicode" $ do
-        recoverString True (show "foo\n\955\nbaz\n") `shouldBe` Just "foo\n\955\nbaz\n"
+      it "recovers string literals that contain unicode" $ do
+        recoverMultiLineString True (show "foo\n\955\nbaz\n") `shouldBe` Just "foo\n\955\nbaz\n"
 
     context "when unicode is False" $ do
-      it "does not parse back string literals that contain unicode" $ do
-        recoverString False (show "foo\n\955\nbaz\n") `shouldBe` Nothing
+      it "does not recover string literals that contain unicode" $ do
+        recoverMultiLineString False (show "foo\n\955\nbaz\n") `shouldBe` Nothing
 
   describe "pretty" $ do
     let person = Person "Joe" 23
@@ -58,11 +87,11 @@ spec = do
         ]
 
     it "pretty-prints tuples" $ do
-      pretty True (show (person, 23 :: Double)) `shouldBe` just [
+      pretty True (show (person, -0.5 :: Rational)) `shouldBe` just [
           "(Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
-        , "}, 23.0)"
+        , "}, (-1) % 2)"
         ]
 
     it "pretty-prints lists" $ do
@@ -110,8 +139,4 @@ spec = do
         let input = unlines ["foo", "bar", "baz"]
         pretty True input `shouldBe` Nothing
   where
-#if __GLASGOW_HASKELL__ >= 802
     just = Just . intercalate "\n"
-#else
-    just _ = Nothing
-#endif

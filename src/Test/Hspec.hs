@@ -4,7 +4,7 @@
 -- Hspec is a testing framework for Haskell.
 --
 -- This is the library reference for Hspec.
--- The <http://hspec.github.io/ User's Manual> contains more in-depth
+-- The <https://hspec.github.io/ User's Manual> contains more in-depth
 -- documentation.
 module Test.Hspec (
 -- * Types

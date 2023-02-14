@@ -18,8 +18,6 @@ module Test.Hspec.Core.Config (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Control.Exception
-import           Data.Maybe
 import           System.IO
 import           System.IO.Error
 import           System.Exit
@@ -30,10 +28,20 @@ import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Config.Options
-import           Test.Hspec.Core.Config.Definition (Config(..), ColorMode(..), UnicodeMode(..), defaultConfig, filterOr)
+import           Test.Hspec.Core.Config.Definition (Config(..), ColorMode(..), UnicodeMode(..), mkDefaultConfig, filterOr)
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
+import qualified Test.Hspec.Core.Formatters.V2 as V2
+
+defaultConfig :: Config
+defaultConfig = mkDefaultConfig $ map (fmap V2.formatterToFormat) [
+    ("checks", V2.checks)
+  , ("specdoc", V2.specdoc)
+  , ("progress", V2.progress)
+  , ("failed-examples", V2.failed_examples)
+  , ("silent", V2.silent)
+  ]
 
 -- | Add a filter predicate to config.  If there is already a filter predicate,
 -- then combine them with `||`.

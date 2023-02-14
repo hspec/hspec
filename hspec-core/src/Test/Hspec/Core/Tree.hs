@@ -27,9 +27,8 @@ module Test.Hspec.Core.Tree (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           Data.CallStack (HasCallStack, SrcLoc(..))
+import           Data.CallStack (SrcLoc(..))
 import qualified Data.CallStack as CallStack
-import           Data.Maybe
 
 import           Test.Hspec.Core.Example
 
@@ -52,7 +51,7 @@ bimapTree g f = go
   where
     go spec = case spec of
       Node d xs -> Node d (map go xs)
-      NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc (g cleanup) (map go xs)
+      NodeWithCleanup loc action xs -> NodeWithCleanup loc (g action) (map go xs)
       Leaf item -> Leaf (f item)
 
 filterTree :: (a -> Bool) -> Tree c a -> Maybe (Tree c a)
@@ -126,8 +125,14 @@ specGroup s = Node msg
       | otherwise = s
 
 -- | The @specItem@ function creates a spec item.
-specItem :: (HasCallStack, Example a) => String -> a -> SpecTree (Arg a)
-specItem s e = Leaf $ Item requirement location Nothing False (safeEvaluateExample e)
+specItem :: (HasCallStack, Example e) => String -> e -> SpecTree (Arg e)
+specItem s e = Leaf Item {
+    itemRequirement = requirement
+  , itemLocation = location
+  , itemIsParallelizable = Nothing
+  , itemIsFocused = False
+  , itemExample = safeEvaluateExample e
+  }
   where
     requirement :: HasCallStack => String
     requirement
@@ -144,6 +149,3 @@ defaultDescription :: HasCallStack => Maybe String
 defaultDescription = case CallStack.callSite of
   Just (_, loc) -> Just (srcLocModule loc ++ "[" ++ show (srcLocStartLine loc) ++ ":" ++ show (srcLocStartCol loc) ++ "]")
   Nothing -> Nothing
-
-toLocation :: SrcLoc -> Location
-toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)

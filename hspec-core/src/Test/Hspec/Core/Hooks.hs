@@ -4,7 +4,12 @@
 {-# LANGUAGE ConstraintKinds #-}
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
-  before
+-- * Types
+  Spec
+, SpecWith
+, ActionWith
+-- * Hooks
+, before
 , before_
 , beforeWith
 , beforeAll
@@ -31,9 +36,7 @@ module Test.Hspec.Core.Hooks (
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
-import           Data.CallStack (HasCallStack)
 
-import           Control.Exception (SomeException, finally, throwIO, try)
 import           Control.Concurrent
 
 import           Test.Hspec.Core.Example
@@ -111,11 +114,12 @@ around_ action = aroundWith $ \e a -> action (e a)
 
 -- | Run a custom action before and/or after every spec item.
 aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
-aroundWith = mapSpecItem_ . modifyAroundAction
+aroundWith = mapSpecItem_ . modifyHook
 
-modifyAroundAction :: (ActionWith a -> ActionWith b) -> Item a -> Item b
-modifyAroundAction action item@Item{itemExample = e} =
-  item{ itemExample = \params aroundAction -> e params (aroundAction . action) }
+modifyHook :: (ActionWith a -> ActionWith b) -> Item a -> Item b
+modifyHook action item = item {
+    itemExample = \ params hook -> itemExample item params (hook . action)
+  }
 
 -- | Wrap an action around the given spec.
 aroundAll :: HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec
@@ -178,7 +182,7 @@ decompose action = do
         signal doCleanupNow
         r <- takeMVar released
         case r of
-          Released -> return ()
+          Released -> pass
           ExceptionDuringRelease err -> throwIO err
 
   return (acquire, release)
