@@ -1,6 +1,3 @@
-## Changes in 2.10.7
-  - add ability to create user-defined slowspec filter
-
 ## Changes in 2.10.6 (2022-09-13)
   - Suppress excessive diff output (#449)
   - Allow the use of an external diff program.  This can e.g. be used by
