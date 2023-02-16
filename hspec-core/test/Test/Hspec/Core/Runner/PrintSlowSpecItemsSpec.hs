@@ -1,8 +1,9 @@
-{-# LANGUAGE RecordWildCards #-}
 module Test.Hspec.Core.Runner.PrintSlowSpecItemsSpec (spec) where
 
 import           Prelude ()
 import           Helper
+
+import           System.IO (stderr)
 
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Runner.PrintSlowSpecItems
@@ -25,9 +26,12 @@ item = Item {
 spec :: Spec
 spec = do
   describe "printSlowSpecItems" $ do
-    let format = printSlowSpecItems 2 $ \ _ -> pass
+    let
+      format = printSlowSpecItems 2 $ \ _ -> pass
+      run = hCapture_ [stderr] . format . Done
+
     it "prints slow spec items" $ do
-      capture_ $ format $ Done [
+      run [
             ((["foo", "bar"], "one"), item {itemDuration = 0.100})
           , ((["foo", "bar"], "two"), item {itemDuration = 0.500})
           , ((["foo", "bar"], "thr"), item {itemDuration = 0.050})
@@ -41,5 +45,5 @@ spec = do
 
     context "when there are no slow items" $ do
       it "prints nothing" $ do
-        capture_ $ format $ Done [((["foo", "bar"], "one"), item {itemDuration = 0})]
+        run [((["foo", "bar"], "one"), item {itemDuration = 0})]
         `shouldReturn` ""

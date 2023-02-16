@@ -600,7 +600,7 @@ spec = do
 
     context "with --print-slow-items" $ do
       it "prints slow items" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--print-slow-items"] . H.hspec $ do
+        r <- fmap lines . hCapture_ [stdout, stderr] . ignoreExitCode . withArgs ["--print-slow-items"] . H.hspec $ do
           H.it "foo" $ threadDelay 2000
         normalizeTimes (normalizeSummary r) `shouldBe` [
             ""

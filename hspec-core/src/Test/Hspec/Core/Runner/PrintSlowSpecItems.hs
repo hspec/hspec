@@ -7,6 +7,8 @@ module Test.Hspec.Core.Runner.PrintSlowSpecItems (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import           System.IO (stderr, hPutStrLn)
+
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Format
 
@@ -26,7 +28,7 @@ printSlowSpecItems n format event = do
     Done items -> do
       let xs = slowItems n $ map toSlowItem items
       unless (null xs) $ do
-        putStrLn "\nSlow spec items:"
+        hPutStrLn stderr "\nSlow spec items:"
         mapM_ printSlowSpecItem xs
     _ -> pass
 
@@ -38,4 +40,4 @@ slowItems n = take n . reverse . sortOn duration . filter ((/= 0) . duration)
 
 printSlowSpecItem :: SlowItem -> IO ()
 printSlowSpecItem SlowItem{..} = do
-  putStrLn $ "  " ++ maybe "" formatLocation location ++ joinPath path ++ " (" ++ show duration ++ "ms)"
+  hPutStrLn stderr $ "  " ++ maybe "" formatLocation location ++ joinPath path ++ " (" ++ show duration ++ "ms)"
