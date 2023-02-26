@@ -53,12 +53,14 @@ class Example e where
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
 , paramsSmallCheckDepth :: Maybe Int
+, paramsUseColor :: Bool
 } deriving (Show)
 
 defaultParams :: Params
 defaultParams = Params {
   paramsQuickCheckArgs = QC.stdArgs
 , paramsSmallCheckDepth = Nothing
+, paramsUseColor = True
 }
 
 type Progress = (Int, Int)

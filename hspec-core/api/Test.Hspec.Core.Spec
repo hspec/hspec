@@ -52,6 +52,7 @@ type Params :: *
 data Params = Params
   paramsQuickCheckArgs :: Test.QuickCheck.Test.Args
   paramsSmallCheckDepth :: Maybe Int
+  paramsUseColor :: Bool
 type Progress :: *
 type Progress = (Int, Int)
 type ProgressCallback :: *

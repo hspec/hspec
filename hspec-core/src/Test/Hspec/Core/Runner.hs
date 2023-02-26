@@ -320,7 +320,7 @@ runSpecForest_ config spec = do
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
   let
-    filteredSpec = specToEvalForest config spec
+    filteredSpec = specToEvalForest outputColor config spec
     seed = (fromJust . configQuickCheckSeed) config
     qcArgs = configQuickCheckArgs config
     !numberOfItems = countEvalItems filteredSpec
@@ -371,8 +371,8 @@ runSpecForest_ config spec = do
 
   return results
 
-specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
-specToEvalForest config =
+specToEvalForest :: OutputColor -> Config -> [SpecTree ()] -> [EvalTree]
+specToEvalForest outputColor config =
       failFocusedItems config
   >>> failPendingItems config
   >>> focusSpec config
@@ -386,7 +386,11 @@ specToEvalForest config =
     seed = (fromJust . configQuickCheckSeed) config
 
     params :: Params
-    params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+    params = Params {
+      paramsQuickCheckArgs = configQuickCheckArgs config
+    , paramsSmallCheckDepth = configSmallCheckDepth config
+    , paramsUseColor = shouldUseColor outputColor
+    }
 
     randomize :: [Tree c a] -> [Tree c a]
     randomize

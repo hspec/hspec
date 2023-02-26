@@ -1,0 +1,1 @@
+  - Add `paramsUseColor` to `Params` record
