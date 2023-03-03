@@ -24,6 +24,7 @@ import           System.Console.ANSI
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Spec as H
+import           Test.Hspec.Core.Runner (UseColor(..), ProgressReporting(..))
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.Runner.Result
 import qualified Test.Hspec.Core.QuickCheck as H
@@ -764,35 +765,34 @@ spec = do
         high `shouldBe` j
 
   describe "colorOutputSupported" $ do
-
     context "without a terminal device" $ do
 
       let isTerminalDevice = return False
 
-      it "returns False" $ do
-        H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (False, False)
+      it "disables color output" $ do
+        H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` ColorDisabled
 
       context "with GITHUB_ACTIONS=true" $ do
-        it "returns True" $ do
+        it "enable color output" $ do
           withEnvironment [("GITHUB_ACTIONS", "true")] $ do
-            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (False, True)
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` ColorEnabled ProgressReportingDisabled
 
     context "with a terminal device" $ do
 
       let isTerminalDevice = return True
 
-      it "returns True" $ do
-        H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (True, True)
+      it "enable color output" $ do
+        H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` ColorEnabled ProgressReportingEnabled
 
       context "with BUILDKITE=true" $ do
         it "disables progress reporting" $ do
           withEnvironment [("BUILDKITE", "true")] $ do
-            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (False, True)
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` ColorEnabled ProgressReportingDisabled
 
       context "when NO_COLOR is set" $ do
-        it "returns False" $ do
+        it "disables color output" $ do
           withEnvironment [("NO_COLOR", "yes")] $ do
-            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` (False, False)
+            H.colorOutputSupported H.ColorAuto isTerminalDevice `shouldReturn` ColorDisabled
 
   describe "unicodeOutputSupported" $ do
     context "with UnicodeAlways" $ do
