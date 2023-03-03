@@ -85,6 +85,10 @@ import qualified Text.ParserCombinators.ReadP as P
 import           Data.Ord (comparing)
 #endif
 
+#if MIN_VERSION_base(4,7,0)
+import           Data.Bool as Imports (bool)
+#endif
+
 import           Data.Typeable (tyConModule, tyConName)
 import           Control.Concurrent
 
@@ -168,6 +172,12 @@ guarded p a = if p a then pure a else empty
 sortOn :: Ord b => (a -> b) -> [a] -> [a]
 sortOn f =
   map snd . sortBy (comparing fst) . map (\x -> let y = f x in y `seq` (y, x))
+#endif
+
+#if !MIN_VERSION_base(4,7,0)
+bool :: a -> a -> Bool -> a
+bool f _ False = f
+bool _ t True  = t
 #endif
 
 #if !MIN_VERSION_base(4,11,0)
