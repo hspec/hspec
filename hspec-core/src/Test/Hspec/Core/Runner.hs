@@ -81,6 +81,8 @@ If you need more control over how a spec is run use these primitives individuall
 
 #ifdef TEST
 , rerunAll
+, OutputColor(..)
+, ReportProgress(..)
 , specToEvalForest
 , colorOutputSupported
 , unicodeOutputSupported
@@ -313,6 +315,10 @@ focusSpec config spec
 
 runSpecForest_ :: Config -> [SpecTree ()] -> IO SpecResult
 runSpecForest_ config spec = do
+
+  outputColor <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
+  outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
+
   let
     filteredSpec = specToEvalForest config spec
     seed = (fromJust . configQuickCheckSeed) config
@@ -327,14 +333,11 @@ runSpecForest_ config spec = do
     Nothing -> getDefaultConcurrentJobs
     Just n -> return n
 
-  (reportProgress, useColor) <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
-  outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
-
-  results <- fmap toSpecResult . withHiddenCursor reportProgress stdout $ do
+  results <- fmap toSpecResult . withHiddenCursor (reportProgress outputColor) stdout $ do
     let
       formatConfig = FormatConfig {
-        formatConfigUseColor = useColor
-      , formatConfigReportProgress = reportProgress
+        formatConfigUseColor = shouldUseColor outputColor
+      , formatConfigReportProgress = reportProgress outputColor == ProgressEnabled
       , formatConfigOutputUnicode = outputUnicode
       , formatConfigUseDiff = configDiff config
       , formatConfigDiffContext = configDiffContext config
@@ -430,21 +433,43 @@ dumpFailureReport config seed qcArgs xs = do
 doNotLeakCommandLineArgumentsToExamples :: IO a -> IO a
 doNotLeakCommandLineArgumentsToExamples = withArgs []
 
-withHiddenCursor :: Bool -> Handle -> IO a -> IO a
-withHiddenCursor reportProgress h
-  | reportProgress  = bracket_ (hHideCursor h) (hShowCursor h)
-  | otherwise = id
+withHiddenCursor :: ReportProgress -> Handle -> IO a -> IO a
+withHiddenCursor progress h = case progress of
+  ProgressDisabled -> id
+  ProgressEnabled -> bracket_ (hHideCursor h) (hShowCursor h)
 
-colorOutputSupported :: ColorMode -> IO Bool -> IO (Bool, Bool)
+data OutputColor = ColorDisabled | ColorEnabled ReportProgress
+  deriving (Eq, Show)
+
+data ReportProgress = ProgressDisabled | ProgressEnabled
+  deriving (Eq, Show)
+
+shouldUseColor :: OutputColor -> Bool
+shouldUseColor c = case c of
+  ColorDisabled -> False
+  ColorEnabled _ -> True
+
+reportProgress :: OutputColor -> ReportProgress
+reportProgress c = case c of
+  ColorDisabled -> ProgressDisabled
+  ColorEnabled r -> r
+
+colorOutputSupported :: ColorMode -> IO Bool -> IO OutputColor
 colorOutputSupported mode isTerminalDevice = do
   github <- githubActions
   buildkite <- lookupEnv "BUILDKITE" <&> (== Just "true")
-  useColor <- case mode of
-    ColorAuto  -> (github ||) <$> colorTerminal
-    ColorNever -> return False
-    ColorAlways -> return True
-  let reportProgress = not github && not buildkite && useColor
-  return (reportProgress, useColor)
+  let
+    progress :: ReportProgress
+    progress
+      | github || buildkite = ProgressDisabled
+      | otherwise = ProgressEnabled
+
+    colorEnabled :: OutputColor
+    colorEnabled = ColorEnabled progress
+  case mode of
+    ColorAuto -> bool ColorDisabled colorEnabled . (github ||) <$> colorTerminal
+    ColorNever -> return ColorDisabled
+    ColorAlways -> return colorEnabled
   where
     githubActions :: IO Bool
     githubActions = lookupEnv "GITHUB_ACTIONS" <&> (== Just "true")
