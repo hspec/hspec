@@ -3,7 +3,7 @@
 module Test.Hspec.Core.Formatters.V1Spec (spec) where
 
 import           Prelude ()
-import           Helper
+import           Helper hiding (colorize)
 import           Data.String
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Writer hiding (pass)

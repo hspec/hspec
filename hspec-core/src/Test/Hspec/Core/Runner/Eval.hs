@@ -4,14 +4,18 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ViewPatterns #-}
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
+, ColorMode(..)
 , EvalTree
 , Tree(..)
 , EvalItem(..)
 , Concurrency(..)
 , runFormatter
 #ifdef TEST
+, stripAnsi
+, hasAnsi
 , mergeResults
 #endif
 ) where
@@ -47,7 +51,10 @@ data EvalConfig = EvalConfig {
   evalConfigFormat :: Format
 , evalConfigConcurrentJobs :: Int
 , evalConfigFailFast :: Bool
+, evalConfigColorMode :: ColorMode
 }
+
+data ColorMode = ColorDisabled | ColorEnabled
 
 data Env = Env {
   envConfig :: EvalConfig
@@ -96,14 +103,53 @@ reportItemDone path item = do
   addResult path item
   formatEvent $ Format.ItemDone path item
 
+sanitize :: Format.Item -> Format.Item
+sanitize Format.Item{..} = Format.Item {
+    itemLocation = itemLocation
+  , itemDuration = itemDuration
+  , itemInfo = stripAnsi itemInfo
+  , itemResult = case itemResult of
+      Format.Success -> Format.Success
+      Format.Pending loc reason -> Format.Pending loc (stripAnsi <$> reason)
+      Format.Failure loc reason -> Format.Failure loc $ case reason of
+        NoReason -> NoReason
+        Reason r -> Reason (stripAnsi r)
+        ExpectedButGot preface expected actual -> ExpectedButGot (stripAnsi <$> preface) (stripAnsi expected) (stripAnsi actual)
+        Error preface err -> Error (stripAnsi <$> preface) err
+  }
+
+stripAnsi :: String -> String
+stripAnsi = go
+  where
+    go = onAnsi go (\ x -> (x :) . go) []
+
+hasAnsi :: String -> Bool
+hasAnsi = go
+  where
+    go = onAnsi (const True) (\ _ -> go) False
+
+{-# INLINE onAnsi #-}
+onAnsi :: (String -> a) -> (Char -> String -> a) -> a -> String -> a
+onAnsi ansi cont nil input = case input of
+  '\ESC' : '[' : (dropWhile (`elem` "0123456789;") -> 'm' : xs) -> ansi xs
+  x : xs -> cont x xs
+  [] -> nil
+
 reportResult :: Path -> Maybe Location -> (Seconds, Result) -> EvalM ()
 reportResult path loc (duration, result) = do
   case result of
-    Result info status -> reportItemDone path $ Format.Item loc duration info $ case status of
-      Success                      -> Format.Success
-      Pending loc_ reason          -> Format.Pending loc_ reason
-      Failure loc_ err@(Error _ e) -> Format.Failure (loc_ <|> extractLocation e) err
-      Failure loc_ err             -> Format.Failure loc_ err
+    Result info status -> do
+      let
+        item :: Format.Item
+        item = Format.Item loc duration info $ case status of
+          Success                      -> Format.Success
+          Pending loc_ reason          -> Format.Pending loc_ reason
+          Failure loc_ err@(Error _ e) -> Format.Failure (loc_ <|> extractLocation e) err
+          Failure loc_ err             -> Format.Failure loc_ err
+      mode <- asks (evalConfigColorMode . envConfig)
+      reportItemDone path $ case mode of
+        ColorDisabled -> sanitize item
+        ColorEnabled -> item
 
 groupStarted :: Path -> EvalM ()
 groupStarted = formatEvent . Format.GroupStarted
@@ -121,7 +167,7 @@ data EvalItem = EvalItem {
 type EvalTree = Tree (IO ()) EvalItem
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: EvalConfig -> [EvalTree] -> IO ([(Path, Format.Item)])
+runFormatter :: EvalConfig -> [EvalTree] -> IO [(Path, Format.Item)]
 runFormatter config specs = do
   withJobQueue (evalConfigConcurrentJobs config) $ \ queue -> do
     withTimer 0.05 $ \ timer -> do

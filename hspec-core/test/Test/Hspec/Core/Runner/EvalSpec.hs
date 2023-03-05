@@ -47,6 +47,17 @@ failure = Failure <$> arbitrary <*> arbitrary
 
 spec :: Spec
 spec = do
+  describe "stripAnsi" $ do
+    it "removes ANSI color sequences" $ do
+      stripAnsi ("some " <> green "colorized" <> " text") `shouldBe` "some colorized text"
+
+  describe "hasAnsi" $ do
+    it "" $ do
+      hasAnsi ("some " <> green "colorized" <> " text") `shouldBe` True
+
+    it "" $ do
+      hasAnsi "some colorized text" `shouldBe` False
+
   describe "mergeResults" $ do
     it "gives failures from items precedence" $ do
       forAll failureResult $ \ item -> \ hook -> do

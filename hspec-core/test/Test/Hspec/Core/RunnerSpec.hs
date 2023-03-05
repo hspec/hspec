@@ -12,7 +12,6 @@ import           System.Exit
 import           Control.Concurrent
 import           Control.Concurrent.Async
 import           Mock
-import           System.Console.ANSI
 
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Expectations as H
@@ -533,14 +532,59 @@ spec = do
           , "        but got: Person {personName = \"Joe\", personAge = 23}"
           ]
 
+    context "with --color" $ do
+      let
+        xx :: H.Result
+        xx = H.Result {
+            H.resultInfo = "info"
+          , H.resultStatus = H.Failure Nothing . H.Reason $ "some " <> green "colorized" <> " error message"
+          }
+
+      it "shows colorized diffs" $ do
+        r <- capture_ . ignoreExitCode . withArgs ["--seed=0", "--format=failed-examples", "--color"] . H.hspec . removeLocations $ do
+          H.it "foo" xx
+        normalizeSummary (lines r) `shouldBe` [
+            "\ESC[?25l"
+          , "Failures:"
+          , ""
+          , "  1) foo"
+          , red $ "       some " ++ green "colorized" ++ " error message"
+          , ""
+          , "  To rerun use: --match \"/foo/\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , red "1 example, 1 failure"
+          , "\ESC[?25h"
+          ]
+
+      it "shows colorized diffs" $ do
+        r <- capture_ . ignoreExitCode . withArgs ["--seed=0", "--format=failed-examples", "--no-color"] . H.hspec . removeLocations $ do
+          H.it "foo" xx
+        normalizeSummary (lines r) `shouldBe` [
+            ""
+          , "Failures:"
+          , ""
+          , "  1) foo"
+          , "       some colorized error message"
+          , ""
+          , "  To rerun use: --match \"/foo/\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
+          ]
+
     context "with --diff" $ do
       it "shows colorized diffs" $ do
         r <- capture_ . ignoreExitCode . withArgs ["--diff", "--color"] . H.hspec $ do
           H.it "foo" $ do
             23 `H.shouldBe` (42 :: Int)
         r `shouldContain` unlines [
-            red ++ "       expected: " ++ reset ++ red ++ "42" ++ reset
-          , red ++ "        but got: " ++ reset ++ green ++ "23" ++ reset
+            red "       expected: " ++ red "42"
+          , red "        but got: " ++ green "23"
           ]
 
     context "with --no-diff" $ do
@@ -549,8 +593,8 @@ spec = do
           H.it "foo" $ do
             23 `H.shouldBe` (42 :: Int)
         r `shouldContain` unlines [
-            red ++ "       expected: " ++ reset ++ "42"
-          , red ++ "        but got: " ++ reset ++ "23"
+            red "       expected: " ++ "42"
+          , red "        but got: " ++ "23"
           ]
 
     context "with --diff-context" $ do
@@ -867,7 +911,3 @@ spec = do
     context "on failure" $ do
       it "returns False" $ do
         H.rerunAll config (Just report) result { specResultSuccess = False } `shouldBe` False
-  where
-    green  = setSGRCode [SetColor Foreground Dull Green]
-    red    = setSGRCode [SetColor Foreground Dull Red]
-    reset  = setSGRCode [Reset]

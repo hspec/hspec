@@ -1,0 +1,1 @@
+  - Strip ANSI escape sequences on `--no-color` from example output

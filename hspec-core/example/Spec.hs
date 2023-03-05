@@ -4,16 +4,21 @@ import Prelude
 import Test.Hspec.Core.Spec
 import Test.Hspec.Core.Runner
 import Test.Hspec.Expectations
-import Test.QuickCheck
+
+import Helper (green)
 
 main :: IO ()
 main = hspec spec
 
+data Foo = Foo
+
+instance Example Foo where
+  evaluateExample _ _ _ _ = return Result {
+      resultInfo = "info"
+    , resultStatus = Failure Nothing . Reason $ "some " <> green "colorized" <> " error message"
+    }
+
 spec :: Spec
 spec = do
   describe "reverse" $ do
-    it "reverses a list" $ do
-      reverse [1 :: Int, 2, 3] `shouldBe` [3, 2, 1]
-
-    it "gives the original list, if applied twice" $ property $
-      \xs -> (reverse . reverse) xs == (xs :: [Int])
+    it "reverses a list" Foo

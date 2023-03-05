@@ -116,7 +116,7 @@ import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Shuffle
 
 import           Test.Hspec.Core.Runner.PrintSlowSpecItems
-import           Test.Hspec.Core.Runner.Eval hiding (Tree(..))
+import           Test.Hspec.Core.Runner.Eval hiding (ColorMode(..), Tree(..))
 import qualified Test.Hspec.Core.Runner.Eval as Eval
 import           Test.Hspec.Core.Runner.Result
 
@@ -388,6 +388,7 @@ runSpecForest_ oldFailureReport spec c_ = do
         evalConfigFormat = format
       , evalConfigConcurrentJobs = concurrentJobs
       , evalConfigFailFast = configFailFast config
+      , evalConfigColorMode = bool Eval.ColorDisabled Eval.ColorEnabled (shouldUseColor colorMode)
       }
     runFormatter evalConfig filteredSpec
 
