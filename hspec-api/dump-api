@@ -1,0 +1,47 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+
+cd "$(dirname "$0")"
+
+versions=(
+  "2.8.0"
+  "2.8.1"
+  "2.8.2"
+  "2.8.3"
+  "2.8.4"
+  "2.8.5"
+  "2.9.0"
+  "2.9.1"
+  "2.9.2"
+  "2.9.3"
+  "2.9.4"
+  "2.9.5"
+  "2.9.6"
+  "2.9.7"
+  "2.10.0"
+  "2.10.0.1"
+  "2.10.1"
+  "2.10.2"
+  "2.10.3"
+  "2.10.4"
+  "2.10.5"
+  "2.10.6"
+  "2.10.7"
+  "2.10.8"
+  "2.10.9"
+)
+
+for version in "${versions[@]}"; do
+  echo "$version"
+  echo "constraints: any.hspec-core ==$version" > cabal.project.freeze
+  cabal build
+  api-dump
+  sed -i 's/Test.Hspec.Core.Formatters.Free.Free/Test.Hspec.Core.Formatters.V1.Free.Free/g' api/Test.Hspec.Api.Formatters.V1
+  sed -i 's/Test.Hspec.Core.Formatters.Monad.FormatF/Test.Hspec.Core.Formatters.V1.Monad.FormatF/g' api/Test.Hspec.Api.Formatters.V1
+  sed -i 's/Test.Hspec.Core.Config.Options.Config/Test.Hspec.Core.Config.Definition.Config/g' api/Test.Hspec.Api.Formatters.V1
+  git diff --quiet api || (git diff --color api && false)
+  cabal test --enable-tests --test-show-details=direct
+done
+
+rm cabal.project.freeze

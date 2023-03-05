@@ -1,0 +1,55 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           hspec-api
+version:        0.0.0
+synopsis:       A Testing Framework for Haskell
+description:    This package provides a stable API that can be used to extend Hspec's functionality.
+category:       Testing
+stability:      stable
+homepage:       https://hspec.github.io/
+bug-reports:    https://github.com/hspec/hspec/issues
+maintainer:     Simon Hengel <sol@typeful.net>
+copyright:      (c) 2022-2023 Simon Hengel
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/hspec/hspec
+  subdir: hspec-api
+
+library
+  exposed-modules:
+      Test.Hspec.Api.Formatters.V1
+  other-modules:
+      Paths_hspec_api
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  build-depends:
+      base ==4.*
+    , hspec-core >=2.8.0 && <2.11.0
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Test.Hspec.Api.Formatters.V1Spec
+      Paths_hspec_api
+  hs-source-dirs:
+      test
+  ghc-options: -Wall
+  build-tool-depends:
+      hspec-discover:hspec-discover
+  build-depends:
+      base ==4.*
+    , hspec ==2.*
+    , hspec-api
+    , hspec-core >=2.8.0 && <2.11.0
+  default-language: Haskell2010
