@@ -33,4 +33,7 @@ jobs:
       - run: util/dump-api
 
       - name: Check for uncommitted changes
-        run: git diff --quiet || (git diff && false)
+        run: git diff --quiet || (git diff --color && false)
+
+      - run: ghcup install ghc 9.2 --set
+      - run: hspec-api/dump-api
