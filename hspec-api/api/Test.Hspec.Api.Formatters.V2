@@ -1,3 +1,5 @@
+diffContext :: FormatM (Maybe Int)
+externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
 useFormatter :: (String, Formatter) -> hspec-core:Test.Hspec.Core.Config.Definition.Config -> hspec-core:Test.Hspec.Core.Config.Definition.Config
 type FailureReason :: *
 data FailureReason
@@ -8,35 +10,46 @@ data FailureReason
 type FailureRecord :: *
 data FailureRecord = FailureRecord
   failureRecordLocation :: Maybe Location
-  failureRecordPath :: Test.Hspec.Core.Util.Path
+  failureRecordPath :: Path
   failureRecordMessage :: FailureReason
 type FormatM :: * -> *
-type FormatM = hspec-core:Test.Hspec.Core.Formatters.V1.Free.Free hspec-core:Test.Hspec.Core.Formatters.V1.Monad.FormatF :: * -> *
+newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.State.Lazy.StateT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
 type Formatter :: *
 data Formatter = Formatter
-  headerFormatter :: FormatM ()
-  exampleGroupStarted :: [String] -> String -> FormatM ()
-  exampleGroupDone :: FormatM ()
-  exampleStarted :: Test.Hspec.Core.Util.Path -> FormatM ()
-  exampleProgress :: Test.Hspec.Core.Util.Path -> Progress -> FormatM ()
-  exampleSucceeded :: Test.Hspec.Core.Util.Path -> String -> FormatM ()
-  exampleFailed :: Test.Hspec.Core.Util.Path -> String -> FailureReason -> FormatM ()
-  examplePending :: Test.Hspec.Core.Util.Path -> String -> Maybe String -> FormatM ()
-  failedFormatter :: FormatM ()
-  footerFormatter :: FormatM ()
+  formatterStarted :: FormatM ()
+  formatterGroupStarted :: Path -> FormatM ()
+  formatterGroupDone :: Path -> FormatM ()
+  formatterProgress :: Path -> Progress -> FormatM ()
+  formatterItemStarted :: Path -> FormatM ()
+  formatterItemDone :: Path -> Item -> FormatM ()
+  formatterDone :: FormatM ()
+type Item :: *
+data Item = Item
+  itemLocation :: Maybe Location
+  itemDuration :: Seconds
+  itemInfo :: String
+  itemResult :: Result
 type Location :: *
 data Location = Location
   locationFile :: FilePath
   locationLine :: Int
   locationColumn :: Int
+type Path :: *
+type Path = ([String], String)
 type Progress :: *
 type Progress = (Int, Int)
+type Result :: *
+data Result
+  | Success
+  | Pending (Maybe Location) (Maybe String)
+  | Failure (Maybe Location) FailureReason
 type Seconds :: *
 newtype Seconds = Seconds Double
 checks :: Formatter
 extraChunk :: String -> FormatM ()
 failed_examples :: Formatter
 formatException :: GHC.Exception.Type.SomeException -> String
+formatLocation :: Location -> String
 formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
 getCPUTime :: FormatM (Maybe Seconds)
 getFailCount :: FormatM Int
@@ -46,6 +59,7 @@ getRealTime :: FormatM Seconds
 getSuccessCount :: FormatM Int
 getTotalCount :: FormatM Int
 missingChunk :: String -> FormatM ()
+printTimes :: FormatM Bool
 progress :: Formatter
 silent :: Formatter
 specdoc :: Formatter

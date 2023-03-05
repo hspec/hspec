@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ViewPatterns #-}
 -- |
--- Stability: deprecated
+-- Stability: stable
 --
 -- This module contains formatters that can be used with `hspecWith`:
 --
@@ -18,7 +18,7 @@
 -- spec :: Spec
 -- spec = ...
 -- @
-module Test.Hspec.Api.Formatters.V1 (
+module Test.Hspec.Api.Formatters.V2 (
 
 -- * Register a formatter
   useFormatter
@@ -39,6 +39,11 @@ module Test.Hspec.Api.Formatters.V1 (
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
 , Formatter (..)
+, Path
+, Progress
+, Location(..)
+, Item(..)
+, Result(..)
 , FailureReason (..)
 , FormatM
 
@@ -51,6 +56,8 @@ module Test.Hspec.Api.Formatters.V1 (
 , FailureRecord (..)
 , getFailMessages
 , usedSeed
+
+, printTimes
 
 , Seconds(..)
 , getCPUTime
@@ -68,20 +75,27 @@ module Test.Hspec.Api.Formatters.V1 (
 , withFailColor
 
 , useDiff
+, diffContext
+, externalDiffAction
 , extraChunk
 , missingChunk
 
 -- ** Helpers
+, formatLocation
 , formatException
-
--- * Re-exports
-, Location(..)
-, Progress
 ) where
 
-import Test.Hspec.Core.Formatters.V1
-import Test.Hspec.Core.Runner
+import Test.Hspec.Core.Formatters.V2
+import Test.Hspec.Core.Runner (Config(..))
 import Test.Hspec.Core.Format
+
+#if !MIN_VERSION_hspec_core(2,10,6)
+diffContext :: FormatM (Maybe Int)
+diffContext = return Nothing
+
+externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
+externalDiffAction = return Nothing
+#endif
 
 -- |
 -- Make a formatter available for use with @--format@ and use it by default.

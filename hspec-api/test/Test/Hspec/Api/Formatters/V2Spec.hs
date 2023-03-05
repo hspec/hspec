@@ -1,4 +1,4 @@
-module Test.Hspec.Api.Formatters.V1Spec (spec) where
+module Test.Hspec.Api.Formatters.V2Spec (spec) where
 
 import           Test.Hspec
 import           Test.Hspec.Runner
@@ -6,7 +6,7 @@ import           Test.Hspec.Runner
 import           Data.IORef
 import           Control.Monad.IO.Class
 
-import           Test.Hspec.Api.Formatters.V1
+import           Test.Hspec.Api.Formatters.V2
 
 spec :: Spec
 spec = do
@@ -15,6 +15,6 @@ spec = do
       ref <- newIORef "NAY!"
       let
         formatter :: Formatter
-        formatter = silent { exampleStarted = \ _ -> liftIO $ writeIORef ref "YAY!" }
+        formatter = silent { formatterItemStarted = \ _ -> liftIO $ writeIORef ref "YAY!" }
       hspecWith (useFormatter ("my-formatter", formatter) defaultConfig) $ it "" True
       readIORef ref `shouldReturn` "YAY!"

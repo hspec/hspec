@@ -37,9 +37,28 @@ for version in "${versions[@]}"; do
   echo "constraints: any.hspec-core ==$version" > cabal.project.freeze
   cabal build
   api-dump
-  sed -i 's/Test.Hspec.Core.Formatters.Free.Free/Test.Hspec.Core.Formatters.V1.Free.Free/g' api/Test.Hspec.Api.Formatters.V1
-  sed -i 's/Test.Hspec.Core.Formatters.Monad.FormatF/Test.Hspec.Core.Formatters.V1.Monad.FormatF/g' api/Test.Hspec.Api.Formatters.V1
-  sed -i 's/Test.Hspec.Core.Config.Options.Config/Test.Hspec.Core.Config.Definition.Config/g' api/Test.Hspec.Api.Formatters.V1
+
+  file=api/Test.Hspec.Api.Formatters.V1
+  sed -i 's/Test.Hspec.Core.Formatters.Free.Free/Test.Hspec.Core.Formatters.V1.Free.Free/g' "$file"
+  sed -i 's/Test.Hspec.Core.Formatters.Monad.FormatF/Test.Hspec.Core.Formatters.V1.Monad.FormatF/g' "$file"
+  sed -i 's/Test.Hspec.Core.Config.Options.Config/Test.Hspec.Core.Config.Definition.Config/g' "$file"
+
+  file=api/Test.Hspec.Api.Formatters.V2
+  sed -i 's/Test.Hspec.Core.Config.Options.Config/Test.Hspec.Core.Config.Definition.Config/g' "$file"
+
+  sed -i 's/^type FormatM = hspec-core:Test.Hspec.Core.Formatters.Free.Free.*/newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.State.Lazy.StateT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)/g' "$file"
+
+  grep -xv "type role FormatM nominal" "$file" > "${file}.new"
+  mv "${file}.new" "$file"
+
+  pattern='^externalDiffAction ::'
+  cat <(grep "$pattern" "$file") <(grep -v "$pattern" "$file") > "${file}.new"
+  mv "${file}.new" "$file"
+
+  pattern='^diffContext ::'
+  cat <(grep "$pattern" "$file") <(grep -v "$pattern" "$file") > "${file}.new"
+  mv "${file}.new" "$file"
+
   git diff --quiet api || (git diff --color api && false)
   cabal test --enable-tests --test-show-details=direct
 done
