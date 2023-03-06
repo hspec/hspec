@@ -16,6 +16,7 @@ module Test.Hspec.Api.Format.V1 (
 , monadic
 
 -- * Register a formatter
+, registerFormatter
 , useFormatter
 , liftFormatter
 
@@ -23,9 +24,14 @@ module Test.Hspec.Api.Format.V1 (
 , Config
 ) where
 
-import           Test.Hspec.Core.Runner
+import           Test.Hspec.Core.Runner (Config(..))
 import           Test.Hspec.Core.Format hiding (FormatConfig(..))
 import qualified Test.Hspec.Core.Format as Latest
+
+-- |
+-- Make a formatter available for use with @--format@.
+registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
+registerFormatter = registerFormatter_ . liftFormatter
 
 -- |
 -- Make a formatter available for use with @--format@ and use it by default.
@@ -34,11 +40,7 @@ useFormatter (liftFormatter -> formatter@(_, format)) config = (registerFormatte
 
 -- copy of Test.Hspec.Core.Runner.registerFormatter
 registerFormatter_ :: (String, Latest.FormatConfig -> IO Latest.Format) -> Config -> Config
-#if MIN_VERSION_hspec_core(2,9,0)
 registerFormatter_ formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
-#else
-registerFormatter_ _ config = config
-#endif
 
 -- | Make a formatter compatible with types from "Test.Hspec.Core.Format".
 liftFormatter :: (String, FormatConfig -> IO Format) -> (String, Latest.FormatConfig -> IO Format)
@@ -49,7 +51,13 @@ liftFormatter = fmap liftFormat
 
 data FormatConfig = FormatConfig {
   formatConfigUseColor :: Bool
+, formatConfigReportProgress :: Bool
+, formatConfigOutputUnicode :: Bool
 , formatConfigUseDiff :: Bool
+, formatConfigDiffContext :: Maybe Int
+, formatConfigExternalDiff :: Maybe (String -> String -> IO ())
+, formatConfigPrettyPrint :: Bool -- ^ Deprecated: use `formatConfigPrettyPrintFunction` instead
+, formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
 , formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool
 , formatConfigPrintCpuTime :: Bool
@@ -60,14 +68,41 @@ data FormatConfig = FormatConfig {
 liftFormatConfig :: Latest.FormatConfig -> FormatConfig
 liftFormatConfig config = FormatConfig {
   formatConfigUseColor = Latest.formatConfigUseColor config
+
+#if MIN_VERSION_hspec_core(2,9,5)
+, formatConfigReportProgress = Latest.formatConfigReportProgress config
+#else
+, formatConfigReportProgress = Latest.formatConfigUseColor config
+#endif
+
+
+, formatConfigOutputUnicode = Latest.formatConfigOutputUnicode config
 , formatConfigUseDiff = Latest.formatConfigUseDiff config
+
+#if MIN_VERSION_hspec_core(2,10,6)
+, formatConfigDiffContext = Latest.formatConfigDiffContext config
+, formatConfigExternalDiff = Latest.formatConfigExternalDiff config
+#else
+, formatConfigDiffContext = Nothing
+, formatConfigExternalDiff = Nothing
+#endif
+
+
+#if MIN_VERSION_hspec_core(2,9,5)
+, formatConfigPrettyPrint = Latest.formatConfigPrettyPrint config
+#else
+, formatConfigPrettyPrint = True
+#endif
+
+#if MIN_VERSION_hspec_core(2,10,0)
+, formatConfigPrettyPrintFunction = Latest.formatConfigPrettyPrintFunction config
+#else
+, formatConfigPrettyPrintFunction = Nothing
+#endif
+
 , formatConfigPrintTimes = Latest.formatConfigPrintTimes config
 , formatConfigHtmlOutput = Latest.formatConfigHtmlOutput config
 , formatConfigPrintCpuTime = Latest.formatConfigPrintCpuTime config
 , formatConfigUsedSeed = Latest.formatConfigUsedSeed config
-#if MIN_VERSION_hspec_core(2,9,0)
 , formatConfigExpectedTotalCount = Latest.formatConfigExpectedTotalCount config
-#else
-, formatConfigExpectedTotalCount = Latest.formatConfigItemCount config
-#endif
 }
