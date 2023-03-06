@@ -35,6 +35,8 @@ type Progress :: *
 type Progress = (Int, Int)
 type Seconds :: *
 newtype Seconds = Seconds Double
+type SpecWith :: * -> *
+type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
 checks :: Formatter
 extraChunk :: String -> FormatM ()
 failed_examples :: Formatter
@@ -48,6 +50,7 @@ getRealTime :: FormatM Seconds
 getSuccessCount :: FormatM Int
 getTotalCount :: FormatM Int
 missingChunk :: String -> FormatM ()
+modifyConfig :: (Config -> Config) -> SpecWith a
 progress :: Formatter
 silent :: Formatter
 specdoc :: Formatter

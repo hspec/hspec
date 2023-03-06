@@ -78,12 +78,15 @@ module Test.Hspec.Api.Formatters.V1 (
 , Location(..)
 , Progress
 
+, SpecWith
 , Config
+, modifyConfig
 ) where
 
 import Test.Hspec.Core.Formatters.V1
-import Test.Hspec.Core.Runner
+import Test.Hspec.Core.Runner (Config(..))
 import Test.Hspec.Core.Format
+import Test.Hspec.Core.Spec (modifyConfig, SpecWith)
 
 -- |
 -- Make a formatter available for use with @--format@ and use it by default.

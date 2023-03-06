@@ -21,10 +21,13 @@ module Test.Hspec.Api.Format.V1 (
 , liftFormatter
 
 -- * Re-exports
+, SpecWith
 , Config
+, modifyConfig
 ) where
 
 import           Test.Hspec.Core.Runner (Config(..))
+import           Test.Hspec.Core.Spec (modifyConfig, SpecWith)
 import           Test.Hspec.Core.Format hiding (FormatConfig(..))
 import qualified Test.Hspec.Core.Format as Latest
 
@@ -68,14 +71,7 @@ data FormatConfig = FormatConfig {
 liftFormatConfig :: Latest.FormatConfig -> FormatConfig
 liftFormatConfig config = FormatConfig {
   formatConfigUseColor = Latest.formatConfigUseColor config
-
-#if MIN_VERSION_hspec_core(2,9,5)
 , formatConfigReportProgress = Latest.formatConfigReportProgress config
-#else
-, formatConfigReportProgress = Latest.formatConfigUseColor config
-#endif
-
-
 , formatConfigOutputUnicode = Latest.formatConfigOutputUnicode config
 , formatConfigUseDiff = Latest.formatConfigUseDiff config
 
@@ -87,19 +83,8 @@ liftFormatConfig config = FormatConfig {
 , formatConfigExternalDiff = Nothing
 #endif
 
-
-#if MIN_VERSION_hspec_core(2,9,5)
 , formatConfigPrettyPrint = Latest.formatConfigPrettyPrint config
-#else
-, formatConfigPrettyPrint = True
-#endif
-
-#if MIN_VERSION_hspec_core(2,10,0)
 , formatConfigPrettyPrintFunction = Latest.formatConfigPrettyPrintFunction config
-#else
-, formatConfigPrettyPrintFunction = Nothing
-#endif
-
 , formatConfigPrintTimes = Latest.formatConfigPrintTimes config
 , formatConfigHtmlOutput = Latest.formatConfigHtmlOutput config
 , formatConfigPrintCpuTime = Latest.formatConfigPrintCpuTime config
