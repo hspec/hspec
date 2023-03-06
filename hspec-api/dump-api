@@ -59,6 +59,9 @@ for version in "${versions[@]}"; do
   cat <(grep "$pattern" "$file") <(grep -v "$pattern" "$file") > "${file}.new"
   mv "${file}.new" "$file"
 
+  file=api/Test.Hspec.Api.Format.V1
+  sed -i 's/Test.Hspec.Core.Config.Options.Config/Test.Hspec.Core.Config.Definition.Config/g' "$file"
+
   git diff --quiet api || (git diff --color api && false)
   cabal test --enable-tests --test-show-details=direct
 done
