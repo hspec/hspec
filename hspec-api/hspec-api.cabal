@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      Test.Hspec.Api.Format.V1
       Test.Hspec.Api.Formatters.V1
       Test.Hspec.Api.Formatters.V2
   other-modules:
@@ -41,6 +42,7 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Test.Hspec.Api.Format.V1Spec
       Test.Hspec.Api.Formatters.V1Spec
       Test.Hspec.Api.Formatters.V2Spec
       Paths_hspec_api
