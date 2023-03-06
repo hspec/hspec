@@ -1,6 +1,7 @@
 prettyPrint :: FormatM Bool
 diffContext :: FormatM (Maybe Int)
 externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
+registerFormatter :: (String, Formatter) -> Config -> Config
 useFormatter :: (String, Formatter) -> Config -> Config
 type Config :: *
 data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
@@ -55,6 +56,7 @@ formatException :: GHC.Exception.Type.SomeException -> String
 formatLocation :: Location -> String
 formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
 getCPUTime :: FormatM (Maybe Seconds)
+getExpectedTotalCount :: FormatM Int
 getFailCount :: FormatM Int
 getFailMessages :: FormatM [FailureRecord]
 getPendingCount :: FormatM Int
@@ -62,6 +64,7 @@ getRealTime :: FormatM Seconds
 getSuccessCount :: FormatM Int
 getTotalCount :: FormatM Int
 missingChunk :: String -> FormatM ()
+outputUnicode :: FormatM Bool
 printTimes :: FormatM Bool
 progress :: Formatter
 silent :: Formatter

@@ -1,7 +1,14 @@
+registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 type FormatConfig :: *
 data FormatConfig = FormatConfig
   formatConfigUseColor :: Bool
+  formatConfigReportProgress :: Bool
+  formatConfigOutputUnicode :: Bool
   formatConfigUseDiff :: Bool
+  formatConfigDiffContext :: Maybe Int
+  formatConfigExternalDiff :: Maybe (String -> String -> IO ())
+  formatConfigPrettyPrint :: Bool
+  formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
   formatConfigPrintTimes :: Bool
   formatConfigHtmlOutput :: Bool
   formatConfigPrintCpuTime :: Bool

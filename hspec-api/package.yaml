@@ -1,5 +1,5 @@
 name: hspec-api
-version: 2.8.0
+version: 2.9.0
 synopsis: A Testing Framework for Haskell
 description: >
   This package provides a stable API that can be used to extend Hspec's
@@ -16,7 +16,7 @@ ghc-options: -Wall
 
 dependencies:
   - base == 4.*
-  - hspec-core >= 2.8.0 && < 2.11
+  - hspec-core >= 2.9.0 && < 2.11
 
 library:
   source-dirs:

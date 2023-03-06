@@ -21,7 +21,8 @@
 module Test.Hspec.Api.Formatters.V2 (
 
 -- * Register a formatter
-  useFormatter
+  registerFormatter
+, useFormatter
 , formatterToFormat
 
 -- * Formatters
@@ -52,6 +53,7 @@ module Test.Hspec.Api.Formatters.V2 (
 , getPendingCount
 , getFailCount
 , getTotalCount
+, getExpectedTotalCount
 
 , FailureRecord (..)
 , getFailMessages
@@ -73,6 +75,8 @@ module Test.Hspec.Api.Formatters.V2 (
 , withSuccessColor
 , withPendingColor
 , withFailColor
+
+, outputUnicode
 
 , useDiff
 , diffContext
@@ -102,17 +106,18 @@ externalDiffAction = return Nothing
 #endif
 
 -- |
+-- Make a formatter available for use with @--format@.
+registerFormatter :: (String, Formatter) -> Config -> Config
+registerFormatter formatter = registerFormatter_ (fmap formatterToFormat formatter)
+
+-- |
 -- Make a formatter available for use with @--format@ and use it by default.
 useFormatter :: (String, Formatter) -> Config -> Config
 useFormatter (fmap formatterToFormat -> formatter@(_, format)) config = (registerFormatter_ formatter config) { configFormat = Just format }
 
 -- copy of Test.Hspec.Core.Runner.registerFormatter
 registerFormatter_ :: (String, FormatConfig -> IO Format) -> Config -> Config
-#if MIN_VERSION_hspec_core(2,9,0)
 registerFormatter_ formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
-#else
-registerFormatter_ _ config = config
-#endif
 
 #if !MIN_VERSION_hspec_core(2,9,2)
 prettyPrint :: FormatM Bool
