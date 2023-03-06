@@ -18,6 +18,9 @@ module Test.Hspec.Api.Format.V1 (
 -- * Register a formatter
 , useFormatter
 , liftFormatter
+
+-- * Re-exports
+, Config
 ) where
 
 import           Test.Hspec.Core.Runner

@@ -1,7 +1,9 @@
 prettyPrint :: FormatM Bool
 diffContext :: FormatM (Maybe Int)
 externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
-useFormatter :: (String, Formatter) -> hspec-core:Test.Hspec.Core.Config.Definition.Config -> hspec-core:Test.Hspec.Core.Config.Definition.Config
+useFormatter :: (String, Formatter) -> Config -> Config
+type Config :: *
+data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
 type FailureReason :: *
 data FailureReason
   | NoReason

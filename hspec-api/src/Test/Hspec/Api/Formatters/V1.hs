@@ -77,6 +77,8 @@ module Test.Hspec.Api.Formatters.V1 (
 -- * Re-exports
 , Location(..)
 , Progress
+
+, Config
 ) where
 
 import Test.Hspec.Core.Formatters.V1

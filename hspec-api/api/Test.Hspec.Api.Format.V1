@@ -8,7 +8,9 @@ data FormatConfig = FormatConfig
   formatConfigUsedSeed :: Integer
   formatConfigExpectedTotalCount :: Int
 liftFormatter :: (String, FormatConfig -> IO Format) -> (String, Test.Hspec.Core.Format.FormatConfig -> IO Format)
-useFormatter :: (String, FormatConfig -> IO Format) -> hspec-core:Test.Hspec.Core.Config.Definition.Config -> hspec-core:Test.Hspec.Core.Config.Definition.Config
+useFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
+type Config :: *
+data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
 type Event :: *
 data Event
   | Started

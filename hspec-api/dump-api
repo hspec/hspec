@@ -39,12 +39,17 @@ for version in "${versions[@]}"; do
   api-dump
 
   file=api/Test.Hspec.Api.Formatters.V1
+  sed -i 's/Test.Hspec.Core.Config.Options/Test.Hspec.Core.Config.Definition/g' "$file"
+  grep -v '^  hspec-core:Test.Hspec.Core.Config.Definition.config' "$file" > "${file}.new"
+  mv "${file}.new" "$file"
+
   sed -i 's/Test.Hspec.Core.Formatters.Free.Free/Test.Hspec.Core.Formatters.V1.Free.Free/g' "$file"
   sed -i 's/Test.Hspec.Core.Formatters.Monad.FormatF/Test.Hspec.Core.Formatters.V1.Monad.FormatF/g' "$file"
-  sed -i 's/Test.Hspec.Core.Config.Options.Config/Test.Hspec.Core.Config.Definition.Config/g' "$file"
 
   file=api/Test.Hspec.Api.Formatters.V2
-  sed -i 's/Test.Hspec.Core.Config.Options.Config/Test.Hspec.Core.Config.Definition.Config/g' "$file"
+  sed -i 's/Test.Hspec.Core.Config.Options/Test.Hspec.Core.Config.Definition/g' "$file"
+  grep -v '^  hspec-core:Test.Hspec.Core.Config.Definition.config' "$file" > "${file}.new"
+  mv "${file}.new" "$file"
 
   sed -i 's/^type FormatM = hspec-core:Test.Hspec.Core.Formatters.Free.Free.*/newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.State.Lazy.StateT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)/g' "$file"
 
@@ -64,7 +69,10 @@ for version in "${versions[@]}"; do
   mv "${file}.new" "$file"
 
   file=api/Test.Hspec.Api.Format.V1
-  sed -i 's/Test.Hspec.Core.Config.Options.Config/Test.Hspec.Core.Config.Definition.Config/g' "$file"
+  sed -i 's/Test.Hspec.Core.Config.Options/Test.Hspec.Core.Config.Definition/g' "$file"
+  grep -v '^  hspec-core:Test.Hspec.Core.Config.Definition.config' "$file" > "${file}.new"
+  mv "${file}.new" "$file"
+
 
   git diff --quiet api || (git diff --color api && false)
   cabal test --enable-tests --test-show-details=direct
