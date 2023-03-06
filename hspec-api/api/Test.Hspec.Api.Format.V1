@@ -57,4 +57,7 @@ data Result
   | Failure (Maybe Location) FailureReason
 type Seconds :: *
 newtype Seconds = Seconds Double
+type SpecWith :: * -> *
+type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
+modifyConfig :: (Config -> Config) -> SpecWith a
 monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format

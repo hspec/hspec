@@ -82,6 +82,7 @@ module Test.Hspec.Api.Formatters.V2 (
 , diffContext
 , externalDiffAction
 , prettyPrint
+, prettyPrintFunction
 , extraChunk
 , missingChunk
 
@@ -90,12 +91,15 @@ module Test.Hspec.Api.Formatters.V2 (
 , formatException
 
 -- * Re-exports
+, SpecWith
 , Config
+, modifyConfig
 ) where
 
 import Test.Hspec.Core.Formatters.V2
 import Test.Hspec.Core.Runner (Config(..))
 import Test.Hspec.Core.Format
+import Test.Hspec.Core.Spec (modifyConfig, SpecWith)
 
 #if !MIN_VERSION_hspec_core(2,10,6)
 diffContext :: FormatM (Maybe Int)
