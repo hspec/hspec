@@ -84,6 +84,9 @@ module Test.Hspec.Api.Formatters.V2 (
 -- ** Helpers
 , formatLocation
 , formatException
+
+-- * Re-exports
+, Config
 ) where
 
 import Test.Hspec.Core.Formatters.V2
