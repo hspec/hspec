@@ -77,6 +77,7 @@ module Test.Hspec.Api.Formatters.V2 (
 , useDiff
 , diffContext
 , externalDiffAction
+, prettyPrint
 , extraChunk
 , missingChunk
 
@@ -108,4 +109,9 @@ registerFormatter_ :: (String, FormatConfig -> IO Format) -> Config -> Config
 registerFormatter_ formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
 #else
 registerFormatter_ _ config = config
+#endif
+
+#if !MIN_VERSION_hspec_core(2,9,2)
+prettyPrint :: FormatM Bool
+prettyPrint = return True
 #endif
