@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ViewPatterns #-}
 -- |
 -- Stability: stable
@@ -74,15 +73,8 @@ liftFormatConfig config = FormatConfig {
 , formatConfigReportProgress = Latest.formatConfigReportProgress config
 , formatConfigOutputUnicode = Latest.formatConfigOutputUnicode config
 , formatConfigUseDiff = Latest.formatConfigUseDiff config
-
-#if MIN_VERSION_hspec_core(2,10,6)
 , formatConfigDiffContext = Latest.formatConfigDiffContext config
 , formatConfigExternalDiff = Latest.formatConfigExternalDiff config
-#else
-, formatConfigDiffContext = Nothing
-, formatConfigExternalDiff = Nothing
-#endif
-
 , formatConfigPrettyPrint = Latest.formatConfigPrettyPrint config
 , formatConfigPrettyPrintFunction = Latest.formatConfigPrettyPrintFunction config
 , formatConfigPrintTimes = Latest.formatConfigPrintTimes config

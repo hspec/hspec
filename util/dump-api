@@ -6,3 +6,4 @@ cd "$(dirname $0)/.."
 
 (                 cabal build && api-dump)
 (cd hspec-core && cabal build && api-dump)
+(cd hspec-api  && cabal build && api-dump)
