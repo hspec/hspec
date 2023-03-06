@@ -7,3 +7,4 @@ runhaskell util/BumpVersion.hs $*
 hpack package.yaml
 hpack hspec-core/package.yaml
 hpack hspec-discover/package.yaml
+hpack hspec-api/package.yaml

@@ -1,5 +1,7 @@
+_: !include version.yaml
+
 name: hspec-api
-version: 2.10.0
+version: *version
 synopsis: A Testing Framework for Haskell
 description: >
   This package provides a stable API that can be used to extend Hspec's
@@ -12,11 +14,14 @@ homepage: https://hspec.github.io/
 
 github: hspec/hspec/hspec-api
 
+extra-source-files:
+  - version.yaml
+
 ghc-options: -Wall
 
 dependencies:
-  - base == 4.*
-  - hspec-core >= 2.10.0 && < 2.11
+  base: 4.*
+  hspec-core: *version
 
 library:
   source-dirs:
@@ -30,4 +35,5 @@ tests:
       - test
     dependencies:
       - hspec == 2.*
+      - transformers
       - hspec-api

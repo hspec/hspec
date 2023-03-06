@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ViewPatterns #-}
 -- |
 -- Stability: stable
@@ -101,14 +100,6 @@ import Test.Hspec.Core.Runner (Config(..))
 import Test.Hspec.Core.Format
 import Test.Hspec.Core.Spec (modifyConfig, SpecWith)
 
-#if !MIN_VERSION_hspec_core(2,10,6)
-diffContext :: FormatM (Maybe Int)
-diffContext = return Nothing
-
-externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
-externalDiffAction = return Nothing
-#endif
-
 -- |
 -- Make a formatter available for use with @--format@.
 registerFormatter :: (String, Formatter) -> Config -> Config
@@ -122,8 +113,3 @@ useFormatter (fmap formatterToFormat -> formatter@(_, format)) config = (registe
 -- copy of Test.Hspec.Core.Runner.registerFormatter
 registerFormatter_ :: (String, FormatConfig -> IO Format) -> Config -> Config
 registerFormatter_ formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
-
-#if !MIN_VERSION_hspec_core(2,9,2)
-prettyPrint :: FormatM Bool
-prettyPrint = return True
-#endif

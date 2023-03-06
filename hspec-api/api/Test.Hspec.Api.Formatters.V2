@@ -1,10 +1,41 @@
-prettyPrint :: FormatM Bool
-diffContext :: FormatM (Maybe Int)
-externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
 registerFormatter :: (String, Formatter) -> Config -> Config
 useFormatter :: (String, Formatter) -> Config -> Config
 type Config :: *
 data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
+  hspec-core:Test.Hspec.Core.Config.Definition.configIgnoreConfigFile :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configDryRun :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFocusedOnly :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFailOnEmpty :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFailOnFocused :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFailOnPending :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configPrintSlowItems :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configPrintCpuTime :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFailFast :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configRandomize :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFailureReport :: Maybe FilePath
+  hspec-core:Test.Hspec.Core.Config.Definition.configRerun :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configRerunAllOnSuccess :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFilterPredicate :: Maybe (Path -> Bool)
+  hspec-core:Test.Hspec.Core.Config.Definition.configSkipPredicate :: Maybe (Path -> Bool)
+  hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckSeed :: Maybe Integer
+  hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckMaxSuccess :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckMaxDiscardRatio :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckMaxSize :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckMaxShrinks :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configSmallCheckDepth :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configColorMode :: hspec-core:Test.Hspec.Core.Config.Definition.ColorMode
+  hspec-core:Test.Hspec.Core.Config.Definition.configUnicodeMode :: hspec-core:Test.Hspec.Core.Config.Definition.UnicodeMode
+  hspec-core:Test.Hspec.Core.Config.Definition.configDiff :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configDiffContext :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
+  hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrint :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
+  hspec-core:Test.Hspec.Core.Config.Definition.configTimes :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormat :: Maybe (Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter
+  hspec-core:Test.Hspec.Core.Config.Definition.configHtmlOutput :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configConcurrentJobs :: Maybe Int
 type FailureReason :: *
 data FailureReason
   | NoReason
@@ -16,6 +47,7 @@ data FailureRecord = FailureRecord
   failureRecordLocation :: Maybe Location
   failureRecordPath :: Path
   failureRecordMessage :: FailureReason
+type role FormatM nominal
 type FormatM :: * -> *
 newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.State.Lazy.StateT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
 type Formatter :: *
@@ -52,6 +84,8 @@ newtype Seconds = Seconds Double
 type SpecWith :: * -> *
 type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
 checks :: Formatter
+diffContext :: FormatM (Maybe Int)
+externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
 extraChunk :: String -> FormatM ()
 failed_examples :: Formatter
 formatException :: GHC.Exception.Type.SomeException -> String
@@ -68,6 +102,7 @@ getTotalCount :: FormatM Int
 missingChunk :: String -> FormatM ()
 modifyConfig :: (Config -> Config) -> SpecWith a
 outputUnicode :: FormatM Bool
+prettyPrint :: FormatM Bool
 prettyPrintFunction :: FormatM (Maybe (String -> String -> (String, String)))
 printTimes :: FormatM Bool
 progress :: Formatter
