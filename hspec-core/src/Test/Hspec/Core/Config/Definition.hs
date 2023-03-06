@@ -81,7 +81,7 @@ data Config = Config {
 , configPrettyPrint :: Bool
 , configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
 , configTimes :: Bool
-, configAvailableFormatters :: [(String, FormatConfig -> IO Format)]
+, configAvailableFormatters :: [(String, FormatConfig -> IO Format)] -- ^ @since 2.9.0
 , configFormat :: Maybe (FormatConfig -> IO Format)
 , configFormatter :: Maybe V1.Formatter -- ^ deprecated, use `configFormat` instead
 , configHtmlOutput :: Bool

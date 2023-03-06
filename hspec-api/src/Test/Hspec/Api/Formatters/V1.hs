@@ -90,7 +90,7 @@ useFormatter (fmap formatterToFormat -> formatter@(_, format)) config = (registe
 
 -- copy of Test.Hspec.Core.Runner.registerFormatter
 registerFormatter_ :: (String, FormatConfig -> IO Format) -> Config -> Config
-#if MIN_VERSION_hspec_core(2,10,9)
+#if MIN_VERSION_hspec_core(2,9,0)
 registerFormatter_ formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
 #else
 registerFormatter_ _ config = config
