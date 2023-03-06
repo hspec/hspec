@@ -144,6 +144,8 @@ prettyPrintFunction :: FormatM (Maybe (String -> String -> (String, String)))
 prettyPrintFunction = getConfig formatConfigPrettyPrintFunction
 
 -- | Return `True` if the user requested unicode output, `False` otherwise.
+--
+-- @since 2.9.0
 outputUnicode :: FormatM Bool
 outputUnicode = getConfig formatConfigOutputUnicode
 
@@ -239,6 +241,8 @@ getFailMessages = reverse `fmap` gets stateFailMessages
 
 -- | Get the number of spec items that will have been encountered when this run
 -- completes (if it is not terminated early).
+--
+-- @since 2.9.0
 getExpectedTotalCount :: FormatM Int
 getExpectedTotalCount = getConfig formatConfigExpectedTotalCount
 
