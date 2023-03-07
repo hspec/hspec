@@ -1,1 +1,0 @@
-  - Rerun `beforeAll` / `afterAll` on `--rerun-all-on-success` (#768)
