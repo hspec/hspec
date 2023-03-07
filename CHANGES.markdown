@@ -1,3 +1,7 @@
+## Changes in 2.10.10 (2023-03-07)
+  - Re-export `sequential` from `Test.Hspec`
+  - Rerun `beforeAll` / `afterAll` on `--rerun-all-on-success` (#768)
+
 ## Changes in 2.10.9 (2023-01-13)
   - Print error message on `-—fail-on=empty`
   - Only fail on `-—fail-on=empty` if at least one spec item has been filtered
