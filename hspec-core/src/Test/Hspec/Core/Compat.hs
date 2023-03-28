@@ -25,7 +25,7 @@ import           System.Exit
 import           System.Environment
 
 #if MIN_VERSION_base(4,11,0)
-import           Data.Functor as Imports
+import           Data.Functor as Imports ((<&>))
 #endif
 
 import           Data.Traversable as Imports
