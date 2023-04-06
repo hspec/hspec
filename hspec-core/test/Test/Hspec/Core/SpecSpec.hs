@@ -47,11 +47,7 @@ spec = do
     context "when no description is given" $ do
       it "uses a default description" $ do
         [Node d _] <- runSpecM (H.describe "" (pure ()))
-#if MIN_VERSION_base(4,8,1)
-        d `shouldBe` "Test.Hspec.Core.SpecSpec[" ++ show (__LINE__ - 2 :: Int) ++ ":33]"
-#else
-        d `shouldBe` "(no description given)"
-#endif
+        d `shouldBe` "Test.Hspec.Core.SpecSpec[" ++ show (pred __LINE__ :: Int) ++ ":33]"
 
   describe "xdescribe" $ do
     it "creates a tree of pending spec items" $ do
@@ -75,11 +71,7 @@ spec = do
     context "when no description is given" $ do
       it "uses a default description" $ do
         [Leaf item] <- runSpecM (H.it "" True)
-#if MIN_VERSION_base(4,8,1)
-        itemRequirement item `shouldBe` "Test.Hspec.Core.SpecSpec[" ++ show (__LINE__ - 2 :: Int) ++ ":34]"
-#else
-        itemRequirement item `shouldBe` "(unspecified behavior)"
-#endif
+        itemRequirement item `shouldBe` "Test.Hspec.Core.SpecSpec[" ++ show (pred __LINE__ :: Int) ++ ":34]"
 
   describe "xit" $ do
     it "creates a pending spec item" $ do

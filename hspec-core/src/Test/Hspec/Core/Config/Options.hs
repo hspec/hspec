@@ -49,14 +49,7 @@ parseOptions config prog configFiles envVar env args = do
       foldM (parseFileOptions prog) config configFiles
   >>= maybe return (parseEnvVarOptions prog) envVar
   >>= parseEnvironmentOptions env
-  >>= traverseTuple (parseCommandLineOptions prog args)
-
-traverseTuple :: Applicative f => (a -> f b) -> (c, a) -> f (c, b)
-#if MIN_VERSION_base(4,7,0)
-traverseTuple = traverse
-#else
-traverseTuple f (c, a) = (,) c <$> f a
-#endif
+  >>= traverse (parseCommandLineOptions prog args)
 
 parseCommandLineOptions :: String -> [String] -> Config -> Either (ExitCode, String) Config
 parseCommandLineOptions prog args config = case Declarative.parseCommandLineOptions (commandLineOptions formatters) prog args config of

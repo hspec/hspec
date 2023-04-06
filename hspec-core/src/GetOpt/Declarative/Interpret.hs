@@ -12,7 +12,7 @@ import           System.Console.GetOpt (OptDescr, ArgOrder(..), getOpt)
 import qualified System.Console.GetOpt as GetOpt
 
 import           GetOpt.Declarative.Types
-import           GetOpt.Declarative.Util (mkUsageInfo, mapOptDescr)
+import           GetOpt.Declarative.Util (mkUsageInfo)
 
 data InvalidArgument = InvalidArgument String String
 
@@ -40,7 +40,7 @@ addHelpFlag opts = case opts of
     help = Nothing
 
     noHelp :: [OptDescr a] -> [OptDescr (Maybe a)]
-    noHelp = map (mapOptDescr Just)
+    noHelp = map (fmap Just)
 
 parseWithHelp :: [OptDescr (Maybe (config -> Either InvalidArgument config))] -> config -> [String] -> Maybe (Either String config)
 parseWithHelp options config args = case getOpt Permute options args of

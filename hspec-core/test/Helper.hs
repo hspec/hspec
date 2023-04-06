@@ -42,10 +42,9 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Data.Char
-import           System.Environment (withArgs, getEnvironment)
+import           System.Environment (withArgs, getEnvironment, setEnv, unsetEnv)
 import           System.Exit
 import           System.IO.Silently
-import           System.SetEnv
 import           System.FilePath
 import           System.Directory
 import           System.IO.Temp
@@ -181,11 +180,7 @@ inTempDirectory action = withSystemTempDirectory "mockery" $ \path -> do
     action
 
 mkLocation :: FilePath -> Int -> Int -> Maybe Location
-#if MIN_VERSION_base(4,8,1)
 mkLocation file line column = Just (Location (workaroundForIssue19236 file) line column)
-#else
-mkLocation _ _ _ = Nothing
-#endif
 
 replace :: Eq a => a -> a -> [a] -> [a]
 replace x y xs = case break (== x) xs of

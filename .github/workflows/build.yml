@@ -20,12 +20,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-18.04
+          - ubuntu-20.04
         ghc:
-          - 7.4.1
-          - 7.4.2
-          - 7.6.3
-          - 7.8.4
           - 7.10.3
           - 8.0.2
           - 8.2.2
@@ -79,9 +75,9 @@ jobs:
 
       - name: Run regression tests
         run: |
-          cabal install --lib --package-env test/regression/issue-169/
+          cabal install --lib base hspec --package-env test/regression/issue-169/
           test/regression/issue-169/run.sh
-          cabal install --lib --package-env test/regression/issue-270/
+          cabal install --lib base hspec --package-env test/regression/issue-270/
           test/regression/issue-270/run.sh
         if: "!startsWith(matrix.ghc, '7.')"
 
