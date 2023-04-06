@@ -24,10 +24,9 @@ extra-source-files:
 ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
 dependencies:
-  - base >= 4.5.0.0 && < 5
+  - base >= 4.8.2.0 && < 5
   - random
   - tf-random
-  - setenv
   - ansi-terminal >= 0.6.2
   - time
   - transformers >= 0.2.2.0

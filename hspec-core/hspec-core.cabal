@@ -38,7 +38,7 @@ library
     , QuickCheck >=2.13.1
     , ansi-terminal >=0.6.2
     , array
-    , base >=4.5.0.0 && <5
+    , base >=4.8.2.0 && <5
     , call-stack >=0.2.0
     , deepseq
     , directory
@@ -48,7 +48,6 @@ library
     , process
     , quickcheck-io >=0.2.0
     , random
-    , setenv
     , tf-random
     , time
     , transformers >=0.2.2.0
@@ -121,7 +120,7 @@ test-suite spec
     , QuickCheck >=2.14
     , ansi-terminal >=0.6.2
     , array
-    , base >=4.5.0.0 && <5
+    , base >=4.8.2.0 && <5
     , base-orphans
     , call-stack >=0.2.0
     , deepseq
@@ -133,7 +132,6 @@ test-suite spec
     , process
     , quickcheck-io >=0.2.0
     , random
-    , setenv
     , silently >=1.2.4
     , temporary
     , tf-random

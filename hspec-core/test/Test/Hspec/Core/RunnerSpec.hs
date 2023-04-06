@@ -1,24 +1,17 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
-
-#if MIN_VERSION_base(4,6,0) && !MIN_VERSION_base(4,7,0)
--- Control.Concurrent.QSem is deprecated in base-4.6.0.*
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
-#endif
-
 module Test.Hspec.Core.RunnerSpec (spec) where
 
 import           Prelude ()
 import           Helper
 
 import           System.IO
-import           System.Environment (withArgs, withProgName, getArgs)
+import           System.Environment (withArgs, withProgName, getArgs, setEnv, unsetEnv)
 import           System.Exit
 import           Control.Concurrent
 import           Control.Concurrent.Async
 import           Mock
-import           System.SetEnv
 import           System.Console.ANSI
 
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
@@ -617,11 +610,7 @@ spec = do
           , "1 example, 0 failures"
           , ""
           , "Slow spec items:"
-#if MIN_VERSION_base(4,8,1)
-          , "  test" </> "Test" </> "Hspec" </> "Core" </> "RunnerSpec.hs:" <> show (__LINE__ - 10 :: Int) <> ":11: /foo/ (2ms)"
-#else
-          , "  /foo/ (2ms)"
-#endif
+          , "  test" </> "Test" </> "Hspec" </> "Core" </> "RunnerSpec.hs:" <> show (__LINE__ - 9 :: Int) <> ":11: /foo/ (2ms)"
           ]
 
     context "with --format" $ do

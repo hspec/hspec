@@ -9,7 +9,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 #ifndef __GHCJS__
-import           System.SetEnv (setEnv)
+import           System.Environment (setEnv)
 import           Test.Hspec.Core.Util (safeTry)
 #endif
 import           System.IO

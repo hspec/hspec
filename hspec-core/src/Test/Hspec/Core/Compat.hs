@@ -39,9 +39,7 @@ import           Data.List as Imports (
   , inits
   , tails
   , sortBy
-#if MIN_VERSION_base(4,8,0)
   , sortOn
-#endif
   )
 
 import           Prelude as Imports hiding (
@@ -65,12 +63,9 @@ import           Prelude as Imports hiding (
   , sequence
   , sequence_
   , sum
-#if !MIN_VERSION_base(4,6,0)
-  , catch
-#endif
   )
 
-import           Data.Typeable (Typeable, typeOf, typeRepTyCon)
+import           Data.Typeable (Typeable, typeOf, typeRepTyCon, tyConModule, tyConName)
 import           Data.IORef as Imports
 
 #if MIN_VERSION_base(4,6,0)
@@ -89,7 +84,6 @@ import           Data.Ord (comparing)
 import           Data.Bool as Imports (bool)
 #endif
 
-import           Data.Typeable (tyConModule, tyConName)
 import           Control.Concurrent
 
 #if !MIN_VERSION_base(4,9,0)
@@ -168,18 +162,6 @@ interruptible act = do
 guarded :: Alternative m => (a -> Bool) -> a -> m a
 guarded p a = if p a then pure a else empty
 
-#if !MIN_VERSION_base(4,8,0)
-sortOn :: Ord b => (a -> b) -> [a] -> [a]
-sortOn f =
-  map snd . sortBy (comparing fst) . map (\x -> let y = f x in y `seq` (y, x))
-#endif
-
-#if !MIN_VERSION_base(4,7,0)
-bool :: a -> a -> Bool -> a
-bool f _ False = f
-bool _ t True  = t
-#endif
-
 #if !MIN_VERSION_base(4,11,0)
 infixl 1 <&>
 (<&>) :: Functor f => f a -> (a -> b) -> f b
@@ -189,13 +171,8 @@ infixl 1 <&>
 endsWith :: Eq a => [a] -> [a] -> Bool
 endsWith = flip isSuffixOf
 
-#if MIN_VERSION_base(4,8,0)
 pass :: Applicative m => m ()
 pass = pure ()
-#else
-pass :: Monad m => m ()
-pass = return ()
-#endif
 
 die :: String -> IO a
 die err = do

@@ -4,7 +4,7 @@ module Test.Hspec.Core.CompatSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           System.SetEnv
+import           System.Environment
 import           Data.Typeable
 
 data SomeType = SomeType

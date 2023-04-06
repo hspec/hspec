@@ -666,17 +666,9 @@ spec = do
     divideByZero = Failure Nothing (Error Nothing $ toException DivideByZero)
 
     divideByZeroIn :: String -> Result
-#if MIN_VERSION_base(4,8,1)
     divideByZeroIn hook = Failure Nothing (Error (Just $ "in " <> hook <> "-hook:") $ toException DivideByZero)
-#else
-    divideByZeroIn _ = Failure Nothing (Error Nothing $ toException DivideByZero)
-#endif
 
     item :: [String] -> Result -> ([String], Item)
     item path result = (path, Item Nothing 0 "" result)
 
-#if MIN_VERSION_base(4,8,1)
     exceptionIn name = Just ("exception in " <> name <> "-hook (see previous failure)")
-#else
-    exceptionIn _ = Just "exception in beforeAll-hook (see previous failure)"
-#endif
