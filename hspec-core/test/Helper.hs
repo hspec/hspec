@@ -36,6 +36,10 @@ module Helper (
 , workaroundForIssue19236
 
 , replace
+
+, red
+, green
+, colorize
 ) where
 
 import           Prelude ()
@@ -48,6 +52,7 @@ import           System.IO.Silently
 import           System.FilePath
 import           System.Directory
 import           System.IO.Temp
+import           System.Console.ANSI
 
 import           Test.Hspec.Meta hiding (hspec, hspecResult, pending, pendingWith)
 import           Test.QuickCheck hiding (Result(..))
@@ -186,3 +191,12 @@ replace :: Eq a => a -> a -> [a] -> [a]
 replace x y xs = case break (== x) xs of
   (ys, _: zs) -> ys ++ y : zs
   _ -> xs
+
+green :: String -> String
+green = colorize Foreground Green
+
+red :: String -> String
+red = colorize Foreground Red
+
+colorize :: ConsoleLayer -> Color -> String -> String
+colorize layer color text = setSGRCode [SetColor layer Dull color] <> text <> setSGRCode [Reset]

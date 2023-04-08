@@ -49,7 +49,7 @@ spec :: Spec
 spec = do
   describe "mergeResults" $ do
     it "gives failures from items precedence" $ do
-      forAll failureResult $ \ item -> \ hook -> do
+      forAll failureResult $ \ item hook -> do
         mergeResults Nothing item hook `shouldBe` item
 
     it "gives failures from hooks precedence over succeeding items" $ do

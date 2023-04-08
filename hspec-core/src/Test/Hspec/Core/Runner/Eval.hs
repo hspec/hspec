@@ -121,7 +121,7 @@ data EvalItem = EvalItem {
 type EvalTree = Tree (IO ()) EvalItem
 
 -- | Evaluate all examples of a given spec and produce a report.
-runFormatter :: EvalConfig -> [EvalTree] -> IO ([(Path, Format.Item)])
+runFormatter :: EvalConfig -> [EvalTree] -> IO [(Path, Format.Item)]
 runFormatter config specs = do
   withJobQueue (evalConfigConcurrentJobs config) $ \ queue -> do
     withTimer 0.05 $ \ timer -> do
