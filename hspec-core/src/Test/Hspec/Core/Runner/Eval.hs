@@ -1,11 +1,10 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
+, ColorMode(..)
 , EvalTree
 , Tree(..)
 , EvalItem(..)
@@ -47,7 +46,10 @@ data EvalConfig = EvalConfig {
   evalConfigFormat :: Format
 , evalConfigConcurrentJobs :: Int
 , evalConfigFailFast :: Bool
+, evalConfigColorMode :: ColorMode
 }
+
+data ColorMode = ColorDisabled | ColorEnabled
 
 data Env = Env {
   envConfig :: EvalConfig
@@ -98,12 +100,22 @@ reportItemDone path item = do
 
 reportResult :: Path -> Maybe Location -> (Seconds, Result) -> EvalM ()
 reportResult path loc (duration, result) = do
+  mode <- asks (evalConfigColorMode . envConfig)
   case result of
     Result info status -> reportItemDone path $ Format.Item loc duration info $ case status of
       Success                      -> Format.Success
       Pending loc_ reason          -> Format.Pending loc_ reason
       Failure loc_ err@(Error _ e) -> Format.Failure (loc_ <|> extractLocation e) err
-      Failure loc_ err             -> Format.Failure loc_ err
+      Failure loc_ err             -> Format.Failure loc_ $ case mode of
+        ColorEnabled -> err
+        ColorDisabled -> case err of
+          NoReason -> err
+          Reason _ -> err
+          ExpectedButGot _ _ _ -> err
+          ColorizedReason r -> Reason (stripAnsi r)
+#if __GLASGOW_HASKELL__ < 900
+          Error _ _ -> err
+#endif
 
 groupStarted :: Path -> EvalM ()
 groupStarted = formatEvent . Format.GroupStarted

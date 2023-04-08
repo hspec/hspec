@@ -10,7 +10,7 @@ import           Control.Monad.Trans.Writer hiding (pass)
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
-import qualified Test.Hspec.Core.Formatters.V1 as H
+import qualified Test.Hspec.Core.Formatters.V1 as H hiding (FailureReason(..))
 import qualified Test.Hspec.Core.Formatters.V1.Monad as H (interpretWith)
 import           Test.Hspec.Core.Formatters.V1.Monad (FormatM, Environment(..), FailureRecord(..), FailureReason(..))
 

@@ -1,4 +1,6 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
 -- |
 -- Stability: stable
 --
@@ -95,21 +97,110 @@ module Test.Hspec.Api.Formatters.V2 (
 , modifyConfig
 ) where
 
-import Test.Hspec.Core.Formatters.V2
-import Test.Hspec.Core.Runner (Config(..))
-import Test.Hspec.Core.Format
-import Test.Hspec.Core.Spec (modifyConfig, SpecWith)
+import           Test.Hspec.Core.Format (FormatConfig, Format)
+import           Test.Hspec.Core.Formatters.V1 (FailureRecord(..))
+import           Test.Hspec.Api.Format.V1.Internal
+import qualified Test.Hspec.Api.Formatters.V3 as V3
+import           Test.Hspec.Api.Formatters.V3 hiding (
+    registerFormatter
+  , useFormatter
+  , formatterToFormat
+
+  , silent
+  , checks
+  , specdoc
+  , progress
+  , failed_examples
+
+  , Formatter(..)
+  , Item(..)
+  , Result(..)
+  , FailureReason(..)
+
+  , FailureRecord(..)
+  , getFailMessages
+  )
 
 -- |
 -- Make a formatter available for use with @--format@.
 registerFormatter :: (String, Formatter) -> Config -> Config
-registerFormatter formatter = registerFormatter_ (fmap formatterToFormat formatter)
+registerFormatter formatter = V3.registerFormatter (fmap liftFormatter formatter)
 
 -- |
 -- Make a formatter available for use with @--format@ and use it by default.
 useFormatter :: (String, Formatter) -> Config -> Config
-useFormatter (fmap formatterToFormat -> formatter@(_, format)) config = (registerFormatter_ formatter config) { configFormat = Just format }
+useFormatter formatter = V3.useFormatter (liftFormatter <$> formatter)
 
--- copy of Test.Hspec.Core.Runner.registerFormatter
-registerFormatter_ :: (String, FormatConfig -> IO Format) -> Config -> Config
-registerFormatter_ formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
+formatterToFormat :: Formatter -> FormatConfig -> IO Format
+formatterToFormat = V3.formatterToFormat . liftFormatter
+
+silent :: Formatter
+silent = unliftFormatter V3.silent
+
+checks :: Formatter
+checks = unliftFormatter V3.checks
+
+specdoc :: Formatter
+specdoc = unliftFormatter V3.specdoc
+
+progress :: Formatter
+progress = unliftFormatter V3.progress
+
+failed_examples :: Formatter
+failed_examples = unliftFormatter V3.failed_examples
+
+data Formatter = Formatter {
+-- | evaluated before a test run
+  formatterStarted :: FormatM ()
+
+-- | evaluated before each spec group
+, formatterGroupStarted :: Path -> FormatM ()
+
+-- | evaluated after each spec group
+, formatterGroupDone :: Path -> FormatM ()
+
+-- | used to notify the progress of the currently evaluated example
+, formatterProgress :: Path -> Progress -> FormatM ()
+
+-- | evaluated before each spec item
+, formatterItemStarted :: Path -> FormatM ()
+
+-- | evaluated after each spec item
+, formatterItemDone :: Path -> Item -> FormatM ()
+
+-- | evaluated after a test run
+, formatterDone :: FormatM ()
+}
+
+-- | Get the list of accumulated failure messages.
+getFailMessages :: FormatM [FailureRecord]
+getFailMessages = map unliftFailureRecord <$> V3.getFailMessages
+
+liftFormatter :: Formatter -> V3.Formatter
+liftFormatter Formatter{..} = V3.Formatter{
+  formatterStarted
+, formatterGroupStarted
+, formatterGroupDone
+, formatterProgress
+, formatterItemStarted
+, formatterItemDone = \ path -> formatterItemDone path . unliftItem
+, formatterDone
+}
+
+unliftFormatter :: V3.Formatter -> Formatter
+unliftFormatter V3.Formatter{..} = Formatter{
+  formatterStarted
+, formatterGroupStarted
+, formatterGroupDone
+, formatterProgress
+, formatterItemStarted
+, formatterItemDone = \ path -> formatterItemDone path . liftItem
+, formatterDone
+}
+
+unliftFailureRecord :: V3.FailureRecord -> FailureRecord
+unliftFailureRecord V3.FailureRecord{..} = FailureRecord {
+  failureRecordLocation
+, failureRecordPath
+, failureRecordMessage = unliftFailureReason failureRecordMessage
+}

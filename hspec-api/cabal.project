@@ -1,5 +1,0 @@
-packages:
-  hspec-api.cabal
-
-package hspec-api
-  ghc-options: -Werror

@@ -1,3 +1,2 @@
-dist/
-dist-newstyle/
+/dist-newstyle/
 /cabal.project.local

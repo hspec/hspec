@@ -28,16 +28,19 @@ source-repository head
 library
   exposed-modules:
       Test.Hspec.Api.Format.V1
+      Test.Hspec.Api.Format.V2
       Test.Hspec.Api.Formatters.V1
       Test.Hspec.Api.Formatters.V2
+      Test.Hspec.Api.Formatters.V3
   other-modules:
-      Paths_hspec_api
+      Test.Hspec.Api.Format.V1.Internal
   hs-source-dirs:
       src
   ghc-options: -Wall
   build-depends:
       base ==4.*
     , hspec-core ==2.10.10
+    , transformers
   default-language: Haskell2010
 
 test-suite spec
@@ -45,8 +48,10 @@ test-suite spec
   main-is: Spec.hs
   other-modules:
       Test.Hspec.Api.Format.V1Spec
+      Test.Hspec.Api.Format.V2Spec
       Test.Hspec.Api.Formatters.V1Spec
       Test.Hspec.Api.Formatters.V2Spec
+      Test.Hspec.Api.Formatters.V3Spec
       Paths_hspec_api
   hs-source-dirs:
       test

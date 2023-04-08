@@ -1,21 +1,21 @@
-type Formatter :: *
-data Formatter = Formatter
-  formatterStarted :: FormatM ()
-  formatterGroupStarted :: Path -> FormatM ()
-  formatterGroupDone :: Path -> FormatM ()
-  formatterProgress :: Path -> Progress -> FormatM ()
-  formatterItemStarted :: Path -> FormatM ()
-  formatterItemDone :: Path -> Item -> FormatM ()
-  formatterDone :: FormatM ()
-checks :: Formatter
-failed_examples :: Formatter
-formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
-getFailMessages :: FormatM [FailureRecord]
-progress :: Formatter
-registerFormatter :: (String, Formatter) -> Config -> Config
-silent :: Formatter
-specdoc :: Formatter
-useFormatter :: (String, Formatter) -> Config -> Config
+type FormatConfig :: *
+data FormatConfig = FormatConfig
+  formatConfigUseColor :: Bool
+  formatConfigReportProgress :: Bool
+  formatConfigOutputUnicode :: Bool
+  formatConfigUseDiff :: Bool
+  formatConfigDiffContext :: Maybe Int
+  formatConfigExternalDiff :: Maybe (String -> String -> IO ())
+  formatConfigPrettyPrint :: Bool
+  formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
+  formatConfigPrintTimes :: Bool
+  formatConfigHtmlOutput :: Bool
+  formatConfigPrintCpuTime :: Bool
+  formatConfigUsedSeed :: Integer
+  formatConfigExpectedTotalCount :: Int
+liftFormatter :: (String, FormatConfig -> IO Format) -> (String, Test.Hspec.Core.Format.FormatConfig -> IO Format)
+registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
+useFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 type Config :: *
 data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configIgnoreConfigFile :: Bool
@@ -48,25 +48,29 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrint :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
   hspec-core:Test.Hspec.Core.Config.Definition.configTimes :: Bool
-  hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
-  hspec-core:Test.Hspec.Core.Config.Definition.configFormat :: Maybe (Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)
+  hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Format)]
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormat :: Maybe (Test.Hspec.Core.Format.FormatConfig -> IO Format)
   hspec-core:Test.Hspec.Core.Config.Definition.configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter
   hspec-core:Test.Hspec.Core.Config.Definition.configHtmlOutput :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configConcurrentJobs :: Maybe Int
+type Event :: *
+data Event
+  | Started
+  | GroupStarted Path
+  | GroupDone Path
+  | Progress Path Progress
+  | ItemStarted Path
+  | ItemDone Path Item
+  | Done [(Path, Item)]
 type FailureReason :: *
 data FailureReason
   | NoReason
   | Reason String
+  | ColorizedReason String
   | ExpectedButGot (Maybe String) String String
   | Error (Maybe String) GHC.Exception.Type.SomeException
-type FailureRecord :: *
-data FailureRecord = FailureRecord
-  failureRecordLocation :: Maybe Location
-  failureRecordPath :: Path
-  failureRecordMessage :: FailureReason
-type role FormatM nominal
-type FormatM :: * -> *
-newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.State.Lazy.StateT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
+type Format :: *
+type Format = Event -> IO ()
 type Item :: *
 data Item = Item
   itemLocation :: Maybe Location
@@ -91,30 +95,5 @@ type Seconds :: *
 newtype Seconds = Seconds Double
 type SpecWith :: * -> *
 type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
-diffContext :: FormatM (Maybe Int)
-externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
-extraChunk :: String -> FormatM ()
-formatException :: GHC.Exception.Type.SomeException -> String
-formatLocation :: Location -> String
-getCPUTime :: FormatM (Maybe Seconds)
-getExpectedTotalCount :: FormatM Int
-getFailCount :: FormatM Int
-getPendingCount :: FormatM Int
-getRealTime :: FormatM Seconds
-getSuccessCount :: FormatM Int
-getTotalCount :: FormatM Int
-missingChunk :: String -> FormatM ()
 modifyConfig :: (Config -> Config) -> SpecWith a
-outputUnicode :: FormatM Bool
-prettyPrint :: FormatM Bool
-prettyPrintFunction :: FormatM (Maybe (String -> String -> (String, String)))
-printTimes :: FormatM Bool
-useDiff :: FormatM Bool
-usedSeed :: FormatM Integer
-withFailColor :: FormatM a -> FormatM a
-withInfoColor :: FormatM a -> FormatM a
-withPendingColor :: FormatM a -> FormatM a
-withSuccessColor :: FormatM a -> FormatM a
-write :: String -> FormatM ()
-writeLine :: String -> FormatM ()
-writeTransient :: String -> FormatM ()
+monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format

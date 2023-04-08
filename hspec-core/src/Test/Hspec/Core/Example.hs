@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -33,7 +32,6 @@ import qualified Test.HUnit.Lang as HUnit
 import           Data.CallStack (SrcLoc(..))
 
 import           Control.DeepSeq
-import           Data.Typeable (Typeable)
 import qualified Test.QuickCheck as QC
 import           Test.Hspec.Expectations (Expectation)
 
@@ -71,25 +69,27 @@ type ActionWith a = a -> IO ()
 data Result = Result {
   resultInfo :: String
 , resultStatus :: ResultStatus
-} deriving (Show, Typeable)
+} deriving Show
 
 data ResultStatus =
     Success
   | Pending (Maybe Location) (Maybe String)
   | Failure (Maybe Location) FailureReason
-  deriving (Show, Typeable)
+  deriving Show
 
 data FailureReason =
     NoReason
   | Reason String
+  | ColorizedReason String
   | ExpectedButGot (Maybe String) String String
   | Error (Maybe String) SomeException
-  deriving (Show, Typeable)
+  deriving Show
 
 instance NFData FailureReason where
   rnf reason = case reason of
     NoReason -> ()
     Reason r -> r `deepseq` ()
+    ColorizedReason r -> r `deepseq` ()
     ExpectedButGot p e a  -> p `deepseq` e `deepseq` a `deepseq` ()
     Error m e -> m `deepseq` show e `deepseq` ()
 

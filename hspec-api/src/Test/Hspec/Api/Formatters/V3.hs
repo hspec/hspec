@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
 -- |
--- Stability: deprecated
+-- Stability: stable
 --
 -- This module contains formatters that can be used with `hspecWith`:
 --
@@ -17,10 +17,11 @@
 -- spec :: Spec
 -- spec = ...
 -- @
-module Test.Hspec.Api.Formatters.V1 (
+module Test.Hspec.Api.Formatters.V3 (
 
 -- * Register a formatter
-  useFormatter
+  registerFormatter
+, useFormatter
 , formatterToFormat
 
 -- * Formatters
@@ -38,6 +39,11 @@ module Test.Hspec.Api.Formatters.V1 (
 -- Actions live in the `FormatM` monad.  It provides access to the runner state
 -- and primitives for appending to the generated report.
 , Formatter (..)
+, Path
+, Progress
+, Location(..)
+, Item(..)
+, Result(..)
 , FailureReason (..)
 , FormatM
 
@@ -46,10 +52,13 @@ module Test.Hspec.Api.Formatters.V1 (
 , getPendingCount
 , getFailCount
 , getTotalCount
+, getExpectedTotalCount
 
 , FailureRecord (..)
 , getFailMessages
 , usedSeed
+
+, printTimes
 
 , Seconds(..)
 , getCPUTime
@@ -66,26 +75,35 @@ module Test.Hspec.Api.Formatters.V1 (
 , withPendingColor
 , withFailColor
 
+, outputUnicode
+
 , useDiff
+, diffContext
+, externalDiffAction
+, prettyPrint
+, prettyPrintFunction
 , extraChunk
 , missingChunk
 
 -- ** Helpers
+, formatLocation
 , formatException
 
 -- * Re-exports
-, Location(..)
-, Progress
-
 , SpecWith
 , Config
 , modifyConfig
 ) where
 
-import Test.Hspec.Core.Formatters.V1
+import Test.Hspec.Core.Formatters.V2
 import Test.Hspec.Core.Runner (Config(..))
-import Test.Hspec.Core.Format hiding (FailureReason(..))
+import Test.Hspec.Core.Format (FormatConfig, Format)
 import Test.Hspec.Core.Spec (modifyConfig, SpecWith)
+
+-- |
+-- Make a formatter available for use with @--format@.
+registerFormatter :: (String, Formatter) -> Config -> Config
+registerFormatter formatter = registerFormatter_ (fmap formatterToFormat formatter)
 
 -- |
 -- Make a formatter available for use with @--format@ and use it by default.

@@ -48,7 +48,14 @@ import           Control.Monad.IO.Class
 
 import           Test.Hspec.Core.Formatters.V1.Free
 import           Test.Hspec.Core.Clock
-import           Test.Hspec.Core.Format
+import           Test.Hspec.Core.Format hiding (FailureReason)
+
+data FailureReason =
+    NoReason
+  | Reason String
+  | ExpectedButGot (Maybe String) String String
+  | Error (Maybe String) SomeException
+  deriving Show
 
 data Formatter = Formatter {
 

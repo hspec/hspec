@@ -51,6 +51,10 @@ spec = do
         , "three"
         ]
 
+  describe "stripAnsi" $ do
+    it "removes ANSI color sequences" $ do
+      stripAnsi ("some " <> green "colorized" <> " text") `shouldBe` "some colorized text"
+
   describe "safeTry" $ do
     it "returns Right on success" $ do
       Right e <- safeTry (return 23 :: IO Int)

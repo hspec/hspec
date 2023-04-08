@@ -32,6 +32,7 @@ type FailureReason :: *
 data FailureReason
   | NoReason
   | Reason String
+  | ColorizedReason String
   | ExpectedButGot (Maybe String) String String
   | Error (Maybe String) GHC.Exception.Type.SomeException
 type HasCallStack :: Constraint

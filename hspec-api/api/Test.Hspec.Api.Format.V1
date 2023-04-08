@@ -1,3 +1,14 @@
+type Event :: *
+data Event
+  | Started
+  | GroupStarted Path
+  | GroupDone Path
+  | Progress Path Progress
+  | ItemStarted Path
+  | ItemDone Path Item
+  | Done [(Path, Item)]
+type Format :: *
+type Format = Event -> IO ()
 type FormatConfig :: *
 data FormatConfig = FormatConfig
   formatConfigUseColor :: Bool
@@ -13,7 +24,8 @@ data FormatConfig = FormatConfig
   formatConfigPrintCpuTime :: Bool
   formatConfigUsedSeed :: Integer
   formatConfigExpectedTotalCount :: Int
-liftFormatter :: (String, FormatConfig -> IO Format) -> (String, Test.Hspec.Core.Format.FormatConfig -> IO Format)
+liftFormatter :: (String, FormatConfig -> IO Format) -> (String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)
+monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
 registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 useFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 type Config :: *
@@ -24,6 +36,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configFailOnEmpty :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configFailOnFocused :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configFailOnPending :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFailOnEmptyDescription :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrintSlowItems :: Maybe Int
   hspec-core:Test.Hspec.Core.Config.Definition.configPrintCpuTime :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configFailFast :: Bool
@@ -47,28 +60,17 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrint :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
   hspec-core:Test.Hspec.Core.Config.Definition.configTimes :: Bool
-  hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Format)]
-  hspec-core:Test.Hspec.Core.Config.Definition.configFormat :: Maybe (Test.Hspec.Core.Format.FormatConfig -> IO Format)
+  hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormat :: Maybe (Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)
   hspec-core:Test.Hspec.Core.Config.Definition.configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter
   hspec-core:Test.Hspec.Core.Config.Definition.configHtmlOutput :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configConcurrentJobs :: Maybe Int
-type Event :: *
-data Event
-  | Started
-  | GroupStarted Path
-  | GroupDone Path
-  | Progress Path Progress
-  | ItemStarted Path
-  | ItemDone Path Item
-  | Done [(Path, Item)]
 type FailureReason :: *
 data FailureReason
   | NoReason
   | Reason String
   | ExpectedButGot (Maybe String) String String
   | Error (Maybe String) GHC.Exception.Type.SomeException
-type Format :: *
-type Format = Event -> IO ()
 type Item :: *
 data Item = Item
   itemLocation :: Maybe Location
@@ -94,4 +96,3 @@ newtype Seconds = Seconds Double
 type SpecWith :: * -> *
 type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
 modifyConfig :: (Config -> Config) -> SpecWith a
-monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format

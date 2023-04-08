@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase #-}
 -- |
 -- Stability: deprecated
 --
@@ -124,15 +126,30 @@ legacyFormatterToFormatter Formatter{..} = V2.Formatter {
     case itemResult item of
       Success -> exampleSucceeded path (itemInfo item)
       Pending _ reason -> examplePending path (itemInfo item) reason
-      Failure _ reason -> exampleFailed path (itemInfo item) reason
+      Failure _ reason -> exampleFailed path (itemInfo item) (unliftFailureReason reason)
 , V2.formatterDone = interpret $ failedFormatter >> footerFormatter
 }
+
+unliftFailureRecord :: V2.FailureRecord -> FailureRecord
+unliftFailureRecord V2.FailureRecord{..} = FailureRecord {
+  failureRecordLocation
+, failureRecordPath
+, failureRecordMessage = unliftFailureReason failureRecordMessage
+}
+
+unliftFailureReason :: V2.FailureReason -> FailureReason
+unliftFailureReason = \ case
+  V2.NoReason -> NoReason
+  V2.Reason reason -> Reason reason
+  V2.ColorizedReason reason -> Reason (stripAnsi reason)
+  V2.ExpectedButGot preface expected actual -> ExpectedButGot preface expected actual
+  V2.Error info e -> Error info e
 
 interpret :: FormatM a -> V2.FormatM a
 interpret = interpretWith Environment {
   environmentGetSuccessCount = V2.getSuccessCount
 , environmentGetPendingCount = V2.getPendingCount
-, environmentGetFailMessages = V2.getFailMessages
+, environmentGetFailMessages = map unliftFailureRecord <$> V2.getFailMessages
 , environmentUsedSeed = V2.usedSeed
 , environmentPrintTimes = V2.printTimes
 , environmentGetCPUTime = V2.getCPUTime
