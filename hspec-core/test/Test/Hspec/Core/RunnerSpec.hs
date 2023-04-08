@@ -12,7 +12,6 @@ import           System.Exit
 import           Control.Concurrent
 import           Control.Concurrent.Async
 import           Mock
-import           System.Console.ANSI
 
 import           Test.Hspec.Core.FailureReport (FailureReport(..))
 import qualified Test.Hspec.Expectations as H
@@ -539,8 +538,8 @@ spec = do
           H.it "foo" $ do
             23 `H.shouldBe` (42 :: Int)
         r `shouldContain` unlines [
-            red ++ "       expected: " ++ reset ++ red ++ "42" ++ reset
-          , red ++ "        but got: " ++ reset ++ green ++ "23" ++ reset
+            red "       expected: " ++ red "42"
+          , red "        but got: " ++ green "23"
           ]
 
     context "with --no-diff" $ do
@@ -549,8 +548,8 @@ spec = do
           H.it "foo" $ do
             23 `H.shouldBe` (42 :: Int)
         r `shouldContain` unlines [
-            red ++ "       expected: " ++ reset ++ "42"
-          , red ++ "        but got: " ++ reset ++ "23"
+            red "       expected: " ++ "42"
+          , red "        but got: " ++ "23"
           ]
 
     context "with --diff-context" $ do
@@ -867,7 +866,3 @@ spec = do
     context "on failure" $ do
       it "returns False" $ do
         H.rerunAll config (Just report) result { specResultSuccess = False } `shouldBe` False
-  where
-    green  = setSGRCode [SetColor Foreground Dull Green]
-    red    = setSGRCode [SetColor Foreground Dull Red]
-    reset  = setSGRCode [Reset]

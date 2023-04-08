@@ -25,9 +25,6 @@ formatConfig = FormatConfig {
 , formatConfigExpectedTotalCount = 0
 }
 
-green :: String -> String
-green text = setSGRCode [SetColor Foreground Dull Green] <> text <> setSGRCode [Reset]
-
 spec :: Spec
 spec = do
   forM_ [
@@ -35,25 +32,23 @@ spec = do
     , ("missingChunk", missingChunk, Green)
     ] $ \ (name, chunk, color) -> do
 
-    let colorize layer text = setSGRCode [SetColor layer Dull color] <> text <> setSGRCode [Reset]
-
     describe name $ do
       it "colorizes chunks" $ do
         capture_ $ runFormatM formatConfig $ do
           chunk "foo"
-        `shouldReturn` colorize Foreground "foo"
+        `shouldReturn` colorize Foreground color "foo"
 
       context "with an all-spaces chunk" $ do
         it "colorizes background" $ do
           capture_ $ runFormatM formatConfig $ do
             chunk "  "
-          `shouldReturn` colorize Background "  "
+          `shouldReturn` colorize Background color "  "
 
       context "with an all-newlines chunk" $ do
         it "colorizes background" $ do
           capture_ $ runFormatM formatConfig $ do
             chunk "\n\n\n"
-          `shouldReturn` colorize Background "\n\n\n"
+          `shouldReturn` colorize Background color "\n\n\n"
 
   describe "write" $ do
     it "does not span colored output over multiple lines" $ do
