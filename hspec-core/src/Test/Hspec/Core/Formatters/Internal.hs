@@ -60,7 +60,6 @@ import           Data.Char (isSpace)
 import           Data.List (groupBy)
 import qualified System.CPUTime as CPUTime
 
-import           Test.Hspec.Core.Formatters.V1.Monad (FailureRecord(..))
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
 
@@ -85,6 +84,12 @@ data Formatter = Formatter {
 
 -- | evaluated after a test run
 , formatterDone :: FormatM ()
+}
+
+data FailureRecord = FailureRecord {
+  failureRecordLocation :: Maybe Location
+, failureRecordPath     :: Path
+, failureRecordMessage  :: FailureReason
 }
 
 formatterToFormat :: Formatter -> FormatConfig -> IO Format

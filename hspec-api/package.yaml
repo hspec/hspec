@@ -21,11 +21,14 @@ ghc-options: -Wall
 
 dependencies:
   base: 4.*
+  transformers:
   hspec-core: *version
 
 library:
   source-dirs:
     - src
+  other-modules:
+    - Test.Hspec.Api.Format.V1.Internal
 
 tests:
   spec:

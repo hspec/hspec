@@ -280,6 +280,7 @@ defaultFailedFormatter = do
       case reason of
         NoReason -> pass
         Reason err -> withFailColor $ indent err
+        ColorizedReason err -> indent err
         ExpectedButGot preface expected_ actual_ -> do
           pretty <- prettyPrintFunction
           let

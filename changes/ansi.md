@@ -1,0 +1,1 @@
+  - Add `ColorizedReason` constructor to `FailureReason`

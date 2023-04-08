@@ -7,6 +7,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configFailOnEmpty :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configFailOnFocused :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configFailOnPending :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configFailOnEmptyDescription :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrintSlowItems :: Maybe Int
   hspec-core:Test.Hspec.Core.Config.Definition.configPrintCpuTime :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configFailFast :: Bool

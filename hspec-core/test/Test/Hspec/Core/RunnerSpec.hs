@@ -532,6 +532,52 @@ spec = do
           , "        but got: Person {personName = \"Joe\", personAge = 23}"
           ]
 
+    let
+      resultWithColorizedReason :: H.Result
+      resultWithColorizedReason = H.Result {
+          H.resultInfo = "info"
+        , H.resultStatus = H.Failure Nothing . H.ColorizedReason $ "some " <> green "colorized" <> " error message"
+        }
+
+    context "with --color" $ do
+      it "outputs ColorizedReason" $ do
+        r <- capture_ . ignoreExitCode . withArgs ["--seed=0", "--format=failed-examples", "--color"] . H.hspec . removeLocations $ do
+          H.it "foo" resultWithColorizedReason
+        normalizeSummary (lines r) `shouldBe` [
+            "\ESC[?25l"
+          , "Failures:"
+          , ""
+          , "  1) foo"
+          , "       some " ++ green "colorized" ++ " error message"
+          , ""
+          , "  To rerun use: --match \"/foo/\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , red "1 example, 1 failure"
+          , "\ESC[?25h"
+          ]
+
+    context "with --no-color" $ do
+      it "strips ANSI sequences from ColorizedReason" $ do
+        r <- capture_ . ignoreExitCode . withArgs ["--seed=0", "--format=failed-examples", "--no-color"] . H.hspec . removeLocations $ do
+          H.it "foo" resultWithColorizedReason
+        normalizeSummary (lines r) `shouldBe` [
+            ""
+          , "Failures:"
+          , ""
+          , "  1) foo"
+          , "       some colorized error message"
+          , ""
+          , "  To rerun use: --match \"/foo/\""
+          , ""
+          , "Randomized with seed 0"
+          , ""
+          , "Finished in 0.0000 seconds"
+          , "1 example, 1 failure"
+          ]
+
     context "with --diff" $ do
       it "shows colorized diffs" $ do
         r <- capture_ . ignoreExitCode . withArgs ["--diff", "--color"] . H.hspec $ do

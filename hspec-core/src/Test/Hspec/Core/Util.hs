@@ -1,9 +1,11 @@
+{-# LANGUAGE  ViewPatterns #-}
 -- | Stability: unstable
 module Test.Hspec.Core.Util (
 -- * String functions
   pluralize
 , strip
 , lineBreaksAt
+, stripAnsi
 
 -- * Working with paths
 , Path
@@ -68,6 +70,18 @@ lineBreaksAt n = concatMap f . lines
         if length r <= n
           then go (r, ys)
           else s : go (y, ys)
+
+-- |
+-- Remove ANSI color escape sequences.
+--
+-- @since 2.11.0
+stripAnsi :: String -> String
+stripAnsi = go
+  where
+    go input = case input of
+      '\ESC' : '[' : (dropWhile (`elem` "0123456789;") -> 'm' : xs) -> go xs
+      x : xs -> x : go xs
+      [] -> []
 
 -- |
 -- A `Path` describes the location of a spec item within a spec tree.
