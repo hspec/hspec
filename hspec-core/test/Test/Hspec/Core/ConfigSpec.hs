@@ -23,8 +23,8 @@ spec = around_ inTempDirectory $ around_ (withEnvironment [("HOME", "foo")]) $ d
     it "reads .hspec" $ do
       dir <- getCurrentDirectory
       let name = dir </> ".hspec"
-      writeFile name "--diff"
-      readConfigFiles `shouldReturn` [(name, ["--diff"])]
+      writeFile name "--diff --foo 'bar baz'"
+      readConfigFiles `shouldReturn` [(name, ["--diff", "--foo", "bar baz"])]
 
 #ifndef mingw32_HOST_OS
     it "reads ~/.hspec" $ do

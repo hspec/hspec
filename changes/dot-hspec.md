@@ -1,0 +1,1 @@
+  - Handle quoting/escaping in `.hspec` files
