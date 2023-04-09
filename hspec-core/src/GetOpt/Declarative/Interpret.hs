@@ -30,7 +30,7 @@ parseCommandLineOptions opts prog args config = case parseWithHelp (concatMap sn
 
     usage :: String
     usage = "Usage: " ++ prog ++ " [OPTION]...\n\n"
-      ++ (intercalate "\n" $ map (uncurry mkUsageInfo) documentedOptions)
+      ++ intercalate "\n" (map (uncurry mkUsageInfo) documentedOptions)
 
 addHelpFlag :: [(a, [OptDescr a1])] -> [(a, [OptDescr (Maybe a1)])]
 addHelpFlag opts = case opts of

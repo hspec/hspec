@@ -163,7 +163,7 @@ readLocalConfigFile = do
 readConfigFile :: FilePath -> IO (Maybe ConfigFile)
 readConfigFile name = do
   exists <- doesFileExist name
-  if exists then Just . (,) name . words <$> readFile name else return Nothing
+  if exists then Just . (,) name . unescapeArgs <$> readFile name else return Nothing
 
 exitWithMessage :: ExitCode -> String -> IO a
 exitWithMessage err msg = do
