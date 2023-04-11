@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Test.Hspec.Core.Formatters.V1Spec (spec) where
 
 import           Prelude ()

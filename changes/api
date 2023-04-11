@@ -1,2 +1,4 @@
   - Provide a new package `hspec-api`, a stable API that can be used to extend
     Hspec's functionality.
+  - Deprecate `Test.Hspec.Core.Formatters.V1` in favor of
+    `Test.Hspec.Api.Formatters.V1`

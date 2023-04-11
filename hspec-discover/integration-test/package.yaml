@@ -21,7 +21,7 @@ tests:
     source-dirs: with-io-formatter
     main: Spec.hs
     dependencies:
-      - hspec-core
+      - hspec-api
       - transformers
 
   with-formatter-empty:
