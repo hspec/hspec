@@ -1,9 +1,3 @@
-checks :: Formatter
-failed_examples :: Formatter
-formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
-progress :: Formatter
-silent :: Formatter
-specdoc :: Formatter
 type FailureReason :: *
 data FailureReason
   | NoReason
@@ -31,8 +25,11 @@ data Formatter = Formatter
   footerFormatter :: FormatM ()
 type Seconds :: *
 newtype Seconds = Seconds Double
+checks :: Formatter
 extraChunk :: String -> FormatM ()
+failed_examples :: Formatter
 formatException :: GHC.Exception.Type.SomeException -> String
+formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
 getCPUTime :: FormatM (Maybe Seconds)
 getFailCount :: FormatM Int
 getFailMessages :: FormatM [FailureRecord]
@@ -41,6 +38,9 @@ getRealTime :: FormatM Seconds
 getSuccessCount :: FormatM Int
 getTotalCount :: FormatM Int
 missingChunk :: String -> FormatM ()
+progress :: Formatter
+silent :: Formatter
+specdoc :: Formatter
 useDiff :: FormatM Bool
 usedSeed :: FormatM Integer
 withFailColor :: FormatM a -> FormatM a

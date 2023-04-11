@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Test.Hspec.Discover {-# WARNING
   "This module is used by @hspec-discover@.  It is not part of the public API and may change at any time."

@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
 -- |

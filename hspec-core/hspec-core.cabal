@@ -83,6 +83,7 @@ library
       Test.Hspec.Core.Formatters.Pretty.Parser.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
       Test.Hspec.Core.Formatters.V1.Free
+      Test.Hspec.Core.Formatters.V1.Internal
       Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
@@ -164,6 +165,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.Pretty.Unicode
       Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V1.Free
+      Test.Hspec.Core.Formatters.V1.Internal
       Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks

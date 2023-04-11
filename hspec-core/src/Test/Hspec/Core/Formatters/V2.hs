@@ -1,11 +1,13 @@
 {-# LANGUAGE CPP #-}
 -- |
--- Stability: experimental
+-- Stability: unstable
 --
--- This module contains formatters that can be used with
--- `Test.Hspec.Core.Runner.hspecWith`.
-module Test.Hspec.Core.Formatters.V2 (
-
+-- This is an unstable API.  Use
+-- [Test.Hspec.Api.Formatters.V2](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V2.html)
+-- instead.
+module Test.Hspec.Core.Formatters.V2
+-- {-# WARNING "Use [Test.Hspec.Api.Formatters.V2](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V2.html) instead." #-}
+(
 -- * Formatters
   silent
 , checks
