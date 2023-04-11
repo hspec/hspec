@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase #-}
 module Test.Hspec.Core.Formatters.Internal (
   Formatter(..)
 , Item(..)
@@ -52,7 +53,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
-import           System.IO (Handle, stdout)
+import           System.IO (stdout)
 import           System.Console.ANSI
 import           Control.Monad.Trans.State hiding (state, gets, modify)
 import           Control.Monad.IO.Class
@@ -93,7 +94,7 @@ data FailureRecord = FailureRecord {
 }
 
 formatterToFormat :: Formatter -> FormatConfig -> IO Format
-formatterToFormat Formatter{..} config = monadic (runFormatM config) $ \ event -> case event of
+formatterToFormat Formatter{..} config = monadic (runFormatM config) $ \ case
   Started -> formatterStarted
   GroupStarted path -> formatterGroupStarted path
   GroupDone path -> formatterGroupDone path
@@ -190,9 +191,6 @@ data FormatterState = FormatterState {
 getConfig :: (FormatConfig -> a) -> FormatM a
 getConfig f = gets (f . stateConfig)
 
-getHandle :: FormatM Handle
-getHandle = return stdout
-
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer
 usedSeed = getConfig formatConfigUsedSeed
@@ -255,9 +253,8 @@ writeTransient :: String -> FormatM ()
 writeTransient new = do
   reportProgress <- getConfig formatConfigReportProgress
   when reportProgress $ do
-    h <- getHandle
     write new
-    liftIO $ IO.hFlush h
+    liftIO $ IO.hFlush stdout
     write $ "\r" ++ replicate (length new) ' ' ++ "\r"
 
 -- | Append some output to the report.
@@ -271,10 +268,9 @@ splitLines = groupBy (\ a b -> isNewline a == isNewline b)
 
 writeChunk :: String -> FormatM ()
 writeChunk str = do
-  h <- getHandle
   let
-    plainOutput = IO.hPutStr h str
-    colorOutput color = bracket_ (hSetSGR h [color]) (hSetSGR h [Reset]) plainOutput
+    plainOutput = IO.putStr str
+    colorOutput color = bracket_ (hSetSGR stdout [color]) (hSetSGR stdout [Reset]) plainOutput
   mColor <- gets stateColor
   liftIO $ case mColor of
     Just (SetColor Foreground _ _) | all isSpace str -> plainOutput

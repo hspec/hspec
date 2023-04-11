@@ -81,6 +81,7 @@ module Test.Hspec.Core.Formatters.V2 (
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (First)
+import           System.IO (hFlush, stdout)
 
 import           Data.Char
 import           Test.Hspec.Core.Util
@@ -242,10 +243,12 @@ specdoc = silent {
 
 progress :: Formatter
 progress = failed_examples {
-  formatterItemDone = \ _ item -> case itemResult item of
-    Success{} -> withSuccessColor $ write "."
-    Pending{} -> withPendingColor $ write "."
-    Failure{} -> withFailColor $ write "F"
+  formatterItemDone = \ _ item -> do
+    case itemResult item of
+      Success{} -> withSuccessColor $ write "."
+      Pending{} -> withPendingColor $ write "."
+      Failure{} -> withFailColor $ write "F"
+    liftIO $ hFlush stdout
 }
 
 failed_examples :: Formatter
