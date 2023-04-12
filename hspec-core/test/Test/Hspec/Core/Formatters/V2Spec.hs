@@ -74,6 +74,33 @@ spec = do
       it "splits off whitespace-only segments at the end of a line so that they get colorized" $ do
         indentChunks "  " [Modified "foo  \n"] `shouldBe` [ColorChunk "foo", ColorChunk "  ", PlainChunk "\n", ColorChunk "  "]
 
+      it "splits off whitespace-only segments at the end of the input so that they get colorized" $ do
+        indentChunks "  " [Modified "23 "] `shouldBe` [ColorChunk "23", ColorChunk " "]
+
+      context "when next chunk starts with a newline" $ do
+        it "splits off whitespace-only segments at the end of a chunk so that they get colorized" $ do
+          indentChunks "  " [Modified "23 ", Original "\nbar"] `shouldBe` [ColorChunk "23", ColorChunk " ", PlainChunk "\n  bar"]
+
+      context "when next chunk starts with spaces followed by a newline" $ do
+        it "splits off whitespace-only segments at the end of a chunk so that they get colorized" $ do
+          indentChunks "  " [Modified "23 ", Original "   \nbar"] `shouldBe` [ColorChunk "23", ColorChunk " ", PlainChunk "   \n  bar"]
+
+      context "when all following chunks only consist of whitespace characters" $ do
+        it "splits off whitespace-only segments at the end of a chunk so that they get colorized" $ do
+          indentChunks "  " [Modified "23 ", Original "  ", Original "  "] `shouldBe` [ColorChunk "23", ColorChunk " ", PlainChunk "  ", PlainChunk "  "]
+
+      context "when all following chunks only consist of whitespace characters until the next newline is encountered" $ do
+        it "splits off whitespace-only segments at the end of a chunk so that they get colorized" $ do
+          indentChunks "  " [Modified "23 ", Original " ", Modified " ", Original "\n"] `shouldBe` [ColorChunk "23", ColorChunk " ", PlainChunk " ", ColorChunk " ", PlainChunk "\n  "]
+
+      context "when next chunk starts with a non-whitespace character" $ do
+        it "does not split off whitespace-only segments at the end of a chunk" $ do
+          indentChunks "  " [Modified "23 ", Original "bar"] `shouldBe` [ColorChunk "23 ", PlainChunk "bar"]
+
+      context "when all following chunks only consist of non-newline characters until the next non-whitespace character is encountered" $ do
+        it "does not split off whitespace-only segments at the end of a chunk" $ do
+          indentChunks "  " [Modified "23 ", Original "  ", Original " bar"] `shouldBe` [ColorChunk "23 ", PlainChunk "  ", PlainChunk " bar"]
+
       context "with empty lines" $ do
         it "colorizes indentation" $ do
           indentChunks "  " [Original "foo", Modified "\n\n", Original "bar"] `shouldBe` [PlainChunk "foo", PlainChunk "\n", ColorChunk "  ", PlainChunk "\n", ColorChunk "  ", PlainChunk "bar"]

@@ -368,11 +368,33 @@ actualChunks = mapMaybe $ \ case
 data ColorChunk = PlainChunk String | ColorChunk String | Informational String
   deriving (Eq, Show)
 
+data StartsWith = StartsWithNewline | StartsWithNonNewline
+  deriving Eq
+
 indentChunks :: String -> [Chunk] -> [ColorChunk]
-indentChunks indentation = concatMap $ \ case
-  Original y -> [indentOriginal indentation y]
-  Modified y -> indentModified indentation y
-  OmittedLines n -> [Informational $ "@@ " <> show n <> " lines omitted @@\n" <> indentation]
+indentChunks indentation = go
+  where
+    go :: [Chunk] -> [ColorChunk]
+    go = \ case
+      Original x : xs -> indentOriginal indentation x : go xs
+      Modified x : xs -> indentModified (startsWith xs) indentation x ++ go xs
+      OmittedLines n : xs -> Informational (formatOmittedLines n) : go xs
+      [] -> []
+
+    startsWith :: [Chunk] -> StartsWith
+    startsWith xs
+      | all isSpace (takeWhile (/= '\n') $ unChunks xs) = StartsWithNewline
+      | otherwise = StartsWithNonNewline
+
+    unChunks :: [Chunk] -> String
+    unChunks = \ case
+      Original x : xs -> x ++ unChunks xs
+      Modified x : xs -> x ++ unChunks xs
+      OmittedLines {} : _ -> ""
+      [] -> ""
+
+    formatOmittedLines :: Int -> String
+    formatOmittedLines n = "@@ " <> show n <> " lines omitted @@\n" <> indentation
 
 indentOriginal :: String -> String -> ColorChunk
 indentOriginal indentation = PlainChunk . go
@@ -381,17 +403,20 @@ indentOriginal indentation = PlainChunk . go
       (xs, _ : ys) -> xs ++ "\n" ++ indentation ++ go ys
       (xs, "") -> xs
 
-indentModified :: String -> String -> [ColorChunk]
-indentModified indentation = go
+indentModified :: StartsWith -> String -> String -> [ColorChunk]
+indentModified nextChunk indentation = go
   where
-    go text = case text of
+    go :: String -> [ColorChunk]
+    go = \ case
       "" -> []
       "\n" -> [PlainChunk "\n", ColorChunk indentation]
       '\n' : ys@('\n' : _) -> PlainChunk "\n" : ColorChunk indentation : go ys
       '\n' : xs -> PlainChunk ('\n' : indentation) : go xs
-      _ -> case break (== '\n') text of
+      text -> case break (== '\n') text of
+        (xs, "") | nextChunk == StartsWithNonNewline -> [ColorChunk xs]
         (xs, ys) -> segment xs ++ go ys
 
+    segment :: String -> [ColorChunk]
     segment xs = case span isSpace $ reverse xs of
       ("", _) -> [ColorChunk xs]
       (_, "") -> [ColorChunk xs]
