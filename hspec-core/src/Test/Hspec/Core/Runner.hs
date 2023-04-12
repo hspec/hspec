@@ -134,6 +134,7 @@ import           Test.Hspec.Core.Runner.Result
 --
 -- @since 2.10.5
 registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
+{-# DEPRECATED registerFormatter "Use [@registerFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V2.html#v:registerFormatter) instead." #-}
 registerFormatter formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }
 
 -- |
@@ -141,6 +142,7 @@ registerFormatter formatter config = config { configAvailableFormatters = format
 --
 -- @since 2.10.5
 registerDefaultFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
+{-# DEPRECATED registerDefaultFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V2.html#v:useFormatter) instead." #-}
 registerDefaultFormatter formatter@(_, format) config = (registerFormatter formatter config) { configFormat = Just format }
 
 applyFilterPredicates :: Config -> [Tree c EvalItem] -> [Tree c EvalItem]

@@ -3,10 +3,10 @@
 -- Stability: unstable
 --
 -- This is an unstable API.  Use
--- [Test.Hspec.Api.Formatters.V2](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V2.html)
+-- [Test.Hspec.Api.Formatters.V3](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V3.html)
 -- instead.
 module Test.Hspec.Core.Formatters.V2
--- {-# WARNING "Use [Test.Hspec.Api.Formatters.V2](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V2.html) instead." #-}
+-- {-# WARNING "Use [Test.Hspec.Api.Formatters.V3](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V3.html) instead." #-}
 (
 -- * Formatters
   silent
