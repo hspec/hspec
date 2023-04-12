@@ -6,6 +6,17 @@
 -- |
 -- Stability: provisional
 module Test.Hspec.Core.Runner (
+-- * Simple interface
+  hspec
+, hspecWith
+, hspecResult
+, hspecWithResult
+
+-- ** Summary
+, Summary (..)
+, isSuccess
+, evaluateSummary
+
 -- * Running a spec
 {- |
 To run a spec `hspec` performs a sequence of steps:
@@ -18,7 +29,8 @@ To run a spec `hspec` performs a sequence of steps:
 The four primitives `evalSpec`, `readConfig`, `runSpecForest` and
 `evaluateResult` each perform one of these steps respectively.
 
-`hspec` is defined in terms of these primitives:
+`hspec` is defined in terms of these primitives. Loosely speaking, a definition
+for @hspec@ is:
 
 @
 hspec = `evalSpec` `defaultConfig` >=> \\ (config, spec) ->
@@ -28,13 +40,35 @@ hspec = `evalSpec` `defaultConfig` >=> \\ (config, spec) ->
   >>= `evaluateResult`
 @
 
-If you need more control over how a spec is run use these primitives individually.
+Loosely speaking in the sense that this definition of @hspec@ ignores
+@--rerun-all-on-success@.
+
+Using these primitives individually gives you more control over how a spec is
+run.  However, if you need support for @--rerun-all-on-success@ then you should
+try hard to solve your use case with one of `hspec`, `hspecWith`, `hspecResult`
+or `hspecWithResult`.
 
 -}
-  hspec
 , evalSpec
 , runSpecForest
 , evaluateResult
+
+-- ** Result
+
+-- *** Spec Result
+, Test.Hspec.Core.Runner.Result.SpecResult
+, Test.Hspec.Core.Runner.Result.specResultItems
+, Test.Hspec.Core.Runner.Result.specResultSuccess
+, toSummary
+
+-- *** Result Item
+, Test.Hspec.Core.Runner.Result.ResultItem
+, Test.Hspec.Core.Runner.Result.resultItemPath
+, Test.Hspec.Core.Runner.Result.resultItemStatus
+, Test.Hspec.Core.Runner.Result.resultItemIsFailure
+
+-- *** Result Item Status
+, Test.Hspec.Core.Runner.Result.ResultItemStatus(..)
 
 -- * Config
 , Config (..)
@@ -47,34 +81,8 @@ If you need more control over how a spec is run use these primitives individuall
 , configAddFilter
 , readConfig
 
--- * Result
-
--- ** Spec Result
-, Test.Hspec.Core.Runner.Result.SpecResult
-, Test.Hspec.Core.Runner.Result.specResultItems
-, Test.Hspec.Core.Runner.Result.specResultSuccess
-
--- ** Result Item
-, Test.Hspec.Core.Runner.Result.ResultItem
-, Test.Hspec.Core.Runner.Result.resultItemPath
-, Test.Hspec.Core.Runner.Result.resultItemStatus
-, Test.Hspec.Core.Runner.Result.resultItemIsFailure
-
--- ** Result Item Status
-, Test.Hspec.Core.Runner.Result.ResultItemStatus(..)
-
 -- * Legacy
--- | The following primitives are deprecated.  Use `runSpecForest` instead.
-, hspecWith
-, hspecResult
-, hspecWithResult
 , runSpec
-
--- ** Summary
-, Summary (..)
-, toSummary
-, isSuccess
-, evaluateSummary
 
 -- * Re-exports
 , Spec
