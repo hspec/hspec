@@ -4,10 +4,10 @@
 -- Stability: unstable
 --
 -- This is an unstable API.  Use
--- [Test.Hspec.Api.Format.V1](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html)
+-- [Test.Hspec.Api.Format.V2](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V2.html)
 -- instead.
 module Test.Hspec.Core.Format
--- {-# WARNING "Use [Test.Hspec.Api.Format.V1](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V1.html) instead." #-}
+-- {-# WARNING "Use [Test.Hspec.Api.Format.V2](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Format-V2.html) instead." #-}
 (
   Format
 , FormatConfig(..)

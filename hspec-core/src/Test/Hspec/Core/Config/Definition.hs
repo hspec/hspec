@@ -88,7 +88,7 @@ data Config = Config {
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
 }
-{-# DEPRECATED configFormatter "Use [`useFormatter`](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
+{-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 
 mkDefaultConfig :: [(String, FormatConfig -> IO Format)] -> Config
 mkDefaultConfig formatters = Config {
