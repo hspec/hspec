@@ -58,7 +58,6 @@ data FormatConfig = FormatConfig {
 , formatConfigUseDiff :: Bool
 , formatConfigDiffContext :: Maybe Int
 , formatConfigExternalDiff :: Maybe (String -> String -> IO ())
-, formatConfigPrettyPrint :: Bool -- ^ Deprecated: use `formatConfigPrettyPrintFunction` instead
 , formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
 , formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool
@@ -75,7 +74,6 @@ unliftFormatConfig config = FormatConfig {
 , formatConfigUseDiff = Latest.formatConfigUseDiff config
 , formatConfigDiffContext = Latest.formatConfigDiffContext config
 , formatConfigExternalDiff = Latest.formatConfigExternalDiff config
-, formatConfigPrettyPrint = Latest.formatConfigPrettyPrint config
 , formatConfigPrettyPrintFunction = Latest.formatConfigPrettyPrintFunction config
 , formatConfigPrintTimes = Latest.formatConfigPrintTimes config
 , formatConfigHtmlOutput = Latest.formatConfigHtmlOutput config

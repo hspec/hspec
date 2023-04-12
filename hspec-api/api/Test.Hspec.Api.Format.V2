@@ -6,7 +6,6 @@ data FormatConfig = FormatConfig
   formatConfigUseDiff :: Bool
   formatConfigDiffContext :: Maybe Int
   formatConfigExternalDiff :: Maybe (String -> String -> IO ())
-  formatConfigPrettyPrint :: Bool
   formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
   formatConfigPrintTimes :: Bool
   formatConfigHtmlOutput :: Bool

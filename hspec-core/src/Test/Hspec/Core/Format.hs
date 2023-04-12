@@ -66,7 +66,7 @@ data FormatConfig = FormatConfig {
 , formatConfigUseDiff :: Bool
 , formatConfigDiffContext :: Maybe Int
 , formatConfigExternalDiff :: Maybe (String -> String -> IO ())
-, formatConfigPrettyPrint :: Bool -- ^ Deprecated: use `formatConfigPrettyPrintFunction` instead
+, formatConfigPrettyPrint :: Bool
 , formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
 , formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool
@@ -74,6 +74,8 @@ data FormatConfig = FormatConfig {
 , formatConfigUsedSeed :: Integer
 , formatConfigExpectedTotalCount :: Int
 }
+
+{-# DEPRECATED formatConfigPrettyPrint "Use `formatConfigPrettyPrintFunction` instead" #-}
 
 data Signal = Ok | NotOk SomeException
 
