@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Test.Hspec.Core.Formatters.InternalSpec (spec) where
 
 import           Prelude ()

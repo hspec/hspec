@@ -1,7 +1,7 @@
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
 
 -- |
 -- Stability: provisional
