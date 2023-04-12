@@ -109,7 +109,7 @@ breakList p xs = case break p xs of
       | otherwise = (x :)
 
 splitEscape :: String -> Maybe (String, String)
-splitEscape xs = splitNumericEscape xs <|> (msum $ map split escapes)
+splitEscape xs = splitNumericEscape xs <|> msum (map split escapes)
   where
     split :: String -> Maybe (String, String)
     split escape = (,) escape <$> stripPrefix escape xs

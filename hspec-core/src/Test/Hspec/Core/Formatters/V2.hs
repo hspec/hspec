@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 -- |
 -- Stability: unstable
 --
@@ -156,7 +157,7 @@ silent = Formatter {
 checks :: Formatter
 checks = specdoc {
   formatterProgress = \(nesting, requirement) p -> do
-    writeTransient $ indentationFor nesting ++ requirement ++ " [" ++ (formatProgress p) ++ "]"
+    writeTransient $ indentationFor nesting ++ requirement ++ " [" ++ formatProgress p ++ "]"
 
 , formatterItemStarted = \(nesting, requirement) -> do
     writeTransient $ indentationFor nesting ++ requirement ++ " [ ]"
@@ -325,7 +326,7 @@ defaultFailedFormatter = do
             writeChunks :: String -> [Chunk] -> (String -> FormatM ()) -> FormatM ()
             writeChunks pre chunks colorize = do
               withFailColor $ write (indentation ++ pre)
-              forM_ (indentChunks indentation_ chunks) $ \ chunk -> case chunk of
+              forM_ (indentChunks indentation_ chunks) $ \ case
                 PlainChunk a -> write a
                 ColorChunk a -> colorize a
                 Informational a -> withInfoColor $ write a
@@ -351,14 +352,14 @@ data Chunk = Original String | Modified String | OmittedLines Int
   deriving (Eq, Show)
 
 expectedChunks :: [Diff] -> [Chunk]
-expectedChunks = mapMaybe $ \ chunk -> case chunk of
+expectedChunks = mapMaybe $ \ case
   Both a -> Just $ Original a
   First a -> Just $ Modified a
   Second _ -> Nothing
   Omitted n -> Just $ OmittedLines n
 
 actualChunks :: [Diff] -> [Chunk]
-actualChunks = mapMaybe $ \ chunk -> case chunk of
+actualChunks = mapMaybe $ \ case
   Both a -> Just $ Original a
   First _ -> Nothing
   Second a -> Just $ Modified a
@@ -368,7 +369,7 @@ data ColorChunk = PlainChunk String | ColorChunk String | Informational String
   deriving (Eq, Show)
 
 indentChunks :: String -> [Chunk] -> [ColorChunk]
-indentChunks indentation = concatMap $ \ chunk -> case chunk of
+indentChunks indentation = concatMap $ \ case
   Original y -> [indentOriginal indentation y]
   Modified y -> indentModified indentation y
   OmittedLines n -> [Informational $ "@@ " <> show n <> " lines omitted @@\n" <> indentation]
@@ -384,14 +385,14 @@ indentModified :: String -> String -> [ColorChunk]
 indentModified indentation = go
   where
     go text = case text of
+      "" -> []
       "\n" -> [PlainChunk "\n", ColorChunk indentation]
       '\n' : ys@('\n' : _) -> PlainChunk "\n" : ColorChunk indentation : go ys
+      '\n' : xs -> PlainChunk ('\n' : indentation) : go xs
       _ -> case break (== '\n') text of
-        (xs, _ : ys) -> segment xs ++ PlainChunk ('\n' : indentation) : go ys
-        (xs, "") -> segment xs
+        (xs, ys) -> segment xs ++ go ys
 
     segment xs = case span isSpace $ reverse xs of
-      ("", "") -> []
       ("", _) -> [ColorChunk xs]
       (_, "") -> [ColorChunk xs]
       (ys, zs) -> [ColorChunk (reverse zs), ColorChunk (reverse ys)]

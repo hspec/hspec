@@ -60,19 +60,19 @@ spec = do
         indentChunks "  " [Modified "foo"] `shouldBe` [ColorChunk "foo"]
 
       it "indents multi-line input" $ do
-        indentChunks "  " [Modified "foo\nbar\nbaz\n"] `shouldBe` [ColorChunk "foo", PlainChunk "\n  ", ColorChunk "bar", PlainChunk "\n  ", ColorChunk "baz", PlainChunk "\n  "]
+        indentChunks "  " [Modified "foo\nbar\nbaz\n"] `shouldBe` [ColorChunk "foo", PlainChunk "\n  ", ColorChunk "bar", PlainChunk "\n  ", ColorChunk "baz", PlainChunk "\n", ColorChunk "  "]
 
       it "colorizes whitespace-only input" $ do
         indentChunks "  " [Modified "  "] `shouldBe` [ColorChunk "  "]
 
       it "colorizes whitespace-only lines" $ do
-        indentChunks "  " [Modified "foo\n  \n"] `shouldBe` [ColorChunk "foo", PlainChunk "\n  ", ColorChunk "  ", PlainChunk "\n  "]
+        indentChunks "  " [Modified "foo\n  \n"] `shouldBe` [ColorChunk "foo", PlainChunk "\n  ", ColorChunk "  ", PlainChunk "\n", ColorChunk "  "]
 
       it "colorizes whitespace at the end of the input" $ do
         indentChunks "  " [Modified "foo\n  "] `shouldBe` [ColorChunk "foo", PlainChunk "\n  ", ColorChunk "  "]
 
       it "splits off whitespace-only segments at the end of a line so that they get colorized" $ do
-        indentChunks "  " [Modified "foo  \n"] `shouldBe` [ColorChunk "foo", ColorChunk "  ", PlainChunk "\n  "]
+        indentChunks "  " [Modified "foo  \n"] `shouldBe` [ColorChunk "foo", ColorChunk "  ", PlainChunk "\n", ColorChunk "  "]
 
       context "with empty lines" $ do
         it "colorizes indentation" $ do
