@@ -33,6 +33,7 @@ dependencies:
   - filepath
   - process
   - haskell-lexer
+  - terminal-size >= 0.3.4
 
   - array # for Diff
 

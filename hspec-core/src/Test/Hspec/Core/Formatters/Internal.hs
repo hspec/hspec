@@ -46,7 +46,10 @@ module Test.Hspec.Core.Formatters.Internal (
 , unlessExpert
 
 #ifdef TEST
+, terminalDeviceName
 , runFormatM
+, getTerminalWidth
+, getTerminalWidthWith
 , splitLines
 #endif
 ) where
@@ -55,16 +58,20 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
-import           System.IO (stdout)
+import           System.IO (Handle, hClose, stdout)
 import           System.Console.ANSI
 import           Control.Monad.Trans.Reader (ReaderT(..), ask)
 import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
 import           Data.List (groupBy)
 import qualified System.CPUTime as CPUTime
+import qualified System.Console.Terminal.Size as Terminal
 
+import           Test.Hspec.Core.Util (safeTry)
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Clock
+import           Test.Hspec.Core.Issue (Issue)
+import qualified Test.Hspec.Core.Issue as Issue
 
 data Formatter = Formatter {
 -- | evaluated before a test run
@@ -96,7 +103,7 @@ data FailureRecord = FailureRecord {
 }
 
 formatterToFormat :: Formatter -> FormatConfig -> IO Format
-formatterToFormat Formatter{..} config = monadic (runFormatM config) $ \ case
+formatterToFormat Formatter{..} config = monadic (runFormatM terminalDeviceName config) $ \ case
   Started -> formatterStarted
   GroupStarted path -> formatterGroupStarted path
   GroupDone path -> formatterGroupDone path
@@ -196,6 +203,7 @@ data FormatterState = FormatterState {
 , stateStartTime       :: Seconds
 , stateConfig          :: FormatConfig
 , stateColor           :: Maybe SGR
+, stateTerminalDevice  :: TerminalDevice
 }
 
 getConfig :: (FormatConfig -> a) -> FormatM a
@@ -210,23 +218,79 @@ usedSeed = getConfig formatConfigUsedSeed
 newtype FormatM a = FormatM (ReaderT (IORef FormatterState) IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
-runFormatM :: FormatConfig -> FormatM a -> IO a
-runFormatM config (FormatM action) = withLineBuffering $ do
+terminalDeviceName :: FilePath
+#ifdef mingw32_HOST_OS
+terminalDeviceName = "\\\\.\\CONOUT$"
+#else
+terminalDeviceName = "/dev/tty"
+#endif
+
+data TerminalDevice = NoTerminalDevice (Maybe Issue) | TerminalDevice Handle
+
+openTerminalDevice :: FilePath -> IO TerminalDevice
+openTerminalDevice name = safeTry (IO.openFile name IO.ReadMode) >>= \ case
+  Left err -> return (NoTerminalDevice . Just $ Issue.new title err)
+  Right tty -> return (TerminalDevice tty)
+  where
+    title = "Opening terminal device `" <> name <> "` failed!"
+
+closeTerminalDevice :: TerminalDevice -> IO ()
+closeTerminalDevice = \ case
+  NoTerminalDevice _ -> pass
+  TerminalDevice tty -> hClose tty
+
+runFormatM :: FilePath -> FormatConfig -> FormatM a -> IO a
+runFormatM name config (FormatM action) = withLineBuffering $ do
   time <- getMonotonicTime
   cpuTime <- if formatConfigPrintCpuTime config then Just <$> CPUTime.getCPUTime else pure Nothing
 
   let
     progress = formatConfigReportProgress config && not (formatConfigHtmlOutput config)
-    state = FormatterState {
-      stateSuccessCount = 0
-    , statePendingCount = 0
-    , stateFailMessages = []
-    , stateCpuStartTime = cpuTime
-    , stateStartTime = time
-    , stateConfig = config { formatConfigReportProgress = progress }
-    , stateColor = Nothing
-    }
-  newIORef state >>= runReaderT action
+
+    open
+      | progress = openTerminalDevice name
+      | otherwise = return (NoTerminalDevice Nothing)
+
+  bracket open closeTerminalDevice $ \ tty -> do
+    let
+      state = FormatterState {
+        stateSuccessCount = 0
+      , statePendingCount = 0
+      , stateFailMessages = []
+      , stateCpuStartTime = cpuTime
+      , stateStartTime = time
+      , stateConfig = config
+      , stateColor = Nothing
+      , stateTerminalDevice = tty
+      }
+    bracket (newIORef state) reportIssues (runReaderT action)
+
+reportIssues :: IORef FormatterState -> IO ()
+reportIssues ref = stateTerminalDevice <$> readIORef ref >>= \ case
+  NoTerminalDevice issue -> maybe pass Issue.report issue
+  TerminalDevice _ -> pass
+
+getTerminalWidth :: FormatM (Maybe Int)
+getTerminalWidth = getTerminalWidthWith getWidth
+  where
+    getWidth :: Handle -> IO (Maybe Int)
+    getWidth tty = fmap Terminal.width <$> Terminal.hSize tty
+
+getTerminalWidthWith :: (Handle -> IO (Maybe Int)) -> FormatM (Maybe Int)
+getTerminalWidthWith getWidth = gets stateTerminalDevice >>= \ case
+  NoTerminalDevice _ -> return Nothing
+  TerminalDevice tty -> getWidthEither tty >>= either reportIssue return
+  where
+    getWidthEither :: Handle -> FormatM (Either SomeException (Maybe Int))
+    getWidthEither tty = liftIO (safeTry $ getWidth tty)
+
+    reportIssue :: SomeException -> FormatM (Maybe Int)
+    reportIssue err = do
+      modify $ \ st -> st {stateTerminalDevice = NoTerminalDevice . Just $ Issue.new title err}
+      return Nothing
+
+    title :: String
+    title = "Getting size of terminal device `" <> terminalDeviceName <> "` failed!"
 
 withLineBuffering :: IO a -> IO a
 withLineBuffering action = bracket (IO.hGetBuffering stdout) (IO.hSetBuffering stdout) $ \ _ -> do
@@ -260,12 +324,29 @@ getExpectedTotalCount :: FormatM Int
 getExpectedTotalCount = getConfig formatConfigExpectedTotalCount
 
 writeTransient :: String -> FormatM ()
-writeTransient new = do
-  reportProgress <- getConfig formatConfigReportProgress
-  when reportProgress $ do
+writeTransient new = getTerminalWidth >>= \ case
+  Nothing -> pass
+  Just width -> do
     write new
-    liftIO $ IO.hFlush stdout
-    write $ "\r" ++ replicate (length new) ' ' ++ "\r"
+    flush
+    moveToStartOfLine
+    let lineWraps = pred (length new) `div` width
+    moveUp lineWraps
+    clearToEndOfScreen
+  where
+    flush :: FormatM ()
+    flush = liftIO $ IO.hFlush stdout
+
+    moveToStartOfLine :: FormatM ()
+    moveToStartOfLine = liftIO $ IO.hPutStr stdout "\r"
+
+    moveUp :: Int -> FormatM ()
+    moveUp n
+      | n > 0 = liftIO $ hCursorUpLine stdout n
+      | otherwise = pass
+
+    clearToEndOfScreen :: FormatM ()
+    clearToEndOfScreen = liftIO $ hClearFromCursorToScreenEnd stdout
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
