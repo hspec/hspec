@@ -66,7 +66,7 @@ data FailureRecord = FailureRecord
   failureRecordMessage :: FailureReason
 type role FormatM nominal
 type FormatM :: * -> *
-newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.State.Lazy.StateT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
+newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.Reader.ReaderT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
 type Item :: *
 data Item = Item
   itemLocation :: Maybe Location
