@@ -55,7 +55,7 @@ import           Test.Hspec.Core.Compat
 import qualified System.IO as IO
 import           System.IO (stdout)
 import           System.Console.ANSI
-import           Control.Monad.Trans.State hiding (state, gets, modify)
+import           Control.Monad.Trans.Reader (ReaderT(..), ask)
 import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
 import           Data.List (groupBy)
@@ -171,12 +171,12 @@ getTotalCount = sum <$> sequence [getSuccessCount, getFailCount, getPendingCount
 -- | A lifted version of `Control.Monad.Trans.State.gets`
 gets :: (FormatterState -> a) -> FormatM a
 gets f = FormatM $ do
-  f <$> (get >>= liftIO . readIORef)
+  f <$> (ask >>= liftIO . readIORef)
 
 -- | A lifted version of `Control.Monad.Trans.State.modify`
 modify :: (FormatterState -> FormatterState) -> FormatM ()
 modify f = FormatM $ do
-  get >>= liftIO . (`modifyIORef'` f)
+  ask >>= liftIO . (`modifyIORef'` f)
 
 data FormatterState = FormatterState {
   stateSuccessCount    :: !Int
@@ -197,7 +197,7 @@ usedSeed = getConfig formatConfigUsedSeed
 
 -- NOTE: We use an IORef here, so that the state persists when UserInterrupt is
 -- thrown.
-newtype FormatM a = FormatM (StateT (IORef FormatterState) IO a)
+newtype FormatM a = FormatM (ReaderT (IORef FormatterState) IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
 runFormatM :: FormatConfig -> FormatM a -> IO a
@@ -216,7 +216,7 @@ runFormatM config (FormatM action) = withLineBuffering $ do
     , stateConfig = config { formatConfigReportProgress = progress }
     , stateColor = Nothing
     }
-  newIORef state >>= evalStateT action
+  newIORef state >>= runReaderT action
 
 withLineBuffering :: IO a -> IO a
 withLineBuffering action = bracket (IO.hGetBuffering stdout) (IO.hSetBuffering stdout) $ \ _ -> do
@@ -269,7 +269,7 @@ splitLines = groupBy (\ a b -> isNewline a == isNewline b)
 writeChunk :: String -> FormatM ()
 writeChunk str = do
   let
-    plainOutput = IO.putStr str
+    plainOutput = IO.hPutStr stdout str
     colorOutput color = bracket_ (hSetSGR stdout [color]) (hSetSGR stdout [Reset]) plainOutput
   mColor <- gets stateColor
   liftIO $ case mColor of

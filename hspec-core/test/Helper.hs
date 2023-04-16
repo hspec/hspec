@@ -23,6 +23,7 @@ module Helper (
 , throwException_
 
 , withEnvironment
+, withTempDirectory
 , inTempDirectory
 
 , hspecSilent
@@ -51,7 +52,7 @@ import           System.Exit
 import           System.IO.Silently
 import           System.FilePath
 import           System.Directory
-import           System.IO.Temp
+import           System.IO.Temp (withSystemTempDirectory)
 import           System.Console.ANSI
 
 import           Test.Hspec.Meta hiding (hspec, hspecResult, pending, pendingWith)
@@ -178,8 +179,11 @@ withEnvironment environment action = bracket saveEnv restoreEnv $ const action
       forM_ env (unsetEnv . fst)
       return env
 
+withTempDirectory :: (FilePath -> IO a) -> IO a
+withTempDirectory = withSystemTempDirectory "hspec"
+
 inTempDirectory :: IO a -> IO a
-inTempDirectory action = withSystemTempDirectory "mockery" $ \path -> do
+inTempDirectory action = withTempDirectory $ \path -> do
   bracket getCurrentDirectory setCurrentDirectory $ \_ -> do
     setCurrentDirectory path
     action
