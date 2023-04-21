@@ -1,1 +1,0 @@
-  - Drop support for GHC < 7.10.3
