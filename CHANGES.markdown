@@ -1,3 +1,16 @@
+## Changes in 2.11.0 (2023-04-21)
+  - Drop support for GHC < 7.10.3
+  - Improve coloring of whitespace-only segments on `--diff`
+  - Add `ColorizedReason` constructor to `FailureReason`
+  - Provide a new package `hspec-api`, a stable API that can be used to extend
+    Hspec's functionality.
+  - Deprecate `Test.Hspec.Core.Formatters.V1` in favor of
+    `Test.Hspec.Api.Formatters.V1`
+  - Add `--fail-on=empty-description`
+  - Print slow spec items to `stderr` instead of `stdout`
+  - Handle quoting/escaping in `.hspec` files
+  - Flush output handle after reporting progress on `-fprogress`
+
 ## Changes in 2.10.10 (2023-03-07)
   - Re-export `sequential` from `Test.Hspec`
   - Rerun `beforeAll` / `afterAll` on `--rerun-all-on-success` (#768)
