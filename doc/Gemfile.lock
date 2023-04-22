@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/sfi0zy/jekyll-less
+  remote: https://github.com/sol/jekyll-less
   revision: ef28fd77dfa18f6b23024622abd3238ed6b1f9ad
   specs:
     jekyll-less (0.1.0)
