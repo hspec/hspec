@@ -1,3 +1,7 @@
+## Changes in 2.11.0.1 (2023-04-28)
+  - Don't crash when home directories are unsupported (WASM/WASI) (thanks
+    @amesgen)
+
 ## Changes in 2.11.0 (2023-04-21)
   - Drop support for GHC < 7.10.3
   - Improve coloring of whitespace-only segments on `--diff`
