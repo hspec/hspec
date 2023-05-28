@@ -1,3 +1,6 @@
+## Changes in 2.11.1 (2023-05-28)
+  - Depend on `hspec-expectations-0.8.3`
+
 ## Changes in 2.11.0.1 (2023-04-28)
   - Don't crash when home directories are unsupported (WASM/WASI) (thanks
     @amesgen)

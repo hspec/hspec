@@ -34,7 +34,7 @@ dependencies:
   - HUnit == 1.6.*
   - QuickCheck >= 2.13.1
   - quickcheck-io >= 0.2.0
-  - hspec-expectations == 0.8.2.*
+  - hspec-expectations == 0.8.3.*
   - call-stack >= 0.2.0
   - directory
   - filepath
