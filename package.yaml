@@ -1,16 +1,11 @@
-_: !include version.yaml
+<<: !include version.yaml
 
-name:             hspec
-version: *version
+name: hspec
+github: hspec/hspec
 copyright:
   - (c) 2011-2023 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
   - (c) 2011 Greg Weber
-maintainer:       Simon Hengel <sol@typeful.net>
-category:         Testing
-stability:        experimental
-homepage:         https://hspec.github.io/
-synopsis:         A Testing Framework for Haskell
 description: |
   Hspec is a testing framework for Haskell.  Some of Hspec's distinctive
   features are:
@@ -29,10 +24,7 @@ extra-source-files:
   - version.yaml
   - CHANGES.markdown
 
-github: hspec/hspec
-
 ghc-options: -Wall
-
 
 dependencies:
   base: 4.*

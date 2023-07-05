@@ -12,7 +12,7 @@ name :: String
 name = "version.yaml"
 
 prefix :: String
-prefix = "&version "
+prefix = "version: &version "
 
 main :: IO ()
 main = do
