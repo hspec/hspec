@@ -1,21 +1,14 @@
-_: !include version.yaml
+<<: !include version.yaml
 
 name: hspec-core
-version: *version
-synopsis: A Testing Framework for Haskell
-description: >
-  This package exposes internal types and functions that can be used to extend
-  Hspec's functionality.
+github: hspec/hspec/hspec-core
 copyright:
   - (c) 2011-2023 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
   - (c) 2011 Greg Weber
-maintainer: Simon Hengel <sol@typeful.net>
-category: Testing
-stability: experimental
-homepage: https://hspec.github.io/
-
-github: hspec/hspec/hspec-core
+description: >
+  This package exposes internal types and functions that can be used to extend
+  Hspec's functionality.
 
 extra-source-files:
   - version.yaml

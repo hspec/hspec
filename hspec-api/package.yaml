@@ -1,18 +1,12 @@
-_: !include version.yaml
+<<: !include version.yaml
 
 name: hspec-api
-version: *version
-synopsis: A Testing Framework for Haskell
+github: hspec/hspec/hspec-api
+copyright: (c) 2022-2023 Simon Hengel
 description: >
   This package provides a stable API that can be used to extend Hspec's
   functionality.
-copyright: (c) 2022-2023 Simon Hengel
-maintainer: Simon Hengel <sol@typeful.net>
-category: Testing
 stability: stable
-homepage: https://hspec.github.io/
-
-github: hspec/hspec/hspec-api
 
 extra-source-files:
   - version.yaml
