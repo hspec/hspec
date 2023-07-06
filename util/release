@@ -4,3 +4,4 @@ set -o errexit
 
 util/bump-version $*
 util/update-changes
+(cd doc && make)
