@@ -73,6 +73,7 @@ data FormatConfig = FormatConfig {
 , formatConfigPrintCpuTime :: Bool
 , formatConfigUsedSeed :: Integer
 , formatConfigExpectedTotalCount :: Int
+, formatConfigExpertMode :: Bool
 }
 
 {-# DEPRECATED formatConfigPrettyPrint "Use `formatConfigPrettyPrintFunction` instead" #-}

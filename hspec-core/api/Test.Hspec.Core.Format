@@ -24,6 +24,7 @@ data FormatConfig = FormatConfig
   formatConfigPrintCpuTime :: Bool
   formatConfigUsedSeed :: Integer
   formatConfigExpectedTotalCount :: Int
+  formatConfigExpertMode :: Bool
 type Item :: *
 data Item = Item
   itemLocation :: Maybe Location

@@ -5,7 +5,7 @@ set -o errexit
 old=CHANGES.markdown
 new=$old.new
 
-echo "## Changes in $(cat version.yaml | sed 's/&version //') ($(date -uI))" > $new
+echo "## Changes in $(grep '^version:' version.yaml | cut -d ' ' -f3) ($(date -uI))" > $new
 cat changes/* >> $new
 echo >> $new
 cat $old >> $new

@@ -82,6 +82,7 @@ data Config = Config {
 , configPrettyPrint :: Bool
 , configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
 , configTimes :: Bool
+, configExpertMode :: Bool -- ^ @since 2.11.2
 , configAvailableFormatters :: [(String, FormatConfig -> IO Format)] -- ^ @since 2.9.0
 , configFormat :: Maybe (FormatConfig -> IO Format)
 , configFormatter :: Maybe V1.Formatter
@@ -122,6 +123,7 @@ mkDefaultConfig formatters = Config {
 , configPrettyPrint = True
 , configPrettyPrintFunction = pretty2
 , configTimes = False
+, configExpertMode = False
 , configAvailableFormatters = formatters
 , configFormat = Nothing
 , configFormatter = Nothing
@@ -179,6 +181,7 @@ formatterOptions formatters = [
   , mkFlag "times" setTimes "report times for individual spec items"
   , mkOptionNoArg "print-cpu-time" Nothing setPrintCpuTime "include used CPU time in summary"
   , printSlowItemsOption
+  , mkFlag "expert" setExpertMode "be less verbose"
 
     -- undocumented for now, as we probably want to change this to produce a
     -- standalone HTML report in the future
@@ -229,6 +232,9 @@ formatterOptions formatters = [
     setTimes v config = config {configTimes = v}
 
     setPrintCpuTime config = config {configPrintCpuTime = True}
+
+    setExpertMode :: Bool -> Config -> Config
+    setExpertMode v config = config {configExpertMode = v}
 
 printSlowItemsOption :: Option Config
 printSlowItemsOption = Option name (Just 'p') (OptArg "N" arg) "print the N slowest spec items (default: 10)" True

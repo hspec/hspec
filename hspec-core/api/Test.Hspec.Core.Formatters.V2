@@ -68,6 +68,7 @@ outputUnicode :: FormatM Bool
 prettyPrint :: FormatM Bool
 prettyPrintFunction :: FormatM (Maybe (String -> String -> (String, String)))
 printTimes :: FormatM Bool
+unlessExpert :: FormatM () -> FormatM ()
 useDiff :: FormatM Bool
 usedSeed :: FormatM Integer
 withFailColor :: FormatM a -> FormatM a
