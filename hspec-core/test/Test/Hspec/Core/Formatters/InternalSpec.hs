@@ -24,6 +24,7 @@ formatConfig = FormatConfig {
 , formatConfigPrintCpuTime = False
 , formatConfigUsedSeed = 0
 , formatConfigExpectedTotalCount = 0
+, formatConfigExpertMode = False
 }
 
 spec :: Spec

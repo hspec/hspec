@@ -71,6 +71,9 @@ module Test.Hspec.Core.Formatters.V2
 , extraChunk
 , missingChunk
 
+-- ** expert mode
+, unlessExpert
+
 -- ** Helpers
 , formatLocation
 , formatException
@@ -139,6 +142,8 @@ import Test.Hspec.Core.Formatters.Internal (
   , prettyPrintFunction
   , extraChunk
   , missingChunk
+
+  , unlessExpert
   )
 
 import           Test.Hspec.Core.Formatters.Diff
@@ -338,10 +343,11 @@ defaultFailedFormatter = do
           mapM_ indent info
           withFailColor . indent $ "uncaught exception: " ++ formatException e
 
-      writeLine ""
 
-      let path_ = (if unicode then ushow else show) (joinPath path)
-      writeLine ("  To rerun use: --match " ++ path_)
+      unlessExpert $ do
+        let path_ = (if unicode then ushow else show) (joinPath path)
+        writeLine ""
+        writeLine ("  To rerun use: --match " ++ path_)
       where
         indentation = "       "
         indent message = do

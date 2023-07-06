@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:             hspec
-version:          2.11.1
+version:          2.11.2
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2023 Simon Hengel,
@@ -45,8 +45,8 @@ library
   build-depends:
       QuickCheck >=2.12
     , base ==4.*
-    , hspec-core ==2.11.1
-    , hspec-discover ==2.11.1
+    , hspec-core ==2.11.2
+    , hspec-discover ==2.11.2
     , hspec-expectations ==0.8.3.*
   exposed-modules:
       Test.Hspec

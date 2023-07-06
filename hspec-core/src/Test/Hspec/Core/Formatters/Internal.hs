@@ -43,6 +43,8 @@ module Test.Hspec.Core.Formatters.Internal (
 , extraChunk
 , missingChunk
 
+, unlessExpert
+
 #ifdef TEST
 , runFormatM
 , splitLines
@@ -117,6 +119,14 @@ getFailCount = length <$> getFailMessages
 -- | Return `True` if the user requested colorized diffs, `False` otherwise.
 useDiff :: FormatM Bool
 useDiff = getConfig formatConfigUseDiff
+
+-- | Do nothing on `--expert`, otherwise run the given action.
+--
+-- @since 2.11.2
+unlessExpert :: FormatM () -> FormatM ()
+unlessExpert action = getConfig formatConfigExpertMode >>= \ case
+  False -> action
+  True -> return ()
 
 -- |
 -- Return the value of `Test.Hspec.Core.Runner.configDiffContext`.

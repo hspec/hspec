@@ -36,6 +36,7 @@ formatConfig = FormatConfig {
 , formatConfigPrintCpuTime = False
 , formatConfigUsedSeed = 0
 , formatConfigExpectedTotalCount = 0
+, formatConfigExpertMode = False
 } where
     unicode = True
 
@@ -235,9 +236,11 @@ spec = do
           ]
 
     describe "formatterDone" $ do
+      let expectedButGot expected actual = ItemDone ([], "") . Item Nothing 0 "" $ Failure Nothing $ ExpectedButGot Nothing expected actual
+
       it "recovers unicode from ExpectedButGot" $ do
         formatter <- formatterToFormat failed_examples formatConfig { formatConfigOutputUnicode = True }
-        _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Failure Nothing $ ExpectedButGot Nothing (show "\955") (show "\956")
+        formatter $ expectedButGot (show "\955") (show "\956")
         (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
             ""
           , "Failures:"
@@ -254,10 +257,28 @@ spec = do
           , "1 example, 1 failure"
           ]
 
+      context "on --expert" $ do
+        it "does not print rerun message" $ do
+          formatter <- formatterToFormat failed_examples formatConfig { formatConfigExpertMode = True }
+          formatter $ expectedButGot "foo" "bar"
+          (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
+              ""
+            , "Failures:"
+            , ""
+            , "  1) "
+            , "       expected: foo"
+            , "        but got: bar"
+            , ""
+            , "Randomized with seed 0"
+            , ""
+            , "Finished in 0.0000 seconds"
+            , "1 example, 1 failure"
+            ]
+
       context "when actual/expected contain newlines" $ do
         it "adds indentation" $ do
           formatter <- formatterToFormat failed_examples formatConfig
-          _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Failure Nothing $ ExpectedButGot Nothing "first\nsecond\nthird" "first\ntwo\nthird"
+          formatter $ expectedButGot "first\nsecond\nthird" "first\ntwo\nthird"
           (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
               ""
             , "Failures:"
@@ -281,7 +302,7 @@ spec = do
       context "without failures" $ do
         it "shows summary in green if there are no failures" $ do
           formatter <- formatterToFormat failed_examples formatConfig
-          _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Success
+          formatter . ItemDone ([], "") . Item Nothing 0 "" $ Success
           (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
               ""
             , "Finished in 0.0000 seconds"
@@ -291,7 +312,7 @@ spec = do
       context "with pending examples" $ do
         it "shows summary in yellow if there are pending examples" $ do
           formatter <- formatterToFormat failed_examples formatConfig
-          _ <- formatter .  ItemDone ([], "") . Item Nothing 0 "" $ Pending Nothing Nothing
+          formatter . ItemDone ([], "") . Item Nothing 0 "" $ Pending Nothing Nothing
           (fmap normalizeSummary . captureLines) (formatter $ Done []) `shouldReturn` [
               ""
             , "Finished in 0.0000 seconds"

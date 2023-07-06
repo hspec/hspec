@@ -1,3 +1,6 @@
+## Changes in 2.11.2 (2023-07-06)
+  - Add `--expert` mode
+
 ## Changes in 2.11.1 (2023-05-28)
   - Depend on `hspec-expectations-0.8.3`
 

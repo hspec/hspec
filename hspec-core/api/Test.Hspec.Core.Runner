@@ -46,6 +46,7 @@ data Config = Config
   configPrettyPrint :: Bool
   configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
   configTimes :: Bool
+  configExpertMode :: Bool
   configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
   configFormat :: Maybe (Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)
   configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter

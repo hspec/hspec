@@ -85,6 +85,9 @@ module Test.Hspec.Api.Formatters.V3 (
 , extraChunk
 , missingChunk
 
+-- ** expert mode
+, unlessExpert
+
 -- ** Helpers
 , formatLocation
 , formatException

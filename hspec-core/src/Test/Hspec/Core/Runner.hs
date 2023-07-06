@@ -388,6 +388,7 @@ runSpecForest_ oldFailureReport spec c_ = do
       , formatConfigPrintCpuTime = configPrintCpuTime config
       , formatConfigUsedSeed = seed
       , formatConfigExpectedTotalCount = numberOfItems
+      , formatConfigExpertMode = configExpertMode config
       }
 
       formatter = fromMaybe (V2.formatterToFormat V2.checks) (configFormat config <|> V1.formatterToFormat <$> configFormatter config)
