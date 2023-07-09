@@ -191,16 +191,17 @@ instance Example QC.Property where
 instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = a
   evaluateExample p c hook progressCallback = do
-    r <- QC.quickCheckWithResult (paramsQuickCheckArgs c) {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty hook p)
-    return $ fromQuickCheckResult r
+    let args = paramsQuickCheckArgs c
+    r <- QC.quickCheckWithResult args {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty hook p)
+    return $ fromQuickCheckResult args r
     where
       qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
         \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
 
-fromQuickCheckResult :: QC.Result -> Result
-fromQuickCheckResult r = case parseQuickCheckResult r of
+fromQuickCheckResult :: QC.Args -> QC.Result -> Result
+fromQuickCheckResult args r = case parseQuickCheckResult r of
   QuickCheckResult _ info (QuickCheckOtherFailure err) -> Result info $ Failure Nothing (Reason err)
-  QuickCheckResult _ info QuickCheckSuccess -> Result info Success
+  QuickCheckResult _ info QuickCheckSuccess -> Result (if QC.chatty args then info else "") Success
   QuickCheckResult n info (QuickCheckFailure QCFailure{..}) -> case quickCheckFailureException of
     Just e | Just result <- fromException e -> Result info result
     Just e | Just hunit <- fromException e -> Result info $ hunitFailureToResult (Just hunitAssertion) hunit
