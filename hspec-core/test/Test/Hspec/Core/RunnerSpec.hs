@@ -717,6 +717,33 @@ spec = do
       it "uses specified discard ratio to QuickCheck properties" $ do
         ["--qc-max-discard", "23"] `shouldUseArgs` (QC.maxDiscardRatio, 23)
 
+    describe "Test.QuickCheck.Args.chatty" $ do
+      let
+        setChatty value args = args { chatty = value }
+        withChatty value = hspecCapture [] .  H.modifyArgs (setChatty value) $ do
+          H.it "foo" $ property True
+
+      context "when True" $ do
+        it "includes informational output" $ do
+          withChatty True `shouldReturn` unlines [
+              ""
+            , "foo [✔]"
+            , "  +++ OK, passed 1 test."
+            , ""
+            , "Finished in 0.0000 seconds"
+            , "1 example, 0 failures"
+            ]
+
+      context "when False" $ do
+        it "suppresses informational output" $ do
+          withChatty False `shouldReturn` unlines [
+              ""
+            , "foo [✔]"
+            , ""
+            , "Finished in 0.0000 seconds"
+            , "1 example, 0 failures"
+            ]
+
     context "with --seed" $ do
       it "uses specified seed" $ do
         r <- runPropFoo ["--seed", "42"]
