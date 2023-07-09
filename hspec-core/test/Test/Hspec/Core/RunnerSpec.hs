@@ -248,12 +248,12 @@ spec = do
         takeMVar mvar `shouldReturn` UserInterrupt
 
     context "with --dry-run" $ do
-      let withDryRun = captureLines . withArgs ["--dry-run"] . H.hspec
+      let withDryRun = hspecCapture ["--dry-run"]
       it "produces a report" $ do
-        r <- withDryRun $ do
+        withDryRun $ do
           H.it "foo" True
           H.it "bar" True
-        normalizeSummary r `shouldBe` [
+        `shouldReturn` unlines [
             ""
           , "foo [✔]"
           , "bar [✔]"
@@ -277,13 +277,13 @@ spec = do
         readIORef ref `shouldReturn` False
 
     context "with --focused-only" $ do
-      let run = captureLines . withArgs ["--focused-only"] . H.hspec
+      let run = hspecCapture ["--focused-only"]
       context "when there aren't any focused spec items" $ do
         it "does not run anything" $ do
-          r <- run $ do
+          run $ do
             H.it "foo" True
             H.it "bar" True
-          normalizeSummary r `shouldBe` [
+          `shouldReturn` unlines [
               ""
             , ""
             , "Finished in 0.0000 seconds"
@@ -302,12 +302,12 @@ spec = do
         r `shouldBe` Left (ExitFailure 1)
 
     context "with --fail-on=focused" $ do
-      let run = captureLines . ignoreExitCode . withArgs ["--fail-on=focused", "--seed", "23"] . H.hspec . removeLocations
+      let run = hspecCapture ["--fail-on=focused", "--seed", "23"]
       it "fails on focused spec items" $ do
-        r <- run $ do
+        run $ do
           H.it "foo" True
           H.fit "bar" True
-        normalizeSummary r `shouldBe` [
+        `shouldReturn` unlines [
             ""
           , "bar [✘]"
           , ""
@@ -325,12 +325,12 @@ spec = do
           ]
 
     context "with --fail-on=empty-description" $ do
-      let run = captureLines . ignoreExitCode . withArgs ["--fail-on=empty-description", "--seed", "23"] . H.hspec . removeLocations
+      let run = hspecCapture ["--fail-on=empty-description", "--seed", "23"]
       it "fails on items with empty requirement" $ do
-        r <- run $ do
+        run $ do
           H.it "foo" True
           H.it "" True
-        normalizeSummary r `shouldBe` [
+        `shouldReturn` unlines [
             ""
           , "foo [✔]"
           , "(unspecified behavior) [✘]"
@@ -349,14 +349,13 @@ spec = do
           ]
 
     context "with --fail-on=pending" $ do
-      let run = captureLines . ignoreExitCode . withArgs ["--fail-on=pending", "--seed", "23"] . H.hspec . removeLocations
+      let run = hspecCapture ["--fail-on=pending", "--seed", "23"]
       it "fails on pending spec items" $ do
-        r <- run $ do
+        run $ do
           H.it "foo" True
           H.it "bar" $ do
             void $ throwIO (H.Pending Nothing Nothing)
-
-        normalizeSummary r `shouldBe` [
+        `shouldReturn` unlines [
             ""
           , "foo [✔]"
           , "bar [✘]"
@@ -376,11 +375,11 @@ spec = do
 
     context "with --fail-fast" $ do
       it "stops after first failure" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec . removeLocations $ do
+        hspecCapture ["--fail-fast", "--seed", "23"] $ do
           H.it "foo" True
           H.it "bar" False
           H.it "baz" False
-        normalizeSummary r `shouldBe` [
+        `shouldReturn` unlines [
             ""
           , "foo [✔]"
           , "bar [✘]"
@@ -416,11 +415,11 @@ spec = do
         readIORef ref `shouldReturn` ""
 
       it "works for nested specs" $ do
-        r <- captureLines . ignoreExitCode . withArgs ["--fail-fast", "--seed", "23"] . H.hspec . removeLocations $ do
+        hspecCapture ["--fail-fast", "--seed", "23"] $ do
           H.describe "foo" $ do
             H.it "bar" False
             H.it "baz" True
-        normalizeSummary r `shouldBe` [
+        `shouldReturn` unlines [
             ""
           , "foo"
           , "  bar [✘]"
@@ -541,9 +540,9 @@ spec = do
 
     context "with --color" $ do
       it "outputs ColorizedReason" $ do
-        r <- capture_ . ignoreExitCode . withArgs ["--seed=0", "--format=failed-examples", "--color"] . H.hspec . removeLocations $ do
+        hspecCapture ["--seed=0", "--format=failed-examples", "--color"] $ do
           H.it "foo" resultWithColorizedReason
-        normalizeSummary (lines r) `shouldBe` [
+        `shouldReturn` unlines [
             "\ESC[?25l"
           , "Failures:"
           , ""
@@ -561,9 +560,9 @@ spec = do
 
     context "with --no-color" $ do
       it "strips ANSI sequences from ColorizedReason" $ do
-        r <- capture_ . ignoreExitCode . withArgs ["--seed=0", "--format=failed-examples", "--no-color"] . H.hspec . removeLocations $ do
+        hspecCapture ["--seed=0", "--format=failed-examples", "--no-color"] $ do
           H.it "foo" resultWithColorizedReason
-        normalizeSummary (lines r) `shouldBe` [
+        `shouldReturn` unlines [
             ""
           , "Failures:"
           , ""

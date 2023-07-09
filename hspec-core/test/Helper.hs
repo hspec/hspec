@@ -28,6 +28,7 @@ module Helper (
 
 , hspecSilent
 , hspecResultSilent
+, hspecCapture
 , shouldUseArgs
 
 , removeLocations
@@ -133,6 +134,9 @@ hspecSilent = H.hspecWith silentConfig
 
 hspecResultSilent :: H.Spec -> IO H.Summary
 hspecResultSilent = H.hspecWithResult silentConfig
+
+hspecCapture :: [String] -> H.Spec -> IO String
+hspecCapture args = fmap (unlines . normalizeSummary) . captureLines . ignoreExitCode . withArgs args . H.hspec . removeLocations
 
 shouldUseArgs :: HasCallStack => (Eq n, Show n) => [String] -> (Args -> n,  n) -> Expectation
 shouldUseArgs args (accessor, expected) = do
