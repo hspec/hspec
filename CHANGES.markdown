@@ -1,3 +1,7 @@
+## Changes in 2.11.3 (2023-07-10)
+  - Suppress informational output from QuickCheck when
+    `Test.QuickCheck.Args.chatty` is `False` (#840)
+
 ## Changes in 2.11.2 (2023-07-06)
   - Add `--expert` mode
 
