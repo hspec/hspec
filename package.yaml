@@ -30,7 +30,7 @@ dependencies:
   base: 4.*
   hspec-core: *version
   hspec-discover: *version
-  hspec-expectations: 0.8.3.*
+  hspec-expectations: 0.8.4.*
   QuickCheck: ">= 2.12"
 
 library:

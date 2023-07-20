@@ -1,3 +1,6 @@
+## Changes in 2.11.4 (2023-07-20)
+  - Depend on `hspec-expectations-0.8.4`
+
 ## Changes in 2.11.3 (2023-07-10)
   - Suppress informational output from QuickCheck when
     `Test.QuickCheck.Args.chatty` is `False` (#840)
