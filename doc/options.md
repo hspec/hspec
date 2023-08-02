@@ -21,7 +21,7 @@ the test driver:
 
 How to specify command-line options depends on how you run your tests.  This
 section describes how to pass command-line options to Hspec via Cabal and
-Stack, and from withing a GHCi-session.
+Stack, and from within a GHCi-session.
 
 ### Cabal
 
