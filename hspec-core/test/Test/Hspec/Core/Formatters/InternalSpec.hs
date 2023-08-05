@@ -10,21 +10,10 @@ import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Formatters.Internal
 
 formatConfig :: FormatConfig
-formatConfig = FormatConfig {
+formatConfig = defaultFormatConfig {
   formatConfigUseColor = True
-, formatConfigReportProgress = False
-, formatConfigOutputUnicode = False
 , formatConfigUseDiff = True
 , formatConfigDiffContext = Just 3
-, formatConfigExternalDiff = Nothing
-, formatConfigPrettyPrint = False
-, formatConfigPrettyPrintFunction = Nothing
-, formatConfigPrintTimes = False
-, formatConfigHtmlOutput = False
-, formatConfigPrintCpuTime = False
-, formatConfigUsedSeed = 0
-, formatConfigExpectedTotalCount = 0
-, formatConfigExpertMode = False
 }
 
 spec :: Spec

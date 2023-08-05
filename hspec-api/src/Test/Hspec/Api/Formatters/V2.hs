@@ -106,6 +106,8 @@ import           Test.Hspec.Api.Formatters.V3 hiding (
   , useFormatter
   , formatterToFormat
 
+  , FormatConfig
+
   , silent
   , checks
   , specdoc

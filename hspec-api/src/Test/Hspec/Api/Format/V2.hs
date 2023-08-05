@@ -4,6 +4,7 @@
 module Test.Hspec.Api.Format.V2 (
   Format
 , FormatConfig(..)
+, defaultFormatConfig
 , Event(..)
 , Progress
 , Path
@@ -27,8 +28,10 @@ module Test.Hspec.Api.Format.V2 (
 
 import           Test.Hspec.Core.Runner (Config(..))
 import           Test.Hspec.Core.Spec (modifyConfig, SpecWith)
-import           Test.Hspec.Core.Format hiding (FormatConfig(..))
+import           Test.Hspec.Core.Format hiding (FormatConfig(..), defaultFormatConfig)
 import qualified Test.Hspec.Core.Format as Latest
+
+import           Test.Hspec.Api.Format.V2.Config
 
 -- |
 -- Make a formatter available for use with @--format@.
@@ -50,34 +53,3 @@ liftFormatter = fmap liftFormat
   where
     liftFormat :: (FormatConfig -> IO Format) -> Latest.FormatConfig -> IO Format
     liftFormat format = format . unliftFormatConfig
-
-data FormatConfig = FormatConfig {
-  formatConfigUseColor :: Bool
-, formatConfigReportProgress :: Bool
-, formatConfigOutputUnicode :: Bool
-, formatConfigUseDiff :: Bool
-, formatConfigDiffContext :: Maybe Int
-, formatConfigExternalDiff :: Maybe (String -> String -> IO ())
-, formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
-, formatConfigPrintTimes :: Bool
-, formatConfigHtmlOutput :: Bool
-, formatConfigPrintCpuTime :: Bool
-, formatConfigUsedSeed :: Integer
-, formatConfigExpectedTotalCount :: Int
-}
-
-unliftFormatConfig :: Latest.FormatConfig -> FormatConfig
-unliftFormatConfig config = FormatConfig {
-  formatConfigUseColor = Latest.formatConfigUseColor config
-, formatConfigReportProgress = Latest.formatConfigReportProgress config
-, formatConfigOutputUnicode = Latest.formatConfigOutputUnicode config
-, formatConfigUseDiff = Latest.formatConfigUseDiff config
-, formatConfigDiffContext = Latest.formatConfigDiffContext config
-, formatConfigExternalDiff = Latest.formatConfigExternalDiff config
-, formatConfigPrettyPrintFunction = Latest.formatConfigPrettyPrintFunction config
-, formatConfigPrintTimes = Latest.formatConfigPrintTimes config
-, formatConfigHtmlOutput = Latest.formatConfigHtmlOutput config
-, formatConfigPrintCpuTime = Latest.formatConfigPrintCpuTime config
-, formatConfigUsedSeed = Latest.formatConfigUsedSeed config
-, formatConfigExpectedTotalCount = Latest.formatConfigExpectedTotalCount config
-}

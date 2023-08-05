@@ -10,6 +10,10 @@ module Test.Hspec.Core.Formatters.Internal (
 , FormatM
 , formatterToFormat
 
+, getConfig
+, getConfigValue
+, FormatConfig(..)
+
 , getSuccessCount
 , getPendingCount
 , getFailCount
@@ -118,13 +122,13 @@ getFailCount = length <$> getFailMessages
 
 -- | Return `True` if the user requested colorized diffs, `False` otherwise.
 useDiff :: FormatM Bool
-useDiff = getConfig formatConfigUseDiff
+useDiff = getConfigValue formatConfigUseDiff
 
 -- | Do nothing on `--expert`, otherwise run the given action.
 --
 -- @since 2.11.2
 unlessExpert :: FormatM () -> FormatM ()
-unlessExpert action = getConfig formatConfigExpertMode >>= \ case
+unlessExpert action = getConfigValue formatConfigExpertMode >>= \ case
   False -> action
   True -> return ()
 
@@ -133,7 +137,7 @@ unlessExpert action = getConfig formatConfigExpertMode >>= \ case
 --
 -- @since 2.10.6
 diffContext :: FormatM (Maybe Int)
-diffContext = getConfig formatConfigDiffContext
+diffContext = getConfigValue formatConfigDiffContext
 
 -- | An action for printing diffs.
 --
@@ -145,11 +149,11 @@ diffContext = getConfig formatConfigDiffContext
 --
 -- @since 2.10.6
 externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
-externalDiffAction = getConfig formatConfigExternalDiff
+externalDiffAction = getConfigValue formatConfigExternalDiff
 
 -- | Return `True` if the user requested pretty diffs, `False` otherwise.
 prettyPrint :: FormatM Bool
-prettyPrint = maybe False (const True) <$> getConfig formatConfigPrettyPrintFunction
+prettyPrint = maybe False (const True) <$> getConfigValue formatConfigPrettyPrintFunction
 {-# DEPRECATED prettyPrint "use `prettyPrintFunction` instead" #-}
 
 -- | Return a function for pretty-printing if the user requested pretty diffs,
@@ -157,13 +161,13 @@ prettyPrint = maybe False (const True) <$> getConfig formatConfigPrettyPrintFunc
 --
 -- @since 2.10.0
 prettyPrintFunction :: FormatM (Maybe (String -> String -> (String, String)))
-prettyPrintFunction = getConfig formatConfigPrettyPrintFunction
+prettyPrintFunction = getConfigValue formatConfigPrettyPrintFunction
 
 -- | Return `True` if the user requested unicode output, `False` otherwise.
 --
 -- @since 2.9.0
 outputUnicode :: FormatM Bool
-outputUnicode = getConfig formatConfigOutputUnicode
+outputUnicode = getConfigValue formatConfigOutputUnicode
 
 -- | The same as `write`, but adds a newline character.
 writeLine :: String -> FormatM ()
@@ -198,12 +202,17 @@ data FormatterState = FormatterState {
 , stateColor           :: Maybe SGR
 }
 
-getConfig :: (FormatConfig -> a) -> FormatM a
-getConfig f = gets (f . stateConfig)
+-- | @since 2.11.5
+getConfig :: FormatM FormatConfig
+getConfig = gets stateConfig
+
+-- | @since 2.11.5
+getConfigValue :: (FormatConfig -> a) -> FormatM a
+getConfigValue f = gets (f . stateConfig)
 
 -- | The random seed that is used for QuickCheck.
 usedSeed :: FormatM Integer
-usedSeed = getConfig formatConfigUsedSeed
+usedSeed = getConfigValue formatConfigUsedSeed
 
 -- NOTE: We use an IORef here, so that the state persists when UserInterrupt is
 -- thrown.
@@ -257,11 +266,11 @@ getFailMessages = reverse `fmap` gets stateFailMessages
 --
 -- @since 2.9.0
 getExpectedTotalCount :: FormatM Int
-getExpectedTotalCount = getConfig formatConfigExpectedTotalCount
+getExpectedTotalCount = getConfigValue formatConfigExpectedTotalCount
 
 writeTransient :: String -> FormatM ()
 writeTransient new = do
-  reportProgress <- getConfig formatConfigReportProgress
+  reportProgress <- getConfigValue formatConfigReportProgress
   when reportProgress $ do
     write new
     liftIO $ IO.hFlush stdout
@@ -310,7 +319,7 @@ withInfoColor = withColor (SetColor Foreground Dull Cyan) "hspec-info"
 -- | Set a color, run an action, and finally reset colors.
 withColor :: SGR -> String -> FormatM a -> FormatM a
 withColor color cls action = do
-  produceHTML <- getConfig formatConfigHtmlOutput
+  produceHTML <- getConfigValue formatConfigHtmlOutput
   (if produceHTML then htmlSpan cls else withColor_ color) action
 
 htmlSpan :: String -> FormatM a -> FormatM a
@@ -323,14 +332,14 @@ withColor_ color action = do
 
 setColor :: Maybe SGR -> FormatM ()
 setColor color = do
-  useColor <- getConfig formatConfigUseColor
+  useColor <- getConfigValue formatConfigUseColor
   when useColor $ do
     modify (\ state -> state { stateColor = color })
 
 -- | Output given chunk in red.
 extraChunk :: String -> FormatM ()
 extraChunk s = do
-  diff <- getConfig formatConfigUseDiff
+  diff <- getConfigValue formatConfigUseDiff
   case diff of
     True -> extra s
     False -> write s
@@ -341,7 +350,7 @@ extraChunk s = do
 -- | Output given chunk in green.
 missingChunk :: String -> FormatM ()
 missingChunk s = do
-  diff <- getConfig formatConfigUseDiff
+  diff <- getConfigValue formatConfigUseDiff
   case diff of
     True -> missing s
     False -> write s

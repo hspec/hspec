@@ -23,6 +23,7 @@ library:
     - src
   other-modules:
     - Test.Hspec.Api.Format.V1.Internal
+    - Test.Hspec.Api.Format.V2.Config
 
 tests:
   spec:

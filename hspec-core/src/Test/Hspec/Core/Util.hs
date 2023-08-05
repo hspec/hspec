@@ -16,6 +16,7 @@ module Test.Hspec.Core.Util (
 -- * Working with exceptions
 , safeTry
 , formatException
+, formatExceptionWith
 ) where
 
 import           Prelude ()
@@ -137,9 +138,13 @@ filterPredicate pattern path =
 --
 -- @since 2.0.0
 formatException :: SomeException -> String
-formatException err@(SomeException e) = case fromException err of
-  Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ "\n" ++ show ioe
-  Nothing  -> showType e ++ "\n" ++ show e
+formatException = formatExceptionWith show
+
+-- | @since 2.11.5
+formatExceptionWith :: (SomeException -> String) -> SomeException -> String
+formatExceptionWith showException err@(SomeException e) = case fromException err of
+  Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ "\n" ++ showException (toException ioe)
+  Nothing  -> showType e ++ "\n" ++ showException (SomeException e)
   where
     showIOErrorType :: IOException -> String
     showIOErrorType ioe = case ioe_type ioe of

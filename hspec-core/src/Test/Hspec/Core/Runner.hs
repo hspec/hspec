@@ -383,6 +383,7 @@ runSpecForest_ oldFailureReport spec c_ = do
       , formatConfigExternalDiff = if configDiff config then ($ configDiffContext config) <$> configExternalDiff config else Nothing
       , formatConfigPrettyPrint = configPrettyPrint config
       , formatConfigPrettyPrintFunction = if configPrettyPrint config then Just (configPrettyPrintFunction config outputUnicode) else Nothing
+      , formatConfigFormatException = configFormatException config
       , formatConfigPrintTimes = configTimes config
       , formatConfigHtmlOutput = configHtmlOutput config
       , formatConfigPrintCpuTime = configPrintCpuTime config

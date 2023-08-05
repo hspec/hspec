@@ -81,6 +81,7 @@ data Config = Config {
 
 , configPrettyPrint :: Bool
 , configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
+, configFormatException :: SomeException -> String -- ^ @since 2.11.5
 , configTimes :: Bool
 , configExpertMode :: Bool -- ^ @since 2.11.2
 , configAvailableFormatters :: [(String, FormatConfig -> IO Format)] -- ^ @since 2.9.0
@@ -122,6 +123,7 @@ mkDefaultConfig formatters = Config {
 , configExternalDiff = Nothing
 , configPrettyPrint = True
 , configPrettyPrintFunction = pretty2
+, configFormatException = formatExceptionWith show
 , configTimes = False
 , configExpertMode = False
 , configAvailableFormatters = formatters
@@ -178,6 +180,9 @@ formatterOptions formatters = [
       ]
   , option "diff-command" (argument "CMD" return setDiffCommand) "use an external diff command\nexample: --diff-command=\"git diff\""
   , mkFlag "pretty" setPretty "try to pretty-print diff values"
+  , mkOptionNoArg "show-exceptions" Nothing setShowException "use `show` when formatting exceptions"
+  , mkOptionNoArg "display-exceptions" Nothing setDisplayException "use `displayException` when formatting exceptions"
+
   , mkFlag "times" setTimes "report times for individual spec items"
   , mkOptionNoArg "print-cpu-time" Nothing setPrintCpuTime "include used CPU time in summary"
   , printSlowItemsOption
@@ -227,6 +232,12 @@ formatterOptions formatters = [
 
     setPretty :: Bool -> Config -> Config
     setPretty v config = config {configPrettyPrint = v}
+
+    setShowException :: Config -> Config
+    setShowException config = config {configFormatException = formatExceptionWith show}
+
+    setDisplayException :: Config -> Config
+    setDisplayException config = config {configFormatException = formatExceptionWith displayException}
 
     setTimes :: Bool -> Config -> Config
     setTimes v config = config {configTimes = v}

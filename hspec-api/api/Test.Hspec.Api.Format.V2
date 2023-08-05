@@ -1,17 +1,3 @@
-type FormatConfig :: *
-data FormatConfig = FormatConfig
-  formatConfigUseColor :: Bool
-  formatConfigReportProgress :: Bool
-  formatConfigOutputUnicode :: Bool
-  formatConfigUseDiff :: Bool
-  formatConfigDiffContext :: Maybe Int
-  formatConfigExternalDiff :: Maybe (String -> String -> IO ())
-  formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
-  formatConfigPrintTimes :: Bool
-  formatConfigHtmlOutput :: Bool
-  formatConfigPrintCpuTime :: Bool
-  formatConfigUsedSeed :: Integer
-  formatConfigExpectedTotalCount :: Int
 liftFormatter :: (String, FormatConfig -> IO Format) -> (String, Test.Hspec.Core.Format.FormatConfig -> IO Format)
 registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 useFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
@@ -46,6 +32,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrint :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormatException :: GHC.Exception.Type.SomeException -> String
   hspec-core:Test.Hspec.Core.Config.Definition.configTimes :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configExpertMode :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Format)]
@@ -71,6 +58,21 @@ data FailureReason
   | Error (Maybe String) GHC.Exception.Type.SomeException
 type Format :: *
 type Format = Event -> IO ()
+type FormatConfig :: *
+data FormatConfig = FormatConfig
+  formatConfigUseColor :: Bool
+  formatConfigReportProgress :: Bool
+  formatConfigOutputUnicode :: Bool
+  formatConfigUseDiff :: Bool
+  formatConfigDiffContext :: Maybe Int
+  formatConfigExternalDiff :: Maybe (String -> String -> IO ())
+  formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
+  formatConfigFormatException :: GHC.Exception.Type.SomeException -> String
+  formatConfigPrintTimes :: Bool
+  formatConfigHtmlOutput :: Bool
+  formatConfigPrintCpuTime :: Bool
+  formatConfigUsedSeed :: Integer
+  formatConfigExpectedTotalCount :: Int
 type Item :: *
 data Item = Item
   itemLocation :: Maybe Location
@@ -95,5 +97,6 @@ type Seconds :: *
 newtype Seconds = Seconds Double
 type SpecWith :: * -> *
 type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
+defaultFormatConfig :: FormatConfig
 modifyConfig :: (Config -> Config) -> SpecWith a
 monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format

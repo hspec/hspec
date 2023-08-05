@@ -16,6 +16,23 @@ data FailureRecord = FailureRecord
   failureRecordLocation :: Maybe Location
   failureRecordPath :: Path
   failureRecordMessage :: FailureReason
+type FormatConfig :: *
+data FormatConfig = FormatConfig
+  formatConfigUseColor :: Bool
+  formatConfigReportProgress :: Bool
+  formatConfigOutputUnicode :: Bool
+  formatConfigUseDiff :: Bool
+  formatConfigDiffContext :: Maybe Int
+  formatConfigExternalDiff :: Maybe (String -> String -> IO ())
+  formatConfigPrettyPrint :: Bool
+  formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
+  formatConfigFormatException :: GHC.Exception.Type.SomeException -> String
+  formatConfigPrintTimes :: Bool
+  formatConfigHtmlOutput :: Bool
+  formatConfigPrintCpuTime :: Bool
+  formatConfigUsedSeed :: Integer
+  formatConfigExpectedTotalCount :: Int
+  formatConfigExpertMode :: Bool
 type role FormatM nominal
 type FormatM :: * -> *
 newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.Reader.ReaderT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
@@ -54,8 +71,10 @@ diffContext :: FormatM (Maybe Int)
 externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
 extraChunk :: String -> FormatM ()
 formatException :: GHC.Exception.Type.SomeException -> String
-formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
+formatterToFormat :: Formatter -> FormatConfig -> IO Test.Hspec.Core.Format.Format
 getCPUTime :: FormatM (Maybe Seconds)
+getConfig :: FormatM FormatConfig
+getConfigValue :: (FormatConfig -> a) -> FormatM a
 getExpectedTotalCount :: FormatM Int
 getFailCount :: FormatM Int
 getFailMessages :: FormatM [FailureRecord]
