@@ -47,6 +47,12 @@ module Test.Hspec.Api.Formatters.V3 (
 , FailureReason (..)
 , FormatM
 
+-- ** Accessing config values
+, getConfig
+, getConfigValue
+, FormatConfig(..)
+, defaultFormatConfig
+
 -- ** Accessing the runner state
 , getSuccessCount
 , getPendingCount
@@ -98,10 +104,21 @@ module Test.Hspec.Api.Formatters.V3 (
 , modifyConfig
 ) where
 
-import Test.Hspec.Core.Formatters.V2
-import Test.Hspec.Core.Runner (Config(..))
-import Test.Hspec.Core.Format (FormatConfig, Format)
-import Test.Hspec.Core.Spec (modifyConfig, SpecWith)
+import           Test.Hspec.Core.Formatters.V2 hiding (FormatConfig(..), getConfig, getConfigValue)
+import qualified Test.Hspec.Core.Formatters.V2 as Core
+import           Test.Hspec.Core.Runner (Config(..))
+import           Test.Hspec.Core.Format (Format)
+import           Test.Hspec.Core.Spec (modifyConfig, SpecWith)
+
+import           Test.Hspec.Api.Format.V2.Config
+
+-- | @since 2.11.5
+getConfig :: FormatM FormatConfig
+getConfig = unliftFormatConfig <$> Core.getConfig
+
+-- | @since 2.11.5
+getConfigValue :: (FormatConfig -> a) -> FormatM a
+getConfigValue f = f <$> getConfig
 
 -- |
 -- Make a formatter available for use with @--format@.
@@ -114,5 +131,5 @@ useFormatter :: (String, Formatter) -> Config -> Config
 useFormatter (fmap formatterToFormat -> formatter@(_, format)) config = (registerFormatter_ formatter config) { configFormat = Just format }
 
 -- copy of Test.Hspec.Core.Runner.registerFormatter
-registerFormatter_ :: (String, FormatConfig -> IO Format) -> Config -> Config
+registerFormatter_ :: (String, Core.FormatConfig -> IO Format) -> Config -> Config
 registerFormatter_ formatter config = config { configAvailableFormatters = formatter : configAvailableFormatters config }

@@ -2,6 +2,7 @@ type Path :: *
 type Path = ([String], String)
 filterPredicate :: String -> Path -> Bool
 formatException :: GHC.Exception.Type.SomeException -> String
+formatExceptionWith :: (GHC.Exception.Type.SomeException -> String) -> GHC.Exception.Type.SomeException -> String
 formatRequirement :: Path -> String
 joinPath :: Path -> String
 lineBreaksAt :: Int -> String -> [String]

@@ -11,6 +11,7 @@ module Test.Hspec.Core.Format
 (
   Format
 , FormatConfig(..)
+, defaultFormatConfig
 , Event(..)
 , Progress
 , Path
@@ -31,7 +32,7 @@ import qualified Control.Concurrent.Async as Async
 import           Control.Monad.IO.Class
 
 import           Test.Hspec.Core.Example (Progress, Location(..), FailureReason(..))
-import           Test.Hspec.Core.Util (Path)
+import           Test.Hspec.Core.Util (Path, formatExceptionWith)
 import           Test.Hspec.Core.Clock (Seconds(..))
 
 type Format = Event -> IO ()
@@ -68,6 +69,7 @@ data FormatConfig = FormatConfig {
 , formatConfigExternalDiff :: Maybe (String -> String -> IO ())
 , formatConfigPrettyPrint :: Bool
 , formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
+, formatConfigFormatException :: SomeException -> String -- ^ @since 2.11.5
 , formatConfigPrintTimes :: Bool
 , formatConfigHtmlOutput :: Bool
 , formatConfigPrintCpuTime :: Bool
@@ -77,6 +79,26 @@ data FormatConfig = FormatConfig {
 }
 
 {-# DEPRECATED formatConfigPrettyPrint "Use `formatConfigPrettyPrintFunction` instead" #-}
+
+-- ^ @since 2.11.5
+defaultFormatConfig :: FormatConfig
+defaultFormatConfig = FormatConfig {
+  formatConfigUseColor = False
+, formatConfigReportProgress = False
+, formatConfigOutputUnicode = False
+, formatConfigUseDiff = False
+, formatConfigDiffContext = Nothing
+, formatConfigExternalDiff = Nothing
+, formatConfigPrettyPrint = False
+, formatConfigPrettyPrintFunction = Nothing
+, formatConfigFormatException = formatExceptionWith show
+, formatConfigPrintTimes = False
+, formatConfigHtmlOutput = False
+, formatConfigPrintCpuTime = False
+, formatConfigUsedSeed = 0
+, formatConfigExpectedTotalCount = 0
+, formatConfigExpertMode = False
+}
 
 data Signal = Ok | NotOk SomeException
 

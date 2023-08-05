@@ -41,6 +41,9 @@ FORMATTER OPTIONS
            --diff-command=CMD      use an external diff command
                                    example: --diff-command="git diff"
            --[no-]pretty           try to pretty-print diff values
+           --show-exceptions       use `show` when formatting exceptions
+           --display-exceptions    use `displayException` when formatting
+                                   exceptions
            --[no-]times            report times for individual spec items
            --print-cpu-time        include used CPU time in summary
   -p[N]    --print-slow-items[=N]  print the N slowest spec items (default: 10)

@@ -20,23 +20,14 @@ testSpec = do
     H.it "exceptions" (undefined :: Spec.Result)
     H.it "fail 3"     (H.Result "" $ Spec.Failure Nothing H.NoReason)
 
-
 formatConfig :: FormatConfig
-formatConfig = FormatConfig {
-  formatConfigUseColor = False
-, formatConfigReportProgress = False
-, formatConfigOutputUnicode = unicode
+formatConfig = defaultFormatConfig {
+  formatConfigOutputUnicode = unicode
 , formatConfigUseDiff = True
 , formatConfigDiffContext = Just 3
 , formatConfigExternalDiff = Nothing
 , formatConfigPrettyPrint = True
 , formatConfigPrettyPrintFunction = Just (H.configPrettyPrintFunction H.defaultConfig unicode)
-, formatConfigPrintTimes = False
-, formatConfigHtmlOutput = False
-, formatConfigPrintCpuTime = False
-, formatConfigUsedSeed = 0
-, formatConfigExpectedTotalCount = 0
-, formatConfigExpertMode = False
 } where
     unicode = True
 

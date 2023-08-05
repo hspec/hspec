@@ -1,3 +1,5 @@
+getConfig :: FormatM FormatConfig
+getConfigValue :: (FormatConfig -> a) -> FormatM a
 registerFormatter :: (String, Formatter) -> Config -> Config
 useFormatter :: (String, Formatter) -> Config -> Config
 type Config :: *
@@ -31,6 +33,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrint :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormatException :: GHC.Exception.Type.SomeException -> String
   hspec-core:Test.Hspec.Core.Config.Definition.configTimes :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configExpertMode :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
@@ -50,6 +53,21 @@ data FailureRecord = FailureRecord
   failureRecordLocation :: Maybe Location
   failureRecordPath :: Path
   failureRecordMessage :: FailureReason
+type FormatConfig :: *
+data FormatConfig = FormatConfig
+  formatConfigUseColor :: Bool
+  formatConfigReportProgress :: Bool
+  formatConfigOutputUnicode :: Bool
+  formatConfigUseDiff :: Bool
+  formatConfigDiffContext :: Maybe Int
+  formatConfigExternalDiff :: Maybe (String -> String -> IO ())
+  formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
+  formatConfigFormatException :: GHC.Exception.Type.SomeException -> String
+  formatConfigPrintTimes :: Bool
+  formatConfigHtmlOutput :: Bool
+  formatConfigPrintCpuTime :: Bool
+  formatConfigUsedSeed :: Integer
+  formatConfigExpectedTotalCount :: Int
 type role FormatM nominal
 type FormatM :: * -> *
 newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.Reader.ReaderT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
@@ -87,6 +105,7 @@ newtype Seconds = Seconds Double
 type SpecWith :: * -> *
 type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
 checks :: Formatter
+defaultFormatConfig :: FormatConfig
 diffContext :: FormatM (Maybe Int)
 externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
 extraChunk :: String -> FormatM ()

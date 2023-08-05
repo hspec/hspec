@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.35.5.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec
-version:          2.11.4
+version:          2.11.5
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2023 Simon Hengel,
@@ -16,6 +16,7 @@ build-type:       Simple
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
+author:           Simon Hengel <sol@typeful.net>
 homepage:         https://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
 description:      Hspec is a testing framework for Haskell.  Some of Hspec's distinctive
@@ -45,8 +46,8 @@ library
   build-depends:
       QuickCheck >=2.12
     , base ==4.*
-    , hspec-core ==2.11.4
-    , hspec-discover ==2.11.4
+    , hspec-core ==2.11.5
+    , hspec-discover ==2.11.5
     , hspec-expectations ==0.8.4.*
   exposed-modules:
       Test.Hspec

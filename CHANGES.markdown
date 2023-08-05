@@ -1,3 +1,6 @@
+## Changes in 2.11.5 (2023-09-20)
+  - Add `--show-exceptions` and `--display-exceptions`
+
 ## Changes in 2.11.4 (2023-07-20)
   - Depend on `hspec-expectations-0.8.4`
 

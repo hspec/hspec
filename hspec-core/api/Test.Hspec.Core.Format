@@ -19,6 +19,7 @@ data FormatConfig = FormatConfig
   formatConfigExternalDiff :: Maybe (String -> String -> IO ())
   formatConfigPrettyPrint :: Bool
   formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
+  formatConfigFormatException :: GHC.Exception.Type.SomeException -> String
   formatConfigPrintTimes :: Bool
   formatConfigHtmlOutput :: Bool
   formatConfigPrintCpuTime :: Bool
@@ -36,6 +37,7 @@ data Result
   | Success
   | Pending (Maybe Location) (Maybe String)
   | Failure (Maybe Location) FailureReason
+defaultFormatConfig :: FormatConfig
 monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
 type FailureReason :: *
 data FailureReason

@@ -33,6 +33,11 @@ module Test.Hspec.Core.Formatters.V2
 , FormatM
 , formatterToFormat
 
+-- ** Accessing config values
+, getConfig
+, getConfigValue
+, FormatConfig(..)
+
 -- ** Accessing the runner state
 , getSuccessCount
 , getPendingCount
@@ -76,7 +81,7 @@ module Test.Hspec.Core.Formatters.V2
 
 -- ** Helpers
 , formatLocation
-, formatException
+, Util.formatException
 
 #ifdef TEST
 , Chunk(..)
@@ -90,7 +95,8 @@ import           Test.Hspec.Core.Compat hiding (First)
 import           System.IO (hFlush, stdout)
 
 import           Data.Char
-import           Test.Hspec.Core.Util
+import           Test.Hspec.Core.Util hiding (formatException)
+import qualified Test.Hspec.Core.Util as Util
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example (Location(..), Progress)
 import           Text.Printf
@@ -109,6 +115,10 @@ import Test.Hspec.Core.Formatters.Internal (
   , FailureReason (..)
   , FormatM
   , formatterToFormat
+
+  , getConfig
+  , getConfigValue
+  , FormatConfig(..)
 
   , getSuccessCount
   , getPendingCount
@@ -341,6 +351,7 @@ defaultFailedFormatter = do
 
         Error info e -> do
           mapM_ indent info
+          formatException <- getConfigValue formatConfigFormatException
           withFailColor . indent $ "uncaught exception: " ++ formatException e
 
 

@@ -35,6 +35,18 @@ runPropFoo args = unlines . normalizeSummary . lines <$> do
 person :: Int -> Person
 person = Person "Joe"
 
+data MyException = MyException
+  deriving (Eq, Show)
+
+instance Exception MyException where
+  displayException MyException = "my exception"
+
+resultWithColorizedReason :: H.Result
+resultWithColorizedReason = H.Result {
+  H.resultInfo = "info"
+, H.resultStatus = H.Failure Nothing . H.ColorizedReason $ "some " <> green "colorized" <> " error message"
+}
+
 spec :: Spec
 spec = do
   describe "hspec" $ do
@@ -531,12 +543,45 @@ spec = do
           , "        but got: Person {personName = \"Joe\", personAge = 23}"
           ]
 
-    let
-      resultWithColorizedReason :: H.Result
-      resultWithColorizedReason = H.Result {
-          H.resultInfo = "info"
-        , H.resultStatus = H.Failure Nothing . H.ColorizedReason $ "some " <> green "colorized" <> " error message"
-        }
+    context "when formatting exceptions" $ do
+      let spec_ = H.it "foo" $ void (throwIO MyException)
+      context "with --show-exceptions" $ do
+        it "uses `show`" $ do
+          hspecCapture ["--seed=0", "--format=failed-examples", "--display-exceptions", "--show-exceptions"] spec_
+          `shouldReturn` unlines [
+              ""
+            , "Failures:"
+            , ""
+            , "  1) foo"
+            , "       uncaught exception: MyException"
+            , "       MyException"
+            , ""
+            , "  To rerun use: --match \"/foo/\""
+            , ""
+            , "Randomized with seed 0"
+            , ""
+            , "Finished in 0.0000 seconds"
+            , "1 example, 1 failure"
+            ]
+
+      context "with --display-exceptions" $ do
+        it "uses `displayException`" $ do
+          hspecCapture ["--seed=0", "--format=failed-examples", "--show-exceptions", "--display-exceptions"] spec_
+          `shouldReturn` unlines [
+              ""
+            , "Failures:"
+            , ""
+            , "  1) foo"
+            , "       uncaught exception: MyException"
+            , "       my exception"
+            , ""
+            , "  To rerun use: --match \"/foo/\""
+            , ""
+            , "Randomized with seed 0"
+            , ""
+            , "Finished in 0.0000 seconds"
+            , "1 example, 1 failure"
+            ]
 
     context "with --color" $ do
       it "outputs ColorizedReason" $ do
