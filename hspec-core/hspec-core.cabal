@@ -19,6 +19,7 @@ extra-source-files:
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
+author:           Simon Hengel <sol@typeful.net>
 homepage:         https://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
 description:      This package exposes internal types and functions that can be used to extend Hspec's functionality.
@@ -48,6 +49,7 @@ library
     , process
     , quickcheck-io >=0.2.0
     , random
+    , terminal-size >=0.3.4
     , tf-random
     , time
     , transformers >=0.2.2.0
@@ -85,6 +87,7 @@ library
       Test.Hspec.Core.Formatters.V1.Free
       Test.Hspec.Core.Formatters.V1.Internal
       Test.Hspec.Core.Formatters.V1.Monad
+      Test.Hspec.Core.Issue
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.JobQueue
@@ -135,6 +138,7 @@ test-suite spec
     , random
     , silently >=1.2.4
     , temporary
+    , terminal-size >=0.3.4
     , tf-random
     , time
     , transformers >=0.2.2.0
@@ -169,6 +173,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks
+      Test.Hspec.Core.Issue
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.QuickCheckUtil
       Test.Hspec.Core.Runner
