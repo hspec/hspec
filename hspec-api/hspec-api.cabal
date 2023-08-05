@@ -12,6 +12,7 @@ category:       Testing
 stability:      stable
 homepage:       https://hspec.github.io/
 bug-reports:    https://github.com/hspec/hspec/issues
+author:         Simon Hengel <sol@typeful.net>
 maintainer:     Simon Hengel <sol@typeful.net>
 copyright:      (c) 2022-2023 Simon Hengel
 license:        MIT

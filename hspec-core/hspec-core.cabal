@@ -19,6 +19,7 @@ extra-source-files:
 category:         Testing
 stability:        experimental
 bug-reports:      https://github.com/hspec/hspec/issues
+author:           Simon Hengel <sol@typeful.net>
 homepage:         https://hspec.github.io/
 synopsis:         A Testing Framework for Haskell
 description:      This package exposes internal types and functions that can be used to extend Hspec's functionality.
