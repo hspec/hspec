@@ -25,7 +25,7 @@ import           Test.Hspec.Core.Compat
 
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Trans.Reader
-import           Control.Monad.Trans.Writer
+import           Control.Monad.Trans.Writer.CPS
 
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
@@ -87,4 +87,4 @@ newtype Env = Env {
 }
 
 withEnv :: (Env -> Env) -> SpecM a r -> SpecM a r
-withEnv f = SpecM . WriterT . local f . runWriterT . unSpecM
+withEnv f = SpecM . writerT . local f . runWriterT . unSpecM
