@@ -448,6 +448,26 @@ spec = do
           , "1 example, 1 failure"
           ]
 
+      context "with a cleanup action" $ do
+        it "runs cleanup action" $ do
+          ref <- newIORef 0
+          ignoreExitCode $ hspec ["--fail-fast"] $ do
+            H.afterAll_ (modifyIORef ref succ) $ do
+              H.it "foo" True
+              H.it "bar" False
+              H.it "baz" True
+          readIORef ref `shouldReturn` (1 :: Int)
+
+        context "when last leaf fails" $ do
+          it "runs cleanup action exactly once" $ do
+            ref <- newIORef 0
+            ignoreExitCode $ hspec ["--fail-fast"] $ do
+              H.afterAll_ (modifyIORef ref succ) $ do
+                H.it "foo" True
+                H.it "bar" True
+                H.it "baz" False
+            readIORef ref `shouldReturn` (1 :: Int)
+
     context "with --match" $ do
       it "only runs examples that match a given pattern" $ do
         e1 <- newMock
