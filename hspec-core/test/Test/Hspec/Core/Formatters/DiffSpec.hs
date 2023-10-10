@@ -8,7 +8,7 @@ import           Data.Char
 import           Test.Hspec.Core.Formatters.Diff as Diff
 
 dropQuotes :: String -> String
-dropQuotes = init . tail
+dropQuotes = init . drop 1
 
 spec :: Spec
 spec = do
@@ -106,12 +106,12 @@ spec = do
           let
             char = dropQuotes (show [c])
             isEscaped = length char > 1
-            escape = tail char
+            escape = drop 1 char
             sep = case ys of
               x : _ | all isDigit escape && isDigit x || escape == "SO" && x == 'H' -> ["\\&"]
               _ -> []
             actual = partition (show (xs ++ c : ys))
-            expected = partition (init $ show xs) ++ [char] ++ sep ++ partition (tail $ show ys)
+            expected = partition (init $ show xs) ++ [char] ++ sep ++ partition (drop 1 $ show ys)
           in isEscaped ==> actual `shouldBe` expected
 
   describe "breakList" $ do
