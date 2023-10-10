@@ -1,5 +1,9 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+#if __GLASGOW_HASKELL__ >= 908
+{-# OPTIONS_GHC -fno-warn-x-partial #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Algorithm.Diff
