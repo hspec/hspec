@@ -1,1 +1,0 @@
-  - Run cleanup actions on `--fail-fast` (see #860)
