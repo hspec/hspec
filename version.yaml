@@ -1,4 +1,4 @@
-version: &version 2.11.5
+version: &version 2.11.6
 synopsis: A Testing Framework for Haskell
 author: Simon Hengel <sol@typeful.net>
 maintainer: Simon Hengel <sol@typeful.net>

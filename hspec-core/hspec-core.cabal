@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.5.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.11.5
+version:          2.11.6
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2023 Simon Hengel,
@@ -130,7 +130,7 @@ test-suite spec
     , filepath
     , haskell-lexer
     , hspec-expectations ==0.8.4.*
-    , hspec-meta ==2.11.5
+    , hspec-meta ==2.11.6
     , process
     , quickcheck-io >=0.2.0
     , random

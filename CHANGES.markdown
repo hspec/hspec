@@ -1,3 +1,7 @@
+## Changes in 2.11.6 (2023-10-11)
+  - Compatibility with GHC 9.8.1
+  - Run cleanup actions on `--fail-fast` (see #860)
+
 ## Changes in 2.11.5 (2023-09-20)
   - Add `--show-exceptions` and `--display-exceptions`
 
