@@ -1,3 +1,6 @@
+## Changes in 2.11.7 (2023-10-22)
+  - Include `--seed` in the note on how to rurun a failing item.
+
 ## Changes in 2.11.6 (2023-10-11)
   - Compatibility with GHC 9.8.1
   - Run cleanup actions on `--fail-fast` (see #860)
