@@ -28,7 +28,7 @@ jobs:
       - run: cabal update
       - run: mkdir -p $HOME/.local/bin/
       - working-directory: util/api-dump/
-        run: cabal install --installdir=$HOME/.local/bin/
+        run: cabal install --installdir=$HOME/.local/bin/ --allow-newer
 
       - run: util/dump-api
 
