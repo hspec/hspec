@@ -358,7 +358,8 @@ defaultFailedFormatter = do
       unlessExpert $ do
         let path_ = (if unicode then ushow else show) (joinPath path)
         writeLine ""
-        writeLine ("  To rerun use: --match " ++ path_)
+        seed <- usedSeed
+        writeLine ("  To rerun use: --match " ++ path_ <> " --seed " <> show seed)
       where
         indentation = "       "
         indent message = do
