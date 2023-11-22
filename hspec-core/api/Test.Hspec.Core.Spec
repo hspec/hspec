@@ -43,6 +43,7 @@ data Item a = Item
   itemLocation :: Maybe Location
   itemIsParallelizable :: Maybe Bool
   itemIsFocused :: Bool
+  itemAnnotations :: hspec-core:Test.Hspec.Core.Annotations.Annotations
   itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 type Location :: *
 data Location = Location

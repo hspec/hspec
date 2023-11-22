@@ -7,6 +7,12 @@ module Test.Hspec.Core.Config.Definition (
 
 , filterOr
 
+, setConfigAnnotation
+, getConfigAnnotation
+
+, addExtensionOptions
+, getExtensionOptions
+
 , getSeed
 , getFormatter
 
@@ -15,6 +21,9 @@ module Test.Hspec.Core.Config.Definition (
 , smallCheckOptions
 , quickCheckOptions
 , runnerOptions
+
+, flag
+, option
 
 #ifdef TEST
 , splitOn
@@ -28,6 +37,9 @@ import           System.Directory (getTemporaryDirectory, removeFile)
 import           System.IO (openTempFile, hClose)
 import           System.Process (system)
 
+import           Test.Hspec.Core.Annotations (Annotations)
+import qualified Test.Hspec.Core.Annotations as Annotations
+
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
@@ -35,6 +47,23 @@ import qualified Test.Hspec.Core.Formatters.V1.Internal as V1 (formatterToFormat
 import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
+
+setConfigAnnotation :: Typeable value => value -> Config -> Config
+setConfigAnnotation value config = config { configAnnotations = Annotations.setValue value $ configAnnotations config }
+
+getConfigAnnotation :: Typeable value => Config -> Maybe value
+getConfigAnnotation = Annotations.getValue . configAnnotations
+
+newtype ExtensionOptions = ExtensionOptions { unExtensionOptions :: [(String, [Option Config])] }
+
+addExtensionOptions :: String -> [Option Config] -> Config -> Config
+addExtensionOptions section opts config = setExtensionOptions ((section, opts) : getExtensionOptions config) config
+
+setExtensionOptions :: [(String, [Option Config])] -> Config -> Config
+setExtensionOptions = setConfigAnnotation . ExtensionOptions
+
+getExtensionOptions :: Config -> [(String, [Option Config])]
+getExtensionOptions = maybe [] unExtensionOptions . getConfigAnnotation
 
 getFormatter :: Config -> Maybe (FormatConfig -> IO Format)
 getFormatter config = configFormat config <|> V1.formatterToFormat <$> configFormatter config
@@ -99,6 +128,7 @@ data Config = Config {
 , configFormatter :: Maybe V1.Formatter
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
+, configAnnotations :: Annotations
 }
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 {-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
@@ -143,6 +173,7 @@ mkDefaultConfig formatters = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
+, configAnnotations = mempty
 }
 
 defaultDiffContext :: Int

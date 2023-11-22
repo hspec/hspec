@@ -1,4 +1,5 @@
-useFormatter :: (String, Formatter) -> Config -> Config
+registerOptions :: GHC.Stack.Types.HasCallStack => [Option] -> SpecWith a
+registerTransformation :: (Config -> [SpecTree] -> [SpecTree]) -> SpecWith a
 type Config :: *
 data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configIgnoreConfigFile :: Bool
@@ -36,69 +37,28 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configExpertMode :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
   hspec-core:Test.Hspec.Core.Config.Definition.configFormat :: Maybe (Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)
-  hspec-core:Test.Hspec.Core.Config.Definition.configFormatter :: Maybe Formatter
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter
   hspec-core:Test.Hspec.Core.Config.Definition.configHtmlOutput :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configConcurrentJobs :: Maybe Int
   hspec-core:Test.Hspec.Core.Config.Definition.configAnnotations :: hspec-core:Test.Hspec.Core.Annotations.Annotations
-type FailureReason :: *
-data FailureReason
-  | NoReason
-  | Reason String
-  | ExpectedButGot (Maybe String) String String
-  | Error (Maybe String) GHC.Exception.Type.SomeException
-type FailureRecord :: *
-data FailureRecord = FailureRecord
-  failureRecordLocation :: Maybe Location
-  failureRecordPath :: Test.Hspec.Core.Util.Path
-  failureRecordMessage :: FailureReason
-type FormatM :: * -> *
-type FormatM = hspec-core:Test.Hspec.Core.Formatters.V1.Free.Free hspec-core:Test.Hspec.Core.Formatters.V1.Monad.FormatF :: * -> *
-type Formatter :: *
-data Formatter = Formatter
-  headerFormatter :: FormatM ()
-  exampleGroupStarted :: [String] -> String -> FormatM ()
-  exampleGroupDone :: FormatM ()
-  exampleStarted :: Test.Hspec.Core.Util.Path -> FormatM ()
-  exampleProgress :: Test.Hspec.Core.Util.Path -> Progress -> FormatM ()
-  exampleSucceeded :: Test.Hspec.Core.Util.Path -> String -> FormatM ()
-  exampleFailed :: Test.Hspec.Core.Util.Path -> String -> FailureReason -> FormatM ()
-  examplePending :: Test.Hspec.Core.Util.Path -> String -> Maybe String -> FormatM ()
-  failedFormatter :: FormatM ()
-  footerFormatter :: FormatM ()
-type Location :: *
-data Location = Location
-  locationFile :: FilePath
-  locationLine :: Int
-  locationColumn :: Int
-type Progress :: *
-type Progress = (Int, Int)
-type Seconds :: *
-newtype Seconds = Seconds Double
+type Item :: * -> *
+data Item a = hspec-core:Test.Hspec.Core.Tree.Item
+  hspec-core:Test.Hspec.Core.Tree.itemRequirement :: String
+  hspec-core:Test.Hspec.Core.Tree.itemLocation :: Maybe hspec-core:Test.Hspec.Core.Example.Location.Location
+  hspec-core:Test.Hspec.Core.Tree.itemIsParallelizable :: Maybe Bool
+  hspec-core:Test.Hspec.Core.Tree.itemIsFocused :: Bool
+  hspec-core:Test.Hspec.Core.Tree.itemAnnotations :: hspec-core:Test.Hspec.Core.Annotations.Annotations
+  hspec-core:Test.Hspec.Core.Tree.itemExample :: hspec-core:Test.Hspec.Core.Example.Params -> (hspec-core:Test.Hspec.Core.Example.ActionWith a -> IO ()) -> hspec-core:Test.Hspec.Core.Example.ProgressCallback -> IO hspec-core:Test.Hspec.Core.Example.Result
+type Option :: *
+newtype Option = hspec-core:Test.Hspec.Core.Extension.Config.Type.Option
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.unOption :: hspec-core:GetOpt.Declarative.Types.Option Config
+type role SpecM nominal nominal
+type SpecM :: * -> * -> *
+newtype SpecM a r = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM
+  hspec-core:Test.Hspec.Core.Spec.Monad.unSpecM :: Control.Monad.Trans.Writer.Lazy.WriterT (base:Data.Semigroup.Internal.Endo Config, [hspec-core:Test.Hspec.Core.Tree.SpecTree a]) (Control.Monad.Trans.Reader.ReaderT hspec-core:Test.Hspec.Core.Spec.Monad.Env IO) r
+type SpecTree :: *
+type SpecTree = hspec-core:Test.Hspec.Core.Tree.SpecTree ()
 type SpecWith :: * -> *
-type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
-checks :: Formatter
-extraChunk :: String -> FormatM ()
-failed_examples :: Formatter
-formatException :: GHC.Exception.Type.SomeException -> String
-formatterToFormat :: Formatter -> Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format
-getCPUTime :: FormatM (Maybe Seconds)
-getFailCount :: FormatM Int
-getFailMessages :: FormatM [FailureRecord]
-getPendingCount :: FormatM Int
-getRealTime :: FormatM Seconds
-getSuccessCount :: FormatM Int
-getTotalCount :: FormatM Int
-missingChunk :: String -> FormatM ()
+type SpecWith a = SpecM a ()
 modifyConfig :: (Config -> Config) -> SpecWith a
-progress :: Formatter
-silent :: Formatter
-specdoc :: Formatter
-useDiff :: FormatM Bool
-usedSeed :: FormatM Integer
-withFailColor :: FormatM a -> FormatM a
-withInfoColor :: FormatM a -> FormatM a
-withPendingColor :: FormatM a -> FormatM a
-withSuccessColor :: FormatM a -> FormatM a
-write :: String -> FormatM ()
-writeLine :: String -> FormatM ()
-writeTransient :: String -> FormatM ()
+runIO :: IO r -> SpecM a r
