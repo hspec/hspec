@@ -18,6 +18,7 @@ ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
 dependencies:
   - base >= 4.9.0.0 && < 5
+  - containers
   - random
   - tf-random
   - ansi-terminal >= 0.6.2
@@ -49,6 +50,12 @@ when:
 
 library:
   exposed-modules:
+    - Test.Hspec.Core.Extension
+    - Test.Hspec.Core.Extension.Item
+    - Test.Hspec.Core.Extension.Spec
+    - Test.Hspec.Core.Extension.Tree
+    - Test.Hspec.Core.Extension.Option
+    - Test.Hspec.Core.Extension.Config
     - Test.Hspec.Core.Spec
     - Test.Hspec.Core.Hooks
     - Test.Hspec.Core.Runner

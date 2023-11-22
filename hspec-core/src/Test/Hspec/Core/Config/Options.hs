@@ -32,9 +32,10 @@ otherOptions config = [
   , ("FORMATTER OPTIONS", formatterOptions formatters)
   , ("OPTIONS FOR QUICKCHECK", quickCheckOptions)
   , ("OPTIONS FOR SMALLCHECK", smallCheckOptions)
-  ]
+  ] ++ extensionOptions
   where
     formatters = configAvailableFormatters config
+    extensionOptions = getExtensionOptions config
 
 ignoreConfigFile :: Config -> [String] -> IO Bool
 ignoreConfigFile config args = do

@@ -1,0 +1,44 @@
+getAnnotation :: base:Data.Typeable.Internal.Typeable value => Item a -> Maybe value
+isFocused :: Item a -> Bool
+pending :: Item a -> Item a
+pendingWith :: String -> Item a -> Item a
+setAnnotation :: base:Data.Typeable.Internal.Typeable value => value -> Item a -> Item a
+type ActionWith :: * -> *
+type ActionWith a = a -> IO ()
+type FailureReason :: *
+data FailureReason
+  | NoReason
+  | Reason String
+  | ColorizedReason String
+  | ExpectedButGot (Maybe String) String String
+  | Error (Maybe String) GHC.Exception.Type.SomeException
+type Item :: * -> *
+data Item a = Item
+  itemRequirement :: String
+  itemLocation :: Maybe Location
+  itemIsParallelizable :: Maybe Bool
+  itemIsFocused :: Bool
+  itemAnnotations :: hspec-core:Test.Hspec.Core.Annotations.Annotations
+  itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+type Location :: *
+data Location = Location
+  locationFile :: FilePath
+  locationLine :: Int
+  locationColumn :: Int
+type Params :: *
+data Params = Params
+  paramsQuickCheckArgs :: Test.QuickCheck.Test.Args
+  paramsSmallCheckDepth :: Maybe Int
+type Progress :: *
+type Progress = (Int, Int)
+type ProgressCallback :: *
+type ProgressCallback = Progress -> IO ()
+type Result :: *
+data Result = Result
+  resultInfo :: String
+  resultStatus :: ResultStatus
+type ResultStatus :: *
+data ResultStatus
+  | Success
+  | Pending (Maybe Location) (Maybe String)
+  | Failure (Maybe Location) FailureReason

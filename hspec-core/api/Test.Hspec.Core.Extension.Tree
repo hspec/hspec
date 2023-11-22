@@ -1,0 +1,4 @@
+type SpecTree :: *
+type SpecTree = hspec-core:Test.Hspec.Core.Tree.SpecTree ()
+filterItems :: (hspec-core:Test.Hspec.Core.Tree.Item () -> Bool) -> [SpecTree] -> [SpecTree]
+mapItems :: (hspec-core:Test.Hspec.Core.Tree.Item () -> hspec-core:Test.Hspec.Core.Tree.Item ()) -> [SpecTree] -> [SpecTree]

@@ -43,6 +43,7 @@ data Config = Config
   configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter
   configHtmlOutput :: Bool
   configConcurrentJobs :: Maybe Int
+  configAnnotations :: hspec-core:Test.Hspec.Core.Annotations.Annotations
 type Path :: *
 type Path = ([String], String)
 type ResultItem :: *

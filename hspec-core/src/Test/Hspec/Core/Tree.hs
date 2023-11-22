@@ -24,6 +24,9 @@ module Test.Hspec.Core.Tree (
 , callSite
 , formatDefaultDescription
 , toModuleName
+
+, setItemAnnotation
+, getItemAnnotation
 ) where
 
 import           Prelude ()
@@ -34,6 +37,8 @@ import           System.FilePath
 import qualified Data.CallStack as CallStack
 
 import           Test.Hspec.Core.Example
+import           Test.Hspec.Core.Annotations (Annotations)
+import qualified Test.Hspec.Core.Annotations as Annotations
 
 -- | Internal tree data structure
 data Tree c a =
@@ -114,9 +119,20 @@ data Item a = Item {
   -- | A flag that indicates whether this spec item is focused
 , itemIsFocused :: Bool
 
+  -- | Arbitrary additional data that can be used by third-party extensions.
+  --
+  -- @since 2.12.0
+, itemAnnotations :: Annotations
+
   -- | Example for behavior
 , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 }
+
+setItemAnnotation :: Typeable value => value -> Item a -> Item a
+setItemAnnotation value config = config { itemAnnotations = Annotations.setValue value $ itemAnnotations config }
+
+getItemAnnotation :: Typeable value => Item a -> Maybe value
+getItemAnnotation = Annotations.getValue . itemAnnotations
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
 specGroup :: HasCallStack => String -> [SpecTree a] -> SpecTree a
@@ -134,6 +150,7 @@ specItem s e = Leaf Item {
   , itemLocation = location
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
+  , itemAnnotations = mempty
   , itemExample = safeEvaluateExample e
   }
 

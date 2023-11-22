@@ -118,6 +118,7 @@ import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Tree (formatDefaultDescription)
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Config.Definition as Config (getSeed, getFormatter)
+import           Test.Hspec.Core.Extension.Config.Type as Extension (applySpecTransformation)
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.FailureReport
@@ -418,6 +419,7 @@ specToEvalForest seed config =
   >>> addDefaultDescriptions
   >>> failFocusedItems config
   >>> failPendingItems config
+  >>> Extension.applySpecTransformation config
   >>> focusSpec config
   >>> toEvalItemForest params
   >>> applyDryRun config
@@ -450,7 +452,7 @@ toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
 toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
-    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem {
+    toEvalItem (Item requirement loc isParallelizable _isFocused _annotations e) = EvalItem {
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential

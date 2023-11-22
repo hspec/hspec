@@ -42,6 +42,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter
   hspec-core:Test.Hspec.Core.Config.Definition.configHtmlOutput :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configConcurrentJobs :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configAnnotations :: hspec-core:Test.Hspec.Core.Annotations.Annotations
 type FailureReason :: *
 data FailureReason
   | NoReason
