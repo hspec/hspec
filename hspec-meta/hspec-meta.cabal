@@ -44,6 +44,7 @@ library
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
       NonEmpty
+      Test.Hspec.Core.Annotations
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
@@ -51,6 +52,12 @@ library
       Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
+      Test.Hspec.Core.Extension
+      Test.Hspec.Core.Extension.Config
+      Test.Hspec.Core.Extension.Config.Type
+      Test.Hspec.Core.Extension.Item
+      Test.Hspec.Core.Extension.Spec
+      Test.Hspec.Core.Extension.Tree
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters
@@ -93,6 +100,7 @@ library
     , array
     , base >=4.9.0.0 && <5
     , call-stack >=0.2.0
+    , containers
     , deepseq
     , directory
     , filepath
@@ -132,6 +140,7 @@ executable hspec-meta-discover
     , array
     , base >=4.9.0.0 && <5
     , call-stack >=0.2.0
+    , containers
     , deepseq
     , directory
     , filepath

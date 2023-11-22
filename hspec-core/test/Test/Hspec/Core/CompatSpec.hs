@@ -5,7 +5,6 @@ import           Prelude ()
 import           Helper
 
 import           System.Environment
-import           Data.Typeable
 
 data SomeType = SomeType
   deriving Typeable

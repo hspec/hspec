@@ -1,0 +1,66 @@
+type Option :: *
+newtype Option = Test.Hspec.Core.Extension.Option
+  Test.Hspec.Core.Extension.unOption :: hspec-core:GetOpt.Declarative.Types.Option Config
+type OptionSetter :: *
+newtype OptionSetter = Test.Hspec.Core.Extension.OptionSetter
+  Test.Hspec.Core.Extension.unOptionSetter :: hspec-core:GetOpt.Declarative.Types.OptionSetter Config
+argument :: String -> (String -> Maybe a) -> (a -> Config -> Config) -> OptionSetter
+flag :: String -> (Bool -> Config -> Config) -> String -> Option
+modifyConfig :: (Config -> Config) -> SpecWith a
+option :: String -> OptionSetter -> String -> Option
+registerOption :: GHC.Stack.Types.HasCallStack => Option -> SpecWith a
+registerTransformation :: (Config -> [SpecTree] -> [SpecTree]) -> SpecWith a
+type Config :: *
+data Config = hspec-core:Test.Hspec.Core.Extension.Config.Type.Config
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.ignoreConfigFile :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.dryRun :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.focusedOnly :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.failOnEmpty :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.failOnFocused :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.failOnPending :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.failOnEmptyDescription :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.printSlowItems :: Maybe Int
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.printCpuTime :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.failFast :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.randomize :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.seed :: Maybe Integer
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.failureReport :: Maybe FilePath
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.rerun :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.rerunAllOnSuccess :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.filterPredicate :: Maybe (Test.Hspec.Core.Util.Path -> Bool)
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.skipPredicate :: Maybe (Test.Hspec.Core.Util.Path -> Bool)
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.quickCheckMaxSuccess :: Maybe Int
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.quickCheckMaxDiscardRatio :: Maybe Int
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.quickCheckMaxSize :: Maybe Int
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.quickCheckMaxShrinks :: Maybe Int
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.smallCheckDepth :: Maybe Int
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.colorMode :: hspec-core:Test.Hspec.Core.Config.Definition.ColorMode
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.unicodeMode :: hspec-core:Test.Hspec.Core.Config.Definition.UnicodeMode
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.diff :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.diffContext :: Maybe Int
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.externalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.prettyPrint :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.prettyPrintFunction :: Bool -> String -> String -> (String, String)
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.formatException :: GHC.Exception.Type.SomeException -> String
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.times :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.expertMode :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.htmlOutput :: Bool
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.concurrentJobs :: Maybe Int
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.annotations :: hspec-core:Test.Hspec.Core.Annotations.Annotations
+type Item :: * -> *
+data Item a = hspec-core:Test.Hspec.Core.Tree.Item
+  hspec-core:Test.Hspec.Core.Tree.itemRequirement :: String
+  hspec-core:Test.Hspec.Core.Tree.itemLocation :: Maybe hspec-core:Test.Hspec.Core.Example.Location.Location
+  hspec-core:Test.Hspec.Core.Tree.itemIsParallelizable :: Maybe Bool
+  hspec-core:Test.Hspec.Core.Tree.itemIsFocused :: Bool
+  hspec-core:Test.Hspec.Core.Tree.itemAnnotations :: hspec-core:Test.Hspec.Core.Annotations.Annotations
+  hspec-core:Test.Hspec.Core.Tree.itemExample :: hspec-core:Test.Hspec.Core.Example.Params -> (hspec-core:Test.Hspec.Core.Example.ActionWith a -> IO ()) -> hspec-core:Test.Hspec.Core.Example.ProgressCallback -> IO hspec-core:Test.Hspec.Core.Example.Result
+type role SpecM nominal nominal
+type SpecM :: * -> * -> *
+newtype SpecM a r = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM
+  hspec-core:Test.Hspec.Core.Spec.Monad.unSpecM :: Control.Monad.Trans.Writer.Lazy.WriterT (base:Data.Semigroup.Internal.Endo hspec-core:Test.Hspec.Core.Config.Definition.Config, [hspec-core:Test.Hspec.Core.Tree.SpecTree a]) (Control.Monad.Trans.Reader.ReaderT hspec-core:Test.Hspec.Core.Spec.Monad.Env IO) r
+type SpecTree :: *
+type SpecTree = hspec-core:Test.Hspec.Core.Tree.SpecTree ()
+type SpecWith :: * -> *
+type SpecWith a = SpecM a ()
+runIO :: IO r -> SpecM a r

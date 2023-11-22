@@ -117,8 +117,9 @@ import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Tree (formatDefaultDescription)
 import           Test.Hspec.Core.Config
+import           Test.Hspec.Core.Config.Definition as Config (getSeed, getFormatter)
+import           Test.Hspec.Core.Extension.Config.Type as Extension (applySpecTransformation)
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
-import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheck.Util
@@ -197,7 +198,7 @@ evalSpec config spec = do
 -- for all properties.  This helps with --seed and --rerun.
 ensureSeed :: Config -> IO (Config, Integer)
 ensureSeed config = do
-  seed <- case configSeed config <|> configQuickCheckSeed config of
+  seed <- case Config.getSeed config of
     Nothing -> toInteger <$> newSeed
     Just seed -> return seed
   return (config { configSeed = Just seed }, seed)
@@ -391,7 +392,7 @@ runSpecForest_ oldFailureReport spec c_ = do
       , formatConfigExpertMode = configExpertMode config
       }
 
-      formatter = fromMaybe (V2.formatterToFormat V2.checks) (configFormat config <|> V1.formatterToFormat <$> configFormatter config)
+      formatter = fromMaybe (V2.formatterToFormat V2.checks) (Config.getFormatter config)
 
     format <- maybe id printSlowSpecItems (configPrintSlowItems config) <$> formatter formatConfig
 
@@ -418,6 +419,7 @@ specToEvalForest seed config =
   >>> addDefaultDescriptions
   >>> failFocusedItems config
   >>> failPendingItems config
+  >>> Extension.applySpecTransformation config
   >>> focusSpec config
   >>> toEvalItemForest params
   >>> applyDryRun config
@@ -450,7 +452,7 @@ toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
 toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
-    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem {
+    toEvalItem (Item requirement loc isParallelizable _isFocused _annotations e) = EvalItem {
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
