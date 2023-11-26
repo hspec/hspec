@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstrainedClassMethods #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
@@ -22,6 +24,15 @@ module Test.Hspec.Core.Example (
 , safeEvaluateResultStatus
 , exceptionToResultStatus
 , toLocation
+
+, QuickCheckOptions(..)
+, toQuickCheckArgs
+, qqMaxSuccess
+, qqMaxSize
+, qqMaxDiscardRatio
+, qqMaxShrinks
+, qqSeed
+, setMaxSuccess
 ) where
 
 import           Prelude ()
@@ -41,12 +52,17 @@ import qualified Test.QuickCheck.Property as QCP
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Example.Location
+import           Test.Hspec.Core.Example.Options
 
 -- | A type class for examples
-class Example e where
+class Options (Opt e) => Example e where
   type Arg e
   type Arg e = ()
-  evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+
+  type Opt e
+  type Opt e = ()
+
+  evaluateExample :: e -> Opt e -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
@@ -104,8 +120,8 @@ forceResultStatus r = case r of
   Pending _ m -> m `deepseq` r
   Failure _ m -> m `deepseq` r
 
-safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-safeEvaluateExample example params around progress = safeEvaluate $ evaluateExample example params around progress
+safeEvaluateExample :: Example e => e -> OptionsSet -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+safeEvaluateExample example opts around progress = safeEvaluate $ evaluateExample example (getOptions opts) around progress
 
 safeEvaluate :: IO Result -> IO Result
 safeEvaluate action = do
@@ -136,7 +152,7 @@ instance Example Result where
 
 instance Example (a -> Result) where
   type Arg (a -> Result) = a
-  evaluateExample example _params hook _callback = do
+  evaluateExample example _ hook _callback = do
     liftHook (Result "" Success) hook (evaluate . example)
 
 instance Example Bool where
@@ -145,7 +161,7 @@ instance Example Bool where
 
 instance Example (a -> Bool) where
   type Arg (a -> Bool) = a
-  evaluateExample p _params hook _callback = do
+  evaluateExample p _ hook _callback = do
     liftHook (Result "" Success) hook (evaluate . example)
     where
       example a
@@ -186,12 +202,14 @@ instance Example (a -> Expectation) where
 
 instance Example QC.Property where
   type Arg QC.Property = ()
+  type Opt QC.Property = QuickCheckOptions
   evaluateExample e = evaluateExample (\() -> e)
 
 instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = a
-  evaluateExample p c hook progressCallback = do
-    let args = paramsQuickCheckArgs c
+  type Opt (a -> QC.Property) = QuickCheckOptions
+  evaluateExample p args_ hook progressCallback = do
+    let args = toQuickCheckArgs args_
     r <- QC.quickCheckWithResult args {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty hook p)
     return $ fromQuickCheckResult args r
     where
@@ -231,3 +249,69 @@ fromQuickCheckResult args r = case parseQuickCheckResult r of
 
 indent :: String -> String
 indent = intercalate "\n" . map ("  " ++) . lines
+
+data QuickCheckOptions = QuickCheckOptions {
+  qMaxSuccess :: Maybe Int
+, qMaxSize :: Maybe Int
+, qMaxDiscardRatio :: Maybe Int
+, qMaxShrinks :: Maybe Int
+, qSeed :: Maybe Int
+, qModifyArgs :: QC.Args -> QC.Args
+}
+
+instance Options QuickCheckOptions where
+  defaultOptions = QuickCheckOptions {
+        qMaxSuccess = Nothing
+      , qMaxSize = Nothing
+      , qMaxDiscardRatio = Nothing
+      , qMaxShrinks = Nothing
+      , qSeed = Nothing
+      , qModifyArgs = id
+      }
+  optionsParser = options "OPTIONS FOR QUICKCHECK" [
+      flag (Just 'a') "qc-max-success" "N" (withRead setMaxSuccess)
+        "maximum number of successful tests before a QuickCheck property succeeds"
+    , flag Nothing "qc-max-size" "N" (withRead setMaxSize)
+        "size to use for the biggest test cases"
+    , flag Nothing "qc-max-discard" "N" (withRead setMaxDiscardRatio)
+        "maximum number of discarded tests per successful test before giving up"
+    , flag Nothing "seed" "N" (withRead setSeed)
+        "used seed for QuickCheck properties"
+    ]
+
+
+toQuickCheckArgs :: QuickCheckOptions -> QC.Args
+toQuickCheckArgs opts = qModifyArgs opts QC.stdArgs {
+  QC.maxSuccess = qqMaxSuccess opts
+, QC.maxSize = qqMaxSize opts
+, QC.maxDiscardRatio = qqMaxDiscardRatio opts
+, QC.maxShrinks = qqMaxShrinks opts
+, QC.replay = Just (mkGen (qqSeed opts), 0)
+}
+
+qqSeed :: QuickCheckOptions -> Int
+qqSeed = fromMaybe 0 . qSeed
+
+setMaxSuccess :: Int -> QuickCheckOptions -> QuickCheckOptions
+setMaxSuccess n args = args {qMaxSuccess = Just n}
+
+setMaxSize :: Int -> QuickCheckOptions -> QuickCheckOptions
+setMaxSize n args = args {qMaxSize = Just n}
+
+setMaxDiscardRatio :: Int -> QuickCheckOptions -> QuickCheckOptions
+setMaxDiscardRatio n args = args {qMaxDiscardRatio = Just n}
+
+setSeed :: Int -> QuickCheckOptions -> QuickCheckOptions
+setSeed n args = args {qSeed = Just n}
+
+qqMaxSuccess :: QuickCheckOptions -> Int
+qqMaxSuccess = fromMaybe (QC.maxSuccess QC.stdArgs) . qMaxSuccess
+
+qqMaxSize :: QuickCheckOptions -> Int
+qqMaxSize = fromMaybe (QC.maxSize QC.stdArgs) . qMaxSize
+
+qqMaxDiscardRatio :: QuickCheckOptions -> Int
+qqMaxDiscardRatio = fromMaybe (QC.maxDiscardRatio QC.stdArgs) . qMaxDiscardRatio
+
+qqMaxShrinks :: QuickCheckOptions -> Int
+qqMaxShrinks = fromMaybe (QC.maxShrinks QC.stdArgs) . qMaxShrinks

@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Test.Hspec.Core.Tree (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
@@ -24,6 +25,8 @@ module Test.Hspec.Core.Tree (
 , callSite
 , formatDefaultDescription
 , toModuleName
+
+, customOptions
 ) where
 
 import           Prelude ()
@@ -32,8 +35,10 @@ import           Test.Hspec.Core.Compat
 import           Data.Char
 import           System.FilePath
 import qualified Data.CallStack as CallStack
+import           Data.Typeable
 
 import           Test.Hspec.Core.Example
+import           Test.Hspec.Core.Example.Options
 
 -- | Internal tree data structure
 data Tree c a =
@@ -111,11 +116,14 @@ data Item a = Item {
   -- parallel with other spec items
 , itemIsParallelizable :: Maybe Bool
 
-  -- | A flag that indicates whether this spec item is focused.
+  -- | A flag that indicates whether this spec item is focused
 , itemIsFocused :: Bool
 
+  -- | A parser for custome options that are accepted by this spec item
+, itemOptions :: (TypeRep, Maybe (OptionsParser OptionsSet))
+
   -- | Example for behavior
-, itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+, itemExample :: OptionsSet -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 }
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
@@ -127,6 +135,16 @@ specGroup s = Node msg
       | null s = maybe "(no description given)" formatDefaultDescription location
       | otherwise = s
 
+optionsParserFromType :: forall a. Options a => (TypeRep, Maybe (OptionsParser a))
+optionsParserFromType = (typeOf (undefined :: a), optionsParser)
+
+optionsParserFromExample :: Example a => a -> (TypeRep, Maybe (OptionsParser (Opt a)))
+optionsParserFromExample _ = optionsParserFromType
+
+customOptions:: Example a => a -> (TypeRep, Maybe (OptionsParser OptionsSet))
+customOptions = fmap (fmap toCustomOptions) . optionsParserFromExample
+  where
+
 -- | The @specItem@ function creates a spec item.
 specItem :: (HasCallStack, Example e) => String -> e -> SpecTree (Arg e)
 specItem s e = Leaf Item {
@@ -134,6 +152,7 @@ specItem s e = Leaf Item {
   , itemLocation = location
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
+  , itemOptions = customOptions e
   , itemExample = safeEvaluateExample e
   }
 

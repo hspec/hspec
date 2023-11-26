@@ -14,20 +14,21 @@ import           Test.HUnit (assertFailure, assertEqual)
 import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..))
 import qualified Test.Hspec.Expectations as H
 import qualified Test.Hspec.Core.Example as H
+import           Test.Hspec.Core.Example.Options
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 
 safeEvaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO Result
-safeEvaluateExample e = H.safeEvaluateExample e defaultParams ($ ()) noOpProgressCallback
+safeEvaluateExample e = H.safeEvaluateExample e mempty ($ ()) noOpProgressCallback
 
 evaluateExample :: (H.Example e,  H.Arg e ~ ()) => e -> IO Result
-evaluateExample e = H.evaluateExample e defaultParams ($ ()) noOpProgressCallback
+evaluateExample e = H.evaluateExample e defaultOptions ($ ()) noOpProgressCallback
 
 evaluateExampleWith :: (H.Example e, H.Arg e ~ ()) => (IO () -> IO ()) -> e -> IO Result
-evaluateExampleWith action e = H.evaluateExample e defaultParams (action . ($ ())) noOpProgressCallback
+evaluateExampleWith action e = H.evaluateExample e defaultOptions (action . ($ ())) noOpProgressCallback
 
 evaluateExampleWithArgument :: H.Example e => (ActionWith (H.Arg e) -> IO ()) -> e -> IO Result
-evaluateExampleWithArgument action e = H.evaluateExample e defaultParams action noOpProgressCallback
+evaluateExampleWithArgument action e = H.evaluateExample e defaultOptions action noOpProgressCallback
 
 bottom :: a
 bottom = throw DivideByZero
@@ -168,11 +169,11 @@ spec = do
 
     context "for Property" $ do
       it "returns Success if property holds" $ do
-        evaluateExample (property $ \n -> n == (n :: Int)) `shouldReturn` Result "+++ OK, passed 1000 tests." Success
+        evaluateExample (property $ \n -> n == (n :: Int)) `shouldReturn` Result "+++ OK, passed 100 tests." Success
 
       it "shows the collected labels" $ do
         Result info Success <- evaluateExample $ property $ \ () -> label "unit" True
-        info `shouldBe` "+++ OK, passed 1000 tests (100.0% unit)."
+        info `shouldBe` "+++ OK, passed 100 tests (100% unit)."
 
       it "returns Failure if property does not hold" $ do
         Result "" (Failure _ _) <- evaluateExample $ property $ \n -> n /= (n :: Int)
@@ -195,7 +196,7 @@ spec = do
               readIORef ref `shouldReturn` succ n
               modifyIORef ref succ
         Result _ Success <- evaluateExampleWith action (property $ \(_ :: Int) -> modifyIORef ref succ)
-        readIORef ref `shouldReturn` 2000
+        readIORef ref `shouldReturn` 200
 
       it "pretty-prints exceptions" $ do
         Result "" (Failure _ r) <- evaluateExample $ property (\ (x :: Int) -> (x == 0) ==> (throw (ErrorCall "foobar") :: Bool))

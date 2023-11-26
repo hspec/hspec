@@ -11,7 +11,6 @@ module Helper (
 , Seconds(..)
 , sleep
 , timeout
-, defaultParams
 , noOpProgressCallback
 , captureLines
 , normalizeSummary
@@ -62,9 +61,10 @@ import qualified Test.HUnit.Lang as HUnit
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
-import           Test.Hspec.Core.QuickCheckUtil (mkGen)
+import           Test.Hspec.Core.Example.Options
+-- import           Test.Hspec.Core.QuickCheckUtil (mkGen)
 import           Test.Hspec.Core.Clock
-import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..), Location(..))
+import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..), Location(..), toQuickCheckArgs)
 import           Test.Hspec.Core.Example.Location (workaroundForIssue19236)
 import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
@@ -120,8 +120,8 @@ normalizeTimes = map go
       '(' : y : ys | isNumber y, Just zs <- stripPrefix "ms)" $ dropWhile isNumber ys -> "(2ms)" ++ go zs
       y : ys -> y : go ys
 
-defaultParams :: H.Params
-defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000}}
+-- defaultParams :: H.Params
+-- defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000}}
 
 noOpProgressCallback :: H.ProgressCallback
 noOpProgressCallback _ = pass
@@ -145,7 +145,7 @@ shouldUseArgs args (accessor, expected) = do
     interceptArgs :: H.Item a -> H.Item a
     interceptArgs item = item {
       H.itemExample = \ params action progressCallback -> do
-        writeIORef spy (H.paramsQuickCheckArgs params)
+        writeIORef spy (toQuickCheckArgs $ getOptions params)
         H.itemExample item params action progressCallback
     }
     spec :: H.Spec

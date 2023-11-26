@@ -17,3 +17,6 @@ spec = do
 
     it "gives the original list, if applied twice" $ property $
       \xs -> (reverse . reverse) xs == (xs :: [Int])
+
+    it "gives the original list, if applied twice" $ property $
+      \ n -> print (n :: Int)

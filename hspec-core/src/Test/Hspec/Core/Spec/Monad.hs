@@ -31,6 +31,7 @@ import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
 
 import           Test.Hspec.Core.Config.Definition (Config)
+import           Test.Hspec.Core.Example.Options
 
 type Spec = SpecWith ()
 
@@ -79,8 +80,8 @@ mapSpecItem _ = mapSpecItem_
 mapSpecItem_ :: (Item a -> Item b) -> SpecWith a -> SpecWith b
 mapSpecItem_ = mapSpecForest . bimapForest id
 
-modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
-modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
+modifyParams :: (QuickCheckOptions -> QuickCheckOptions) -> SpecWith a -> SpecWith a
+modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \ p -> (itemExample item) (modifyOptions f $ p)}
 
 newtype Env = Env {
   envSpecDescriptionPath :: [String]

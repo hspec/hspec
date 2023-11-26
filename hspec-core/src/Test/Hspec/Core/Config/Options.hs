@@ -4,6 +4,7 @@ module Test.Hspec.Core.Config.Options (
 , envVarName
 , ignoreConfigFile
 , parseOptions
+, customOptionsFoo
 ) where
 
 import           Prelude ()
@@ -13,6 +14,7 @@ import           System.Exit
 
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Config.Definition
+import           Test.Hspec.Core.Example.Options
 import qualified GetOpt.Declarative as Declarative
 import           GetOpt.Declarative.Interpret (parse, interpretOptions, ParseResult(..))
 
@@ -22,18 +24,41 @@ type EnvVar = [String]
 envVarName :: String
 envVarName = "HSPEC_OPTIONS"
 
-commandLineOptions :: [(String, FormatConfig -> IO Format)] -> [(String, [Declarative.Option Config])]
-commandLineOptions formatters =
+commandLineOptions :: [(String, FormatConfig -> IO Format)] -> [(String, [Declarative.Option Config])] -> [(String, [Declarative.Option Config])]
+commandLineOptions formatters extensionOptions =
     ("OPTIONS", commandLineOnlyOptions)
-  : otherOptions formatters
+  : otherOptions formatters extensionOptions
 
-otherOptions :: [(String, FormatConfig -> IO Format)] -> [(String, [Declarative.Option Config])]
-otherOptions formatters = [
+otherOptions :: [(String, FormatConfig -> IO Format)] -> [(String, [Declarative.Option Config])] -> [(String, [Declarative.Option Config])]
+otherOptions formatters extensionOptions = [
     ("RUNNER OPTIONS", runnerOptions)
   , ("FORMATTER OPTIONS", formatterOptions formatters)
   , ("OPTIONS FOR QUICKCHECK", quickCheckOptions)
   , ("OPTIONS FOR SMALLCHECK", smallCheckOptions)
-  ]
+  ] ++ extensionOptions
+
+customOptionsFoo :: [OptionsParser OptionsSet] -> [(String, [Declarative.Option Config])]
+customOptionsFoo = map bar
+
+bar :: OptionsParser OptionsSet -> (String, [Declarative.Option Config])
+bar (OptionsParser title flags) = (title, map baz flags)
+
+baz :: Flag OptionsSet -> Declarative.Option Config
+baz flag__ = Declarative.Option {
+  Declarative.optionName = optionName flag__
+, Declarative.optionShortcut = optionShort flag__
+, Declarative.optionSetter = qux (optionPlaceholder flag__) (optionParser flag__)
+, Declarative.optionHelp = optionHelp flag__
+, Declarative.optionDocumented = True
+}
+
+qux :: String -> (String -> OptionsSet -> Maybe OptionsSet) -> Declarative.OptionSetter Config
+qux placeholder = Declarative.Arg placeholder . f
+  where
+    f :: (String -> OptionsSet -> Maybe OptionsSet) -> String -> Config -> Maybe Config
+    f parser input config = case parser input (configValues config) of
+      Nothing -> Nothing
+      Just new -> Just config { configValues = new }
 
 ignoreConfigFile :: Config -> [String] -> IO Bool
 ignoreConfigFile config args = do
@@ -52,18 +77,20 @@ parseOptions config prog configFiles envVar env args = do
   >>= traverse (parseCommandLineOptions prog args)
 
 parseCommandLineOptions :: String -> [String] -> Config -> Either (ExitCode, String) Config
-parseCommandLineOptions prog args config = case Declarative.parseCommandLineOptions (commandLineOptions formatters) prog args config of
+parseCommandLineOptions prog args config = case Declarative.parseCommandLineOptions (commandLineOptions formatters extensionOptions) prog args config of
   Success c -> Right c
   Help message -> Left (ExitSuccess, message)
   Failure message -> Left (ExitFailure 1, message)
   where
     formatters = configAvailableFormatters config
+    extensionOptions = configCustomOptions config
 
 parseEnvironmentOptions :: [(String, String)] -> Config -> Either (ExitCode, String) ([String], Config)
-parseEnvironmentOptions env config = case Declarative.parseEnvironmentOptions "HSPEC" env config (concatMap snd $ commandLineOptions formatters) of
+parseEnvironmentOptions env config = case Declarative.parseEnvironmentOptions "HSPEC" env config (concatMap snd $ commandLineOptions formatters extensionOptions) of
   (warnings, c) -> Right (map formatWarning warnings, c)
   where
     formatters = configAvailableFormatters config
+    extensionOptions = configCustomOptions config
     formatWarning (Declarative.InvalidValue name value) = "invalid value `" ++ value ++ "' for environment variable " ++ name
 
 parseFileOptions :: String -> Config -> ConfigFile -> Either (ExitCode, String) Config
@@ -75,14 +102,15 @@ parseEnvVarOptions prog =
   parseOtherOptions prog ("from environment variable " ++ envVarName)
 
 parseOtherOptions :: String -> String -> [String] -> Config -> Either (ExitCode, String) Config
-parseOtherOptions prog source args config = case parse (interpretOptions options) config args of
+parseOtherOptions prog source args config = case parse (interpretOptions options__) config args of
   Right c -> Right c
   Left err -> failure err
   where
-    options :: [Declarative.Option Config]
-    options = filter Declarative.optionDocumented $ concatMap snd (otherOptions formatters)
+    options__ :: [Declarative.Option Config]
+    options__ = filter Declarative.optionDocumented $ concatMap snd (otherOptions formatters extensionOptions)
 
     formatters = configAvailableFormatters config
+    extensionOptions = configCustomOptions config
 
     failure err = Left (ExitFailure 1, prog ++ ": " ++ message)
       where

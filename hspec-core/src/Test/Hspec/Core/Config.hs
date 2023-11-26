@@ -6,7 +6,6 @@ module Test.Hspec.Core.Config (
 , defaultConfig
 , readConfig
 , configAddFilter
-, configQuickCheckArgs
 
 , readFailureReportOnRerun
 , applyFailureReport
@@ -25,15 +24,14 @@ import           System.Exit
 import           System.FilePath
 import           System.Directory
 import           System.Environment (getProgName, getEnvironment)
-import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Config.Options
 import           Test.Hspec.Core.Config.Definition (Config(..), ColorMode(..), UnicodeMode(..), mkDefaultConfig, filterOr)
 import           Test.Hspec.Core.FailureReport
-import           Test.Hspec.Core.QuickCheckUtil (mkGen)
-import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import qualified Test.Hspec.Core.Formatters.V2 as V2
+import           Test.Hspec.Core.Example.Options
+import           Test.Hspec.Core.Example
 
 defaultConfig :: Config
 defaultConfig = mkDefaultConfig $ map (fmap V2.formatterToFormat) [
@@ -54,17 +52,24 @@ configAddFilter p1 c = c {
 applyFailureReport :: Maybe FailureReport -> Config -> Config
 applyFailureReport mFailureReport opts = opts {
     configFilterPredicate = matchFilter `filterOr` rerunFilter
-  , configQuickCheckSeed = mSeed
-  , configQuickCheckMaxSuccess = mMaxSuccess
-  , configQuickCheckMaxDiscardRatio = mMaxDiscardRatio
-  , configQuickCheckMaxSize = mMaxSize
+  , configValues = setOptions foo options__
   }
   where
+    options__ = configValues opts
+    qopts :: QuickCheckOptions
+    qopts = getOptions options__
 
-    mSeed = configQuickCheckSeed opts <|> (failureReportSeed <$> mFailureReport)
-    mMaxSuccess = configQuickCheckMaxSuccess opts <|> (failureReportMaxSuccess <$> mFailureReport)
-    mMaxSize = configQuickCheckMaxSize opts <|> (failureReportMaxSize <$> mFailureReport)
-    mMaxDiscardRatio = configQuickCheckMaxDiscardRatio opts <|> (failureReportMaxDiscardRatio <$> mFailureReport)
+    foo = qopts {
+      qMaxSuccess = mMaxSuccess
+    , qMaxSize = mMaxSize
+    , qMaxDiscardRatio = mMaxDiscardRatio
+    , qSeed = mSeed
+    }
+
+    mSeed = qSeed qopts <|> (failureReportSeed <$> mFailureReport)
+    mMaxSuccess = qMaxSuccess qopts <|> (failureReportMaxSuccess <$> mFailureReport)
+    mMaxSize = qMaxSize qopts <|> (failureReportMaxSize <$> mFailureReport)
+    mMaxDiscardRatio = qMaxDiscardRatio qopts <|> (failureReportMaxDiscardRatio <$> mFailureReport)
 
     matchFilter = configFilterPredicate opts
 
@@ -72,31 +77,6 @@ applyFailureReport mFailureReport opts = opts {
       Just [] -> Nothing
       Just xs -> Just (`elem` xs)
       Nothing -> Nothing
-
-configQuickCheckArgs :: Config -> QC.Args
-configQuickCheckArgs c = qcArgs
-  where
-    qcArgs = (
-        maybe id setSeed (configQuickCheckSeed c)
-      . maybe id setMaxShrinks (configQuickCheckMaxShrinks c)
-      . maybe id setMaxSize (configQuickCheckMaxSize c)
-      . maybe id setMaxDiscardRatio (configQuickCheckMaxDiscardRatio c)
-      . maybe id setMaxSuccess (configQuickCheckMaxSuccess c)) (paramsQuickCheckArgs defaultParams)
-
-    setMaxSuccess :: Int -> QC.Args -> QC.Args
-    setMaxSuccess n args = args {QC.maxSuccess = n}
-
-    setMaxDiscardRatio :: Int -> QC.Args -> QC.Args
-    setMaxDiscardRatio n args = args {QC.maxDiscardRatio = n}
-
-    setMaxSize :: Int -> QC.Args -> QC.Args
-    setMaxSize n args = args {QC.maxSize = n}
-
-    setMaxShrinks :: Int -> QC.Args -> QC.Args
-    setMaxShrinks n args = args {QC.maxShrinks = n}
-
-    setSeed :: Integer -> QC.Args -> QC.Args
-    setSeed n args = args {QC.replay = Just (mkGen (fromIntegral n), 0)}
 
 -- |
 -- `readConfig` parses config options from several sources and constructs a

@@ -24,7 +24,8 @@ import           System.Directory (getTemporaryDirectory, removeFile)
 import           System.IO (openTempFile, hClose)
 import           System.Process (system)
 
-import           Test.Hspec.Core.Example (Params(..), defaultParams)
+import           Test.Hspec.Core.Example (Params(..), defaultParams, QuickCheckOptions(..))
+import qualified Test.Hspec.Core.Example as Example
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
@@ -32,6 +33,7 @@ import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
 
+import           Test.Hspec.Core.Example.Options hiding (Flag(..), flag)
 
 data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
@@ -60,12 +62,16 @@ data Config = Config {
 -- that satisfy the predicate are run.
 , configFilterPredicate :: Maybe (Path -> Bool)
 , configSkipPredicate :: Maybe (Path -> Bool)
+
+-- remove snip
 , configQuickCheckSeed :: Maybe Integer
 , configQuickCheckMaxSuccess :: Maybe Int
 , configQuickCheckMaxDiscardRatio :: Maybe Int
 , configQuickCheckMaxSize :: Maybe Int
 , configQuickCheckMaxShrinks :: Maybe Int
 , configSmallCheckDepth :: Maybe Int
+-- remove snap
+
 , configColorMode :: ColorMode
 , configUnicodeMode :: UnicodeMode
 , configDiff :: Bool
@@ -89,6 +95,8 @@ data Config = Config {
 , configFormatter :: Maybe V1.Formatter
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
+, configCustomOptions :: [(String, [Option Config])] -- ^ @since 2.12.0
+, configValues :: OptionsSet
 }
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 
@@ -131,6 +139,8 @@ mkDefaultConfig formatters = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
+, configCustomOptions = []
+, configValues = mempty
 }
 
 defaultDiffContext :: Int
@@ -273,30 +283,30 @@ setDepth n c = c {configSmallCheckDepth = Just n}
 
 quickCheckOptions :: [Option Config]
 quickCheckOptions = [
-    Option "qc-max-success" (Just 'a') (argument "N" readMaybe setMaxSuccess) "maximum number of successful tests before a QuickCheck property succeeds" True
-  , option "qc-max-discard" (argument "N" readMaybe setMaxDiscardRatio) "maximum number of discarded tests per successful test before giving up"
-  , option "qc-max-size" (argument "N" readMaybe setMaxSize) "size to use for the biggest test cases"
-  , option "qc-max-shrinks" (argument "N" readMaybe setMaxShrinks) "maximum number of shrinks to perform before giving up (a value of 0 turns shrinking off)"
-  , option "seed" (argument "N" readMaybe setSeed) "used seed for QuickCheck properties"
-
+    option "qc-max-shrinks" (argument "N" readMaybe setMaxShrinks) "maximum number of shrinks to perform before giving up (a value of 0 turns shrinking off)"
     -- for compatibility with test-framework
   , undocumented $ option "maximum-generated-tests" (argument "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
   ]
 
+foo :: (Int -> QuickCheckOptions -> QuickCheckOptions) -> Int -> Config -> Config
+foo f n config = config {
+  configValues = setOptions (f n qcopts) options__
+}
+  where
+    qcopts :: QuickCheckOptions
+    qcopts = getOptions options__
+    options__ = configValues config
+
+
+
 setMaxSuccess :: Int -> Config -> Config
-setMaxSuccess n c = c {configQuickCheckMaxSuccess = Just n}
-
-setMaxDiscardRatio :: Int -> Config -> Config
-setMaxDiscardRatio n c = c {configQuickCheckMaxDiscardRatio = Just n}
-
-setMaxSize :: Int -> Config -> Config
-setMaxSize n c = c {configQuickCheckMaxSize = Just n}
+setMaxSuccess = foo Example.setMaxSuccess
 
 setMaxShrinks :: Int -> Config -> Config
 setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 
-setSeed :: Integer -> Config -> Config
-setSeed n c = c {configQuickCheckSeed = Just n}
+-- setSeed :: Integer -> Config -> Config
+-- setSeed n c = c {configQuickCheckSeed = Just n}
 
 data FailOn =
     FailOnEmpty
@@ -444,3 +454,13 @@ formatOrList xs = case xs of
     [] -> x
     _ : [] -> x ++ " or "
     _ : _ : _ -> x ++ ", ") ++ formatOrList ys
+
+{-
+baz :: (Traversable m, Monad m) => E.Flag Config -> OptDescr (Result m -> Result m)
+baz (E.Flag short name placeholder parser help) = mkOption_ (maybeToList short) name placeholder parser help
+
+bar :: E.Flag OptionsSet -> E.Flag Config
+bar opt = opt {E.optionParser = p}
+  where
+    p input c = setConfigOptions c <$> E.optionParser opt input (configValues c)
+    -}

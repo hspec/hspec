@@ -23,7 +23,7 @@ spec = do
     runSpecM = fmap snd . H.runSpecM
 
     runItem :: Item () -> IO Result
-    runItem item = itemExample item defaultParams ($ ()) noOpProgressCallback
+    runItem item = itemExample item mempty ($ ()) noOpProgressCallback
 
   describe "getSpecDescriptionPath" $ do
     it "returns the spec path" $ do

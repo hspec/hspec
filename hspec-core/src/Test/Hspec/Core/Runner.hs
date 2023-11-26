@@ -102,6 +102,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           NonEmpty (nonEmpty)
+import qualified Data.Map as Map
 import           System.IO
 import           System.Environment (getArgs, withArgs)
 import           System.Exit (exitFailure)
@@ -110,19 +111,23 @@ import           Control.Monad.ST
 import           Data.STRef
 
 import           System.Console.ANSI (hSupportsANSI, hHideCursor, hShowCursor)
-import qualified Test.QuickCheck as QC
+import           Test.QuickCheck (property)
 
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Tree (formatDefaultDescription)
 import           Test.Hspec.Core.Config
+import           Test.Hspec.Core.Config.Options (customOptionsFoo)
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.FailureReport
 import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Shuffle
+import           Test.Hspec.Core.Example.Options
+import           Test.Hspec.Core.Example
+import           Test.Hspec.Core.Tree (customOptions)
 
 import           Test.Hspec.Core.Runner.PrintSlowSpecItems
 import           Test.Hspec.Core.Runner.Eval hiding (ColorMode(..), Tree(..))
@@ -191,16 +196,29 @@ hspec = hspecWith defaultConfig
 evalSpec :: Config -> SpecWith a -> IO (Config, [SpecTree a])
 evalSpec config spec = do
   (Endo f, forest) <- runSpecM spec
-  return (f config, forest)
+
+  let
+    opts = customOptionsFoo $ extractCustomOptions forest
+
+  return (f config { configCustomOptions = configCustomOptions config ++ opts } , forest)
+
+extractCustomOptions :: [SpecTree a] -> [OptionsParser OptionsSet]
+extractCustomOptions = catMaybes . Map.elems . Map.fromList . (qc :) . map itemOptions . concatMap toList
+  where
+    qc = customOptions (property True)
+
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
 ensureSeed :: Config -> IO Config
-ensureSeed c = case configQuickCheckSeed c of
+ensureSeed c = case qSeed qcopts of
   Nothing -> do
     seed <- newSeed
-    return c {configQuickCheckSeed = Just (fromIntegral seed)}
-  _       -> return c
+    return c {configValues = setOptions qcopts {qSeed = Just seed} options__}
+  Just _ -> return c
+  where
+    qcopts = getOptions options__
+    options__ = configValues c
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
@@ -324,7 +342,7 @@ failWith reason item = item {itemExample = example}
     failure :: ResultStatus
     failure = Failure Nothing (Reason reason)
 
-    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+    -- example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
     example params hook p = do
       Result info status <- itemExample item params hook p
       return $ Result info $ case status of
@@ -340,7 +358,7 @@ failPendingItems config
 failPending :: forall a. Item a -> Item a
 failPending item = item {itemExample = example}
   where
-    example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+    -- example :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
     example params hook p = do
       Result info status <- itemExample item params hook p
       return $ Result info $ case status of
@@ -362,8 +380,11 @@ runSpecForest_ oldFailureReport spec c_ = do
 
   let
     filteredSpec = specToEvalForest config spec
-    seed = (fromJust . configQuickCheckSeed) config
-    qcArgs = configQuickCheckArgs config
+
+    seed :: Integer
+    seed = toInteger . fromJust $ qSeed qopts
+
+    qopts = getOptions (configValues config)
     !numberOfItems = countEvalItems filteredSpec
 
   when (configFailOnEmpty config && numberOfItems == 0) $ do
@@ -409,7 +430,7 @@ runSpecForest_ oldFailureReport spec c_ = do
     failures :: [Path]
     failures = map resultItemPath $ filter resultItemIsFailure $ specResultItems results
 
-  dumpFailureReport config seed qcArgs failures
+  dumpFailureReport config qopts failures
 
   return results
 
@@ -420,7 +441,7 @@ specToEvalForest config =
   >>> failFocusedItems config
   >>> failPendingItems config
   >>> focusSpec config
-  >>> toEvalItemForest params
+  >>> toEvalItemForest opts
   >>> applyDryRun config
   >>> applyFilterPredicates config
   >>> randomize
@@ -429,8 +450,8 @@ specToEvalForest config =
     seed :: Integer
     seed = (fromJust . configQuickCheckSeed) config
 
-    params :: Params
-    params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
+    opts :: OptionsSet
+    opts = configValues config
 
     randomize :: [Tree c a] -> [Tree c a]
     randomize
@@ -450,27 +471,27 @@ pruneTree node = case node of
 
 type EvalItemTree = Tree (IO ()) EvalItem
 
-toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
-toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
+toEvalItemForest :: OptionsSet -> [SpecTree ()] -> [EvalItemTree]
+toEvalItemForest opts = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
-    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem {
+    toEvalItem (Item requirement loc isParallelizable _isFocused _ e) = EvalItem {
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
-    , evalItemAction = \ progress -> measure $ e params withUnit progress
+    , evalItemAction = \ progress -> measure $ e opts withUnit progress
     }
 
     withUnit :: ActionWith () -> IO ()
     withUnit action = action ()
 
-dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
-dumpFailureReport config seed qcArgs xs = do
+dumpFailureReport :: Config -> QuickCheckOptions -> [Path] -> IO ()
+dumpFailureReport config qopts xs = do
   writeFailureReport config FailureReport {
-      failureReportSeed = seed
-    , failureReportMaxSuccess = QC.maxSuccess qcArgs
-    , failureReportMaxSize = QC.maxSize qcArgs
-    , failureReportMaxDiscardRatio = QC.maxDiscardRatio qcArgs
+      failureReportSeed = qqSeed qopts
+    , failureReportMaxSuccess = qqMaxSuccess qopts
+    , failureReportMaxSize = qqMaxSize qopts
+    , failureReportMaxDiscardRatio = qqMaxDiscardRatio qopts
     , failureReportPaths = xs
     }
 
