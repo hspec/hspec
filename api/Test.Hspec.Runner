@@ -16,6 +16,7 @@ data Config = Config
   configPrintCpuTime :: Bool
   configFailFast :: Bool
   configRandomize :: Bool
+  configSeed :: Maybe Integer
   configFailureReport :: Maybe FilePath
   configRerun :: Bool
   configRerunAllOnSuccess :: Bool

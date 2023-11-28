@@ -28,6 +28,8 @@ RUNNER OPTIONS
   -j N  --jobs=N                run at most N parallelizable tests
                                 simultaneously (default: number of available
                                 processors)
+        --seed=N                used seed for --randomize and QuickCheck
+                                properties
 
 FORMATTER OPTIONS
   -f NAME  --format=NAME           use a custom formatter; this can be one of
@@ -57,7 +59,6 @@ OPTIONS FOR QUICKCHECK
         --qc-max-size=N     size to use for the biggest test cases
         --qc-max-shrinks=N  maximum number of shrinks to perform before giving
                             up (a value of 0 turns shrinking off)
-        --seed=N            used seed for QuickCheck properties
 
 OPTIONS FOR SMALLCHECK
     --depth=N  maximum depth of generated test values for SmallCheck properties
