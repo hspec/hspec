@@ -784,13 +784,17 @@ spec = do
           ["--qc-max-success", "23"] `shouldUseArgs` (QC.maxSuccess, 23)
           ["--rerun", "--qc-max-success", "42"] `shouldUseArgs` (QC.maxSuccess, 42)
 
+    context "with --qc-max-discard" $ do
+      it "passes specified maxDiscardRatio to QuickCheck properties" $ do
+        ["--qc-max-discard", "23"] `shouldUseArgs` (QC.maxDiscardRatio, 23)
+
     context "with --qc-max-size" $ do
-      it "passes specified size to QuickCheck properties" $ do
+      it "passes specified maxSize to QuickCheck properties" $ do
         ["--qc-max-size", "23"] `shouldUseArgs` (QC.maxSize, 23)
 
-    context "with --qc-max-discard" $ do
-      it "uses specified discard ratio to QuickCheck properties" $ do
-        ["--qc-max-discard", "23"] `shouldUseArgs` (QC.maxDiscardRatio, 23)
+    context "with --qc-max-shrinks" $ do
+      it "passes specified maxShrinks to QuickCheck properties" $ do
+        ["--qc-max-shrinks", "23"] `shouldUseArgs` (QC.maxShrinks, 23)
 
     describe "Test.QuickCheck.Args.chatty" $ do
       let
