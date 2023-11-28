@@ -419,6 +419,7 @@ specToEvalForest config =
   >>> addDefaultDescriptions
   >>> failFocusedItems config
   >>> failPendingItems config
+  >>> configMapSpecForest config config
   >>> focusSpec config
   >>> toEvalItemForest params
   >>> applyDryRun config
@@ -454,7 +455,7 @@ toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
 toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
-    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem {
+    toEvalItem (Item requirement loc isParallelizable _isFocused _annotations e) = EvalItem {
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential

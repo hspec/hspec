@@ -9,7 +9,7 @@ import           Prelude ()
 import           Helper
 
 import           System.IO
-import           System.Environment (withArgs, withProgName, getArgs, setEnv, unsetEnv)
+import           System.Environment (withProgName, getArgs, setEnv, unsetEnv)
 import           System.Exit
 import           Control.Concurrent
 import           Control.Concurrent.Async

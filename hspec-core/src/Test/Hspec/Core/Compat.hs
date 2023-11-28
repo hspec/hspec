@@ -19,6 +19,7 @@ import           Control.Monad as Imports hiding (
 import           Data.Maybe as Imports
 import           Data.Foldable as Imports
 import           Data.CallStack as Imports (HasCallStack)
+import           Data.Typeable as Imports (Typeable)
 
 import           System.IO
 import           System.Exit
@@ -65,7 +66,7 @@ import           Prelude as Imports hiding (
   , sum
   )
 
-import           Data.Typeable (Typeable, typeOf, typeRepTyCon, tyConModule, tyConName)
+import           Data.Typeable (typeOf, typeRepTyCon, tyConModule, tyConName)
 import           Data.IORef as Imports
 
 #if MIN_VERSION_base(4,12,0)

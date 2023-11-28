@@ -14,10 +14,11 @@ extra-source-files:
   - version.yaml
   - help.txt
 
-ghc-options: -Wall -fno-warn-incomplete-uni-patterns
+ghc-options: -Wall -fno-warn-incomplete-uni-patterns -fhide-source-paths -Werror=operator-whitespace
 
 dependencies:
   - base >= 4.8.2.0 && < 5
+  - containers
   - random
   - tf-random
   - ansi-terminal >= 0.6.2
@@ -36,6 +37,8 @@ dependencies:
 
   - array # for Diff
 
+  - containers
+
 source-dirs:
   - src
   - vendor
@@ -49,6 +52,8 @@ when:
 
 library:
   exposed-modules:
+    - Test.Hspec.CI
+    - Test.Hspec.Tags
     - Test.Hspec.Core.Spec
     - Test.Hspec.Core.Hooks
     - Test.Hspec.Core.Runner

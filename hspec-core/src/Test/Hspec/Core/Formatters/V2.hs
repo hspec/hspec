@@ -188,7 +188,7 @@ checks = specdoc {
       Success {} -> pass
       Failure {} -> pass
       Pending _ reason -> withPendingColor $ do
-        writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+        indentBy (indentationFor ("" : nesting)) $ "# PENDING: " ++ fromMaybe "No reason given" reason
 } where
     indentationFor nesting = replicate (length nesting * 2) ' '
 
@@ -198,8 +198,7 @@ checks = specdoc {
       write $ indentationFor nesting ++ requirement ++ " ["
       withColor $ write symbol
       writeLine $ "]" ++ if shouldPrintTimes then times else ""
-      forM_ (lines info) $ \ s ->
-        writeLine $ indentationFor ("" : nesting) ++ s
+      indentBy (indentationFor ("" : nesting)) info
       where
         dt :: Int
         dt = toMilliseconds duration
@@ -233,7 +232,7 @@ specdoc = silent {
         writeResult nesting requirement duration info
       Pending _ reason -> withPendingColor $ do
         writeResult nesting requirement duration info
-        writeLine $ indentationFor ("" : nesting) ++ "# PENDING: " ++ fromMaybe "No reason given" reason
+        indentBy (indentationFor ("" : nesting)) $ "# PENDING: " ++ fromMaybe "No reason given" reason
       Failure {} -> withFailColor $ do
         n <- getFailCount
         writeResult nesting (requirement ++ " FAILED [" ++ show n ++ "]") duration info
@@ -245,8 +244,7 @@ specdoc = silent {
     writeResult nesting requirement (Seconds duration) info = do
       shouldPrintTimes <- printTimes
       writeLine $ indentationFor nesting ++ requirement ++ if shouldPrintTimes then times else ""
-      forM_ (lines info) $ \ s ->
-        writeLine $ indentationFor ("" : nesting) ++ s
+      indentBy (indentationFor ("" : nesting)) info
       where
         dt :: Int
         dt = floor (duration * 1000)
@@ -362,9 +360,12 @@ defaultFailedFormatter = do
         writeLine ("  To rerun use: --match " ++ path_ <> " --seed " <> show seed)
       where
         indentation = "       "
-        indent message = do
-          forM_ (lines message) $ \line -> do
-            writeLine (indentation ++ line)
+        indent = indentBy indentation
+
+indentBy :: String -> String -> FormatM ()
+indentBy indentation message = do
+  forM_ (lines message) $ \ line -> do
+    writeLine (indentation ++ line)
 
 data Chunk = Original String | Modified String | OmittedLines Int
   deriving (Eq, Show)

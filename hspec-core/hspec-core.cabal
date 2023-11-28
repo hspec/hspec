@@ -33,7 +33,7 @@ library
   hs-source-dirs:
       src
       vendor
-  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns -fhide-source-paths -Werror=operator-whitespace
   build-depends:
       HUnit ==1.6.*
     , QuickCheck >=2.13.1
@@ -41,6 +41,7 @@ library
     , array
     , base >=4.8.2.0 && <5
     , call-stack >=0.2.0
+    , containers
     , deepseq
     , directory
     , filepath
@@ -53,6 +54,8 @@ library
     , time
     , transformers >=0.2.2.0
   exposed-modules:
+      Test.Hspec.CI
+      Test.Hspec.Tags
       Test.Hspec.Core.Spec
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.Runner
@@ -69,6 +72,7 @@ library
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
       NonEmpty
+      Test.Hspec.Core.Annotations
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
@@ -76,6 +80,7 @@ library
       Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
+      Test.Hspec.Core.Extension
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Internal
@@ -115,7 +120,7 @@ test-suite spec
       src
       vendor
       test
-  ghc-options: -Wall -fno-warn-incomplete-uni-patterns
+  ghc-options: -Wall -fno-warn-incomplete-uni-patterns -fhide-source-paths -Werror=operator-whitespace
   cpp-options: -DTEST
   build-depends:
       HUnit ==1.6.*
@@ -125,6 +130,7 @@ test-suite spec
     , base >=4.8.2.0 && <5
     , base-orphans
     , call-stack >=0.2.0
+    , containers
     , deepseq
     , directory
     , filepath
@@ -148,6 +154,8 @@ test-suite spec
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
       NonEmpty
+      Test.Hspec.CI
+      Test.Hspec.Core.Annotations
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
       Test.Hspec.Core.Config
@@ -155,6 +163,7 @@ test-suite spec
       Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
+      Test.Hspec.Core.Extension
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters
@@ -183,6 +192,7 @@ test-suite spec
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
       Test.Hspec.Core.Util
+      Test.Hspec.Tags
       Control.Concurrent.Async
       Data.Algorithm.Diff
       GetOpt.Declarative.EnvironmentSpec
@@ -190,6 +200,8 @@ test-suite spec
       Helper
       Mock
       SpecHook
+      Test.Hspec.CISpec
+      Test.Hspec.Core.AnnotationsSpec
       Test.Hspec.Core.ClockSpec
       Test.Hspec.Core.CompatSpec
       Test.Hspec.Core.Config.DefinitionSpec
@@ -218,6 +230,7 @@ test-suite spec
       Test.Hspec.Core.TimerSpec
       Test.Hspec.Core.TreeSpec
       Test.Hspec.Core.UtilSpec
+      Test.Hspec.TagsSpec
       Paths_hspec_core
   default-language: Haskell2010
   if impl(ghc >= 8.4.1)

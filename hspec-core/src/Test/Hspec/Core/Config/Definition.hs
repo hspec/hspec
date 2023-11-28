@@ -12,6 +12,15 @@ module Test.Hspec.Core.Config.Definition (
 , quickCheckOptions
 , runnerOptions
 
+, flag
+, option
+, argument
+
+, setConfigAnnotation
+, getConfigAnnotation
+, addCustomOption
+, addSpecTransformation
+
 #ifdef TEST
 , splitOn
 #endif
@@ -24,6 +33,9 @@ import           System.Directory (getTemporaryDirectory, removeFile)
 import           System.IO (openTempFile, hClose)
 import           System.Process (system)
 
+import           Test.Hspec.Core.Annotations (Annotations)
+import qualified Test.Hspec.Core.Annotations as Annotations
+import           Test.Hspec.Core.Tree (SpecTree)
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
@@ -32,6 +44,17 @@ import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
 
+setConfigAnnotation :: Typeable value => value -> Config -> Config
+setConfigAnnotation value config = config { configAnnotations = Annotations.setValue value $ configAnnotations config }
+
+getConfigAnnotation :: Typeable value => Config -> Maybe value
+getConfigAnnotation = Annotations.getValue . configAnnotations
+
+addCustomOption :: String -> Option Config -> Config -> Config
+addCustomOption section opt config = config { configCustomOptions = (section, [opt]) : configCustomOptions config }
+
+addSpecTransformation :: (Config -> [SpecTree ()] -> [SpecTree ()]) -> Config -> Config
+addSpecTransformation f config = config { configMapSpecForest = \ c -> f c . configMapSpecForest config c }
 
 data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
@@ -89,6 +112,9 @@ data Config = Config {
 , configFormatter :: Maybe V1.Formatter
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
+, configCustomOptions :: [(String, [Option Config])] -- ^ @since 2.12.0
+, configAnnotations :: Annotations -- ^ @since 2.12.0
+, configMapSpecForest :: Config -> [SpecTree ()] -> [SpecTree ()] -- ^ @since 2.12.0
 }
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 
@@ -131,6 +157,9 @@ mkDefaultConfig formatters = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
+, configAnnotations = mempty
+, configCustomOptions = []
+, configMapSpecForest = \ _ -> id
 }
 
 defaultDiffContext :: Int

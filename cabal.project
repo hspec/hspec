@@ -1,5 +1,4 @@
 packages:
-  hspec-meta
   hspec.cabal
   hspec-discover
   hspec-core
