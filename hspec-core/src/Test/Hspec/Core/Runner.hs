@@ -196,11 +196,11 @@ evalSpec config spec = do
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
 ensureSeed :: Config -> IO Config
-ensureSeed c = case configQuickCheckSeed c of
-  Nothing -> do
-    seed <- newSeed
-    return c {configQuickCheckSeed = Just (fromIntegral seed)}
-  _       -> return c
+ensureSeed config = do
+  seed <- case configSeed config <|> configQuickCheckSeed config of
+    Nothing -> toInteger <$> newSeed
+    Just seed -> return seed
+  return config { configSeed = Just seed }
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
@@ -362,7 +362,7 @@ runSpecForest_ oldFailureReport spec c_ = do
 
   let
     filteredSpec = specToEvalForest config spec
-    seed = (fromJust . configQuickCheckSeed) config
+    seed = (fromJust . configSeed) config
     qcArgs = configQuickCheckArgs config
     !numberOfItems = countEvalItems filteredSpec
 
@@ -427,7 +427,7 @@ specToEvalForest config =
   >>> pruneForest
   where
     seed :: Integer
-    seed = (fromJust . configQuickCheckSeed) config
+    seed = (fromJust . configSeed) config
 
     params :: Params
     params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)

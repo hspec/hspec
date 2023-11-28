@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-# LANGUAGE CPP #-}
 module Test.Hspec.Core.Config (
   Config (..)
@@ -54,14 +55,14 @@ configAddFilter p1 c = c {
 applyFailureReport :: Maybe FailureReport -> Config -> Config
 applyFailureReport mFailureReport opts = opts {
     configFilterPredicate = matchFilter `filterOr` rerunFilter
-  , configQuickCheckSeed = mSeed
+  , configSeed = mSeed
   , configQuickCheckMaxSuccess = mMaxSuccess
   , configQuickCheckMaxDiscardRatio = mMaxDiscardRatio
   , configQuickCheckMaxSize = mMaxSize
   }
   where
 
-    mSeed = configQuickCheckSeed opts <|> (failureReportSeed <$> mFailureReport)
+    mSeed = configSeed opts <|> configQuickCheckSeed opts <|> (failureReportSeed <$> mFailureReport)
     mMaxSuccess = configQuickCheckMaxSuccess opts <|> (failureReportMaxSuccess <$> mFailureReport)
     mMaxSize = configQuickCheckMaxSize opts <|> (failureReportMaxSize <$> mFailureReport)
     mMaxDiscardRatio = configQuickCheckMaxDiscardRatio opts <|> (failureReportMaxDiscardRatio <$> mFailureReport)
@@ -77,7 +78,7 @@ configQuickCheckArgs :: Config -> QC.Args
 configQuickCheckArgs c = qcArgs
   where
     qcArgs = (
-        maybe id setSeed (configQuickCheckSeed c)
+        maybe id setSeed (configSeed c)
       . maybe id setMaxShrinks (configQuickCheckMaxShrinks c)
       . maybe id setMaxSize (configQuickCheckMaxSize c)
       . maybe id setMaxDiscardRatio (configQuickCheckMaxDiscardRatio c)

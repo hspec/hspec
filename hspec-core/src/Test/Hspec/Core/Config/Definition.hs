@@ -51,6 +51,7 @@ data Config = Config {
 , configPrintCpuTime :: Bool
 , configFailFast :: Bool
 , configRandomize :: Bool
+, configSeed :: Maybe Integer
 , configFailureReport :: Maybe FilePath
 , configRerun :: Bool
 , configRerunAllOnSuccess :: Bool
@@ -91,6 +92,7 @@ data Config = Config {
 , configConcurrentJobs :: Maybe Int
 }
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
+{-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
 
 mkDefaultConfig :: [(String, FormatConfig -> IO Format)] -> Config
 mkDefaultConfig formatters = Config {
@@ -105,6 +107,7 @@ mkDefaultConfig formatters = Config {
 , configPrintCpuTime = False
 , configFailFast = False
 , configRandomize = False
+, configSeed = Nothing
 , configFailureReport = Nothing
 , configRerun = False
 , configRerunAllOnSuccess = False
@@ -277,7 +280,6 @@ quickCheckOptions = [
   , option "qc-max-discard" (argument "N" readMaybe setMaxDiscardRatio) "maximum number of discarded tests per successful test before giving up"
   , option "qc-max-size" (argument "N" readMaybe setMaxSize) "size to use for the biggest test cases"
   , option "qc-max-shrinks" (argument "N" readMaybe setMaxShrinks) "maximum number of shrinks to perform before giving up (a value of 0 turns shrinking off)"
-  , option "seed" (argument "N" readMaybe setSeed) "used seed for QuickCheck properties"
 
     -- for compatibility with test-framework
   , undocumented $ option "maximum-generated-tests" (argument "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
@@ -296,7 +298,7 @@ setMaxShrinks :: Int -> Config -> Config
 setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 
 setSeed :: Integer -> Config -> Config
-setSeed n c = c {configQuickCheckSeed = Just n}
+setSeed n c = c {configSeed = Just n}
 
 data FailOn =
     FailOnEmpty
@@ -346,6 +348,7 @@ runnerOptions = [
   , option "failure-report" (argument "FILE" return setFailureReport) "read/write a failure report for use with --rerun"
   , mkOptionNoArg "rerun-all-on-success" Nothing setRerunAllOnSuccess "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
   , mkOption "jobs" (Just 'j') (argument "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
+  , option "seed" (argument "N" readMaybe setSeed) "used seed for --randomize and QuickCheck properties"
   ]
   where
     strict = [FailOnFocused, FailOnPending]

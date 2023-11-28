@@ -14,6 +14,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configPrintCpuTime :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configFailFast :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configRandomize :: Bool
+  hspec-core:Test.Hspec.Core.Config.Definition.configSeed :: Maybe Integer
   hspec-core:Test.Hspec.Core.Config.Definition.configFailureReport :: Maybe FilePath
   hspec-core:Test.Hspec.Core.Config.Definition.configRerun :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configRerunAllOnSuccess :: Bool
