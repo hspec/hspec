@@ -60,10 +60,13 @@ library:
     - Test.Hspec.Core.Hooks
     - Test.Hspec.Core.Runner
     - Test.Hspec.Core.Format
+    - Test.Hspec.Api.Example.V1
+    - Test.Hspec.Api.Example.V1.Options
     - Test.Hspec.Core.Formatters
     - Test.Hspec.Core.Formatters.V1
     - Test.Hspec.Core.Formatters.V2
     - Test.Hspec.Core.QuickCheck
+    - Test.Hspec.Core.QuickCheck.Options
     - Test.Hspec.Core.Util
 
 tests:

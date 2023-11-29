@@ -8,7 +8,7 @@
 --
 -- @
 -- import Test.Hspec
--- import Test.Hspec.Api.Formatters.V1
+-- import Test.Hspec.Api.Formatters.V2
 --
 -- main :: IO ()
 -- main = hspecWith (useFormatter ("my-formatter", formatter) defaultConfig) spec
