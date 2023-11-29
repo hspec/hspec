@@ -86,7 +86,7 @@ library
       Test.Hspec.Core.Formatters.V1.Free
       Test.Hspec.Core.Formatters.V1.Internal
       Test.Hspec.Core.Formatters.V1.Monad
-      Test.Hspec.Core.QuickCheckUtil
+      Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.JobQueue
       Test.Hspec.Core.Runner.PrintSlowSpecItems
@@ -171,7 +171,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
-      Test.Hspec.Core.QuickCheckUtil
+      Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.JobQueue
@@ -207,7 +207,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.V1Spec
       Test.Hspec.Core.Formatters.V2Spec
       Test.Hspec.Core.HooksSpec
-      Test.Hspec.Core.QuickCheckUtilSpec
+      Test.Hspec.Core.QuickCheck.UtilSpec
       Test.Hspec.Core.Runner.EvalSpec
       Test.Hspec.Core.Runner.JobQueueSpec
       Test.Hspec.Core.Runner.PrintSlowSpecItemsSpec

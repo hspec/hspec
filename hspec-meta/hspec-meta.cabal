@@ -67,7 +67,7 @@ library
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
-      Test.Hspec.Core.QuickCheckUtil
+      Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.JobQueue

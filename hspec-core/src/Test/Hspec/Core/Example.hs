@@ -22,6 +22,7 @@ module Test.Hspec.Core.Example (
 , safeEvaluateResultStatus
 , exceptionToResultStatus
 , toLocation
+, hunitFailureToResult
 ) where
 
 import           Prelude ()
@@ -35,11 +36,8 @@ import           Control.DeepSeq
 import qualified Test.QuickCheck as QC
 import           Test.Hspec.Expectations (Expectation)
 
-import qualified Test.QuickCheck.State as QC (numSuccessTests, maxSuccessTests)
-import qualified Test.QuickCheck.Property as QCP
-
-import           Test.Hspec.Core.QuickCheckUtil
 import           Test.Hspec.Core.Util
+import           Test.Hspec.Core.QuickCheck.Util (liftHook)
 import           Test.Hspec.Core.Example.Location
 
 -- | A type class for examples
@@ -183,51 +181,3 @@ toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
   evaluateExample e _ hook _ = hook e >> return (Result "" Success)
-
-instance Example QC.Property where
-  type Arg QC.Property = ()
-  evaluateExample e = evaluateExample (\() -> e)
-
-instance Example (a -> QC.Property) where
-  type Arg (a -> QC.Property) = a
-  evaluateExample p c hook progressCallback = do
-    let args = paramsQuickCheckArgs c
-    r <- QC.quickCheckWithResult args {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty hook p)
-    return $ fromQuickCheckResult args r
-    where
-      qcProgressCallback = QCP.PostTest QCP.NotCounterexample $
-        \st _ -> progressCallback (QC.numSuccessTests st, QC.maxSuccessTests st)
-
-fromQuickCheckResult :: QC.Args -> QC.Result -> Result
-fromQuickCheckResult args r = case parseQuickCheckResult r of
-  QuickCheckResult _ info (QuickCheckOtherFailure err) -> Result info $ Failure Nothing (Reason err)
-  QuickCheckResult _ info QuickCheckSuccess -> Result (if QC.chatty args then info else "") Success
-  QuickCheckResult n info (QuickCheckFailure QCFailure{..}) -> case quickCheckFailureException of
-    Just e | Just result <- fromException e -> Result info result
-    Just e | Just hunit <- fromException e -> Result info $ hunitFailureToResult (Just hunitAssertion) hunit
-    Just e -> failure (uncaughtException e)
-    Nothing -> failure falsifiable
-    where
-      failure = Result info . Failure Nothing . Reason
-
-      numbers = formatNumbers n quickCheckFailureNumShrinks
-
-      hunitAssertion :: String
-      hunitAssertion = intercalate "\n" [
-          "Falsifiable " ++ numbers ++ ":"
-        , indent (unlines quickCheckFailureCounterexample)
-        ]
-
-      uncaughtException e = intercalate "\n" [
-          "uncaught exception: " ++ formatException e
-        , numbers
-        , indent (unlines quickCheckFailureCounterexample)
-        ]
-
-      falsifiable = intercalate "\n" [
-          quickCheckFailureReason ++ " " ++ numbers ++ ":"
-        , indent (unlines quickCheckFailureCounterexample)
-        ]
-
-indent :: String -> String
-indent = intercalate "\n" . map ("  " ++) . lines

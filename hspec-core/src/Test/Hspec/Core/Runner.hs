@@ -121,7 +121,7 @@ import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.FailureReport
-import           Test.Hspec.Core.QuickCheckUtil
+import           Test.Hspec.Core.QuickCheck.Util
 import           Test.Hspec.Core.Shuffle
 
 import           Test.Hspec.Core.Runner.PrintSlowSpecItems
@@ -195,12 +195,12 @@ evalSpec config spec = do
 
 -- Add a seed to given config if there is none.  That way the same seed is used
 -- for all properties.  This helps with --seed and --rerun.
-ensureSeed :: Config -> IO Config
+ensureSeed :: Config -> IO (Config, Integer)
 ensureSeed config = do
   seed <- case configSeed config <|> configQuickCheckSeed config of
     Nothing -> toInteger <$> newSeed
     Just seed -> return seed
-  return config { configSeed = Just seed }
+  return (config { configSeed = Just seed }, seed)
 
 -- | Run given spec with custom options.
 -- This is similar to `hspec`, but more flexible.
@@ -355,14 +355,13 @@ focusSpec config spec
 runSpecForest_ :: Maybe FailureReport -> [SpecTree ()] -> Config -> IO SpecResult
 runSpecForest_ oldFailureReport spec c_ = do
 
-  config <- ensureSeed (applyFailureReport oldFailureReport c_)
+  (config, seed) <- ensureSeed (applyFailureReport oldFailureReport c_)
 
   colorMode <- colorOutputSupported (configColorMode config) (hSupportsANSI stdout)
   outputUnicode <- unicodeOutputSupported (configUnicodeMode config) stdout
 
   let
-    filteredSpec = specToEvalForest config spec
-    seed = (fromJust . configSeed) config
+    filteredSpec = specToEvalForest seed config spec
     qcArgs = configQuickCheckArgs config
     !numberOfItems = countEvalItems filteredSpec
 
@@ -413,8 +412,8 @@ runSpecForest_ oldFailureReport spec c_ = do
 
   return results
 
-specToEvalForest :: Config -> [SpecTree ()] -> [EvalTree]
-specToEvalForest config =
+specToEvalForest :: Integer -> Config -> [SpecTree ()] -> [EvalTree]
+specToEvalForest seed config =
       failItemsWithEmptyDescription config
   >>> addDefaultDescriptions
   >>> failFocusedItems config
@@ -426,9 +425,6 @@ specToEvalForest config =
   >>> randomize
   >>> pruneForest
   where
-    seed :: Integer
-    seed = (fromJust . configSeed) config
-
     params :: Params
     params = Params (configQuickCheckArgs config) (configSmallCheckDepth config)
 

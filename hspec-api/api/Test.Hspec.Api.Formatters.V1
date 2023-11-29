@@ -13,12 +13,12 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configFailFast :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configRandomize :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configSeed :: Maybe Integer
+  hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckSeed :: Maybe Integer
   hspec-core:Test.Hspec.Core.Config.Definition.configFailureReport :: Maybe FilePath
   hspec-core:Test.Hspec.Core.Config.Definition.configRerun :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configRerunAllOnSuccess :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configFilterPredicate :: Maybe (Test.Hspec.Core.Util.Path -> Bool)
   hspec-core:Test.Hspec.Core.Config.Definition.configSkipPredicate :: Maybe (Test.Hspec.Core.Util.Path -> Bool)
-  hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckSeed :: Maybe Integer
   hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckMaxSuccess :: Maybe Int
   hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckMaxDiscardRatio :: Maybe Int
   hspec-core:Test.Hspec.Core.Config.Definition.configQuickCheckMaxSize :: Maybe Int

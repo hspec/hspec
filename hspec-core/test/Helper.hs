@@ -62,7 +62,7 @@ import qualified Test.HUnit.Lang as HUnit
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
-import           Test.Hspec.Core.QuickCheckUtil (mkGen)
+import           Test.Hspec.Core.QuickCheck.Util (mkGen)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..), Location(..))
 import           Test.Hspec.Core.Example.Location (workaroundForIssue19236)
@@ -70,7 +70,7 @@ import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Formatters.V2 (formatterToFormat, silent)
 
-import           Data.Orphans()
+import           Data.Orphans ()
 
 exceptionEq :: SomeException -> SomeException -> Bool
 exceptionEq a b

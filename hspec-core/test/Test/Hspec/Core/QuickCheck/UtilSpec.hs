@@ -3,14 +3,14 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-module Test.Hspec.Core.QuickCheckUtilSpec (spec) where
+module Test.Hspec.Core.QuickCheck.UtilSpec (spec) where
 
 import           Prelude ()
 import           Helper
 
 import qualified Test.QuickCheck.Property as QCP
 
-import           Test.Hspec.Core.QuickCheckUtil
+import           Test.Hspec.Core.QuickCheck.Util
 
 deriving instance Eq QuickCheckResult
 deriving instance Eq Status
