@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE CPP #-}
-module Test.Hspec.Core.QuickCheckUtil (
+module Test.Hspec.Core.QuickCheck.Util (
   liftHook
 , aroundProperty
 

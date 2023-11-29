@@ -91,6 +91,7 @@ import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Hooks
 import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
+import           Test.Hspec.Core.QuickCheck ()
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a

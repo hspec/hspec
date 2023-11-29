@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-# LANGUAGE CPP #-}
 module Test.Hspec.Core.Config (
   Config (..)
@@ -30,9 +29,9 @@ import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Config.Options
-import           Test.Hspec.Core.Config.Definition (Config(..), ColorMode(..), UnicodeMode(..), mkDefaultConfig, filterOr)
+import           Test.Hspec.Core.Config.Definition
 import           Test.Hspec.Core.FailureReport
-import           Test.Hspec.Core.QuickCheckUtil (mkGen)
+import           Test.Hspec.Core.QuickCheck.Util (mkGen)
 import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import qualified Test.Hspec.Core.Formatters.V2 as V2
 
@@ -53,7 +52,7 @@ configAddFilter p1 c = c {
   }
 
 applyFailureReport :: Maybe FailureReport -> Config -> Config
-applyFailureReport mFailureReport opts = opts {
+applyFailureReport mFailureReport config = config {
     configFilterPredicate = matchFilter `filterOr` rerunFilter
   , configSeed = mSeed
   , configQuickCheckMaxSuccess = mMaxSuccess
@@ -62,12 +61,12 @@ applyFailureReport mFailureReport opts = opts {
   }
   where
 
-    mSeed = configSeed opts <|> configQuickCheckSeed opts <|> (failureReportSeed <$> mFailureReport)
-    mMaxSuccess = configQuickCheckMaxSuccess opts <|> (failureReportMaxSuccess <$> mFailureReport)
-    mMaxSize = configQuickCheckMaxSize opts <|> (failureReportMaxSize <$> mFailureReport)
-    mMaxDiscardRatio = configQuickCheckMaxDiscardRatio opts <|> (failureReportMaxDiscardRatio <$> mFailureReport)
+    mSeed = configSeed config <|> deprecatedQuickCheckSeed config <|> (failureReportSeed <$> mFailureReport)
+    mMaxSuccess = configQuickCheckMaxSuccess config <|> (failureReportMaxSuccess <$> mFailureReport)
+    mMaxSize = configQuickCheckMaxSize config <|> (failureReportMaxSize <$> mFailureReport)
+    mMaxDiscardRatio = configQuickCheckMaxDiscardRatio config <|> (failureReportMaxDiscardRatio <$> mFailureReport)
 
-    matchFilter = configFilterPredicate opts
+    matchFilter = configFilterPredicate config
 
     rerunFilter = case failureReportPaths <$> mFailureReport of
       Just [] -> Nothing

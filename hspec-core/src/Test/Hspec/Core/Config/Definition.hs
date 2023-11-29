@@ -12,6 +12,8 @@ module Test.Hspec.Core.Config.Definition (
 , quickCheckOptions
 , runnerOptions
 
+, deprecatedQuickCheckSeed
+
 #ifdef TEST
 , splitOn
 #endif
@@ -24,7 +26,6 @@ import           System.Directory (getTemporaryDirectory, removeFile)
 import           System.IO (openTempFile, hClose)
 import           System.Process (system)
 
-import           Test.Hspec.Core.Example (Params(..), defaultParams)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
@@ -52,6 +53,7 @@ data Config = Config {
 , configFailFast :: Bool
 , configRandomize :: Bool
 , configSeed :: Maybe Integer
+, configQuickCheckSeed :: Maybe Integer
 , configFailureReport :: Maybe FilePath
 , configRerun :: Bool
 , configRerunAllOnSuccess :: Bool
@@ -61,7 +63,6 @@ data Config = Config {
 -- that satisfy the predicate are run.
 , configFilterPredicate :: Maybe (Path -> Bool)
 , configSkipPredicate :: Maybe (Path -> Bool)
-, configQuickCheckSeed :: Maybe Integer
 , configQuickCheckMaxSuccess :: Maybe Int
 , configQuickCheckMaxDiscardRatio :: Maybe Int
 , configQuickCheckMaxSize :: Maybe Int
@@ -94,6 +95,9 @@ data Config = Config {
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 {-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
 
+deprecatedQuickCheckSeed :: Config -> Maybe Integer
+deprecatedQuickCheckSeed = configQuickCheckSeed
+
 mkDefaultConfig :: [(String, FormatConfig -> IO Format)] -> Config
 mkDefaultConfig formatters = Config {
   configIgnoreConfigFile = False
@@ -108,17 +112,17 @@ mkDefaultConfig formatters = Config {
 , configFailFast = False
 , configRandomize = False
 , configSeed = Nothing
+, configQuickCheckSeed = Nothing
 , configFailureReport = Nothing
 , configRerun = False
 , configRerunAllOnSuccess = False
 , configFilterPredicate = Nothing
 , configSkipPredicate = Nothing
-, configQuickCheckSeed = Nothing
 , configQuickCheckMaxSuccess = Nothing
 , configQuickCheckMaxDiscardRatio = Nothing
 , configQuickCheckMaxSize = Nothing
 , configQuickCheckMaxShrinks = Nothing
-, configSmallCheckDepth = paramsSmallCheckDepth defaultParams
+, configSmallCheckDepth = Nothing
 , configColorMode = ColorAuto
 , configUnicodeMode = UnicodeAuto
 , configDiff = True
