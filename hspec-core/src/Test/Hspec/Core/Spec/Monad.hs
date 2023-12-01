@@ -14,23 +14,31 @@ module Test.Hspec.Core.Spec.Monad (
 , modifyParams
 
 , modifyConfig
+
+, withValue
+, askValue
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
 
 , Env(..)
 , withEnv
+, asks
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.Class (lift)
+import           Control.Monad.Trans.Reader (local, ReaderT(..))
+import qualified Control.Monad.Trans.Reader as Reader
 import           Control.Monad.Trans.Writer
-
-import           Test.Hspec.Core.Example
-import           Test.Hspec.Core.Tree
+import           Data.Typeable (Typeable)
 
 import           Test.Hspec.Core.Config.Definition (Config)
+import           Test.Hspec.Core.Example
+import           Test.Hspec.Core.Annotations (Annotations)
+import qualified Test.Hspec.Core.Annotations as Annotations
+import           Test.Hspec.Core.Tree
 
 type Spec = SpecWith ()
 
@@ -47,7 +55,7 @@ newtype SpecM a r = SpecM { unSpecM :: WriterT (Endo Config, [SpecTree a]) (Read
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
 runSpecM :: SpecWith a -> IO (Endo Config, [SpecTree a])
-runSpecM = flip runReaderT (Env []) . execWriterT . unSpecM
+runSpecM = flip runReaderT (Env mempty mempty) . execWriterT . unSpecM
 
 -- | Create a `Spec` from a forest of `SpecTree`s.
 fromSpecForest :: (Endo Config, [SpecTree a]) -> SpecWith a
@@ -82,9 +90,22 @@ mapSpecItem_ = mapSpecForest . bimapForest id
 modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 modifyParams f = mapSpecItem_ $ \item -> item {itemExample = \p -> (itemExample item) (f p)}
 
-newtype Env = Env {
+data Env = Env {
   envSpecDescriptionPath :: [String]
+, envAnnotations :: Annotations
 }
 
 withEnv :: (Env -> Env) -> SpecM a r -> SpecM a r
 withEnv f = SpecM . WriterT . local f . runWriterT . unSpecM
+
+withValue :: Typeable v => v -> SpecWith a -> SpecWith a
+withValue v = withEnv $ modifyVault (Annotations.setValue v)
+  where
+    modifyVault :: (Annotations -> Annotations) -> Env -> Env
+    modifyVault f env = env { envAnnotations = f (envAnnotations env) }
+
+asks :: (Env -> r) -> SpecM a r
+asks = SpecM . lift . Reader.asks
+
+askValue :: Typeable v => SpecM a (Maybe v)
+askValue = Annotations.getValue <$> asks envAnnotations
