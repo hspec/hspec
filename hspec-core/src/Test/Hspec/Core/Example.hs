@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Test.Hspec.Core.Example (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
@@ -34,7 +35,6 @@ import           Data.CallStack (SrcLoc(..))
 
 import           Control.DeepSeq
 import qualified Test.QuickCheck as QC
-import           Test.Hspec.Expectations (Expectation)
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.QuickCheck.Util (liftHook)
@@ -150,8 +150,8 @@ instance Example (a -> Bool) where
         | p a = Result "" Success
         | otherwise = Result "" $ Failure Nothing NoReason
 
-instance Example Expectation where
-  type Arg Expectation = ()
+instance r ~ () => Example (IO r) where
+  type Arg (IO r) = ()
   evaluateExample e = evaluateExample (\() -> e)
 
 hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> ResultStatus
@@ -178,6 +178,6 @@ hunitFailureToResult pre e = case e of
 toLocation :: SrcLoc -> Location
 toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
 
-instance Example (a -> Expectation) where
-  type Arg (a -> Expectation) = a
+instance r ~ () => Example (a -> IO r) where
+  type Arg (a -> IO r) = a
   evaluateExample e _ hook _ = hook e >> return (Result "" Success)
