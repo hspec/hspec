@@ -111,7 +111,7 @@ data Item a = Item {
   -- parallel with other spec items
 , itemIsParallelizable :: Maybe Bool
 
-  -- | A flag that indicates whether this spec item is focused.
+  -- | A flag that indicates whether this spec item is focused
 , itemIsFocused :: Bool
 
   -- | Example for behavior

@@ -103,7 +103,7 @@ forceResultStatus r = case r of
   Failure _ m -> m `deepseq` r
 
 safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
-safeEvaluateExample example params around progress = safeEvaluate $ evaluateExample example params around progress
+safeEvaluateExample example params around = safeEvaluate . evaluateExample example params around
 
 safeEvaluate :: IO Result -> IO Result
 safeEvaluate action = do
@@ -180,4 +180,4 @@ toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol
 
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
-  evaluateExample e _ hook _ = hook e >> return (Result "" Success)
+  evaluateExample e _params hook _ = hook e >> return (Result "" Success)
