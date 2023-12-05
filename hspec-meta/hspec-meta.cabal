@@ -51,6 +51,8 @@ library
       Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
+      Test.Hspec.Core.Example.Options
+      Test.Hspec.Core.Extensions
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters
@@ -67,6 +69,7 @@ library
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
+      Test.Hspec.Core.QuickCheck.Options
       Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Runner.Eval
@@ -93,6 +96,7 @@ library
     , array
     , base >=4.8.2.0 && <5
     , call-stack >=0.2.0
+    , containers
     , deepseq
     , directory
     , filepath
@@ -132,6 +136,7 @@ executable hspec-meta-discover
     , array
     , base >=4.8.2.0 && <5
     , call-stack >=0.2.0
+    , containers
     , deepseq
     , directory
     , filepath

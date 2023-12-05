@@ -18,6 +18,7 @@ ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
 dependencies:
   - base >= 4.8.2.0 && < 5
+  - containers
   - random
   - tf-random
   - ansi-terminal >= 0.6.2
@@ -53,10 +54,13 @@ library:
     - Test.Hspec.Core.Hooks
     - Test.Hspec.Core.Runner
     - Test.Hspec.Core.Format
+    - Test.Hspec.Api.Example.V1
+    - Test.Hspec.Api.Example.V1.Options
     - Test.Hspec.Core.Formatters
     - Test.Hspec.Core.Formatters.V1
     - Test.Hspec.Core.Formatters.V2
     - Test.Hspec.Core.QuickCheck
+    - Test.Hspec.Core.QuickCheck.Options
     - Test.Hspec.Core.Util
 
 tests:

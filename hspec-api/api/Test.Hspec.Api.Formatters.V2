@@ -56,6 +56,8 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configFormatter :: Maybe hspec-core:Test.Hspec.Core.Formatters.V1.Monad.Formatter
   hspec-core:Test.Hspec.Core.Config.Definition.configHtmlOutput :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configConcurrentJobs :: Maybe Int
+  hspec-core:Test.Hspec.Core.Config.Definition.configExtensionOptions :: [(String, [hspec-core:GetOpt.Declarative.Types.Option Config])]
+  hspec-core:Test.Hspec.Core.Config.Definition.configValues :: hspec-core:Test.Hspec.Core.Example.Options.OptionsSet
 type FailureReason :: *
 data FailureReason
   | NoReason

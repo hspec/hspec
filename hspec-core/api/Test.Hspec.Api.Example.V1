@@ -1,0 +1,55 @@
+type Params :: *
+data Params = Params
+  paramsSeed :: Integer
+  paramsOptions :: OptionsSet
+liftEvaluate :: Example e => (e -> Params -> Opt e -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result) -> e -> hspec-core:Test.Hspec.Core.Example.Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
+type ActionWith :: * -> *
+type ActionWith a = a -> IO ()
+type Example :: * -> Constraint
+class Options (Opt e) => Example e where
+  type Arg :: * -> *
+  type family Arg e
+    Default: ()
+  type Opt :: * -> *
+  type family Opt e
+    Default: ()
+  evaluateExample :: e -> hspec-core:Test.Hspec.Core.Example.Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+  {-# MINIMAL evaluateExample #-}
+type FailureReason :: *
+data FailureReason
+  | NoReason
+  | Reason String
+  | ColorizedReason String
+  | ExpectedButGot (Maybe String) String String
+  | Error (Maybe String) GHC.Exception.Type.SomeException
+type Location :: *
+data Location = Location
+  locationFile :: FilePath
+  locationLine :: Int
+  locationColumn :: Int
+type Options :: * -> Constraint
+class base:Data.Typeable.Internal.Typeable a => Options a where
+  hspec-core:Test.Hspec.Core.Example.Options.defaultOptions :: a
+  hspec-core:Test.Hspec.Core.Example.Options.optionsParser :: Maybe (hspec-core:Test.Hspec.Core.Example.Options.OptionsParser a)
+  {-# MINIMAL defaultOptions, optionsParser #-}
+type OptionsSet :: *
+newtype OptionsSet = hspec-core:Test.Hspec.Core.Example.Options.OptionsSet (Data.Map.Internal.Map Data.Typeable.TypeRep hspec-core:Test.Hspec.Core.Example.Options.Value)
+type Progress :: *
+type Progress = (Int, Int)
+type ProgressCallback :: *
+type ProgressCallback = Progress -> IO ()
+type Result :: *
+data Result = Result
+  resultInfo :: String
+  resultStatus :: ResultStatus
+type ResultStatus :: *
+data ResultStatus
+  | Success
+  | Pending (Maybe Location) (Maybe String)
+  | Failure (Maybe Location) FailureReason
+type SpecWith :: * -> *
+type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
+getOptions :: Options a => OptionsSet -> a
+modifyOptions :: Options a => (a -> a) -> OptionsSet -> OptionsSet
+setOptions :: Options a => a -> OptionsSet -> OptionsSet

@@ -20,9 +20,12 @@ xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 type ActionWith :: * -> *
 type ActionWith a = a -> IO ()
 type Example :: * -> Constraint
-class Example e where
+class hspec-core:Test.Hspec.Core.Example.Options.Options (Opt e) => Example e where
   type Arg :: * -> *
   type family Arg e
+    Default: ()
+  type Opt :: * -> *
+  type family Opt e
     Default: ()
   evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
   {-# MINIMAL evaluateExample #-}
@@ -43,6 +46,7 @@ data Item a = Item
   itemLocation :: Maybe Location
   itemIsParallelizable :: Maybe Bool
   itemIsFocused :: Bool
+  itemOptions :: Maybe (Data.Typeable.TypeRep, hspec-core:Test.Hspec.Core.Example.Options.OptionsParser hspec-core:Test.Hspec.Core.Example.Options.OptionsSet)
   itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 type Location :: *
 data Location = Location
@@ -53,6 +57,8 @@ type Params :: *
 data Params = Params
   paramsQuickCheckArgs :: Test.QuickCheck.Test.Args
   paramsSmallCheckDepth :: Maybe Int
+  paramsSeed :: Integer
+  paramsOptions :: hspec-core:Test.Hspec.Core.Example.Options.OptionsSet
 type Progress :: *
 type Progress = (Int, Int)
 type ProgressCallback :: *

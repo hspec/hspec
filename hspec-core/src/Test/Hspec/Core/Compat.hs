@@ -218,3 +218,7 @@ unescape args = reverse . map reverse $ go args NoneQ False [] []
         | '"'  == c              = go cs DblQ  False a     as
         | otherwise              = go cs NoneQ False (c:a) as
 #endif
+
+modifyWith :: (record -> value) -> (value -> record -> record) -> (value -> value) -> record -> record
+modifyWith getter setter f record = setter (f (getter record)) record
+{-# INLINE modifyWith #-}

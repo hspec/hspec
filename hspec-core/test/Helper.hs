@@ -30,6 +30,7 @@ module Helper (
 , hspecResultSilent
 , hspecCapture
 , shouldUseArgs
+, specShouldUseArgs
 
 , removeLocations
 
@@ -62,9 +63,11 @@ import qualified Test.HUnit.Lang as HUnit
 
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
-import           Test.Hspec.Core.QuickCheck.Util (mkGen)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..), Location(..))
+import           Test.Hspec.Core.Example.Options (getOptions, setOptions, defaultOptions)
+import           Test.Hspec.Core.QuickCheck.Options (QuickCheckOptions)
+import qualified Test.Hspec.Core.QuickCheck.Options as Options
 import           Test.Hspec.Core.Example.Location (workaroundForIssue19236)
 import           Test.Hspec.Core.Util
 import qualified Test.Hspec.Core.Format as Format
@@ -121,7 +124,15 @@ normalizeTimes = map go
       y : ys -> y : go ys
 
 defaultParams :: H.Params
-defaultParams = H.defaultParams {H.paramsQuickCheckArgs = stdArgs {replay = Just (mkGen 23, 0), maxSuccess = 1000}}
+defaultParams = H.defaultParams {
+  H.paramsSeed = 23
+, H.paramsOptions = setOptions defaultQuickCheckOptions mempty
+}
+
+defaultQuickCheckOptions :: QuickCheckOptions
+defaultQuickCheckOptions = defaultOptions {
+  Options.maxSuccess = Just 1000
+}
 
 noOpProgressCallback :: H.ProgressCallback
 noOpProgressCallback _ = pass
@@ -139,17 +150,22 @@ hspecCapture :: [String] -> H.Spec -> IO String
 hspecCapture args = fmap (unlines . normalizeSummary) . captureLines . ignoreExitCode . withArgs args . H.hspec . removeLocations
 
 shouldUseArgs :: HasCallStack => (Eq n, Show n) => [String] -> (Args -> n,  n) -> Expectation
-shouldUseArgs args (accessor, expected) = do
+shouldUseArgs args = specShouldUseArgs (pass, args)
+
+specShouldUseArgs :: HasCallStack => (Eq n, Show n) => (H.Spec, [String]) -> (Args -> n,  n) -> Expectation
+specShouldUseArgs (spec_, args) (accessor, expected) = do
   spy <- newIORef stdArgs
   let
     interceptArgs :: H.Item a -> H.Item a
     interceptArgs item = item {
       H.itemExample = \ params action progressCallback -> do
-        writeIORef spy (H.paramsQuickCheckArgs params)
+        writeIORef spy (Options.toQuickCheckArgs (H.paramsSeed params) . getOptions $ H.paramsOptions params)
         H.itemExample item params action progressCallback
     }
     spec :: H.Spec
-    spec = H.mapSpecItem_ interceptArgs $ H.it "" True
+    spec = do
+      spec_
+      H.mapSpecItem_ interceptArgs $ H.it "" True
   withArgs args $ hspecSilent spec
   accessor <$> readIORef spy `shouldReturn` expected
 

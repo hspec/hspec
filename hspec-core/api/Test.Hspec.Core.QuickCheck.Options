@@ -1,0 +1,20 @@
+type QuickCheckOptions :: *
+data QuickCheckOptions = QuickCheckOptions
+  maxSuccess :: Maybe Int
+  maxDiscardRatio :: Maybe Int
+  maxSize :: Maybe Int
+  maxShrinks :: Maybe Int
+  modifyArgs :: Test.QuickCheck.Test.Args -> Test.QuickCheck.Test.Args
+getMaxDiscardRatio :: QuickCheckOptions -> Int
+getMaxShrinks :: QuickCheckOptions -> Int
+getMaxSize :: QuickCheckOptions -> Int
+getMaxSuccess :: QuickCheckOptions -> Int
+modifyMaxDiscardRatio :: (Int -> Int) -> QuickCheckOptions -> QuickCheckOptions
+modifyMaxShrinks :: (Int -> Int) -> QuickCheckOptions -> QuickCheckOptions
+modifyMaxSize :: (Int -> Int) -> QuickCheckOptions -> QuickCheckOptions
+modifyMaxSuccess :: (Int -> Int) -> QuickCheckOptions -> QuickCheckOptions
+setMaxDiscardRatio :: Int -> QuickCheckOptions -> QuickCheckOptions
+setMaxShrinks :: Int -> QuickCheckOptions -> QuickCheckOptions
+setMaxSize :: Int -> QuickCheckOptions -> QuickCheckOptions
+setMaxSuccess :: Int -> QuickCheckOptions -> QuickCheckOptions
+toQuickCheckArgs :: Integer -> QuickCheckOptions -> Test.QuickCheck.Test.Args
