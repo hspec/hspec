@@ -17,6 +17,7 @@ module Test.Hspec.Discover.Run (
 , Forest(..)
 , Hook(..)
 , discover
+, WrapSpec(..)
 ) where
 import           Control.Monad
 import           Control.Applicative
@@ -57,7 +58,7 @@ run args_ = do
       hPutStrLn stderr (usage name)
       exitFailure
 
-mkSpecModule :: FilePath -> Config -> Maybe [Spec] -> String
+mkSpecModule :: FilePath -> Config -> Maybe (WrapSpec, [Spec]) -> String
 mkSpecModule src conf nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
   . showString "{-# LANGUAGE NoImplicitPrelude #-}\n"
@@ -99,11 +100,24 @@ moduleNameFromId :: String -> String
 moduleNameFromId = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse
 
 -- | Generate imports for a list of specs.
-importList :: Maybe [Spec] -> ShowS
-importList = foldr (.) "" . map f . maybe [] moduleNames
+importList :: Maybe (WrapSpec, [Spec]) -> ShowS
+importList mwrapSpecs =
+  case mwrapSpecs of
+    Nothing ->
+      ""
+    Just (wrapSpec, specs) ->
+      foldr (.) "" . map f . maybeAddWrapSpec wrapSpec . moduleNames $ specs
   where
     f :: String -> ShowS
     f spec = "import qualified " . showString spec . "\n"
+
+    maybeAddWrapSpec :: WrapSpec -> [String] -> [String]
+    maybeAddWrapSpec wrapSpec =
+      case wrapSpec of
+        YesWrap ->
+          ("SpecWrap" :)
+        NoWrap ->
+          id
 
 moduleNames :: [Spec] -> [String]
 moduleNames = fromForest
@@ -120,19 +134,39 @@ moduleNames = fromForest
 sequenceS :: [ShowS] -> ShowS
 sequenceS = foldr (.) "" . intersperse " >> "
 
-formatSpecs :: Maybe [Spec] -> ShowS
-formatSpecs = maybe "return ()" fromForest
+formatSpecs :: Maybe (WrapSpec, [Spec]) -> ShowS
+formatSpecs mspecs =
+  case mspecs of
+    Nothing ->
+      "return ()"
+    Just (wrapSpec, specs) ->
+      let wrapModuleName =
+            case wrapSpec of
+              YesWrap ->
+                "SpecWrap.wrapSpec "
+              NoWrap ->
+                ""
+      in
+        fromForest wrapModuleName specs
   where
-    fromForest :: [Spec] -> ShowS
-    fromForest = sequenceS . map fromTree
+    fromForest :: ShowS -> [Spec] -> ShowS
+    fromForest wrapModuleName = go
+      where
+        go :: [Spec] -> ShowS
+        go = sequenceS . map fromTree
+        fromTree :: Spec -> ShowS
+        fromTree tree = case tree of
+          Spec name -> "(" . wrapModuleName . "describe " . shows name . " " . showString name . "Spec.spec)"
+          Hook name forest -> "(" . showString name . ".hook $ " . go forest . ")"
 
-    fromTree :: Spec -> ShowS
-    fromTree tree = case tree of
-      Spec name -> "describe " . shows name . " " . showString name . "Spec.spec"
-      Hook name forest -> "(" . showString name . ".hook $ " . fromForest forest . ")"
+data WrapSpec = YesWrap | NoWrap
 
-findSpecs :: FilePath -> IO (Maybe [Spec])
-findSpecs = fmap (fmap toSpecs) . discover
+findSpecs :: FilePath -> IO (Maybe (WrapSpec, [Spec]))
+findSpecs specFile = do
+  specs <- fmap (fmap toSpecs) $ discover specFile
+  toWrap <- doesFileExist (fst (splitFileName specFile) </> "SpecWrap.hs")
+  let wrapSpec = if toWrap then YesWrap else NoWrap
+  pure $ (,) wrapSpec <$> specs
 
 toSpecs :: Forest -> [Spec]
 toSpecs = fromForest []
