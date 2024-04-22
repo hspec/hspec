@@ -131,7 +131,12 @@ showTestCount success discarded = QC.showTestCount state
     , maxSuccessTests           = undefined
     , maxDiscardedRatio         = undefined
     , coverageConfidence        = undefined
+#if MIN_VERSION_QuickCheck(2,15,0)
+    , maxTestSize               = 0
+    , replayStartSize           = undefined
+#else
     , computeSize               = undefined
+#endif
     , numTotMaxShrinks          = 0
     , numSuccessTests           = success
     , numDiscardedTests         = discarded

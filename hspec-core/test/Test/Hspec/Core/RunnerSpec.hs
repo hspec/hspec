@@ -800,7 +800,7 @@ spec = do
       let
         setChatty value args = args { chatty = value }
         withChatty value = hspecCapture [] .  H.modifyArgs (setChatty value) $ do
-          H.it "foo" $ property True
+          H.it "foo" $ once $ property True
 
       context "when True" $ do
         it "includes informational output" $ do
