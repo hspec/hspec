@@ -1,3 +1,6 @@
+## Changes in 2.11.8 (2024-04-22)
+  - Make the build pass with QuickCheck 2.15
+
 ## Changes in 2.11.7 (2023-10-22)
   - Include `--seed` in the note on how to rurun a failing item.
 

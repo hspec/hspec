@@ -1,5 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
@@ -117,7 +118,11 @@ spec = do
               , "Passed:"
               , "23"
               , ""
+#if MIN_VERSION_QuickCheck(2,15,0)
+              , "+++ OK, passed 2 tests (0% is 5)."
+#else
               , "+++ OK, passed 2 tests."
+#endif
               , ""
               , "Only 0% is 5, but expected 10%"
               ]
@@ -146,7 +151,12 @@ spec = do
             QuickCheckResult 800 "" (QuickCheckFailure failure)
 
         it "includes verbose output" $ do
+-- This off-by-one error was fixed in QuickCheck 2.15
+#if MIN_VERSION_QuickCheck(2,15,0)
+          let info = intercalate "\n\n" (replicate 800 "Passed:")
+#else
           let info = intercalate "\n\n" (replicate 799 "Passed:")
+#endif
           parseQuickCheckResult <$> qc (verbose . p) `shouldReturn`
             QuickCheckResult 800 info (QuickCheckFailure failure)
 
