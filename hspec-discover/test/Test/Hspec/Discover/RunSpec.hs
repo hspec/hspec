@@ -27,9 +27,9 @@ spec = do
         , "main = hspec spec"
         , "spec :: Spec"
         , "spec = " ++ unwords [
-               "(describe \"Foo\" FooSpec.spec)"
-          , ">> (describe \"Foo.Bar\" Foo.BarSpec.spec)"
-          , ">> (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
+               "describe \"Foo\" FooSpec.spec"
+          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
+          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
           ]
         ]
 
@@ -53,9 +53,9 @@ spec = do
         , "main = hspec spec"
         , "spec :: Spec"
         , "spec = " ++ unwords [
-               "(SpecWrap.wrapSpec describe \"Foo\" FooSpec.spec)"
-          , ">> (SpecWrap.wrapSpec describe \"Foo.Bar\" Foo.BarSpec.spec)"
-          , ">> (SpecWrap.wrapSpec describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
+               "SpecWrap.wrapSpec (describe \"Foo\" FooSpec.spec)"
+          , ">> SpecWrap.wrapSpec (describe \"Foo.Bar\" Foo.BarSpec.spec)"
+          , ">> SpecWrap.wrapSpec (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
           ]
         ]
 
@@ -76,9 +76,9 @@ spec = do
         , "import Test.Hspec.Discover"
         , "spec :: Spec"
         , "spec = " ++ unwords [
-               "(describe \"Foo\" FooSpec.spec)"
-          , ">> (describe \"Foo.Bar\" Foo.BarSpec.spec)"
-          , ">> (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)"
+               "describe \"Foo\" FooSpec.spec"
+          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
+          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
           ]
         ]
 
@@ -104,9 +104,9 @@ spec = do
         , "main = hspec spec"
         , "spec :: Spec"
         , "spec = " ++ unwords [
-               "(SpecHook.hook $ (describe \"Foo\" FooSpec.spec)"
-          , ">> (Foo.SpecHook.hook $ (describe \"Foo.Bar\" Foo.BarSpec.spec)"
-          , ">> (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)))"
+               "(SpecHook.hook $ describe \"Foo\" FooSpec.spec"
+          , ">> (Foo.SpecHook.hook $ describe \"Foo.Bar\" Foo.BarSpec.spec"
+          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec))"
           ]
         ]
 
@@ -134,9 +134,9 @@ spec = do
         , "main = hspec spec"
         , "spec :: Spec"
         , "spec = " ++ unwords [
-               "(SpecHook.hook $ (SpecWrap.wrapSpec describe \"Foo\" FooSpec.spec)"
-          , ">> (Foo.SpecHook.hook $ (SpecWrap.wrapSpec describe \"Foo.Bar\" Foo.BarSpec.spec)"
-          , ">> (SpecWrap.wrapSpec describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)))"
+               "(SpecHook.hook $ SpecWrap.wrapSpec (describe \"Foo\" FooSpec.spec)"
+          , ">> (Foo.SpecHook.hook $ SpecWrap.wrapSpec (describe \"Foo.Bar\" Foo.BarSpec.spec)"
+          , ">> SpecWrap.wrapSpec (describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec)))"
           ]
         ]
 

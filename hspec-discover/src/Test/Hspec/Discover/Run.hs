@@ -140,23 +140,24 @@ formatSpecs mspecs =
     Nothing ->
       "return ()"
     Just (wrapSpec, specs) ->
-      let wrapModuleName =
+      let wrapModuleFn :: ShowS -> ShowS
+          wrapModuleFn inner =
             case wrapSpec of
               YesWrap ->
-                "SpecWrap.wrapSpec "
+                "SpecWrap.wrapSpec (" . inner . ")"
               NoWrap ->
-                ""
+                inner
       in
-        fromForest wrapModuleName specs
+        fromForest wrapModuleFn specs
   where
-    fromForest :: ShowS -> [Spec] -> ShowS
-    fromForest wrapModuleName = go
+    fromForest :: (ShowS -> ShowS) -> [Spec] -> ShowS
+    fromForest wrapSpec = go
       where
         go :: [Spec] -> ShowS
         go = sequenceS . map fromTree
         fromTree :: Spec -> ShowS
         fromTree tree = case tree of
-          Spec name -> "(" . wrapModuleName . "describe " . shows name . " " . showString name . "Spec.spec)"
+          Spec name -> wrapSpec ("describe " . shows name . " " . showString name . "Spec.spec")
           Hook name forest -> "(" . showString name . ".hook $ " . go forest . ")"
 
 data WrapSpec = YesWrap | NoWrap
