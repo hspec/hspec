@@ -3,7 +3,7 @@
 name: hspec-core
 github: hspec/hspec/hspec-core
 copyright:
-  - (c) 2011-2023 Simon Hengel
+  - (c) 2011-2024 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
   - (c) 2011 Greg Weber
 description: >
@@ -25,7 +25,7 @@ dependencies:
   - transformers >= 0.2.2.0
   - deepseq
   - HUnit == 1.6.*
-  - QuickCheck >= 2.13.1
+  - QuickCheck >= 2.13.1 && < 2.15
   - quickcheck-io >= 0.2.0
   - hspec-expectations == 0.8.4.*
   - call-stack >= 0.2.0

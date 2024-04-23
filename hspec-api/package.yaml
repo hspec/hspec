@@ -2,7 +2,7 @@
 
 name: hspec-api
 github: hspec/hspec/hspec-api
-copyright: (c) 2022-2023 Simon Hengel
+copyright: (c) 2022-2024 Simon Hengel
 description: >
   This package provides a stable API that can be used to extend Hspec's
   functionality.
