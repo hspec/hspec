@@ -8,7 +8,7 @@ name:             hspec-core
 version:          2.11.7
 license:          MIT
 license-file:     LICENSE
-copyright:        (c) 2011-2023 Simon Hengel,
+copyright:        (c) 2011-2024 Simon Hengel,
                   (c) 2011-2012 Trystan Spangler,
                   (c) 2011 Greg Weber
 maintainer:       Simon Hengel <sol@typeful.net>
@@ -36,7 +36,7 @@ library
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
-    , QuickCheck >=2.13.1
+    , QuickCheck >=2.13.1 && <2.15
     , ansi-terminal >=0.6.2
     , array
     , base >=4.8.2.0 && <5
