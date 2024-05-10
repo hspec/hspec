@@ -79,6 +79,7 @@ library
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
       Test.Hspec.Core.Util
+      Test.Hspec.Core.Vault
       Paths_hspec_meta
   hs-source-dirs:
       src
@@ -93,6 +94,7 @@ library
     , array
     , base >=4.8.2.0 && <5
     , call-stack >=0.2.0
+    , containers
     , deepseq
     , directory
     , filepath
@@ -132,6 +134,7 @@ executable hspec-meta-discover
     , array
     , base >=4.8.2.0 && <5
     , call-stack >=0.2.0
+    , containers
     , deepseq
     , directory
     , filepath
