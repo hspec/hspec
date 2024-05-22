@@ -115,7 +115,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
-import           Test.Hspec.Core.Tree (formatDefaultDescription)
+import           Test.Hspec.Core.Tree (formatDefaultDescription, Setting(SetWith), setItemMaxTime)
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
@@ -233,11 +233,14 @@ hspecWithResult config = fmap toSummary . hspecWithSpecResult config
 
 hspecWithSpecResult :: Config -> Spec -> IO SpecResult
 hspecWithSpecResult defaults spec = do
-  (c, forest) <- evalSpec defaults spec
+  (c, f) <- evalSpec defaults spec
   config <- getArgs >>= readConfig c
   oldFailureReport <- readFailureReportOnRerun config
 
   let
+    forest :: [SpecTree ()]
+    forest = maybe id (fmap . fmap . setItemMaxTime) (configMaxTimePerTest config) f
+
     normalMode :: IO SpecResult
     normalMode = doNotLeakCommandLineArgumentsToExamples $ runSpecForest_ oldFailureReport forest config
 
@@ -450,12 +453,16 @@ toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
 toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
-    toEvalItem (Item requirement loc isParallelizable _isFocused e) = EvalItem {
+    toEvalItem (Item requirement loc isParallelizable _isFocused e iMaxTime) = EvalItem {
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
-    , evalItemAction = \ progress -> measure $ e params withUnit progress
+    , evalItemAction = \ progress -> fmap (fmap $ fromMaybe $ Result requirement $ Failure loc $ Reason "exceeded timeout") $ measureWithTimeout maxTime $ e params withUnit progress
     }
+      where
+        maxTime = case iMaxTime of
+          SetWith x -> Just x
+          _ -> Nothing
 
     withUnit :: ActionWith () -> IO ()
     withUnit action = action ()

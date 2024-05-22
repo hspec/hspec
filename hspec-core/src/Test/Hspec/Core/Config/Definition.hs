@@ -26,7 +26,7 @@ import           System.Directory (getTemporaryDirectory, removeFile)
 import           System.IO (openTempFile, hClose)
 import           System.Process (system)
 
-import           Test.Hspec.Core.Format (Format, FormatConfig)
+import           Test.Hspec.Core.Format (Format, FormatConfig, Seconds(Seconds))
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
 import           Test.Hspec.Core.Util
@@ -91,6 +91,7 @@ data Config = Config {
 , configFormatter :: Maybe V1.Formatter
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
+, configMaxTimePerTest :: Maybe Seconds
 }
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 {-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
@@ -138,6 +139,7 @@ mkDefaultConfig formatters = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
+, configMaxTimePerTest = Nothing
 }
 
 defaultDiffContext :: Int
@@ -304,6 +306,9 @@ setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 setSeed :: Integer -> Config -> Config
 setSeed n c = c {configSeed = Just n}
 
+setMaxTimePerTest :: Seconds -> Config -> Config
+setMaxTimePerTest n c = c {configMaxTimePerTest = Just n}
+
 data FailOn =
     FailOnEmpty
   | FailOnFocused
@@ -353,6 +358,7 @@ runnerOptions = [
   , mkOptionNoArg "rerun-all-on-success" Nothing setRerunAllOnSuccess "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
   , mkOption "jobs" (Just 'j') (argument "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
   , option "seed" (argument "N" readMaybe setSeed) "used seed for --randomize and QuickCheck properties"
+  , option "max-time-per-test" (argument "N" (fmap Seconds . readMaybe) setMaxTimePerTest) "each test will run at most N seconds"
   ]
   where
     strict = [FailOnFocused, FailOnPending]

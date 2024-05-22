@@ -50,6 +50,12 @@ module Test.Hspec (
 , fdescribe
 , fcontext
 
+-- * Spec time limits
+-- |
+-- Place limits or no limits on the test run time.
+, limit
+, noLimit
+
 -- * Hooks
 , ActionWith
 , before
