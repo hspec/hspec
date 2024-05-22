@@ -26,6 +26,7 @@ module Helper (
 , withTempDirectory
 , inTempDirectory
 
+, silentConfig
 , hspecSilent
 , hspecResultSilent
 , hspecCapture

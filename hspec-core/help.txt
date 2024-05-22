@@ -16,6 +16,7 @@ RUNNER OPTIONS
                                 pending: fail on pending spec items
                                 empty-description: fail on empty descriptions
         --[no-]strict           same as --fail-on=focused,pending
+        --[no-]timeout=N        each test will run at most N seconds
         --[no-]fail-fast        abort on first failure
         --[no-]randomize        randomize execution order
   -r    --rerun                 rerun all examples that failed in the previous

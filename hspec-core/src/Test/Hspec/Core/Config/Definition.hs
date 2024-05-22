@@ -26,7 +26,7 @@ import           System.Directory (getTemporaryDirectory, removeFile)
 import           System.IO (openTempFile, hClose)
 import           System.Process (system)
 
-import           Test.Hspec.Core.Format (Format, FormatConfig)
+import           Test.Hspec.Core.Format (Format, FormatConfig, Seconds(Seconds))
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
 import           Test.Hspec.Core.Util
@@ -48,6 +48,7 @@ data Config = Config {
 , configFailOnFocused :: Bool
 , configFailOnPending :: Bool
 , configFailOnEmptyDescription :: Bool
+, configTimeout :: Maybe Seconds
 , configPrintSlowItems :: Maybe Int
 , configPrintCpuTime :: Bool
 , configFailFast :: Bool
@@ -107,6 +108,7 @@ mkDefaultConfig formatters = Config {
 , configFailOnFocused = False
 , configFailOnPending = False
 , configFailOnEmptyDescription = False
+, configTimeout = Nothing
 , configPrintSlowItems = Nothing
 , configPrintCpuTime = False
 , configFailFast = False
@@ -304,6 +306,9 @@ setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 setSeed :: Integer -> Config -> Config
 setSeed n c = c {configSeed = Just n}
 
+setTimeout :: Maybe Seconds -> Config -> Config
+setTimeout n c = c {configTimeout = n}
+
 data FailOn =
     FailOnEmpty
   | FailOnFocused
@@ -345,6 +350,9 @@ runnerOptions = [
   , mkOption    "fail-on" Nothing (argument "ITEMS" readFailOnItems (setFailOnItems True )) helpForFailOn
   , mkOption "no-fail-on" Nothing (argument "ITEMS" readFailOnItems (setFailOnItems False)) helpForFailOn
   , flag "strict" setStrict $ "same as --fail-on=" <> showFailOnItems strict
+
+  , option "timeout" (argument "N" (fmap Seconds . readMaybe) (setTimeout . Just)) "each test will run at most N seconds"
+  , mkOptionNoArg "no-timeout" Nothing (setTimeout Nothing) "remove test time limits"
 
   , flag "fail-fast" setFailFast "abort on first failure"
   , flag "randomize" setRandomize "randomize execution order"

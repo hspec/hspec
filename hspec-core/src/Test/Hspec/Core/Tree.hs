@@ -9,6 +9,7 @@ module Test.Hspec.Core.Tree (
   SpecTree
 , Tree (..)
 , Item (..)
+, setItemTimeout
 , specGroup
 , specItem
 , bimapTree
@@ -34,6 +35,7 @@ import           System.FilePath
 import qualified Data.CallStack as CallStack
 
 import           Test.Hspec.Core.Example
+import           Test.Hspec.Core.Clock (Seconds)
 
 -- | Internal tree data structure
 data Tree c a =
@@ -116,7 +118,13 @@ data Item a = Item {
 
   -- | Example for behavior
 , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
+
+-- | Maximum number of seconds the test can run for.
+, itemTimeout :: Maybe Seconds
 }
+
+setItemTimeout :: Maybe Seconds -> Item a -> Item a
+setItemTimeout x i = i {itemTimeout = x}
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
 specGroup :: HasCallStack => String -> [SpecTree a] -> SpecTree a
@@ -135,6 +143,7 @@ specItem s e = Leaf Item {
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
   , itemExample = safeEvaluateExample e
+  , itemTimeout = Nothing
   }
 
 location :: HasCallStack => Maybe Location

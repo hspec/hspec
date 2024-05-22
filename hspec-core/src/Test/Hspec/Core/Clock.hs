@@ -6,6 +6,7 @@ module Test.Hspec.Core.Clock (
 , toMicroseconds
 , getMonotonicTime
 , measure
+, measureWithTimeout
 , sleep
 , timeout
 ) where
@@ -42,9 +43,12 @@ getMonotonicTime = do
 #endif
 
 measure :: IO a -> IO (Seconds, a)
-measure action = do
+measure = fmap (second fromJust) . measureWithTimeout Nothing
+
+measureWithTimeout :: Maybe Seconds -> IO a -> IO (Seconds, Maybe a)
+measureWithTimeout maxTime action = do
   t0 <- getMonotonicTime
-  a <- action
+  a <- maybe (fmap Just) timeout maxTime action
   t1 <- getMonotonicTime
   return (t1 - t0, a)
 
