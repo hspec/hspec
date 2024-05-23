@@ -115,7 +115,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
-import           Test.Hspec.Core.Tree (formatDefaultDescription, Setting(SetWith), setItemMaxTime)
+import           Test.Hspec.Core.Tree (formatDefaultDescription, setItemMaxTime)
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
@@ -453,16 +453,12 @@ toEvalItemForest :: Params -> [SpecTree ()] -> [EvalItemTree]
 toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
   where
     toEvalItem :: Item () -> EvalItem
-    toEvalItem (Item requirement loc isParallelizable _isFocused e iMaxTime) = EvalItem {
+    toEvalItem (Item requirement loc isParallelizable _isFocused e maxTime) = EvalItem {
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
     , evalItemAction = \ progress -> fmap (fmap $ fromMaybe $ Result requirement $ Failure loc $ Reason "exceeded timeout") $ measureWithTimeout maxTime $ e params withUnit progress
     }
-      where
-        maxTime = case iMaxTime of
-          SetWith x -> Just x
-          _ -> Nothing
 
     withUnit :: ActionWith () -> IO ()
     withUnit action = action ()

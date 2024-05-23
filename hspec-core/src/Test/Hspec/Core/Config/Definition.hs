@@ -306,8 +306,8 @@ setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 setSeed :: Integer -> Config -> Config
 setSeed n c = c {configSeed = Just n}
 
-setMaxTimePerTest :: Seconds -> Config -> Config
-setMaxTimePerTest n c = c {configMaxTimePerTest = Just n}
+setMaxTimePerTest :: Maybe Seconds -> Config -> Config
+setMaxTimePerTest n c = c {configMaxTimePerTest = n}
 
 data FailOn =
     FailOnEmpty
@@ -358,7 +358,8 @@ runnerOptions = [
   , mkOptionNoArg "rerun-all-on-success" Nothing setRerunAllOnSuccess "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
   , mkOption "jobs" (Just 'j') (argument "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
   , option "seed" (argument "N" readMaybe setSeed) "used seed for --randomize and QuickCheck properties"
-  , option "max-time-per-test" (argument "N" (fmap Seconds . readMaybe) setMaxTimePerTest) "each test will run at most N seconds"
+  , option "timeout" (argument "N" (fmap Seconds . readMaybe) (setMaxTimePerTest . Just)) "each test will run at most N seconds"
+  , mkOptionNoArg "no-timeout" Nothing (setMaxTimePerTest Nothing) "remove test time limits"
   ]
   where
     strict = [FailOnFocused, FailOnPending]
