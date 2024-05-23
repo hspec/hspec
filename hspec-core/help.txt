@@ -30,6 +30,7 @@ RUNNER OPTIONS
                                 processors)
         --seed=N                used seed for --randomize and QuickCheck
                                 properties
+        --[no-]timeout=N        each test will run at most N seconds
 
 FORMATTER OPTIONS
   -f NAME  --format=NAME           use a custom formatter; this can be one of

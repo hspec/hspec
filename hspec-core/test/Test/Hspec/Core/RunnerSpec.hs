@@ -1017,3 +1017,15 @@ spec = do
     context "on failure" $ do
       it "returns False" $ do
         H.rerunAll config (Just report) result { specResultSuccess = False } `shouldBe` False
+
+  describe "timeout" $ do
+    it "exceeds timeout" $ do
+      s <- H.hspecWithResult (silentConfig {H.configMaxTimePerTest = Just 0}) $
+        H.it "should fail from timeout" $ threadDelay 10000000
+      Test.Hspec.Core.Runner.Result.isSuccess s `shouldBe` False
+
+    it "within timeout" $ do
+      s <- H.hspecWithResult (silentConfig {H.configMaxTimePerTest = Just 100}) $
+        H.it "should succeed" $ True `shouldBe` True
+      Test.Hspec.Core.Runner.Result.isSuccess s `shouldBe` True
+
