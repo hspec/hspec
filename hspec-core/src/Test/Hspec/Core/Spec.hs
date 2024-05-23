@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 -- |
 -- Stability: unstable
 --
@@ -27,6 +28,9 @@ module Test.Hspec.Core.Spec (
 
 , parallel
 , sequential
+
+, limit
+, noLimit
 
 -- * The @SpecM@ monad
 , Test.Hspec.Core.Spec.Monad.Spec
@@ -92,6 +96,7 @@ import           Test.Hspec.Core.Hooks
 import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
 import           Test.Hspec.Core.QuickCheck ()
+import           Test.Hspec.Core.Clock (Seconds)
 
 -- | The @describe@ function combines a list of specs into a larger spec.
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a
@@ -217,3 +222,12 @@ pendingWith = throwIO . Pending location . Just
 -- @since 2.10.0
 getSpecDescriptionPath :: SpecM a [String]
 getSpecDescriptionPath = SpecM $ lift $ reverse <$> asks envSpecDescriptionPath
+
+-- | Limit the given tests individual run time to n seconds.
+limit :: Seconds -> SpecWith a -> SpecWith a
+limit s = mapSpecItem_ $ \i -> i {itemMaxTime = SetTo s}
+
+-- | Ensure there is no time limit on the given tests.
+noLimit :: SpecWith a -> SpecWith a
+noLimit = mapSpecItem_ $ \i -> i {itemMaxTime = UnSet}
+

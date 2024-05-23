@@ -1019,13 +1019,36 @@ spec = do
         H.rerunAll config (Just report) result { specResultSuccess = False } `shouldBe` False
 
   describe "timeout" $ do
-    it "exceeds timeout" $ do
-      s <- H.hspecWithResult (silentConfig {H.configMaxTimePerTest = Just 0}) $
-        H.it "should fail from timeout" $ threadDelay 10000000
-      Test.Hspec.Core.Runner.Result.isSuccess s `shouldBe` False
+    let success = Test.Hspec.Core.Runner.Result.isSuccess
+    describe "global" $ do
+      it "exceeds timeout" $ do
+        s <- H.hspecWithResult silentConfig {H.configMaxTimePerTest = Just 0} $
+          H.it "should fail from timeout" $ threadDelay 100
+        success s `shouldBe` False
+  
+      it "within timeout" $ do
+        s <- H.hspecWithResult silentConfig {H.configMaxTimePerTest = Just 100} $
+          H.it "should succeed" $ True `shouldBe` True
+        success s `shouldBe` True
 
-    it "within timeout" $ do
-      s <- H.hspecWithResult (silentConfig {H.configMaxTimePerTest = Just 100}) $
-        H.it "should succeed" $ True `shouldBe` True
-      Test.Hspec.Core.Runner.Result.isSuccess s `shouldBe` True
+    describe "individual" $ do
+      it "exceeds timeout" $ do
+        s <- hspecResultSilent $ H.limit 0 $ H.it "should fail from timeout" $ threadDelay 100
+        success s `shouldBe` False
+
+      it "within timeout" $ do
+        s <- hspecResultSilent $ H.limit 100 $ H.it "should succeed" $ True `shouldBe` True
+        success s `shouldBe` True
+
+      it "noLimit not overridden by global" $ do
+        s <- H.hspecWithResult silentConfig {H.configMaxTimePerTest = Just 0} $
+          H.noLimit $ H.it "should succeed" $ threadDelay 100
+        success s `shouldBe` True
+
+      it "limit not overridden by global" $ do
+        s <- H.hspecWithResult silentConfig {H.configMaxTimePerTest = Just 0} $
+          H.limit 100 $ H.it "should succeed" $ threadDelay 10
+        success s `shouldBe` True
+
+
 

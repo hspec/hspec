@@ -9,7 +9,9 @@ module Test.Hspec.Core.Tree (
   SpecTree
 , Tree (..)
 , Item (..)
+, Setting (..)
 , setItemMaxTime
+, getSetting
 , specGroup
 , specItem
 , bimapTree
@@ -120,11 +122,23 @@ data Item a = Item {
 , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 
 -- | Maximum number of seconds the test can run for.
-, itemMaxTime :: Maybe Seconds
+, itemMaxTime :: Setting Seconds
 }
 
-setItemMaxTime :: Seconds -> Item a -> Item a
-setItemMaxTime x i = i {itemMaxTime = Just x}
+setItemMaxTime :: Maybe Seconds -> Item a -> Item a
+setItemMaxTime x i = case itemMaxTime i of
+  NotSet -> i {itemMaxTime = maybe UnSet SetTo x}
+  _ -> i
+
+data Setting a
+  = NotSet -- default value if never set
+  | UnSet -- consider this like Nothing
+  | SetTo a -- consider this like Just
+
+getSetting :: Setting a -> Maybe a
+getSetting s = case s of
+  SetTo x -> Just x
+  _ -> Nothing
 
 -- | The @specGroup@ function combines a list of specs into a larger spec.
 specGroup :: HasCallStack => String -> [SpecTree a] -> SpecTree a
@@ -143,7 +157,7 @@ specItem s e = Leaf Item {
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
   , itemExample = safeEvaluateExample e
-  , itemMaxTime = Nothing
+  , itemMaxTime = NotSet
   }
 
 location :: HasCallStack => Maybe Location

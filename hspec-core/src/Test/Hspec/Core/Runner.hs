@@ -115,7 +115,7 @@ import qualified Test.QuickCheck as QC
 import           Test.Hspec.Core.Util (Path)
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
-import           Test.Hspec.Core.Tree (formatDefaultDescription, setItemMaxTime)
+import           Test.Hspec.Core.Tree (formatDefaultDescription, getSetting, setItemMaxTime)
 import           Test.Hspec.Core.Config
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V1 as V1
@@ -239,7 +239,7 @@ hspecWithSpecResult defaults spec = do
 
   let
     forest :: [SpecTree ()]
-    forest = maybe id (fmap . fmap . setItemMaxTime) (configMaxTimePerTest config) f
+    forest = maybe id (fmap . fmap . setItemMaxTime . Just) (configMaxTimePerTest config) f
 
     normalMode :: IO SpecResult
     normalMode = doNotLeakCommandLineArgumentsToExamples $ runSpecForest_ oldFailureReport forest config
@@ -457,7 +457,7 @@ toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
-    , evalItemAction = \ progress -> fmap (fmap $ fromMaybe $ Result requirement $ Failure loc $ Reason "exceeded timeout") $ measureWithTimeout maxTime $ e params withUnit progress
+    , evalItemAction = \ progress -> fmap (fmap $ fromMaybe $ Result requirement $ Failure loc $ Reason "exceeded timeout") $ measureWithTimeout (getSetting maxTime) $ e params withUnit progress
     }
 
     withUnit :: ActionWith () -> IO ()
