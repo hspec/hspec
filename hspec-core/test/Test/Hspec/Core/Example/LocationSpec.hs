@@ -57,11 +57,7 @@ spec = do
       it "extracts Location" $ do
         let
           location =
-#if MIN_VERSION_base(4,9,0)
-            Just $ Location file (__LINE__ + 4) 34
-#else
-            Nothing
-#endif
+            Just $ Location file (succ __LINE__) 34
         Left e <- try (evaluate (undefined :: ()))
         extractLocation e `shouldBe` location
 

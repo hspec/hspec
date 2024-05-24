@@ -1,3 +1,7 @@
+## Changes in 2.11.9 (2024-05-24)
+  - Compatibility with GHC 9.10.1
+  - Drop support for GHC 7.10.3
+
 ## Changes in 2.11.8 (2024-04-22)
   - Make the build pass with QuickCheck 2.15
 

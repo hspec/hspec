@@ -3,7 +3,14 @@ Read the [User's Manual](https://hspec.github.io/)!
 
 # Development
 
-Preparing a release:
+## Update API dumps
+
+```
+$ (cd util/api-dump && cabal install)
+$ util/dump-api
+```
+
+## Prepare a release
 
 ```
 $ util/release

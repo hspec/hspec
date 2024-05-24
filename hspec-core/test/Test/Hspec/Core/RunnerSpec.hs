@@ -566,7 +566,7 @@ spec = do
           ]
 
     context "when formatting exceptions" $ do
-      let spec_ = H.it "foo" $ void (throwIO MyException)
+      let spec_ = H.it "foo" $ void (withFrozenCallStack throwIO MyException)
       context "with --show-exceptions" $ do
         it "uses `show`" $ do
           hspecCapture ["--seed=0", "--format=failed-examples", "--display-exceptions", "--show-exceptions"] spec_
@@ -596,6 +596,10 @@ spec = do
             , "  1) foo"
             , "       uncaught exception: MyException"
             , "       my exception"
+#if MIN_VERSION_base(4,20,0)
+            , "       HasCallStack backtrace:"
+            , "       "
+#endif
             , ""
             , "  To rerun use: --match \"/foo/\" --seed 0"
             , ""

@@ -54,12 +54,8 @@ parseAssertionFailed loc = parseCallStack loc <|> parseSourceSpan loc
 
 locationFromErrorCall :: SomeException -> Maybe Location
 locationFromErrorCall e = case fromException e of
-#if MIN_VERSION_base(4,9,0)
   Just (ErrorCallWithLocation err loc) ->
     parseCallStack loc <|>
-#else
-  Just (ErrorCall err) ->
-#endif
     fromPatternMatchFailureInDoExpression err
   Nothing -> Nothing
 
