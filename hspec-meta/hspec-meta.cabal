@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           hspec-meta
-version:        2.11.8
+version:        2.11.9
 synopsis:       A version of Hspec which is used to test Hspec itself
 description:    A stable version of Hspec which is used to test the
                 in-development version of Hspec.
@@ -91,7 +91,7 @@ library
     , QuickCheck >=2.13.1 && <2.16
     , ansi-terminal >=0.6.2
     , array
-    , base >=4.8.2.0 && <5
+    , base >=4.9.0.0 && <5
     , call-stack >=0.2.0
     , deepseq
     , directory
@@ -130,7 +130,7 @@ executable hspec-meta-discover
     , QuickCheck >=2.13.1 && <2.16
     , ansi-terminal >=0.6.2
     , array
-    , base >=4.8.2.0 && <5
+    , base >=4.9.0.0 && <5
     , call-stack >=0.2.0
     , deepseq
     , directory
