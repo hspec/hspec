@@ -43,11 +43,7 @@ getMonotonicTime = do
 #endif
 
 measure :: IO a -> IO (Seconds, a)
-measure action = do
-  t0 <- getMonotonicTime
-  a <- action
-  t1 <- getMonotonicTime
-  return (t1 - t0, a)
+measure = fmap (second fromJust) . measureWithTimeout Nothing
 
 measureWithTimeout :: Maybe Seconds -> IO a -> IO (Seconds, Maybe a)
 measureWithTimeout maxTime action = do
