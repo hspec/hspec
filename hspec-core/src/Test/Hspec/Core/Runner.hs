@@ -239,7 +239,7 @@ hspecWithSpecResult defaults spec = do
 
   let
     forest :: [SpecTree ()]
-    forest = maybe id (fmap . fmap . setItemMaxTime . Just) (configMaxTimePerTest config) f
+    forest = maybe id (fmap . fmap . setItemMaxTime . Just) (configTimeout config) f
 
     normalMode :: IO SpecResult
     normalMode = doNotLeakCommandLineArgumentsToExamples $ runSpecForest_ oldFailureReport forest config

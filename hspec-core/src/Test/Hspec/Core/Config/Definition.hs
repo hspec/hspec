@@ -48,6 +48,7 @@ data Config = Config {
 , configFailOnFocused :: Bool
 , configFailOnPending :: Bool
 , configFailOnEmptyDescription :: Bool
+, configTimeout :: Maybe Seconds
 , configPrintSlowItems :: Maybe Int
 , configPrintCpuTime :: Bool
 , configFailFast :: Bool
@@ -91,7 +92,6 @@ data Config = Config {
 , configFormatter :: Maybe V1.Formatter
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
-, configMaxTimePerTest :: Maybe Seconds
 }
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 {-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
@@ -108,6 +108,7 @@ mkDefaultConfig formatters = Config {
 , configFailOnFocused = False
 , configFailOnPending = False
 , configFailOnEmptyDescription = False
+, configTimeout = Nothing
 , configPrintSlowItems = Nothing
 , configPrintCpuTime = False
 , configFailFast = False
@@ -139,7 +140,6 @@ mkDefaultConfig formatters = Config {
 , configFormatter = Nothing
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
-, configMaxTimePerTest = Nothing
 }
 
 defaultDiffContext :: Int
@@ -306,8 +306,8 @@ setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
 setSeed :: Integer -> Config -> Config
 setSeed n c = c {configSeed = Just n}
 
-setMaxTimePerTest :: Maybe Seconds -> Config -> Config
-setMaxTimePerTest n c = c {configMaxTimePerTest = n}
+setTimeout :: Maybe Seconds -> Config -> Config
+setTimeout n c = c {configTimeout = n}
 
 data FailOn =
     FailOnEmpty
@@ -351,8 +351,8 @@ runnerOptions = [
   , mkOption "no-fail-on" Nothing (argument "ITEMS" readFailOnItems (setFailOnItems False)) helpForFailOn
   , flag "strict" setStrict $ "same as --fail-on=" <> showFailOnItems strict
 
-  , option "timeout" (argument "N" (fmap Seconds . readMaybe) (setMaxTimePerTest . Just)) "each test will run at most N seconds"
-  , mkOptionNoArg "no-timeout" Nothing (setMaxTimePerTest Nothing) "remove test time limits"
+  , option "timeout" (argument "N" (fmap Seconds . readMaybe) (setTimeout . Just)) "each test will run at most N seconds"
+  , mkOptionNoArg "no-timeout" Nothing (setTimeout Nothing) "remove test time limits"
 
   , flag "fail-fast" setFailFast "abort on first failure"
   , flag "randomize" setRandomize "randomize execution order"
