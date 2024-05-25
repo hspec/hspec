@@ -457,11 +457,17 @@ toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
-    , evalItemAction = \ progress -> fmap (fmap $ fromMaybe $ Result requirement $ Failure loc $ Reason "exceeded timeout") $ measureWithTimeout (getSetting maxTime) $ e params withUnit progress
+    , evalItemAction = \ progress -> let
+      failResultTimeout = Result requirement $ Failure loc $ Reason "exceeded timeout"
+      resolveResult = fmap $ fmap $ fromMaybe failResultTimeout
+      measure' = measureWithTimeout $ getSetting maxTime
+      in resolveResult $ measure' $ e params withUnit progress
     }
 
     withUnit :: ActionWith () -> IO ()
     withUnit action = action ()
+
+
 
 dumpFailureReport :: Config -> Integer -> QC.Args -> [Path] -> IO ()
 dumpFailureReport config seed qcArgs xs = do
