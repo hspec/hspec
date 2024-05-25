@@ -1050,5 +1050,3 @@ spec = do
           H.limit 100 $ H.it "should succeed" $ threadDelay 10
         success s `shouldBe` True
 
-
-

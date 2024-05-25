@@ -351,6 +351,9 @@ runnerOptions = [
   , mkOption "no-fail-on" Nothing (argument "ITEMS" readFailOnItems (setFailOnItems False)) helpForFailOn
   , flag "strict" setStrict $ "same as --fail-on=" <> showFailOnItems strict
 
+  , option "timeout" (argument "N" (fmap Seconds . readMaybe) (setMaxTimePerTest . Just)) "each test will run at most N seconds"
+  , mkOptionNoArg "no-timeout" Nothing (setMaxTimePerTest Nothing) "remove test time limits"
+
   , flag "fail-fast" setFailFast "abort on first failure"
   , flag "randomize" setRandomize "randomize execution order"
   , mkOptionNoArg "rerun" (Just 'r') setRerun "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
@@ -358,8 +361,6 @@ runnerOptions = [
   , mkOptionNoArg "rerun-all-on-success" Nothing setRerunAllOnSuccess "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
   , mkOption "jobs" (Just 'j') (argument "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
   , option "seed" (argument "N" readMaybe setSeed) "used seed for --randomize and QuickCheck properties"
-  , option "timeout" (argument "N" (fmap Seconds . readMaybe) (setMaxTimePerTest . Just)) "each test will run at most N seconds"
-  , mkOptionNoArg "no-timeout" Nothing (setMaxTimePerTest Nothing) "remove test time limits"
   ]
   where
     strict = [FailOnFocused, FailOnPending]
