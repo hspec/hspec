@@ -22,6 +22,7 @@ module Helper (
 , throwException
 , throwException_
 
+, withArgs
 , withEnvironment
 , withTempDirectory
 , inTempDirectory
@@ -57,7 +58,7 @@ import           System.IO.Temp (withSystemTempDirectory)
 import           System.Console.ANSI
 
 import           Test.Hspec.Meta hiding (hspec, hspecResult, pending, pendingWith)
-import           Test.QuickCheck hiding (Result(..))
+import           Test.QuickCheck hiding (Result(..), Discard(..))
 import qualified Test.HUnit.Lang as HUnit
 
 import qualified Test.Hspec.Core.Spec as H
