@@ -2,7 +2,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 module Test.Hspec.Core.Extension.Config.Type (
-  Config(..)
+  Option(..)
+, Config(..)
 , to
 , from
 
@@ -18,6 +19,8 @@ module Test.Hspec.Core.Extension.Config.Type (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
+import qualified GetOpt.Declarative as Declarative
+
 import           Test.Hspec.Core.Format
 import           Test.Hspec.Core.Config.Definition (ColorMode(..), UnicodeMode(..))
 import qualified Test.Hspec.Core.Config.Definition as Core
@@ -25,6 +28,8 @@ import           Test.Hspec.Core.Annotations (Annotations)
 import qualified Test.Hspec.Core.Annotations as Annotations
 
 import           Test.Hspec.Core.Extension.Tree (SpecTree)
+
+newtype Option = Option { unOption :: Declarative.Option Config }
 
 data Config = Config {
   ignoreConfigFile :: Bool

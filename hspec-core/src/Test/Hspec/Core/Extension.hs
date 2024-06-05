@@ -16,6 +16,7 @@ When writing extensions the following imports are recommended:
 @
 import "Test.Hspec.Core.Extension"
 import "Test.Hspec.Core.Extension.Config" qualified as Config
+import "Test.Hspec.Core.Extension.Option" qualified as Option
 import "Test.Hspec.Core.Extension.Item" qualified as Item
 import "Test.Hspec.Core.Extension.Spec" qualified as Spec
 import "Test.Hspec.Core.Extension.Tree" qualified as Tree
@@ -37,16 +38,12 @@ import "Test.Hspec.Core.Extension.Tree" qualified as Tree
 
 -- ** Phase 2: Parsing command-line options
 {- |
-An extension can use `registerOption` during phase 1 to register custom command-line options, and as a consequence indirectly influence this phase.
+An extension can use `registerOptions` during phase 1 to register custom command-line options, and as a consequence indirectly influence this phase.
 
 * Options can use @Config.`Test.Hspec.Core.Extension.Config.setAnnotation`@ to add custom metadata to the `Config`.
 -}
 , Option
-, OptionSetter
-, registerOption
-, flag
-, option
-, argument
+, registerOptions
 
 -- ** Phase 3: Transforming the spec tree
 {- |
@@ -88,29 +85,19 @@ import qualified Test.Hspec.Core.Config.Definition as Core
 import           Test.Hspec.Core.Extension.Config (Config)
 import qualified Test.Hspec.Core.Extension.Config as Config
 import qualified Test.Hspec.Core.Extension.Config.Type as Config
+import           Test.Hspec.Core.Extension.Option
 import           Test.Hspec.Core.Extension.Item
 import           Test.Hspec.Core.Extension.Tree
 
-newtype Option = Option { unOption :: Declarative.Option Config }
-newtype OptionSetter = OptionSetter { unOptionSetter :: Declarative.OptionSetter Config }
-
-flag :: String -> (Bool -> Config -> Config) -> String -> Option
-flag name setter = Option . Core.flag name setter
-
-option :: String -> OptionSetter -> String -> Option
-option name setter = Option . Core.option name (unOptionSetter setter)
-
-argument :: String -> (String -> Maybe a) -> (a -> Config -> Config) -> OptionSetter
-argument name parser setter = OptionSetter (Core.argument name parser setter)
-
-registerOption :: HasCallStack => Option -> SpecWith a
-registerOption = Core.modifyConfig . Core.addExtensionOptions section . return . liftOption
+registerOptions :: HasCallStack => [Option] -> SpecWith a
+registerOptions = Core.modifyConfig . Core.addExtensionOptions section . map liftOption
   where
     section = "OPTIONS FOR " <> package
     package = maybe "main" (CallStack.srcLocPackage . snd) CallStack.callSite
 
     liftOption :: Option -> Declarative.Option Core.Config
-    liftOption = Declarative.mapOption Config.from Config.to . unOption
+    liftOption = Declarative.mapOption Config.from Config.to . Config.unOption
+
 
 modifyConfig :: (Config -> Config) -> SpecWith a
 modifyConfig f = Core.modifyConfig (Config.to . f . Config.from)

@@ -27,6 +27,7 @@ import qualified Test.QuickCheck as QC
 import qualified Test.Hspec.Core.Hooks as H
 
 import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (Person(..))
+import           Test.Hspec.Core.Extension ()
 
 runPropFoo :: [String] -> IO String
 runPropFoo args = unlines . normalizeSummary . lines <$> do

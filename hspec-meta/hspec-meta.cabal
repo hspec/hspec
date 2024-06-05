@@ -56,6 +56,7 @@ library
       Test.Hspec.Core.Extension.Config
       Test.Hspec.Core.Extension.Config.Type
       Test.Hspec.Core.Extension.Item
+      Test.Hspec.Core.Extension.Option
       Test.Hspec.Core.Extension.Spec
       Test.Hspec.Core.Extension.Tree
       Test.Hspec.Core.FailureReport
