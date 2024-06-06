@@ -13,7 +13,7 @@ import qualified Test.Hspec.Core.Spec as Core
 type SpecTree = Core.SpecTree ()
 
 mapItems :: (Item () -> Item ()) -> [SpecTree] -> [SpecTree]
-mapItems = bimapForest id
+mapItems = map . fmap
 
 filterItems :: (Item () -> Bool) -> [SpecTree] -> [SpecTree]
 filterItems = filterForest
