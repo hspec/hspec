@@ -29,6 +29,7 @@ import           System.Process (system)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
+import qualified Test.Hspec.Core.Formatters.V2 as V2
 import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
@@ -178,6 +179,7 @@ argument name parser setter = Arg name $ \ input c -> flip setter c <$> parser i
 formatterOptions :: [(String, FormatConfig -> IO Format)] -> [Option Config]
 formatterOptions formatters = [
     mkOption "format" (Just 'f') (argument "NAME" readFormatter addFormatter) helpForFormat
+  , mkOption "add-format" Nothing (argument "NAME" readFormatter $ \f -> addFormatter f . defFormatter) helpForFormat
   , flag "color" setColor "colorize the output"
   , flag "unicode" setUnicode "output unicode"
   , flag "diff" setDiff "show colorized diffs"
@@ -214,6 +216,11 @@ formatterOptions formatters = [
 
     readFormatter :: String -> Maybe (FormatConfig -> IO Format)
     readFormatter = (`lookup` formatters)
+
+    defFormatter :: Config -> Config
+    defFormatter config = config
+      { configFormat = configFormat config <|> Just (V2.formatterToFormat V2.checks)
+      }
 
     addFormatter :: (FormatConfig -> IO Format) -> Config -> Config
     addFormatter f config = config
