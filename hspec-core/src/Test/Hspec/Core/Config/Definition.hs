@@ -177,7 +177,7 @@ argument name parser setter = Arg name $ \ input c -> flip setter c <$> parser i
 
 formatterOptions :: [(String, FormatConfig -> IO Format)] -> [Option Config]
 formatterOptions formatters = [
-    mkOption "format" (Just 'f') (argument "NAME" readFormatter setFormatter) helpForFormat
+    mkOption "format" (Just 'f') (argument "NAME" readFormatter addFormatter) helpForFormat
   , flag "color" setColor "colorize the output"
   , flag "unicode" setUnicode "output unicode"
   , flag "diff" setDiff "show colorized diffs"
@@ -215,8 +215,21 @@ formatterOptions formatters = [
     readFormatter :: String -> Maybe (FormatConfig -> IO Format)
     readFormatter = (`lookup` formatters)
 
-    setFormatter :: (FormatConfig -> IO Format) -> Config -> Config
-    setFormatter f c = c {configFormat = Just f}
+    addFormatter :: (FormatConfig -> IO Format) -> Config -> Config
+    addFormatter f config = config
+      { configFormat = Just $ maybe f (`combineFormats` f) $ configFormat config
+      }
+
+    combineFormats
+      :: (FormatConfig -> IO Format)
+      -> (FormatConfig -> IO Format)
+      -> FormatConfig -> IO Format
+    combineFormats f1 f2 config = do
+      formatEvent1 <- f1 config
+      formatEvent2 <- f2 config
+      pure $ \event -> do
+        formatEvent1 event
+        formatEvent2 event
 
     setColor :: Bool -> Config -> Config
     setColor v config = config {configColorMode = if v then ColorAlways else ColorNever}
