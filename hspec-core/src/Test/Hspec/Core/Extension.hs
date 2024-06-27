@@ -79,7 +79,7 @@ import           Test.Hspec.Core.Compat
 import qualified Data.CallStack as CallStack
 
 import qualified GetOpt.Declarative as Declarative
-import           Test.Hspec.Core.Spec (SpecM, SpecWith, runIO, modifyConfig)
+import           Test.Hspec.Core.Spec (SpecM, SpecWith, runIO)
 import qualified Test.Hspec.Core.Spec as Core
 import qualified Test.Hspec.Core.Config.Definition as Core
 
@@ -96,7 +96,11 @@ registerOptions = Core.modifyConfig . Core.addExtensionOptions section . map lif
     package = maybe "main" (CallStack.srcLocPackage . snd) CallStack.callSite
 
     liftOption :: Option -> Declarative.Option Core.Config
-    liftOption = Config.unOption
+    liftOption = Declarative.mapOption Config.from Config.to . Config.unOption
+
+
+modifyConfig :: (Config -> Config) -> SpecWith a
+modifyConfig f = Core.modifyConfig (Config.to . f . Config.from)
 
 {- |
 Register a transformation that transforms the spec tree in phase 3.
