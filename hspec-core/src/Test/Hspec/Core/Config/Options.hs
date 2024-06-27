@@ -30,12 +30,11 @@ otherOptions :: Config -> [(String, [Declarative.Option Config])]
 otherOptions config = [
     ("RUNNER OPTIONS", runnerOptions)
   , ("FORMATTER OPTIONS", formatterOptions formatters)
-  , ("OPTIONS FOR QUICKCHECK", quickCheckOptions)
   , ("OPTIONS FOR SMALLCHECK", smallCheckOptions)
   ] ++ extensionOptions
   where
     formatters = configAvailableFormatters config
-    extensionOptions = getExtensionOptions config
+    extensionOptions = getExtensionOptions config ++ configExtensionOptions config
 
 ignoreConfigFile :: Config -> [String] -> IO Bool
 ignoreConfigFile config args = do

@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Test.Hspec.Core.Example (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
@@ -23,6 +25,7 @@ module Test.Hspec.Core.Example (
 , exceptionToResultStatus
 , toLocation
 , hunitFailureToResult
+, exampleOptions
 ) where
 
 import           Prelude ()
@@ -31,6 +34,7 @@ import           Test.Hspec.Core.Compat
 import qualified Test.HUnit.Lang as HUnit
 
 import           Data.CallStack (SrcLoc(..))
+import           Data.Typeable
 
 import           Control.DeepSeq
 import qualified Test.QuickCheck as QC
@@ -39,22 +43,41 @@ import           Test.Hspec.Expectations (Expectation)
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.QuickCheck.Util (liftHook)
 import           Test.Hspec.Core.Example.Location
+import           Test.Hspec.Core.Example.Options
 
 -- | A type class for examples
-class Example e where
+class Options (Opt e) => Example e where
   type Arg e
   type Arg e = ()
+
+  type Opt e
+  type Opt e = ()
+
   evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
+
+exampleOptions :: Example a => a -> Maybe (TypeRep, OptionsParser OptionsSet)
+exampleOptions  = fmap (fmap liftOptions) . optionsParserFromExample
+
+optionsParserFromExample :: Example a => a -> Maybe (TypeRep, OptionsParser (Opt a))
+optionsParserFromExample _ = optionsParserFromType
+
+optionsParserFromType :: forall a. Options a => Maybe (TypeRep, OptionsParser a)
+optionsParserFromType = (,) (typeOf (undefined :: a)) <$> optionsParser
 
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
 , paramsSmallCheckDepth :: Maybe Int
-} deriving (Show)
+, paramsSeed :: Integer
+, paramsOptions :: OptionsSet
+}
+{-# DEPRECATED paramsQuickCheckArgs "Use @getOptions \\@QuickCheckOptions . paramsOptions@ instead." #-}
 
 defaultParams :: Params
 defaultParams = Params {
   paramsQuickCheckArgs = QC.stdArgs
 , paramsSmallCheckDepth = Nothing
+, paramsSeed = 0
+, paramsOptions = mempty
 }
 
 type Progress = (Int, Int)

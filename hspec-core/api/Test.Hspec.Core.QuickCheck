@@ -3,3 +3,4 @@ modifyMaxDiscardRatio :: (Int -> Int) -> hspec-core:Test.Hspec.Core.Spec.Monad.S
 modifyMaxShrinks :: (Int -> Int) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
 modifyMaxSize :: (Int -> Int) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
 modifyMaxSuccess :: (Int -> Int) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
+modifyOptions :: (Test.Hspec.Core.QuickCheck.Options.QuickCheckOptions -> Test.Hspec.Core.QuickCheck.Options.QuickCheckOptions) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
