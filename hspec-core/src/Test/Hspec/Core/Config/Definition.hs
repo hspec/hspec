@@ -3,16 +3,18 @@ module Test.Hspec.Core.Config.Definition (
   Config(..)
 , ColorMode(..)
 , UnicodeMode(..)
-, filterOr
 , mkDefaultConfig
+
+, filterOr
+
+, getSeed
+, getFormatter
 
 , commandLineOnlyOptions
 , formatterOptions
 , smallCheckOptions
 , quickCheckOptions
 , runnerOptions
-
-, deprecatedQuickCheckSeed
 
 #ifdef TEST
 , splitOn
@@ -29,10 +31,16 @@ import           System.Process (system)
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
 import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
+import qualified Test.Hspec.Core.Formatters.V1.Internal as V1 (formatterToFormat)
 import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
 
+getFormatter :: Config -> Maybe (FormatConfig -> IO Format)
+getFormatter config = configFormat config <|> V1.formatterToFormat <$> configFormatter config
+
+getSeed :: Config -> Maybe Integer
+getSeed config = configSeed config <|> configQuickCheckSeed config
 
 data ColorMode = ColorAuto | ColorNever | ColorAlways
   deriving (Eq, Show)
@@ -94,9 +102,6 @@ data Config = Config {
 }
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 {-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
-
-deprecatedQuickCheckSeed :: Config -> Maybe Integer
-deprecatedQuickCheckSeed = configQuickCheckSeed
 
 mkDefaultConfig :: [(String, FormatConfig -> IO Format)] -> Config
 mkDefaultConfig formatters = Config {
@@ -160,7 +165,7 @@ withTempFile dir file contents action = do
 option :: String -> OptionSetter config -> String -> Option config
 option name arg help = Option name Nothing arg help True
 
-flag :: String -> (Bool -> Config -> Config) -> String -> Option Config
+flag :: String -> (Bool -> config -> config) -> String -> Option config
 flag name setter = option name (Flag setter)
 
 mkOptionNoArg :: String -> Maybe Char -> (Config -> Config) -> String -> Option Config
@@ -172,7 +177,7 @@ mkOption name shortcut arg help = Option name shortcut arg help True
 undocumented :: Option config -> Option config
 undocumented opt = opt {optionDocumented = False}
 
-argument :: String -> (String -> Maybe a) -> (a -> Config -> Config) -> OptionSetter Config
+argument :: String -> (String -> Maybe a) -> (a -> config -> config) -> OptionSetter config
 argument name parser setter = Arg name $ \ input c -> flip setter c <$> parser input
 
 formatterOptions :: [(String, FormatConfig -> IO Format)] -> [Option Config]
