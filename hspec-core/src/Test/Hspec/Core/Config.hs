@@ -61,7 +61,7 @@ applyFailureReport mFailureReport config = config {
   }
   where
 
-    mSeed = configSeed config <|> deprecatedQuickCheckSeed config <|> (failureReportSeed <$> mFailureReport)
+    mSeed = getSeed config <|> (failureReportSeed <$> mFailureReport)
     mMaxSuccess = configQuickCheckMaxSuccess config <|> (failureReportMaxSuccess <$> mFailureReport)
     mMaxSize = configQuickCheckMaxSize config <|> (failureReportMaxSize <$> mFailureReport)
     mMaxDiscardRatio = configQuickCheckMaxDiscardRatio config <|> (failureReportMaxDiscardRatio <$> mFailureReport)

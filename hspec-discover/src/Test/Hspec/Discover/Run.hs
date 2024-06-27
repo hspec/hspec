@@ -62,7 +62,7 @@ mkSpecModule src conf nodes =
   ( "{-# LINE 1 " . shows src . " #-}\n"
   . showString "{-# LANGUAGE NoImplicitPrelude #-}\n"
   . showString "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}\n"
-  . showString ("module " ++ moduleName src conf ++" where\n")
+  . showString ("module " ++ moduleName src conf ++ " where\n")
   . importList nodes
   . showString "import Test.Hspec.Discover\n"
   . maybe driver driverWithFormatter (configFormatter conf)
@@ -86,7 +86,7 @@ pathToModule :: FilePath -> String
 pathToModule f = toUpper m:ms
   where
     fileName = last $ splitDirectories f
-    m:ms = takeWhile (/='.') fileName
+    m:ms = takeWhile (/= '.') fileName
 
 driverWithFormatter :: String -> ShowS
 driverWithFormatter f =
