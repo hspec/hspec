@@ -1,4 +1,4 @@
-module Test.Hspec.Core.Extension.Spec (
+module Test.Hspec.Core.Extension.Spec {-# WARNING "This API is experimental." #-} (
   mapItems
 ) where
 

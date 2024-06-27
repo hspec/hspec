@@ -1,4 +1,5 @@
-module Test.Hspec.Core.Extension.Config (
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
+module Test.Hspec.Core.Extension.Config {-# WARNING "This API is experimental." #-} (
 -- * Types
   Config(..)
 , Path

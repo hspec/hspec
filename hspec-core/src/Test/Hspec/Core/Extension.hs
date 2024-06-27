@@ -1,5 +1,6 @@
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- | Stability: unstable
-module Test.Hspec.Core.Extension (
+module Test.Hspec.Core.Extension {-# WARNING "This API is experimental." #-} (
 -- * Lifecycle of a test run
 {- |
 A test run goes through four distinct phases:

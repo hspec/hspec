@@ -1,4 +1,4 @@
-module Test.Hspec.Core.Extension.Tree (
+module Test.Hspec.Core.Extension.Tree {-# WARNING "This API is experimental." #-} (
   SpecTree
 , mapItems
 , filterItems

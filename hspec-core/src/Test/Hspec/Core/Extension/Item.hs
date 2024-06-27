@@ -1,4 +1,4 @@
-module Test.Hspec.Core.Extension.Item (
+module Test.Hspec.Core.Extension.Item {-# WARNING "This API is experimental." #-} (
 -- * Types
   Item(..)
 , Location(..)
