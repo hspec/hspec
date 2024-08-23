@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide, not-home #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Test.Hspec.Discover {-# WARNING
