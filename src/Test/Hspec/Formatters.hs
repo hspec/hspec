@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK not-home #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- |
 -- Stability: deprecated
