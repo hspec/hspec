@@ -36,4 +36,4 @@ jobs:
       - run: util/dump-api
 
       - name: Check for uncommitted changes
-        run: git diff --quiet || (git diff --color && false)
+        run: git diff --color --exit-code
