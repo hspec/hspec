@@ -274,7 +274,7 @@ writeTransient new = do
   when reportProgress $ do
     write new
     liftIO $ IO.hFlush stdout
-    write $ "\r" ++ replicate (length new) ' ' ++ "\r"
+    write $ "\r\ESC[K"
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
