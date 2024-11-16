@@ -60,7 +60,7 @@ import           Test.Hspec.Core.Compat
 
 import qualified System.IO as IO
 import           System.IO (stdout)
-import           System.Console.ANSI
+import           System.Console.ANSI hiding (clearLine)
 import           Control.Monad.Trans.Reader (ReaderT(..), ask)
 import           Control.Monad.IO.Class
 import           Data.Char (isSpace)
@@ -271,10 +271,19 @@ getExpectedTotalCount = getConfigValue formatConfigExpectedTotalCount
 writeTransient :: String -> FormatM ()
 writeTransient new = do
   reportProgress <- getConfigValue formatConfigReportProgress
-  when reportProgress $ do
-    write new
-    liftIO $ IO.hFlush stdout
-    write $ "\r\ESC[K"
+  when reportProgress . liftIO $ do
+    bracket_ disableLineWrapping enableLineWrapping $ writePlain new
+    IO.hFlush stdout
+    clearLine
+  where
+    disableLineWrapping :: IO ()
+    disableLineWrapping = writePlain "\ESC[?7l"
+
+    enableLineWrapping :: IO ()
+    enableLineWrapping = writePlain "\ESC[?7h"
+
+    clearLine :: IO ()
+    clearLine = writePlain "\r\ESC[K"
 
 -- | Append some output to the report.
 write :: String -> FormatM ()
@@ -288,13 +297,16 @@ splitLines = groupBy (\ a b -> isNewline a == isNewline b)
 writeChunk :: String -> FormatM ()
 writeChunk str = do
   let
-    plainOutput = IO.hPutStr stdout str
+    plainOutput = writePlain str
     colorOutput color = bracket_ (hSetSGR stdout [color]) (hSetSGR stdout [Reset]) plainOutput
   mColor <- gets stateColor
   liftIO $ case mColor of
     Just (SetColor Foreground _ _) | all isSpace str -> plainOutput
     Just color -> colorOutput color
     Nothing -> plainOutput
+
+writePlain :: String -> IO ()
+writePlain = IO.hPutStr stdout
 
 -- | Set output color to red, run given action, and finally restore the default
 -- color.
