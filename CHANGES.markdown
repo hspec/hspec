@@ -1,3 +1,10 @@
+## Changes in 2.11.10 (2024-11-16)
+  - Add (experimental) extensions API
+  - Handle small terminal sizes more gracefully when reporting progress
+  - Correctly indent multi-line pending messages
+  - Use "erase in line" ANSI sequence to clear transient output (instead of
+    overwriting it with spaces)
+
 ## Changes in 2.11.9 (2024-05-24)
   - Compatibility with GHC 9.10.1
   - Drop support for GHC 7.10.3
