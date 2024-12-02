@@ -64,10 +64,13 @@ library
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Format
+      Test.Hspec.Api.Example.V1
+      Test.Hspec.Api.Example.V1.Options
       Test.Hspec.Core.Formatters
       Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.QuickCheck
+      Test.Hspec.Core.QuickCheck.Options
       Test.Hspec.Core.Util
   other-modules:
       GetOpt.Declarative
@@ -84,6 +87,7 @@ library
       Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
+      Test.Hspec.Core.Example.Options
       Test.Hspec.Core.Extension.Config.Type
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Formatters.Diff
@@ -158,6 +162,8 @@ test-suite spec
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
       NonEmpty
+      Test.Hspec.Api.Example.V1
+      Test.Hspec.Api.Example.V1.Options
       Test.Hspec.Core.Annotations
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
@@ -166,6 +172,7 @@ test-suite spec
       Test.Hspec.Core.Config.Options
       Test.Hspec.Core.Example
       Test.Hspec.Core.Example.Location
+      Test.Hspec.Core.Example.Options
       Test.Hspec.Core.Extension
       Test.Hspec.Core.Extension.Config
       Test.Hspec.Core.Extension.Config.Type
@@ -189,6 +196,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
+      Test.Hspec.Core.QuickCheck.Options
       Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Runner.Eval

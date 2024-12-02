@@ -35,10 +35,14 @@ import           Test.Hspec.Core.Compat
 import           Data.Char
 import           System.FilePath
 import qualified Data.CallStack as CallStack
+import           Data.Typeable
 
 import           Test.Hspec.Core.Example
+
 import           Test.Hspec.Core.Annotations (Annotations)
 import qualified Test.Hspec.Core.Annotations as Annotations
+
+import           Test.Hspec.Core.Example.Options
 
 -- | Internal tree data structure
 data Tree c a =
@@ -124,6 +128,9 @@ data Item a = Item {
   -- @since 2.12.0
 , itemAnnotations :: Annotations
 
+  -- | A parser for custom options that are accepted by this spec item
+, itemOptions :: Maybe (TypeRep, OptionsParser OptionsSet)
+
   -- | Example for behavior
 , itemExample :: Params -> (ActionWith a -> IO ()) -> ProgressCallback -> IO Result
 }
@@ -151,6 +158,7 @@ specItem s e = Leaf Item {
   , itemIsParallelizable = Nothing
   , itemIsFocused = False
   , itemAnnotations = mempty
+  , itemOptions = exampleOptions e
   , itemExample = safeEvaluateExample e
   }
 

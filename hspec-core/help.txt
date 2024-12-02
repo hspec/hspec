@@ -51,6 +51,9 @@ FORMATTER OPTIONS
   -p[N]    --print-slow-items[=N]  print the N slowest spec items (default: 10)
            --[no-]expert           be less verbose
 
+OPTIONS FOR SMALLCHECK
+    --depth=N  maximum depth of generated test values for SmallCheck properties
+
 OPTIONS FOR QUICKCHECK
   -a N  --qc-max-success=N  maximum number of successful tests before a
                             QuickCheck property succeeds
@@ -59,6 +62,3 @@ OPTIONS FOR QUICKCHECK
         --qc-max-size=N     size to use for the biggest test cases
         --qc-max-shrinks=N  maximum number of shrinks to perform before giving
                             up (a value of 0 turns shrinking off)
-
-OPTIONS FOR SMALLCHECK
-    --depth=N  maximum depth of generated test values for SmallCheck properties

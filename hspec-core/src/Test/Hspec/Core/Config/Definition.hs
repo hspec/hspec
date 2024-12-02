@@ -19,11 +19,19 @@ module Test.Hspec.Core.Config.Definition (
 , commandLineOnlyOptions
 , formatterOptions
 , smallCheckOptions
-, quickCheckOptions
 , runnerOptions
 
 , flag
 , option
+
+, deprecatedSeed
+, deprecatedMaxSuccess
+, deprecatedMaxDiscardRatio
+, deprecatedMaxSize
+, deprecatedMaxShrinks
+
+, setConfigValues
+, modifyQuickCheckOptions
 
 #ifdef TEST
 , splitOn
@@ -39,6 +47,11 @@ import           System.Process (system)
 
 import           Test.Hspec.Core.Annotations (Annotations)
 import qualified Test.Hspec.Core.Annotations as Annotations
+
+
+import           Test.Hspec.Core.QuickCheck.Options (QuickCheckOptions(..))
+import qualified Test.Hspec.Core.QuickCheck.Options as QuickCheck
+import           Test.Hspec.Core.Example.Options (OptionsSet, modifyOptions)
 
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
@@ -129,9 +142,30 @@ data Config = Config {
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
 , configAnnotations :: Annotations
+, configExtensionOptions :: [(String, [Option Config])] -- ^ @since 2.12.0
+, configValues :: OptionsSet -- ^ @since 2.12.0
 }
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 {-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
+{-# DEPRECATED configQuickCheckMaxSuccess "Use `configValues` instead." #-}
+{-# DEPRECATED configQuickCheckMaxDiscardRatio "Use `configValues` instead." #-}
+{-# DEPRECATED configQuickCheckMaxSize "Use `configValues` instead." #-}
+{-# DEPRECATED configQuickCheckMaxShrinks "Use `configValues` instead." #-}
+
+deprecatedSeed :: Config -> Maybe Integer
+deprecatedSeed = configQuickCheckSeed
+
+deprecatedMaxSuccess :: Config -> Maybe Int
+deprecatedMaxSuccess = configQuickCheckMaxSuccess
+
+deprecatedMaxDiscardRatio :: Config -> Maybe Int
+deprecatedMaxDiscardRatio = configQuickCheckMaxDiscardRatio
+
+deprecatedMaxSize :: Config -> Maybe Int
+deprecatedMaxSize = configQuickCheckMaxSize
+
+deprecatedMaxShrinks :: Config -> Maybe Int
+deprecatedMaxShrinks = configQuickCheckMaxShrinks
 
 mkDefaultConfig :: [(String, FormatConfig -> IO Format)] -> Config
 mkDefaultConfig formatters = Config {
@@ -174,6 +208,8 @@ mkDefaultConfig formatters = Config {
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
 , configAnnotations = mempty
+, configExtensionOptions = []
+, configValues = mempty
 }
 
 defaultDiffContext :: Int
@@ -314,29 +350,6 @@ smallCheckOptions = [
 setDepth :: Int -> Config -> Config
 setDepth n c = c {configSmallCheckDepth = Just n}
 
-quickCheckOptions :: [Option Config]
-quickCheckOptions = [
-    Option "qc-max-success" (Just 'a') (argument "N" readMaybe setMaxSuccess) "maximum number of successful tests before a QuickCheck property succeeds" True
-  , option "qc-max-discard" (argument "N" readMaybe setMaxDiscardRatio) "maximum number of discarded tests per successful test before giving up"
-  , option "qc-max-size" (argument "N" readMaybe setMaxSize) "size to use for the biggest test cases"
-  , option "qc-max-shrinks" (argument "N" readMaybe setMaxShrinks) "maximum number of shrinks to perform before giving up (a value of 0 turns shrinking off)"
-
-    -- for compatibility with test-framework
-  , undocumented $ option "maximum-generated-tests" (argument "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
-  ]
-
-setMaxSuccess :: Int -> Config -> Config
-setMaxSuccess n c = c {configQuickCheckMaxSuccess = Just n}
-
-setMaxDiscardRatio :: Int -> Config -> Config
-setMaxDiscardRatio n c = c {configQuickCheckMaxDiscardRatio = Just n}
-
-setMaxSize :: Int -> Config -> Config
-setMaxSize n c = c {configQuickCheckMaxSize = Just n}
-
-setMaxShrinks :: Int -> Config -> Config
-setMaxShrinks n c = c {configQuickCheckMaxShrinks = Just n}
-
 setSeed :: Integer -> Config -> Config
 setSeed n c = c {configSeed = Just n}
 
@@ -389,6 +402,7 @@ runnerOptions = [
   , mkOptionNoArg "rerun-all-on-success" Nothing setRerunAllOnSuccess "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
   , mkOption "jobs" (Just 'j') (argument "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
   , option "seed" (argument "N" readMaybe setSeed) "used seed for --randomize and QuickCheck properties"
+  , undocumented $ option "maximum-generated-tests" (argument "NUMBER" readMaybe setMaxSuccess) "how many automated tests something like QuickCheck should try, by default"
   ]
   where
     strict = [FailOnFocused, FailOnPending]
@@ -459,6 +473,18 @@ runnerOptions = [
 
     setRerun config = config {configRerun = True}
     setRerunAllOnSuccess config = config {configRerunAllOnSuccess = True}
+
+    setMaxSuccess :: Int -> Config -> Config
+    setMaxSuccess n = modifyQuickCheckOptions (QuickCheck.setMaxSuccess n)
+
+modifyQuickCheckOptions :: (QuickCheckOptions -> QuickCheckOptions) -> Config -> Config
+modifyQuickCheckOptions = modifyConfigValues . modifyOptions
+
+modifyConfigValues :: (OptionsSet -> OptionsSet) -> Config -> Config
+modifyConfigValues = modifyWith configValues setConfigValues
+
+setConfigValues :: OptionsSet -> Config -> Config
+setConfigValues values config = config { configValues = values }
 
 commandLineOnlyOptions :: [Option Config]
 commandLineOnlyOptions = [

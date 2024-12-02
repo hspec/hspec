@@ -2,17 +2,28 @@
 module Test.Hspec.Core.Config.OptionsSpec (spec) where
 
 import           Prelude ()
-import           Helper
+import           Helper hiding (Args(..))
 
 import           System.Exit
 
-import           Test.Hspec.Core.Config
+import           Test.Hspec.Core.Config hiding (defaultConfig)
+import qualified Test.Hspec.Core.Config as Config
 import           Test.Hspec.Core.Config.Options hiding (parseOptions)
 import qualified Test.Hspec.Core.Config.Options as Options
+import           Test.Hspec.Core.Example (exampleOptions)
+import           Test.Hspec.Core.Example.Options
+import           Test.Hspec.Core.Runner (toConfigOptions)
+import           Test.Hspec.Core.QuickCheck.Options (QuickCheckOptions(..))
 
 fromLeft :: Either a b -> a
 fromLeft (Left a) = a
 fromLeft _ = error "fromLeft: No left value!"
+
+defaultConfig :: Config
+defaultConfig = Config.defaultConfig { configExtensionOptions = map toConfigOptions quickCheckOptions }
+  where
+    quickCheckOptions :: [OptionsParser OptionsSet]
+    quickCheckOptions = map snd . maybeToList . exampleOptions $ property True
 
 spec :: Spec
 spec = do
@@ -142,7 +153,7 @@ spec = do
 
     context "with --qc-max-success" $ do
       it "sets QuickCheck maxSuccess" $ do
-        maxSuccess . configQuickCheckArgs <$> (parseOptions [] Nothing [] ["--qc-max-success", "23"]) `shouldBe`  Right 23
+        maxSuccess . getOptions . configValues <$> (parseOptions [] Nothing [] ["--qc-max-success", "23"]) `shouldBe`  Right (Just 23)
 
       context "when given an invalid argument" $ do
         it "returns an error message" $ do
@@ -150,7 +161,7 @@ spec = do
 
     context "with --qc-max-shrinks" $ do
       it "sets QuickCheck maxShrinks" $ do
-        maxShrinks . configQuickCheckArgs <$> (parseOptions [] Nothing [] ["--qc-max-shrinks", "23"]) `shouldBe`  Right 23
+        maxShrinks . getOptions . configValues <$> (parseOptions [] Nothing [] ["--qc-max-shrinks", "23"]) `shouldBe`  Right (Just 23)
 
     context "with --depth" $ do
       it "sets depth parameter for SmallCheck" $ do
