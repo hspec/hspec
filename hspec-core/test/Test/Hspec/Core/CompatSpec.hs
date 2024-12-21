@@ -7,7 +7,6 @@ import           Helper
 import           System.Environment
 
 data SomeType = SomeType
-  deriving Typeable
 
 spec :: Spec
 spec = do

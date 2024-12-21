@@ -9,28 +9,7 @@ packages:
   hspec-discover/integration-test
   doc/_includes/formatter/discover
 
-package hspec-meta
-  ghc-options: -Werror
-
-package hspec
-  ghc-options: -Werror
-
-package hspec-discover
-  ghc-options: -Werror
-
-package hspec-core
-  ghc-options: -Werror
-
-package hspec-api
-  ghc-options: -Werror
-
-package hspec-contrib
-  ghc-options: -Werror
-
-package example
-  ghc-options: -Werror
-
-package hspec-discover-integration-tests
+program-options
   ghc-options: -Werror
 
 tests: True

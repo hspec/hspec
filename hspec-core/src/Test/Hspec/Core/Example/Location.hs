@@ -1,9 +1,11 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module Test.Hspec.Core.Example.Location (
   Location(..)
 , extractLocation
 
 #ifdef TEST
+, parseBacktraces
 , parseAssertionFailed
 , parseCallStack
 , parseLocation
@@ -18,6 +20,10 @@ import           Test.Hspec.Core.Compat
 
 import           Data.Char
 import           GHC.IO.Exception
+
+#if MIN_VERSION_base(4,21,0)
+import           Control.Exception.Context
+#endif
 
 #ifdef mingw32_HOST_OS
 import           System.FilePath
@@ -37,7 +43,26 @@ extractLocation e =
   <|> locationFromRecConError e
   <|> locationFromIOException e
   <|> locationFromNoMethodError e
+#if !MIN_VERSION_base(4,21,0)
   <|> locationFromAssertionFailed e
+#else
+  <|> locationFromSomeException e
+
+locationFromSomeException :: SomeException -> Maybe Location
+locationFromSomeException = someExceptionContext >>> locationFromExceptionContext
+
+locationFromExceptionContext :: ExceptionContext -> Maybe Location
+locationFromExceptionContext = displayExceptionContext >>> parseBacktraces
+#endif
+
+_ignoreUnusedWarning = (parseBacktraces, locationFromAssertionFailed)
+
+parseBacktraces :: String -> Maybe Location
+parseBacktraces =
+      lines
+  >>> dropWhile (/= "HasCallStack backtrace:") >>> drop 1
+  >>> takeWhile (isPrefixOf "  ")
+  >>> parseCallStack
 
 locationFromNoMethodError :: SomeException -> Maybe Location
 locationFromNoMethodError e = case fromException e of
@@ -50,13 +75,17 @@ locationFromAssertionFailed e = case fromException e of
   Nothing -> Nothing
 
 parseAssertionFailed :: String -> Maybe Location
-parseAssertionFailed loc = parseCallStack loc <|> parseSourceSpan loc
+parseAssertionFailed loc = parseCallStack (lines loc) <|> parseSourceSpan loc
 
 locationFromErrorCall :: SomeException -> Maybe Location
 locationFromErrorCall e = case fromException e of
+#if MIN_VERSION_base(4,21,0)
+  Just (ErrorCall _) -> Nothing
+#else
   Just (ErrorCallWithLocation err loc) ->
-    parseCallStack loc <|>
+    parseCallStack (lines loc) <|>
     fromPatternMatchFailureInDoExpression err
+#endif
   Nothing -> Nothing
 
 locationFromPatternMatchFail :: SomeException -> Maybe Location
@@ -83,8 +112,8 @@ fromPatternMatchFailureInDoExpression input =
   stripPrefix "Pattern match failure in do expression at " input >>= parseSourceSpan
 #endif
 
-parseCallStack :: String -> Maybe Location
-parseCallStack input = case reverse (lines input) of
+parseCallStack :: [String] -> Maybe Location
+parseCallStack input = case reverse input of
   [] -> Nothing
   line : _ -> findLocation line
   where
