@@ -598,7 +598,7 @@ spec = do
             , "  1) foo"
             , "       uncaught exception: MyException"
             , "       my exception"
-#if MIN_VERSION_base(4,20,0)
+#if MIN_VERSION_base(4,20,0) && !MIN_VERSION_base(4,21,0)
             , "       HasCallStack backtrace:"
             , "       "
 #endif

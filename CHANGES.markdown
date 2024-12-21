@@ -1,3 +1,6 @@
+## Changes in 2.11.11 (2025-02-17)
+  - Compatibility with GHC 9.12
+
 ## Changes in 2.11.10 (2024-11-16)
   - Add (experimental) extensions API
   - Handle small terminal sizes more gracefully when reporting progress

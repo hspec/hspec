@@ -67,12 +67,15 @@ jobs:
           - 9.6.3
           - 9.6.4
           - 9.6.5
+          - 9.6.6
           - 9.8.1
           - 9.8.2
+          - 9.8.4
           - 9.10.1
+          - 9.12.1
         include:
-          # - os: macos-12
-          #   ghc: system
+          - os: macos-15
+            ghc: system
           - os: windows-latest
             ghc: system
 

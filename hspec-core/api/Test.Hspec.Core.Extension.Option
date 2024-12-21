@@ -1,0 +1,7 @@
+argument :: String -> String -> (String -> hspec-core:Test.Hspec.Core.Config.Definition.Config -> Maybe hspec-core:Test.Hspec.Core.Config.Definition.Config) -> String -> Option
+flag :: String -> (Bool -> hspec-core:Test.Hspec.Core.Config.Definition.Config -> hspec-core:Test.Hspec.Core.Config.Definition.Config) -> String -> Option
+noArgument :: String -> (hspec-core:Test.Hspec.Core.Config.Definition.Config -> hspec-core:Test.Hspec.Core.Config.Definition.Config) -> String -> Option
+optionalArgument :: String -> String -> (Maybe String -> hspec-core:Test.Hspec.Core.Config.Definition.Config -> Maybe hspec-core:Test.Hspec.Core.Config.Definition.Config) -> String -> Option
+type Option :: *
+newtype Option = hspec-core:Test.Hspec.Core.Extension.Config.Type.Option
+  hspec-core:Test.Hspec.Core.Extension.Config.Type.unOption :: hspec-core:GetOpt.Declarative.Types.Option hspec-core:Test.Hspec.Core.Config.Definition.Config

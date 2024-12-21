@@ -14,7 +14,7 @@ import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Example.Location
 
 class SomeClass a where
-    someMethod :: a -> IO ()
+  someMethod :: a -> IO ()
 
 instance SomeClass () where
 
@@ -96,9 +96,31 @@ spec = do
         Left e <- try . evaluate $ assert False ()
         extractLocation e `shouldBe` location
 
+  describe "parseBacktraces" $ do
+    it "parses Location from Backtraces" $ do
+      let
+        input :: String
+        input = unlines [
+            "Cost-centre stack backtrace:"
+          , "  ..."
+          , "IPE backtrace:"
+          , "  ..."
+          , "HasCallStack backtrace:"
+          , "  foo, called at Foo.hs:23:7 in main:Foo"
+          , "  bar, called at Foo.hs:42:7 in main:Foo"
+          , "  baz, called at Foo.hs:65:9 in main:Foo"
+          , "..."
+          , "  ..."
+          ]
+      parseBacktraces input `shouldBe` Just Location {
+        locationFile = "Foo.hs"
+      , locationLine = 65
+      , locationColumn = 9
+      }
+
   describe "parseCallStack" $ do
     it "parses Location from call stack" $ do
-      let input = unlines [
+      let input = [
               "CallStack (from HasCallStack):"
             , "  error, called at libraries/base/GHC/Err.hs:79:14 in base:GHC.Err"
             , "  undefined, called at test/Test/Hspec.hs:13:32 in main:Test.Hspec"
