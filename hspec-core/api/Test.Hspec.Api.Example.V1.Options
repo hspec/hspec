@@ -1,0 +1,19 @@
+type Option :: * -> *
+data Option a = hspec-core:Test.Hspec.Core.Example.Options.Option
+  hspec-core:Test.Hspec.Core.Example.Options.optionShort :: Maybe Char
+  hspec-core:Test.Hspec.Core.Example.Options.optionName :: String
+  hspec-core:Test.Hspec.Core.Example.Options.optionPlaceholder :: String
+  hspec-core:Test.Hspec.Core.Example.Options.optionParser :: String -> a -> Maybe a
+  hspec-core:Test.Hspec.Core.Example.Options.optionHelp :: String
+type Options :: * -> Constraint
+class base:Data.Typeable.Internal.Typeable a => Options a where
+  defaultOptions :: a
+  optionsParser :: Maybe (OptionsParser a)
+  {-# MINIMAL defaultOptions, optionsParser #-}
+type OptionsParser :: * -> *
+data OptionsParser a = hspec-core:Test.Hspec.Core.Example.Options.OptionsParser
+  hspec-core:Test.Hspec.Core.Example.Options.optionsParserTitle :: String
+  hspec-core:Test.Hspec.Core.Example.Options.optionsParserFlags :: [Option a]
+option :: Maybe Char -> String -> String -> (String -> a -> Maybe a) -> String -> Option a
+options :: String -> [Option a] -> Maybe (OptionsParser a)
+withRead :: Read a => (a -> b -> b) -> String -> b -> Maybe b

@@ -798,9 +798,26 @@ spec = do
       it "passes specified maxSize to QuickCheck properties" $ do
         ["--qc-max-size", "23"] `shouldUseArgs` (QC.maxSize, 23)
 
+      it "" $ do
+        (
+            H.modifyConfig $ \ config -> config {
+              H.configQuickCheckMaxSize = Just 42
+            }
+          , []
+          ) `specShouldUseArgs` (QC.maxSize, 42)
+
+
     context "with --qc-max-shrinks" $ do
       it "passes specified maxShrinks to QuickCheck properties" $ do
         ["--qc-max-shrinks", "23"] `shouldUseArgs` (QC.maxShrinks, 23)
+
+      it "" $ do
+        (
+            H.modifyConfig $ \ config -> config {
+              H.configQuickCheckMaxShrinks = Just 42
+            }
+          , []
+          ) `specShouldUseArgs` (QC.maxShrinks, 42)
 
     describe "Test.QuickCheck.Args.chatty" $ do
       let

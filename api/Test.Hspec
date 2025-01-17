@@ -2,9 +2,12 @@ example :: Expectation -> Expectation
 type ActionWith :: * -> *
 type ActionWith a = a -> IO ()
 type Example :: * -> Constraint
-class Example e where
+class hspec-core:Test.Hspec.Core.Example.Options.Options (hspec-core:Test.Hspec.Core.Example.Opt e) => Example e where
   type Arg :: * -> *
   type family Arg e
+    Default: ()
+  type hspec-core:Test.Hspec.Core.Example.Opt :: * -> *
+  type family hspec-core:Test.Hspec.Core.Example.Opt e
     Default: ()
   hspec-core:Test.Hspec.Core.Example.evaluateExample :: e -> hspec-core:Test.Hspec.Core.Example.Params -> (ActionWith (Arg e) -> IO ()) -> hspec-core:Test.Hspec.Core.Example.ProgressCallback -> IO hspec-core:Test.Hspec.Core.Example.Result
   {-# MINIMAL evaluateExample #-}
