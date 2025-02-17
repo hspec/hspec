@@ -19,7 +19,7 @@ data FormatConfig = FormatConfig
   formatConfigExternalDiff :: Maybe (String -> String -> IO ())
   formatConfigPrettyPrint :: Bool
   formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
-  formatConfigFormatException :: GHC.Exception.Type.SomeException -> String
+  formatConfigFormatException :: GHC.Internal.Exception.Type.SomeException -> String
   formatConfigPrintTimes :: Bool
   formatConfigHtmlOutput :: Bool
   formatConfigPrintCpuTime :: Bool
@@ -45,7 +45,7 @@ data FailureReason
   | Reason String
   | ColorizedReason String
   | ExpectedButGot (Maybe String) String String
-  | Error (Maybe String) GHC.Exception.Type.SomeException
+  | Error (Maybe String) GHC.Internal.Exception.Type.SomeException
 type Location :: *
 data Location = Location
   locationFile :: FilePath

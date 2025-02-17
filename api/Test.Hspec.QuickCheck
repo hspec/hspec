@@ -1,6 +1,6 @@
-fprop :: (GHC.Stack.Types.HasCallStack, Test.QuickCheck.Property.Testable prop) => String -> prop -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
-prop :: (GHC.Stack.Types.HasCallStack, Test.QuickCheck.Property.Testable prop) => String -> prop -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
-xprop :: (GHC.Stack.Types.HasCallStack, Test.QuickCheck.Property.Testable prop) => String -> prop -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
+fprop :: (GHC.Internal.Stack.Types.HasCallStack, Test.QuickCheck.Property.Testable prop) => String -> prop -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
+prop :: (GHC.Internal.Stack.Types.HasCallStack, Test.QuickCheck.Property.Testable prop) => String -> prop -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
+xprop :: (GHC.Internal.Stack.Types.HasCallStack, Test.QuickCheck.Property.Testable prop) => String -> prop -> hspec-core:Test.Hspec.Core.Spec.Monad.Spec
 modifyArgs :: (Test.QuickCheck.Test.Args -> Test.QuickCheck.Test.Args) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
 modifyMaxDiscardRatio :: (Int -> Int) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a
 modifyMaxShrinks :: (Int -> Int) -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a -> hspec-core:Test.Hspec.Core.Spec.Monad.SpecWith a

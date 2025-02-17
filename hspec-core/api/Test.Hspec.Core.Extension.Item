@@ -1,8 +1,8 @@
-getAnnotation :: base:Data.Typeable.Internal.Typeable value => Item a -> Maybe value
+getAnnotation :: ghc-internal:GHC.Internal.Data.Typeable.Internal.Typeable value => Item a -> Maybe value
 isFocused :: Item a -> Bool
 pending :: Item a -> Item a
 pendingWith :: String -> Item a -> Item a
-setAnnotation :: base:Data.Typeable.Internal.Typeable value => value -> Item a -> Item a
+setAnnotation :: ghc-internal:GHC.Internal.Data.Typeable.Internal.Typeable value => value -> Item a -> Item a
 type ActionWith :: * -> *
 type ActionWith a = a -> IO ()
 type FailureReason :: *
@@ -11,7 +11,7 @@ data FailureReason
   | Reason String
   | ColorizedReason String
   | ExpectedButGot (Maybe String) String String
-  | Error (Maybe String) GHC.Exception.Type.SomeException
+  | Error (Maybe String) GHC.Internal.Exception.Type.SomeException
 type Item :: * -> *
 data Item a = Item
   itemRequirement :: String

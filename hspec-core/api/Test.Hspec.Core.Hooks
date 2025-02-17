@@ -1,17 +1,17 @@
 after :: ActionWith a -> SpecWith a -> SpecWith a
-afterAll :: GHC.Stack.Types.HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
-afterAll_ :: GHC.Stack.Types.HasCallStack => IO () -> SpecWith a -> SpecWith a
+afterAll :: GHC.Internal.Stack.Types.HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
+afterAll_ :: GHC.Internal.Stack.Types.HasCallStack => IO () -> SpecWith a -> SpecWith a
 after_ :: IO () -> SpecWith a -> SpecWith a
 around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
-aroundAll :: GHC.Stack.Types.HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec
-aroundAllWith :: GHC.Stack.Types.HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
-aroundAll_ :: GHC.Stack.Types.HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
+aroundAll :: GHC.Internal.Stack.Types.HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec
+aroundAllWith :: GHC.Internal.Stack.Types.HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
+aroundAll_ :: GHC.Internal.Stack.Types.HasCallStack => (IO () -> IO ()) -> SpecWith a -> SpecWith a
 aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 around_ :: (IO () -> IO ()) -> SpecWith a -> SpecWith a
 before :: IO a -> SpecWith a -> Spec
-beforeAll :: GHC.Stack.Types.HasCallStack => IO a -> SpecWith a -> Spec
-beforeAllWith :: GHC.Stack.Types.HasCallStack => (b -> IO a) -> SpecWith a -> SpecWith b
-beforeAll_ :: GHC.Stack.Types.HasCallStack => IO () -> SpecWith a -> SpecWith a
+beforeAll :: GHC.Internal.Stack.Types.HasCallStack => IO a -> SpecWith a -> Spec
+beforeAllWith :: GHC.Internal.Stack.Types.HasCallStack => (b -> IO a) -> SpecWith a -> SpecWith b
+beforeAll_ :: GHC.Internal.Stack.Types.HasCallStack => IO () -> SpecWith a -> SpecWith a
 beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
 before_ :: IO () -> SpecWith a -> SpecWith a
 ignoreSubject :: SpecWith () -> SpecWith a

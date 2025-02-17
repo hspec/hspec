@@ -11,7 +11,7 @@ class Example e where
 type Expectation :: *
 type Expectation = Test.HUnit.Lang.Assertion
 type HasCallStack :: Constraint
-type HasCallStack = ?callStack::GHC.Stack.Types.CallStack :: Constraint
+type HasCallStack = ?callStack::GHC.Internal.Stack.Types.CallStack :: Constraint
 type Selector :: * -> *
 type Selector a = a -> Bool
 type Spec :: *
@@ -22,10 +22,10 @@ after :: ActionWith a -> SpecWith a -> SpecWith a
 afterAll :: HasCallStack => ActionWith a -> SpecWith a -> SpecWith a
 afterAll_ :: HasCallStack => IO () -> SpecWith a -> SpecWith a
 after_ :: IO () -> SpecWith a -> SpecWith a
-anyArithException :: Selector GHC.Exception.Type.ArithException
-anyErrorCall :: Selector GHC.Exception.ErrorCall
-anyException :: Selector GHC.Exception.Type.SomeException
-anyIOException :: Selector GHC.IO.Exception.IOException
+anyArithException :: Selector GHC.Internal.Exception.Type.ArithException
+anyErrorCall :: Selector GHC.Internal.Exception.ErrorCall
+anyException :: Selector GHC.Internal.Exception.Type.SomeException
+anyIOException :: Selector GHC.Internal.IO.Exception.IOException
 around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
 aroundAll :: HasCallStack => (ActionWith a -> IO ()) -> SpecWith a -> Spec
 aroundAllWith :: HasCallStack => (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
@@ -40,7 +40,7 @@ beforeWith :: (b -> IO a) -> SpecWith a -> SpecWith b
 before_ :: IO () -> SpecWith a -> SpecWith a
 context :: HasCallStack => String -> SpecWith a -> SpecWith a
 describe :: HasCallStack => String -> SpecWith a -> SpecWith a
-errorCall :: String -> Selector GHC.Exception.ErrorCall
+errorCall :: String -> Selector GHC.Internal.Exception.ErrorCall
 expectationFailure :: HasCallStack => String -> Expectation
 fcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
 fdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
@@ -67,7 +67,7 @@ shouldNotSatisfy :: (HasCallStack, Show a) => a -> (a -> Bool) -> Expectation
 shouldReturn :: (HasCallStack, Show a, Eq a) => IO a -> a -> Expectation
 shouldSatisfy :: (HasCallStack, Show a) => a -> (a -> Bool) -> Expectation
 shouldStartWith :: (HasCallStack, Show a, Eq a) => [a] -> [a] -> Expectation
-shouldThrow :: (HasCallStack, GHC.Exception.Type.Exception e) => IO a -> Selector e -> Expectation
+shouldThrow :: (HasCallStack, GHC.Internal.Exception.Type.Exception e) => IO a -> Selector e -> Expectation
 specify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 xcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
 xdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
