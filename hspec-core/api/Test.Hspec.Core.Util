@@ -1,12 +1,12 @@
 type Path :: *
 type Path = ([String], String)
 filterPredicate :: String -> Path -> Bool
-formatException :: GHC.Exception.Type.SomeException -> String
-formatExceptionWith :: (GHC.Exception.Type.SomeException -> String) -> GHC.Exception.Type.SomeException -> String
+formatException :: GHC.Internal.Exception.Type.SomeException -> String
+formatExceptionWith :: (GHC.Internal.Exception.Type.SomeException -> String) -> GHC.Internal.Exception.Type.SomeException -> String
 formatRequirement :: Path -> String
 joinPath :: Path -> String
 lineBreaksAt :: Int -> String -> [String]
 pluralize :: Int -> String -> String
-safeTry :: IO a -> IO (Either GHC.Exception.Type.SomeException a)
+safeTry :: IO a -> IO (Either GHC.Internal.Exception.Type.SomeException a)
 strip :: String -> String
 stripAnsi :: String -> String

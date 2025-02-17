@@ -33,7 +33,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrint :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
-  hspec-core:Test.Hspec.Core.Config.Definition.configFormatException :: GHC.Exception.Type.SomeException -> String
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormatException :: GHC.Internal.Exception.Type.SomeException -> String
   hspec-core:Test.Hspec.Core.Config.Definition.configTimes :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configExpertMode :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Format)]
@@ -57,7 +57,7 @@ data FailureReason
   | Reason String
   | ColorizedReason String
   | ExpectedButGot (Maybe String) String String
-  | Error (Maybe String) GHC.Exception.Type.SomeException
+  | Error (Maybe String) GHC.Internal.Exception.Type.SomeException
 type Format :: *
 type Format = Event -> IO ()
 type FormatConfig :: *
@@ -69,7 +69,7 @@ data FormatConfig = FormatConfig
   formatConfigDiffContext :: Maybe Int
   formatConfigExternalDiff :: Maybe (String -> String -> IO ())
   formatConfigPrettyPrintFunction :: Maybe (String -> String -> (String, String))
-  formatConfigFormatException :: GHC.Exception.Type.SomeException -> String
+  formatConfigFormatException :: GHC.Internal.Exception.Type.SomeException -> String
   formatConfigPrintTimes :: Bool
   formatConfigHtmlOutput :: Bool
   formatConfigPrintCpuTime :: Bool

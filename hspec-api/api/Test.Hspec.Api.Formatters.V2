@@ -48,7 +48,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrint :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
-  hspec-core:Test.Hspec.Core.Config.Definition.configFormatException :: GHC.Exception.Type.SomeException -> String
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormatException :: GHC.Internal.Exception.Type.SomeException -> String
   hspec-core:Test.Hspec.Core.Config.Definition.configTimes :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configExpertMode :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
@@ -62,7 +62,7 @@ data FailureReason
   | NoReason
   | Reason String
   | ExpectedButGot (Maybe String) String String
-  | Error (Maybe String) GHC.Exception.Type.SomeException
+  | Error (Maybe String) GHC.Internal.Exception.Type.SomeException
 type FailureRecord :: *
 data FailureRecord = FailureRecord
   failureRecordLocation :: Maybe Location
@@ -70,7 +70,7 @@ data FailureRecord = FailureRecord
   failureRecordMessage :: FailureReason
 type role FormatM nominal
 type FormatM :: * -> *
-newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.Reader.ReaderT (GHC.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
+newtype FormatM a = hspec-core:Test.Hspec.Core.Formatters.Internal.FormatM (Control.Monad.Trans.Reader.ReaderT (GHC.Internal.IORef.IORef hspec-core:Test.Hspec.Core.Formatters.Internal.FormatterState) IO a)
 type Item :: *
 data Item = Item
   itemLocation :: Maybe Location
@@ -98,7 +98,7 @@ type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
 diffContext :: FormatM (Maybe Int)
 externalDiffAction :: FormatM (Maybe (String -> String -> IO ()))
 extraChunk :: String -> FormatM ()
-formatException :: GHC.Exception.Type.SomeException -> String
+formatException :: GHC.Internal.Exception.Type.SomeException -> String
 formatLocation :: Location -> String
 getCPUTime :: FormatM (Maybe Seconds)
 getExpectedTotalCount :: FormatM Int

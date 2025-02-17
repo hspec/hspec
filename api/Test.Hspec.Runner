@@ -35,7 +35,7 @@ data Config = Config
   configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
   configPrettyPrint :: Bool
   configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
-  configFormatException :: GHC.Exception.Type.SomeException -> String
+  configFormatException :: GHC.Internal.Exception.Type.SomeException -> String
   configTimes :: Bool
   configExpertMode :: Bool
   configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]

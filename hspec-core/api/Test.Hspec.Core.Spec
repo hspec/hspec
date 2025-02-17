@@ -34,9 +34,9 @@ data FailureReason
   | Reason String
   | ColorizedReason String
   | ExpectedButGot (Maybe String) String String
-  | Error (Maybe String) GHC.Exception.Type.SomeException
+  | Error (Maybe String) GHC.Internal.Exception.Type.SomeException
 type HasCallStack :: Constraint
-type HasCallStack = ?callStack::GHC.Stack.Types.CallStack :: Constraint
+type HasCallStack = ?callStack::GHC.Internal.Stack.Types.CallStack :: Constraint
 type Item :: * -> *
 data Item a = Item
   itemRequirement :: String
@@ -72,7 +72,7 @@ type Spec = SpecWith ()
 type role SpecM nominal nominal
 type SpecM :: * -> * -> *
 newtype SpecM a r = SpecM
-  hspec-core:Test.Hspec.Core.Spec.Monad.unSpecM :: Control.Monad.Trans.Writer.Lazy.WriterT (base:Data.Semigroup.Internal.Endo hspec-core:Test.Hspec.Core.Config.Definition.Config, [SpecTree a]) (Control.Monad.Trans.Reader.ReaderT hspec-core:Test.Hspec.Core.Spec.Monad.Env IO) r
+  hspec-core:Test.Hspec.Core.Spec.Monad.unSpecM :: Control.Monad.Trans.Writer.Lazy.WriterT (GHC.Internal.Data.Semigroup.Internal.Endo hspec-core:Test.Hspec.Core.Config.Definition.Config, [SpecTree a]) (Control.Monad.Trans.Reader.ReaderT hspec-core:Test.Hspec.Core.Spec.Monad.Env IO) r
 type SpecTree :: * -> *
 type SpecTree a = Tree (IO ()) (Item a)
 type SpecWith :: * -> *
@@ -99,7 +99,7 @@ modifyParams :: (Params -> Params) -> SpecWith a -> SpecWith a
 pruneForest :: [Tree c a] -> [Tree c a]
 pruneTree :: Tree c a -> Maybe (Tree c a)
 runIO :: IO r -> SpecM a r
-runSpecM :: SpecWith a -> IO (base:Data.Semigroup.Internal.Endo hspec-core:Test.Hspec.Core.Config.Definition.Config, [SpecTree a])
+runSpecM :: SpecWith a -> IO (GHC.Internal.Data.Semigroup.Internal.Endo hspec-core:Test.Hspec.Core.Config.Definition.Config, [SpecTree a])
 safeEvaluate :: IO Result -> IO Result
 safeEvaluateExample :: Example e => e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 specGroup :: HasCallStack => String -> [SpecTree a] -> SpecTree a

@@ -1,4 +1,4 @@
-registerOptions :: GHC.Stack.Types.HasCallStack => [Option] -> SpecWith a
+registerOptions :: GHC.Internal.Stack.Types.HasCallStack => [Option] -> SpecWith a
 registerTransformation :: (Config -> [SpecTree] -> [SpecTree]) -> SpecWith a
 type Config :: *
 data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
@@ -32,7 +32,7 @@ data Config = hspec-core:Test.Hspec.Core.Config.Definition.Config
   hspec-core:Test.Hspec.Core.Config.Definition.configExternalDiff :: Maybe (Maybe Int -> String -> String -> IO ())
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrint :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configPrettyPrintFunction :: Bool -> String -> String -> (String, String)
-  hspec-core:Test.Hspec.Core.Config.Definition.configFormatException :: GHC.Exception.Type.SomeException -> String
+  hspec-core:Test.Hspec.Core.Config.Definition.configFormatException :: GHC.Internal.Exception.Type.SomeException -> String
   hspec-core:Test.Hspec.Core.Config.Definition.configTimes :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configExpertMode :: Bool
   hspec-core:Test.Hspec.Core.Config.Definition.configAvailableFormatters :: [(String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)]
@@ -55,7 +55,7 @@ newtype Option = hspec-core:Test.Hspec.Core.Extension.Config.Type.Option
 type role SpecM nominal nominal
 type SpecM :: * -> * -> *
 newtype SpecM a r = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM
-  hspec-core:Test.Hspec.Core.Spec.Monad.unSpecM :: Control.Monad.Trans.Writer.Lazy.WriterT (base:Data.Semigroup.Internal.Endo Config, [hspec-core:Test.Hspec.Core.Tree.SpecTree a]) (Control.Monad.Trans.Reader.ReaderT hspec-core:Test.Hspec.Core.Spec.Monad.Env IO) r
+  hspec-core:Test.Hspec.Core.Spec.Monad.unSpecM :: Control.Monad.Trans.Writer.Lazy.WriterT (GHC.Internal.Data.Semigroup.Internal.Endo Config, [hspec-core:Test.Hspec.Core.Tree.SpecTree a]) (Control.Monad.Trans.Reader.ReaderT hspec-core:Test.Hspec.Core.Spec.Monad.Env IO) r
 type SpecTree :: *
 type SpecTree = hspec-core:Test.Hspec.Core.Tree.SpecTree ()
 type SpecWith :: * -> *
