@@ -384,9 +384,9 @@ runnerOptions = [
 
   , flag "fail-fast" setFailFast "abort on first failure"
   , flag "randomize" setRandomize "randomize execution order"
-  , mkOptionNoArg "rerun" (Just 'r') setRerun "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)"
+  , (flag "rerun" setRerun "rerun all examples that failed in the previous test run (only works in combination with --failure-report or in GHCi)") {optionShortcut = Just 'r'}
   , option "failure-report" (argument "FILE" return setFailureReport) "read/write a failure report for use with --rerun"
-  , mkOptionNoArg "rerun-all-on-success" Nothing setRerunAllOnSuccess "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
+  , flag "rerun-all-on-success" setRerunAllOnSuccess "run the whole test suite after a previously failing rerun succeeds for the first time (only works in combination with --rerun)"
   , mkOption "jobs" (Just 'j') (argument "N" readMaxJobs setMaxJobs) "run at most N parallelizable tests simultaneously (default: number of available processors)"
   , option "seed" (argument "N" readMaybe setSeed) "used seed for --randomize and QuickCheck properties"
   ]
@@ -457,8 +457,11 @@ runnerOptions = [
     setRandomize :: Bool -> Config -> Config
     setRandomize value config = config {configRandomize = value}
 
-    setRerun config = config {configRerun = True}
-    setRerunAllOnSuccess config = config {configRerunAllOnSuccess = True}
+    setRerun :: Bool -> Config -> Config
+    setRerun value config = config {configRerun = value}
+
+    setRerunAllOnSuccess :: Bool -> Config -> Config
+    setRerunAllOnSuccess value config = config {configRerunAllOnSuccess = value}
 
 commandLineOnlyOptions :: [Option Config]
 commandLineOnlyOptions = [

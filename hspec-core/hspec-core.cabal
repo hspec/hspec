@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.11.11
+version:          2.11.12
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2025 Simon Hengel,
@@ -140,7 +140,7 @@ test-suite spec
     , filepath
     , haskell-lexer
     , hspec-expectations ==0.8.4.*
-    , hspec-meta ==2.11.11
+    , hspec-meta ==2.11.12
     , process
     , quickcheck-io >=0.2.0
     , random
