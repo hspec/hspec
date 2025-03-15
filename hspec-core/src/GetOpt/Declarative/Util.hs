@@ -27,7 +27,7 @@ addLineBreaksForHelp options = map (modifyHelp addLineBreaks) options
 
 condenseNoOptions :: [OptDescr a] -> [OptDescr a]
 condenseNoOptions options = case options of
-  Option "" [optionA] arg help : Option "" [optionB] _ _ : ys | optionB == ("no-" ++ optionA) ->
-    Option "" ["[no-]" ++ optionA] arg help : condenseNoOptions ys
+  Option short [optionA] arg help : Option "" [optionB] _ _ : ys | optionB == ("no-" ++ optionA) ->
+    Option short ["[no-]" ++ optionA] arg help : condenseNoOptions ys
   x : xs -> x : condenseNoOptions xs
   [] -> []
