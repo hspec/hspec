@@ -170,27 +170,33 @@ OPTIONS
               --skip=PATTERN      skip examples that match given PATTERN
 
 RUNNER OPTIONS
-        --[no-]dry-run          pretend that everything passed; don't verify
-                                anything
-        --[no-]focused-only     do not run anything, unless there are focused
-                                spec items
-        --[no-]fail-on=ITEMS    empty: fail if all spec items have been filtered
-                                focused: fail on focused spec items
-                                pending: fail on pending spec items
-                                empty-description: fail on empty descriptions
-        --[no-]strict           same as --fail-on=focused,pending
-        --[no-]fail-fast        abort on first failure
-        --[no-]randomize        randomize execution order
-  -r    --rerun                 rerun all examples that failed in the previous
-                                test run (only works in combination with
-                                --failure-report or in GHCi)
-        --failure-report=FILE   read/write a failure report for use with --rerun
-        --rerun-all-on-success  run the whole test suite after a previously
-                                failing rerun succeeds for the first time (only
-                                works in combination with --rerun)
-  -j N  --jobs=N                run at most N parallelizable tests
-                                simultaneously (default: number of available
-                                processors)
+        --[no-]dry-run               pretend that everything passed; don't
+                                     verify anything
+        --[no-]focused-only          do not run anything, unless there are
+                                     focused spec items
+        --[no-]fail-on=ITEMS         empty: fail if all spec items have been
+                                     filtered
+                                     focused: fail on focused spec items
+                                     pending: fail on pending spec items
+                                     empty-description: fail on empty
+                                     descriptions
+        --[no-]strict                same as --fail-on=focused,pending
+        --[no-]fail-fast             abort on first failure
+        --[no-]randomize             randomize execution order
+  -r    --[no-]rerun                 rerun all examples that failed in the
+                                     previous test run (only works in
+                                     combination with --failure-report or in
+                                     GHCi)
+        --failure-report=FILE        read/write a failure report for use with
+                                     --rerun
+        --[no-]rerun-all-on-success  run the whole test suite after a previously
+                                     failing rerun succeeds for the first time
+                                     (only works in combination with --rerun)
+  -j N  --jobs=N                     run at most N parallelizable tests
+                                     simultaneously (default: number of
+                                     available processors)
+        --seed=N                     used seed for --randomize and QuickCheck
+                                     properties
 
 FORMATTER OPTIONS
   -f NAME  --format=NAME           use a custom formatter; this can be one of
@@ -204,6 +210,9 @@ FORMATTER OPTIONS
            --diff-command=CMD      use an external diff command
                                    example: --diff-command="git diff"
            --[no-]pretty           try to pretty-print diff values
+           --show-exceptions       use `show` when formatting exceptions
+           --display-exceptions    use `displayException` when formatting
+                                   exceptions
            --[no-]times            report times for individual spec items
            --print-cpu-time        include used CPU time in summary
   -p[N]    --print-slow-items[=N]  print the N slowest spec items (default: 10)
@@ -217,7 +226,6 @@ OPTIONS FOR QUICKCHECK
         --qc-max-size=N     size to use for the biggest test cases
         --qc-max-shrinks=N  maximum number of shrinks to perform before giving
                             up (a value of 0 turns shrinking off)
-        --seed=N            used seed for QuickCheck properties
 
 OPTIONS FOR SMALLCHECK
     --depth=N  maximum depth of generated test values for SmallCheck properties
