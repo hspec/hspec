@@ -64,6 +64,7 @@ mkSpecModule src conf nodes =
   . showString "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}\n"
   . showString ("module " ++ moduleName src conf ++ " where\n")
   . importList nodes
+  . showString "import GHC.Tuple (Unit)\n"
   . showString "import Test.Hspec.Discover\n"
   . maybe driver driverWithFormatter (configFormatter conf)
   . showString "spec :: Spec\n"
@@ -74,7 +75,7 @@ mkSpecModule src conf nodes =
     driver =
         case configNoMain conf of
           False ->
-              showString "main :: IO ()\n"
+              showString "main :: IO Unit\n"
             . showString "main = hspec spec\n"
           True -> ""
 
@@ -91,7 +92,7 @@ pathToModule f = toUpper m:ms
 driverWithFormatter :: String -> ShowS
 driverWithFormatter f =
     showString "import qualified " . showString (moduleNameFromId f) . showString "\n"
-  . showString "main :: IO ()\n"
+  . showString "main :: IO Unit\n"
   . showString "main = hspecWithFormatter " . showString f . showString " spec\n"
 
 -- | Return module name of a fully qualified identifier.
