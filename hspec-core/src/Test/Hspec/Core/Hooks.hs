@@ -28,6 +28,7 @@ module Test.Hspec.Core.Hooks (
 
 , mapSubject
 , ignoreSubject
+, timeoutAfterSeconds
 
 #ifdef TEST
 , decompose
@@ -38,6 +39,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Control.Concurrent
+import           System.Timeout (timeout)
 
 import           Test.Hspec.Core.Example
 import           Test.Hspec.Core.Tree
@@ -194,6 +196,14 @@ signal = flip putMVar ()
 
 waitFor :: BinarySemaphore -> IO ()
 waitFor = takeMVar
+
+-- | Fail after `n` seconds.
+--
+-- When using this for quickcheck properties, the timeout applies to each individual
+-- verification run.  If you want to terminate testing a property, consider using
+-- [within](https://hackage.haskell.org/package/QuickCheck-2.14.3/docs/Test-QuickCheck.html#v:within).
+timeoutAfterSeconds :: Double -> SpecWith a -> SpecWith a
+timeoutAfterSeconds n = around_ $ maybe (fail "exceeded timeout") pure <=< timeout (round (n * 1e6))
 
 -- | Modify the subject under test.
 --
