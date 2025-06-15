@@ -1,5 +1,5 @@
 packages:
-  hspec-meta
+  -- hspec-meta
   hspec.cabal
   hspec-discover
   hspec-core
@@ -8,8 +8,5 @@ packages:
   hspec-discover/example
   hspec-discover/integration-test
   doc/_includes/formatter/discover
-
-program-options
-  ghc-options: -Werror
 
 tests: True

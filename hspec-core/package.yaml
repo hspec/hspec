@@ -36,6 +36,9 @@ dependencies:
   - haskell-lexer
 
   - array # for Diff
+  - bytestring
+  - yaml
+  - aeson
 
 source-dirs:
   - src

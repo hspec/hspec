@@ -282,8 +282,8 @@ defaultFailedFormatter = do
     writeLine "Failures:"
     writeLine ""
 
-    forM_ (zip [1..] failures) $ \x -> do
-      formatFailure x
+    forM_ (zip [1..] failures) $ \ failure -> do
+      formatFailure failure
       writeLine ""
 
     write "Randomized with seed " >> usedSeed >>= writeLine . show

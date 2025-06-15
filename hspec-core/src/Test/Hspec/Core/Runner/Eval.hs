@@ -37,6 +37,8 @@ import           NonEmpty (NonEmpty(..))
 
 import           Test.Hspec.Core.Runner.JobQueue
 
+import qualified Test.Hspec.Core.Runner.JSON as JSON
+
 data Tree c a =
     Node String (NonEmpty (Tree c a))
   | NodeWithCleanup (Maybe (String, Location)) c (NonEmpty (Tree c a))
@@ -62,6 +64,7 @@ formatEvent :: Format.Event -> EvalM ()
 formatEvent event = do
   format <- asks $ evalConfigFormat . envConfig
   liftIO $ format event
+  liftIO $ JSON.format event
 
 type EvalM = ReaderT Env IO
 

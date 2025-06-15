@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -37,9 +37,11 @@ library
   build-depends:
       HUnit ==1.6.*
     , QuickCheck >=2.13.1 && <2.16
+    , aeson
     , ansi-terminal >=0.6.2
     , array
     , base >=4.9.0.0 && <5
+    , bytestring
     , call-stack >=0.2.0
     , containers
     , deepseq
@@ -53,6 +55,7 @@ library
     , tf-random
     , time
     , transformers >=0.2.2.0
+    , yaml
   exposed-modules:
       Test.Hspec.Core.Extension
       Test.Hspec.Core.Extension.Item
@@ -98,6 +101,7 @@ library
       Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.JobQueue
+      Test.Hspec.Core.Runner.JSON
       Test.Hspec.Core.Runner.PrintSlowSpecItems
       Test.Hspec.Core.Runner.Result
       Test.Hspec.Core.Shuffle
@@ -129,10 +133,12 @@ test-suite spec
   build-depends:
       HUnit ==1.6.*
     , QuickCheck >=2.14
+    , aeson
     , ansi-terminal >=0.6.2
     , array
     , base >=4.9.0.0 && <5
     , base-orphans
+    , bytestring
     , call-stack >=0.2.0
     , containers
     , deepseq
@@ -149,6 +155,7 @@ test-suite spec
     , tf-random
     , time
     , transformers >=0.2.2.0
+    , yaml
   build-tool-depends:
       hspec-meta:hspec-meta-discover
   other-modules:
@@ -193,6 +200,7 @@ test-suite spec
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.JobQueue
+      Test.Hspec.Core.Runner.JSON
       Test.Hspec.Core.Runner.PrintSlowSpecItems
       Test.Hspec.Core.Runner.Result
       Test.Hspec.Core.Shuffle
@@ -229,6 +237,7 @@ test-suite spec
       Test.Hspec.Core.QuickCheck.UtilSpec
       Test.Hspec.Core.Runner.EvalSpec
       Test.Hspec.Core.Runner.JobQueueSpec
+      Test.Hspec.Core.Runner.JSONSpec
       Test.Hspec.Core.Runner.PrintSlowSpecItemsSpec
       Test.Hspec.Core.Runner.ResultSpec
       Test.Hspec.Core.RunnerSpec
