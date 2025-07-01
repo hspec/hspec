@@ -296,7 +296,7 @@ defaultFailedFormatter = do
           let threshold = 2 :: Seconds
 
           mchunks <- liftIO $ if b
-            then timeout threshold (evaluate $ diff Nothing expected actual)
+            then timeout threshold (evaluate $ diff expected actual)
             else return Nothing
 
           case mchunks of
@@ -315,7 +315,6 @@ defaultFailedFormatter = do
                 Both a -> indented write a
                 First a -> indented extra a
                 Second _ -> pass
-                Omitted _ -> pass
               writeLine ""
 
               withFailColor $ write (indentation ++ " but got: ")
@@ -323,7 +322,6 @@ defaultFailedFormatter = do
                 Both a -> indented write a
                 First _ -> pass
                 Second a -> indented missing a
-                Omitted _ -> pass
               writeLine ""
 
         Error _ e -> withFailColor . indent $ (("uncaught exception: " ++) . formatException) e
