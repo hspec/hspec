@@ -371,9 +371,14 @@ missingChunk s = do
     missing = diffColorize Green "hspec-success"
 
 diffColorize :: Color -> String -> String-> FormatM ()
-diffColorize color cls s = withColor (SetColor layer Dull color) cls $ do
-  write s
+diffColorize color cls s = withColor (SetColor layer Dull color) cls $ case s of
+  "" -> write eraseInLine
+  _ -> write s
   where
+    eraseInLine :: String
+    eraseInLine = "\ESC[K"
+
+    layer :: ConsoleLayer
     layer
       | all isSpace s = Background
       | otherwise = Foreground

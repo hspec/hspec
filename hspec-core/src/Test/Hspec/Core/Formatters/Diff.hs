@@ -1,8 +1,15 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 module Test.Hspec.Core.Formatters.Diff (
   Diff (..)
 , diff
+
+, LineDiff(..)
+, lineDiff
+
+, splitLines
+
 #ifdef TEST
 , partition
 , breakList
@@ -15,73 +22,117 @@ import           Test.Hspec.Core.Compat hiding (First)
 import           Data.Char
 import qualified Data.Algorithm.Diff as Diff
 
-data Diff = First String | Second String | Both String | Omitted Int
+data Diff = First String | Second String | Both String
   deriving (Eq, Show)
 
--- |
--- Split a string at line boundaries.
---
--- >>> splitLines "foo\nbar\nbaz"
--- ["foo\n","bar\n","baz"]
---
--- prop> concat (splitLines xs) == xs
+data LineDiff =
+    LinesFirst [String]
+  | LinesSecond [String]
+  | LinesBoth [String]
+  | SingleLineDiff [Diff]
+  | LinesOmitted Int
+  deriving (Eq, Show)
+
+lineDiff :: Maybe Int -> String -> String -> [LineDiff]
+lineDiff context expected actual = maybe id applyContext context $ singleLineDiffs diffs
+  where
+    diffs :: [LineDiff]
+    diffs = Diff.getGroupedDiff expectedLines actualLines <&> \ case
+      Diff.First xs -> LinesFirst xs
+      Diff.Second xs -> LinesSecond xs
+      Diff.Both xs _ -> LinesBoth xs
+
+    expectedLines :: [String]
+    expectedLines = splitLines expected
+
+    actualLines :: [String]
+    actualLines = splitLines actual
+
+singleLineDiffs :: [LineDiff] -> [LineDiff]
+singleLineDiffs = go
+  where
+    go = \ case
+      [] -> []
+      LinesFirst [first_] : LinesSecond [second_] : xs -> SingleLineDiff (diff first_ second_) : go xs
+      x : xs -> x : go xs
+
 splitLines :: String -> [String]
 splitLines = go
   where
+    go :: String -> [String]
     go xs = case break (== '\n') xs of
-      (ys, '\n' : zs) -> (ys ++ ['\n']) : go zs
-      ("", "") -> []
+      (ys, '\n' : zs) -> ys : go zs
       _ -> [xs]
 
-data TrimMode = FirstChunck | Chunck | LastChunck
+data TrimMode = FirstChunk | Chunk | LastChunk
 
-trim :: Int -> [Diff] -> [Diff]
-trim context = \ chunks -> case chunks of
+applyContext :: Int -> [LineDiff] -> [LineDiff]
+applyContext context = \ diffs -> case diffs of
   [] -> []
-  x : xs -> trimChunk FirstChunck x (go xs)
+  x : xs -> trimChunk FirstChunk x (go xs)
   where
+    omitThreshold :: Int
     omitThreshold = 3
 
-    go chunks = case chunks of
+    go :: [LineDiff] -> [LineDiff]
+    go diffs = case diffs of
       [] -> []
-      [x] -> trimChunk LastChunck x []
-      x : xs -> trimChunk Chunck x (go xs)
+      [x] -> trimChunk LastChunk x []
+      x : xs -> trimChunk Chunk x (go xs)
 
+    trimChunk :: TrimMode -> LineDiff -> [LineDiff] -> [LineDiff]
     trimChunk mode chunk = case chunk of
-      Both xs | omitted >= omitThreshold -> keep start . (Omitted omitted :) . keep end
+      LinesBoth allLines | meetsThreshold -> keep start . (LinesOmitted omitted :) . keep end
         where
+          meetsThreshold :: Bool
+          meetsThreshold = omitThreshold <= omitted
+
+          lastLineHasNL = case (mode, reverse allLines) of
+            (LastChunk, "" : _) -> True
+            _ -> False
+
           omitted :: Int
           omitted = n - keepStart - keepEnd
 
           keepStart :: Int
           keepStart = case mode of
-            FirstChunck -> 0
-            _ -> succ context
+            FirstChunk -> 0
+            _ -> context
 
           keepEnd :: Int
           keepEnd = case mode of
-            LastChunck -> 0
-            _ -> if xs `endsWith` "\n" then context else succ context
+            LastChunk -> 0
+            _ -> context
 
           n :: Int
-          n = length allLines
-
-          allLines :: [String]
-          allLines = splitLines xs
+          n = length allLines - case lastLineHasNL of
+            False -> 0
+            True -> 1
 
           start :: [String]
           start = take keepStart allLines
 
           end :: [String]
           end = drop (keepStart + omitted) allLines
+
       _ -> (chunk :)
 
-    keep xs
-      | null xs = id
-      | otherwise = (Both (concat xs) :)
+keep :: [String] -> [LineDiff] -> [LineDiff]
+keep xs
+  | null xs = id
+  | otherwise = (LinesBoth xs :)
 
-diff :: Maybe Int -> String -> String -> [Diff]
-diff context expected actual = maybe id trim context $ map (toDiff . fmap concat) $ Diff.getGroupedDiff (partition expected) (partition actual)
+diff :: String -> String -> [Diff]
+diff expected actual = diffs
+  where
+    diffs :: [Diff]
+    diffs = map (toDiff . fmap concat) $ Diff.getGroupedDiff expectedChunks actualChunks
+
+    expectedChunks :: [String]
+    expectedChunks = partition expected
+
+    actualChunks :: [String]
+    actualChunks = partition actual
 
 toDiff :: Diff.Diff String -> Diff
 toDiff d = case d of

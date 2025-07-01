@@ -1,3 +1,6 @@
+## Changes in 2.11.12 (2025-03-17)
+  - Add `--no-rerun` and `--no-rerun-all-on-success`
+
 ## Changes in 2.11.11 (2025-02-17)
   - Compatibility with GHC 9.12
 
