@@ -61,7 +61,7 @@ pretty unicode = parseValue >=> render_
           Record _ _ -> True
           Constructor _ xs -> any go xs
           Tuple xs -> any go xs
-          List xs -> any go xs
+          List _ -> True
 
 newtype Builder = Builder ShowS
 
@@ -103,7 +103,7 @@ renderValue unicode = runBuilder . render 0
       Constructor name values -> intercalate " " (fromString name : map (render indentation) values)
       Tuple [e@Record{}] -> render indentation e
       Tuple xs -> "(" <> intercalate ", " (map (render indentation) xs) <> ")"
-      List xs -> "[" <> intercalate ", " (map (render indentation) xs) <> "]"
+      List xs -> "[\n  " <> intercalate ",\n  " (map (render indentation) xs) <> "\n]"
       where
         spaces :: Builder
         spaces = indentBy (succ indentation)
