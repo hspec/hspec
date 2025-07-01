@@ -14,7 +14,7 @@ extra-source-files:
   - version.yaml
   - help.txt
 
-mhs-options: +RTS -K1M -RTS
+# mhs-options: +RTS -K1M -RTS
 ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
 dependencies:
