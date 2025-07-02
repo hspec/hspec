@@ -60,7 +60,7 @@ pretty unicode = parseValue >=> render_
           Record _ _ -> True
           Constructor _ xs -> any go xs
           Tuple xs -> any go xs
-          List xs -> any go xs
+          List _ -> True
 
 newtype Builder = Builder ShowS
 
@@ -102,6 +102,7 @@ renderValue unicode = runBuilder . render
       Constructor name values -> intercalate " " (fromString name : map render values)
       Tuple [e@Record{}] -> render e
       Tuple xs -> "(" <> intercalate ", " (map render xs) <> ")"
-      List xs -> "[" <> intercalate ", " (map render xs) <> "]"
+      -- List xs -> "[" <> intercalate ", " (map render xs) <> "]"
+      List xs -> "[\n  " <> intercalate ",\n  " (map render xs) <> "\n]"
 
     renderField (name, value) = fromString name <> " = " <> render value

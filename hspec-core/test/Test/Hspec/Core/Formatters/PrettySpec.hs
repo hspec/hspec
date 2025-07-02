@@ -96,10 +96,30 @@ spec = do
 
     it "pretty-prints lists" $ do
       pretty True (show [Just person, Nothing]) `shouldBe` just [
-          "[Just Person {"
+          "["
+        , "  Just Person {"
         , "  personName = \"Joe\","
         , "  personAge = 23"
-        , "}, Nothing]"
+        , "},"
+        , "  Nothing"
+        , "]"
+        ]
+
+    fit "pretty-prints lists" $ do
+      let
+        input = [1 .. 9 :: Int]
+      pretty True (show input) `shouldBe` just [
+          "["
+        , "  1,"
+        , "  2,"
+        , "  3,"
+        , "  4,"
+        , "  5,"
+        , "  6,"
+        , "  7,"
+        , "  8,"
+        , "  9"
+        , "]"
         ]
 
     context "with --unicode" $ do
@@ -112,7 +132,13 @@ spec = do
           ]
 
       it "retains unicode characters in list elements" $ do
-        pretty True (show ["foo", "λ", "bar"]) `shouldBe` just ["[\"foo\", \"λ\", \"bar\"]"]
+        pretty True (show ["foo", "λ", "bar"]) `shouldBe` just [
+            "["
+          , "  \"foo\","
+          , "  \"λ\","
+          , "  \"bar\""
+          , "]"
+          ]
 
     context "with --no-unicode" $ do
       it "does not retain unicode characters in record fields" $ do
