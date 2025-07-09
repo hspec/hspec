@@ -10,8 +10,7 @@ module Test.Hspec (
 -- * Types
   Spec
 , SpecWith
-, Arg
-, Example
+, Example(Arg)
 
 -- * Setting expectations
 , module Test.Hspec.Expectations
@@ -40,7 +39,7 @@ module Test.Hspec (
 , xdescribe
 , xcontext
 
--- * Focused spec items
+-- * Focused spec items #focus#
 -- |
 -- During a test run, when a spec contains /focused/ spec items, all other spec
 -- items are ignored.

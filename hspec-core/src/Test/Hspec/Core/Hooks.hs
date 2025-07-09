@@ -96,8 +96,18 @@ after action = aroundWith $ \e x -> e x `finally` action x
 after_ :: IO () -> SpecWith a -> SpecWith a
 after_ action = after $ \_ -> action
 
--- | Run a custom action before and/or after every spec item.
-around :: (ActionWith a -> IO ()) -> SpecWith a -> Spec
+-- | Run a custom action before and/or after every spec item, supplying it with
+-- an argument obtained via IO.
+--
+-- This is useful for tasks like creating a file handle or similar resource
+-- before a test and destroying it after the test.
+around
+  :: (ActionWith a -> IO ())
+  -- ^ Function provided with an action to run the spec item as argument. It
+  -- should return the action to actually execute the item.
+  -> SpecWith a
+  -- ^ Spec to modify
+  -> Spec
 around action = aroundWith $ \e () -> action e
 
 -- | Run a custom action after the last spec item.
