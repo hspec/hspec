@@ -37,7 +37,16 @@ import           Test.QuickCheck.State (State(..))
 
 import           Test.Hspec.Core.Util
 
-liftHook :: r -> ((a -> IO ()) -> IO ()) -> (a -> IO r) -> IO r
+liftHook
+  :: r
+  -- ^ Default result, taken if the hook decides to not run the test
+  -> ((a -> IO ()) -> IO ())
+  -- ^ Hook: given an action to actually run the test, potentially does
+  -- some IO actions before the test, runs it while supplying an argument (or
+  -- skips it!), then may execute some more actions after running it.
+  -> (a -> IO r)
+  -- ^ The actual test being run, producing a result
+  -> IO r
 liftHook def hook inner = do
   ref <- newIORef def
   hook $ inner >=> writeIORef ref

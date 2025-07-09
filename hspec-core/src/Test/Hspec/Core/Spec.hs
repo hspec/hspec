@@ -19,6 +19,10 @@ module Test.Hspec.Core.Spec (
 , xdescribe
 , xcontext
 
+-- * Focused spec items #focus#
+-- |
+-- During a test run, when a spec contains /focused/ spec items, all other spec
+-- items are ignored.
 , focus
 , fit
 , fspecify
@@ -125,6 +129,16 @@ xcontext = xdescribe
 -- > describe "absolute" $ do
 -- >   it "returns a positive number when given a negative number" $
 -- >     absolute (-1) == 1
+--
+-- @`Example` a@ optionally accepts an argument @`Arg` a@, which is then given
+-- to the test body. This is useful for provisioning resources for a test which
+-- are created and cleaned up outside the test itself. See `Arg` for details.
+--
+-- Note that this function is often on the scene of nasty type errors due to GHC failing
+-- to infer the type of @do@ notation in the test body.
+-- It can be helpful to use
+-- [TypeApplications](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/type_applications.html)
+-- to explicitly specify the intended `Example` type.
 it :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
 it label action = fromSpecList [specItem label action]
 
@@ -149,6 +163,7 @@ xspecify = xit
 focus :: SpecWith a -> SpecWith a
 focus = mapSpecForest focusForest
 
+-- | Marks an entire spec forest as focused if nothing in it is already focused.
 focusForest :: [SpecTree a] -> [SpecTree a]
 focusForest xs
   | any (any itemIsFocused) xs = xs

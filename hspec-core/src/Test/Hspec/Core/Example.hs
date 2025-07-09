@@ -40,12 +40,66 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.QuickCheck.Util (liftHook)
 import           Test.Hspec.Core.Example.Location
 
--- | A type class for examples
+-- | A type class for examples, that is to say, test bodies as used in
+-- `Test.Hspec.Core.Spec.it` and similar functions.
 class Example e where
+  -- | The argument type that is needed to run this `Example`.
+  -- If `Arg` is @()@, no argument is required and the `Example` can be run
+  -- as-is.
+  --
+  -- The value of `Arg` is the difference between `Test.Hspec.Core.Spec.Spec`
+  -- (aka @`Test.Hspec.Core.Hspec.SpecWith` ()@), which can be executed, and
+  -- @`Test.Hspec.Core.Spec.SpecWith` a@, which cannot be executed without
+  -- turning it into `Test.Hspec.Core.Spec.Spec` first.
+  --
+  -- To supply an argument to examples, use the functions in
+  -- "Test.Hspec.Core.Hooks" such as `Test.Hspec.Core.Hooks.around',
+  -- `Test.Hspec.Core.Hooks.before', `Test.Hspec.Core.Hooks.mapSubject' and
+  -- similar.
   type Arg e
   type Arg e = ()
-  evaluateExample :: e -> Params -> (ActionWith (Arg e) -> IO ()) -> ProgressCallback -> IO Result
 
+  -- | Evaluates an example.
+  --
+  -- `evaluateExample` is expected to execute the test body inside the IO action
+  -- passed to the hook. It's often necessary to use an `IORef` to pass data
+  -- out like whether the test succeeded to the outer IO action so it can be
+  -- returned as a `Result`.
+  --
+  -- Example:
+  --
+  -- @
+  -- newtype MyAction = MyAction (Int -> IO Bool)
+  --
+  -- instance Example MyAction where
+  --   type Arg MyAction = Int
+  --
+  --   evaluateExample (MyAction act) _params hook _progress = do
+  --     result <- newIORef (Result "" Success)
+  --     hook $ \arg -> do
+  --       -- e.g. determines if arg is 42
+  --       ok <- act arg
+  --       let result' = Result "" $ if ok then Success else Failure Nothing NoReason
+  --       writeIORef result result'
+  --     readIORef result
+  -- @
+  evaluateExample
+    :: e
+    -- ^ The example being evaluated
+    -> Params
+    -- ^ QuickCheck/SmallCheck settings
+    -> (ActionWith (Arg e) -> IO ())
+    -- ^ Hook: takes an @`ActionWith` (`Arg` e)@, namely, the IO action to run
+    -- the test body, obtains @`Arg` e@ from somewhere, then executes the test
+    -- body (or possibly decides not to execute it!).
+    --
+    -- This is used to implement `Test.Hspec.Core.Hooks.around` and similar
+    -- hook functionality.
+    -> ProgressCallback
+    -- ^ Callback for composite tests like QuickCheck to report their progress.
+    -> IO Result
+
+-- | QuickCheck and SmallCheck related parameters.
 data Params = Params {
   paramsQuickCheckArgs  :: QC.Args
 , paramsSmallCheckDepth :: Maybe Int
@@ -57,10 +111,17 @@ defaultParams = Params {
 , paramsSmallCheckDepth = Nothing
 }
 
+-- | @(CurrentItem, TotalItems)@ tuple.
 type Progress = (Int, Int)
+-- | Callback used by composite test items that contain many tests to report
+-- their progress towards finishing them all.
+--
+-- This is used, for example, to report how many QuickCheck examples are finished.
 type ProgressCallback = Progress -> IO ()
 
--- | An `IO` action that expects an argument of type @a@
+-- | An `IO` action that expects an argument of type @a@.
+--
+-- This type is what `Example`s are ultimately unlifted into for execution.
 type ActionWith a = a -> IO ()
 
 -- | The result of running an example
