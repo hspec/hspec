@@ -37,7 +37,7 @@ runPropFoo args = unlines . normalizeSummary . lines <$> do
       property (/= (23 :: Int))
 
 person :: Int -> Person
-person = Person "Joe"
+person age = Person "Joe" age Nothing
 
 data MyException = MyException
   deriving (Eq, Show)
@@ -529,11 +529,13 @@ spec = do
           , "  1) foo"
           , "       expected: Person {"
           , "                   personName = \"Joe\","
-          , "                   personAge = 42"
+          , "                   personAge = 42,"
+          , "                   personAddress = Nothing"
           , "                 }"
           , "        but got: Person {"
           , "                   personName = \"Joe\","
-          , "                   personAge = 23"
+          , "                   personAge = 23,"
+          , "                   personAddress = Nothing"
           , "                 }"
           , ""
           , "  To rerun use: --match \"/foo/\" --seed 0"
@@ -563,8 +565,8 @@ spec = do
           H.it "foo" $ do
             person 23 `H.shouldBe` person 42
         r `shouldContain` unlines [
-            "       expected: Person {personName = \"Joe\", personAge = 42}"
-          , "        but got: Person {personName = \"Joe\", personAge = 23}"
+            "       expected: Person {personName = \"Joe\", personAge = 42, personAddress = Nothing}"
+          , "        but got: Person {personName = \"Joe\", personAge = 23, personAddress = Nothing}"
           ]
 
     context "when formatting exceptions" $ do

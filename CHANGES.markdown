@@ -1,3 +1,7 @@
+## Changes in 2.11.13 (2025-09-15)
+  - Make diff algorithm line based
+  - Improve pretty-printing of nested records
+
 ## Changes in 2.11.12 (2025-03-17)
   - Add `--no-rerun` and `--no-rerun-all-on-success`
 

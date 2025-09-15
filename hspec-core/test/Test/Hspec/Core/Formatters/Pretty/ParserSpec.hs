@@ -1,6 +1,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
-module Test.Hspec.Core.Formatters.Pretty.ParserSpec (spec, Person(..)) where
+module Test.Hspec.Core.Formatters.Pretty.ParserSpec (
+  spec
+, Person(..)
+, Address(..)
+, person
+) where
 
 import           Prelude ()
 import           Helper
@@ -10,7 +15,16 @@ import           Test.Hspec.Core.Formatters.Pretty.Parser
 data Person = Person {
   personName :: String
 , personAge :: Int
+, personAddress :: Maybe Address
 } deriving (Eq, Show)
+
+data Address = Address {
+  addressStreet :: String
+, addressPostalCode :: Int
+} deriving (Eq, Show)
+
+person :: Person
+person = Person "Joe" 23 (Just $ Address "Main Street" 50000)
 
 infix 1 `shouldParseAs`
 
@@ -69,9 +83,11 @@ spec = do
       show (Just $ Just "foo") `shouldParseAs` Constructor "Just" [parentheses (Constructor "Just" [String "foo"])]
 
     it "parses records" $ do
-      let person = Person "Joe" 23
-
       show person `shouldParseAs` Record "Person" [
           ("personName", String "Joe")
         , ("personAge", Number "23")
+        , ("personAddress", Constructor "Just" [Tuple [Record "Address" [
+            ("addressStreet", String "Main Street")
+          , ("addressPostalCode", Number "50000")
+          ]]])
         ]

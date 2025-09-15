@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Test.Hspec.Core.Formatters.Pretty (
   pretty2
@@ -90,18 +91,32 @@ instance IsString Builder where
   fromString = Builder . showString
 
 renderValue :: Bool -> Value -> String
-renderValue unicode = runBuilder . render
+renderValue unicode = runBuilder . render 0
   where
-    render :: Value -> Builder
-    render value = case value of
+    render :: Int -> Value -> Builder
+    render indentation = \ case
       Char c -> shows c
       String str -> if unicode then Builder $ ushows str else shows str
-      Rational n d -> render n <> " % " <> render d
+      Rational n d -> render indentation n <> " % " <> render indentation d
       Number n -> fromString n
-      Record name fields -> fromString name <> " {\n  " <> (intercalate ",\n  " $ map renderField fields) <> "\n}"
-      Constructor name values -> intercalate " " (fromString name : map render values)
-      Tuple [e@Record{}] -> render e
-      Tuple xs -> "(" <> intercalate ", " (map render xs) <> ")"
-      List xs -> "[" <> intercalate ", " (map render xs) <> "]"
+      Record name fields -> fromString name <> renderFields fields
+      Constructor name values -> intercalate " " (fromString name : map (render indentation) values)
+      Tuple [e@Record{}] -> render indentation e
+      Tuple xs -> "(" <> intercalate ", " (map (render indentation) xs) <> ")"
+      List xs -> "[" <> intercalate ", " (map (render indentation) xs) <> "]"
+      where
+        spaces :: Builder
+        spaces = indentBy (succ indentation)
 
-    renderField (name, value) = fromString name <> " = " <> render value
+        renderFields :: [(String, Value)] -> Builder
+        renderFields fields = mconcat [
+            " {\n" <> spaces
+          , intercalate (",\n" <> spaces) $ map renderField fields
+          , "\n" <> indentBy indentation <> "}"
+          ]
+
+        renderField :: (String, Value) -> Builder
+        renderField (name, value) = fromString name <> " = " <> render (succ indentation) value
+
+    indentBy :: Int -> Builder
+    indentBy n = fromString $ replicate (2 * n) ' '
