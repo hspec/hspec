@@ -3,7 +3,7 @@ module Test.Hspec.Core.Formatters.PrettySpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (Person(..))
+import           Test.Hspec.Core.Formatters.Pretty.ParserSpec hiding (spec)
 
 import           Test.Hspec.Core.Formatters.Pretty
 
@@ -68,13 +68,15 @@ spec = do
         recoverMultiLineString False (show "foo\n\955\nbaz\n") `shouldBe` Nothing
 
   describe "pretty" $ do
-    let person = Person "Joe" 23
-
     it "pretty-prints records" $ do
       pretty True (show person) `shouldBe` just [
           "Person {"
         , "  personName = \"Joe\","
-        , "  personAge = 23"
+        , "  personAge = 23,"
+        , "  personAddress = Just Address {"
+        , "    addressStreet = \"Main Street\","
+        , "    addressPostalCode = 50000"
+        , "  }"
         , "}"
         ]
 
@@ -82,7 +84,11 @@ spec = do
       pretty True (show $ Just person) `shouldBe` just [
           "Just Person {"
         , "  personName = \"Joe\","
-        , "  personAge = 23"
+        , "  personAge = 23,"
+        , "  personAddress = Just Address {"
+        , "    addressStreet = \"Main Street\","
+        , "    addressPostalCode = 50000"
+        , "  }"
         , "}"
         ]
 
@@ -90,7 +96,11 @@ spec = do
       pretty True (show (person, -0.5 :: Rational)) `shouldBe` just [
           "(Person {"
         , "  personName = \"Joe\","
-        , "  personAge = 23"
+        , "  personAge = 23,"
+        , "  personAddress = Just Address {"
+        , "    addressStreet = \"Main Street\","
+        , "    addressPostalCode = 50000"
+        , "  }"
         , "}, (-1) % 2)"
         ]
 
@@ -98,16 +108,21 @@ spec = do
       pretty True (show [Just person, Nothing]) `shouldBe` just [
           "[Just Person {"
         , "  personName = \"Joe\","
-        , "  personAge = 23"
+        , "  personAge = 23,"
+        , "  personAddress = Just Address {"
+        , "    addressStreet = \"Main Street\","
+        , "    addressPostalCode = 50000"
+        , "  }"
         , "}, Nothing]"
         ]
 
     context "with --unicode" $ do
       it "retains unicode characters in record fields" $ do
-        pretty True (show $ Person "λ-Joe" 23) `shouldBe` just [
+        pretty True (show $ Person "λ-Joe" 23 Nothing) `shouldBe` just [
             "Person {"
           , "  personName = \"λ-Joe\","
-          , "  personAge = 23"
+          , "  personAge = 23,"
+          , "  personAddress = Nothing"
           , "}"
           ]
 
@@ -116,10 +131,11 @@ spec = do
 
     context "with --no-unicode" $ do
       it "does not retain unicode characters in record fields" $ do
-        pretty False (show $ Person "λ-Joe" 23) `shouldBe` just [
+        pretty False (show $ Person "λ-Joe" 23 Nothing) `shouldBe` just [
             "Person {"
           , "  personName = \"\\955-Joe\","
-          , "  personAge = 23"
+          , "  personAge = 23,"
+          , "  personAddress = Nothing"
           , "}"
           ]
 

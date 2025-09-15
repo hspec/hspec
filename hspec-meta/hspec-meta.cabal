@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hspec-meta
-version:        2.11.12
+version:        2.11.13
 synopsis:       A version of Hspec which is used to test Hspec itself
 description:    A stable version of Hspec which is used to test the
                 in-development version of Hspec.

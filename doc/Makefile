@@ -16,7 +16,7 @@ setup: bin/hspec-discover
 bin/hspec-discover:
 	./bundle install
 	rm -f .ghc.environment.*
-	cabal install base deepseq transformers HUnit QuickCheck hspec hspec-api hspec-contrib --lib --package-env .
+	cabal install --ghc-options=-w base deepseq transformers HUnit QuickCheck hspec hspec-api hspec-contrib --lib --package-env .
 	cabal install --installdir=bin hspec-discover
 
 clean:
