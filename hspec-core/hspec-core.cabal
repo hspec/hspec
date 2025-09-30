@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:             hspec-core
-version:          2.11.13
+version:          2.11.14
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2011-2025 Simon Hengel,
@@ -90,7 +90,6 @@ library
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
-      Test.Hspec.Core.Formatters.Pretty.Parser.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
       Test.Hspec.Core.Formatters.V1.Free
       Test.Hspec.Core.Formatters.V1.Internal
@@ -140,7 +139,7 @@ test-suite spec
     , filepath
     , haskell-lexer
     , hspec-expectations ==0.8.4.*
-    , hspec-meta ==2.11.13
+    , hspec-meta ==2.11.14
     , process
     , quickcheck-io >=0.2.0
     , random
@@ -180,7 +179,6 @@ test-suite spec
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
-      Test.Hspec.Core.Formatters.Pretty.Parser.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
       Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V1.Free

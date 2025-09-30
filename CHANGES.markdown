@@ -1,3 +1,6 @@
+## Changes in 2.11.14 (2025-09-30)
+  - Make sure that `--pretty` completes in *O(n)* time
+
 ## Changes in 2.11.13 (2025-09-15)
   - Make diff algorithm line based
   - Improve pretty-printing of nested records
