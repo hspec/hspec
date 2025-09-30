@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           hspec-meta
-version:        2.11.13
+version:        2.11.14
 synopsis:       A version of Hspec which is used to test Hspec itself
 description:    A stable version of Hspec which is used to test the
                 in-development version of Hspec.
@@ -66,7 +66,6 @@ library
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
-      Test.Hspec.Core.Formatters.Pretty.Parser.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
       Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V1.Free

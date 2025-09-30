@@ -56,8 +56,8 @@ pretty unicode = parseValue >=> render_
         go value = case value of
           Char _ -> False
           String _ -> True
-          Rational _ _ -> False
           Number _ -> False
+          Operator _ _ _ -> True
           Record _ _ -> True
           Constructor _ xs -> any go xs
           Tuple xs -> any go xs
@@ -97,8 +97,8 @@ renderValue unicode = runBuilder . render 0
     render indentation = \ case
       Char c -> shows c
       String str -> if unicode then Builder $ ushows str else shows str
-      Rational n d -> render indentation n <> " % " <> render indentation d
       Number n -> fromString n
+      Operator a name b -> render indentation a <> " " <> fromString name <> " " <> render indentation b
       Record name fields -> fromString name <> renderFields fields
       Constructor name values -> intercalate " " (fromString name : map (render indentation) values)
       Tuple [e@Record{}] -> render indentation e

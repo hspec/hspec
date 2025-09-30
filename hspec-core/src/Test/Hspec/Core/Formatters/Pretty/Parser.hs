@@ -1,107 +1,171 @@
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.Formatters.Pretty.Parser (
   Value(..)
 , parseValue
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat
+import           Test.Hspec.Core.Compat hiding (Alternative(..), read, exp)
 
-import           Test.Hspec.Core.Formatters.Pretty.Parser.Parser hiding (Parser)
-import qualified Test.Hspec.Core.Formatters.Pretty.Parser.Parser as P
-
-import           Language.Haskell.Lexer hiding (Pos(..))
+import           Language.Haskell.Lexer hiding (Token, Pos(..))
+import qualified Language.Haskell.Lexer as Lexer
 
 type Name = String
 
 data Value =
     Char Char
   | String String
-  | Rational Value Value
   | Number String
+  | Operator Value Name Value
   | Record Name [(Name, Value)]
   | Constructor Name [Value]
   | Tuple [Value]
   | List [Value]
   deriving (Eq, Show)
 
-type Parser = P.Parser (Token, String)
+type Token = (TokenType, String)
+
+type TokenType = Lexer.Token
+
+newtype Parser a = Parser {
+  runParser :: [Token] -> Maybe (a, [Token])
+} deriving Functor
+
+instance Applicative Parser where
+  pure a = Parser $ \ input -> Just (a, input)
+  (<*>) = ap
+
+instance Monad Parser where
+  return = pure
+  p1 >>= p2 = Parser $ runParser p1 >=> uncurry (runParser . p2)
 
 parseValue :: String -> Maybe Value
-parseValue input = case runParser value (tokenize input) of
+parseValue input = case runParser exp (tokenize input) of
   Just (v, []) -> Just v
   _ -> Nothing
 
-value :: Parser Value
-value =
-      char
-  <|> string
-  <|> rational
-  <|> number
-  <|> record
-  <|> constructor
-  <|> tuple
-  <|> list
-
-char :: Parser Value
-char = Char <$> (token CharLit >>= readA)
-
-string :: Parser Value
-string = String <$> (token StringLit >>= readA)
-
-rational :: Parser Value
-rational = Rational <$> (number <|> tuple) <* require (Varsym, "%") <*> number
-
-number :: Parser Value
-number = integer <|> float
-  where
-    integer :: Parser Value
-    integer = Number <$> token IntLit
-
-    float :: Parser Value
-    float = Number <$> token FloatLit
-
-record :: Parser Value
-record = Record <$> token Conid <* special "{" <*> fields <* special "}"
-  where
-    fields :: Parser [(Name, Value)]
-    fields = field `sepBy1` comma
-
-    field :: Parser (Name, Value)
-    field = (,) <$> token Varid <* equals <*> value
-
-constructor :: Parser Value
-constructor = Constructor <$> token Conid <*> many value
-
-tuple :: Parser Value
-tuple = Tuple <$> (special "(" *> items) <* special ")"
-
-list :: Parser Value
-list = List <$> (special "[" *> items) <* special "]"
-
-items :: Parser [Value]
-items = value `sepBy` comma
-
-special :: String -> Parser ()
-special s = require (Special, s)
-
-comma :: Parser ()
-comma = special ","
-
-equals :: Parser ()
-equals = require (Reservedop, "=")
-
-token :: Token -> Parser String
-token t = snd <$> satisfy (fst >>> (== t))
-
-require :: (Token, String) -> Parser ()
-require t = void $ satisfy (== t)
-
-tokenize :: String -> [(Token, String)]
+tokenize :: String -> [Token]
 tokenize = go . map (fmap snd) . rmSpace . lexerPass0
   where
-    go :: [(Token, String)] -> [(Token, String)]
+    go :: [Token] -> [Token]
     go tokens = case tokens of
       [] -> []
       (Varsym, "-") : (IntLit, n) : xs -> (IntLit, "-" ++ n) : go xs
       (Varsym, "-") : (FloatLit, n) : xs -> (FloatLit, "-" ++ n) : go xs
       x : xs -> x : go xs
+
+exp :: Parser Value
+exp = infixexp
+
+infixexp :: Parser Value
+infixexp = aexp accept reject
+  where
+    accept :: Value -> Parser Value
+    accept value = peek >>= \ case
+      (Varsym, "%") -> skip >> Operator value "%" <$> exp
+      (Consym, name) -> skip >> Operator value name <$> exp
+      _ -> return value
+
+    reject :: Parser Value
+    reject = next >>= unexpected
+
+aexp :: forall a. (Value -> Parser a) -> Parser a -> Parser a
+aexp continue done = peek >>= \ case
+  (CharLit, value) -> read Char value
+  (StringLit, value) -> read String value
+  (IntLit, value) -> number value
+  (FloatLit, value) -> number value
+  (Conid, name) -> accept $ constructor name
+  (Special, "(") -> accept tuple
+  (Special, "[") -> accept list
+  _ -> done
+  where
+    read :: Read v => (v -> Value) -> String -> Parser a
+    read c v = skip >> c <$> readValue v >>= continue
+
+    number :: String -> Parser a
+    number value = skip >> continue (Number value)
+
+    accept :: Parser Value -> Parser a
+    accept action = skip >> action >>= continue
+
+constructor :: String -> Parser Value
+constructor name = peek >>= \ case
+  (Special, "{") -> skip >> Record name <$> commaSeparated field "}"
+    where
+      field :: Parser (Name, Value)
+      field = (,) <$> require Varid <* equals <*> exp
+
+  _ -> Constructor name <$> parameters
+    where
+      parameters :: Parser [Value]
+      parameters = aexp more done
+
+      more :: Value -> Parser [Value]
+      more v = (:) v <$> parameters
+
+      done :: Parser [Value]
+      done = return []
+
+tuple :: Parser Value
+tuple = Tuple <$> commaSeparated exp ")"
+
+list :: Parser Value
+list = List <$> commaSeparated exp "]"
+
+commaSeparated :: forall a. Parser a -> String -> Parser [a]
+commaSeparated item close = peek >>= \ case
+  (Special, c) | c == close -> skip >> return []
+  _ -> items
+  where
+    items :: Parser [a]
+    items = (:) <$> item <*> moreItems
+
+    moreItems :: Parser [a]
+    moreItems = next >>= \ case
+      (Special, c)
+        | c == "," -> items
+        | c == close -> return []
+      t -> unexpected t
+
+equals :: Parser ()
+equals = requireToken (Reservedop, "=")
+
+require :: TokenType -> Parser String
+require expected = next >>= \ case
+  (token, v) | token == expected -> return v
+  token -> unexpected token
+
+requireToken :: Token -> Parser ()
+requireToken expected = next >>= \ case
+  token | token == expected -> return ()
+  token -> unexpected token
+
+peek :: Parser Token
+peek = Parser $ \ input -> case input of
+  t : _ -> Just (t, input)
+  [] -> Just ((GotEOF, ""), input)
+
+next :: Parser Token
+next = Parser $ \ case
+  t : ts -> Just (t, ts)
+  ts -> Just ((GotEOF, ""), ts)
+
+skip :: Parser ()
+skip = Parser $ \ case
+  _ : ts -> Just ((), ts)
+  ts -> Just ((), ts)
+
+empty :: Parser a
+empty = Parser $ const Nothing
+
+readValue :: Read a => String -> Parser a
+readValue = maybe empty pure . readMaybe
+
+unexpected :: Token -> Parser a
+unexpected _ = empty
+
+-- unexpected :: HasCallStack => (Token, String) -> Parser a
+-- unexpected = error . show

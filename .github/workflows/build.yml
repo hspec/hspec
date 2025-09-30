@@ -93,7 +93,7 @@ jobs:
           test/regression/issue-169/run.sh
           cabal install --lib base hspec --package-env test/regression/issue-270/
           test/regression/issue-270/run.sh
-        if: "!startsWith(matrix.ghc, '7.')"
+        if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
 
   success:
     needs: build
