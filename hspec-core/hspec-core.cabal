@@ -36,7 +36,7 @@ library
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
-    , QuickCheck >=2.13.1 && <2.17
+    , QuickCheck >=2.13.1 && <2.18
     , ansi-terminal >=0.6.2
     , array
     , base >=4.9.0.0 && <5
