@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
+{-# OPTIONS_GHC -Wno-x-experimental #-}
 module Test.Hspec.Core.Extension.Config.Type (
   Option(..)
 , Config(..)

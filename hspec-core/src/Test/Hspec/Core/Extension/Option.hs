@@ -1,4 +1,4 @@
-module Test.Hspec.Core.Extension.Option {-# WARNING "This API is experimental." #-} (
+module Test.Hspec.Core.Extension.Option {-# WARNING in "x-experimental" "This API is experimental." #-} (
   Option
 , flag
 , argument

@@ -1,0 +1,1 @@
+  - Experimental modules are now marked as `-Wx-experimental` instead of `-Wdeprecations`; suppressions need to be updated to `-Wno-x-experimental` rather than `-Wno-deprecations`.
