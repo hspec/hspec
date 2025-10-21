@@ -44,6 +44,7 @@ library
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
       NonEmpty
+      Test.Hspec.CI
       Test.Hspec.Core.Annotations
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
@@ -86,6 +87,7 @@ library
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
       Test.Hspec.Core.Util
+      Test.Hspec.Tags
       Paths_hspec_meta
   hs-source-dirs:
       src

@@ -50,6 +50,8 @@ when:
 
 library:
   exposed-modules:
+    - Test.Hspec.CI
+    - Test.Hspec.Tags
     - Test.Hspec.Core.Extension
     - Test.Hspec.Core.Extension.Item
     - Test.Hspec.Core.Extension.Spec
