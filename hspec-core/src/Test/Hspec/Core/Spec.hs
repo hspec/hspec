@@ -29,8 +29,9 @@ module Test.Hspec.Core.Spec (
 , fdescribe
 , fcontext
 
-, parallel
+, concurrent
 , sequential
+, parallel
 
 -- * The @SpecM@ monad
 , Test.Hspec.Core.Spec.Monad.Spec
@@ -185,14 +186,25 @@ fdescribe = fmap focus . describe
 fcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
 fcontext = fdescribe
 
--- | `parallel` marks all spec items of the given spec to be safe for parallel
--- evaluation.
-parallel :: SpecWith a -> SpecWith a
-parallel = mapSpecItem_ (setParallelizable True)
+-- | `concurrent` allows for all spec items of the given spec to be evaluated
+-- concurrently.
+--
+-- /Note/: With nested calls to `concurrent` and `sequential` the innermost
+-- call takes precedence.
+concurrent :: SpecWith a -> SpecWith a
+concurrent = mapSpecItem_ (setParallelizable True)
 
--- | `sequential` marks all spec items of the given spec to be evaluated sequentially.
+-- | `sequential` requires all spec items of the given spec to be evaluated
+-- sequentially.
+--
+-- /Note/: With nested calls to `concurrent` and `sequential` the innermost
+-- call takes precedence.
 sequential :: SpecWith a -> SpecWith a
 sequential = mapSpecItem_ (setParallelizable False)
+
+-- | Deprecated: use `concurrent` instead
+parallel :: SpecWith a -> SpecWith a
+parallel = mapSpecItem_ (setParallelizable True)
 
 setParallelizable :: Bool -> Item a -> Item a
 setParallelizable value item = item {itemIsParallelizable = itemIsParallelizable item <|> Just value}

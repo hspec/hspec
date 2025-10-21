@@ -21,6 +21,8 @@ module Test.Hspec (
 , describe
 , context
 , example
+, concurrent
+, sequential
 , parallel
 , sequential
 , runIO
