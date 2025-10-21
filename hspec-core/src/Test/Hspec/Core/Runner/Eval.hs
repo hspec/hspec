@@ -83,7 +83,8 @@ addResult path item = do
 reportItem :: Path -> Maybe Location -> EvalM (Seconds, Result)  -> EvalM ()
 reportItem path loc action = do
   reportItemStarted path
-  action >>= reportResult path loc
+  (t, (_, r)) <- measure $ action
+  reportResult path loc (t, r)
 
 reportItemStarted :: Path -> EvalM ()
 reportItemStarted = formatEvent . Format.ItemStarted
