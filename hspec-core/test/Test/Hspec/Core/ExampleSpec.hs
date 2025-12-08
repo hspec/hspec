@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Test.Hspec.Core.ExampleSpec (spec) where
@@ -111,15 +110,6 @@ spec = do
         evaluateExampleWith action result `shouldReturn` result
         readIORef ref `shouldReturn` 1
 
-      it "accepts arguments" $ do
-        ref <- newIORef (0 :: Int)
-        let action :: (Integer -> IO ()) -> IO ()
-            action e = do
-              e 42
-              modifyIORef ref succ
-        evaluateExampleWithArgument action (Result "" . Failure Nothing . Reason . show) `shouldReturn` Result "" (Failure Nothing $ Reason "42")
-        readIORef ref `shouldReturn` 1
-
     context "for Bool" $ do
       it "returns Success on True" $ do
         evaluateExample True `shouldReturn` Result "" Success
@@ -137,15 +127,6 @@ spec = do
               e
               modifyIORef ref succ
         evaluateExampleWith action False `shouldReturn` Result "" (Failure Nothing NoReason)
-        readIORef ref `shouldReturn` 1
-
-      it "accepts arguments" $ do
-        ref <- newIORef (0 :: Int)
-        let action :: (Integer -> IO ()) -> IO ()
-            action e = do
-              e 42
-              modifyIORef ref succ
-        evaluateExampleWithArgument action (== (23 :: Integer)) `shouldReturn` Result "" (Failure Nothing NoReason)
         readIORef ref `shouldReturn` 1
 
     context "for Expectation" $ do

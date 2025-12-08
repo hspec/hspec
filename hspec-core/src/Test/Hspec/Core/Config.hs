@@ -18,13 +18,12 @@ module Test.Hspec.Core.Config (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           GHC.IO.Exception (IOErrorType(UnsupportedOperation))
 import           System.IO
 import           System.IO.Error
 import           System.Exit
 import           System.FilePath
 import           System.Directory
-import           System.Environment (getProgName, getEnvironment)
+import           System.Environment (getProgName)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util
@@ -128,7 +127,7 @@ readConfig opts_ args = do
     case ignore of
       True -> return []
       False -> readConfigFiles
-  env <- getEnvironment
+  let env = []
   let envVar = words <$> lookup envVarName env
   case parseOptions opts_ prog configFiles envVar env args of
     Left (err, msg) -> exitWithMessage err msg
@@ -149,20 +148,16 @@ readConfigFiles = do
 
 readGlobalConfigFile :: IO (Maybe ConfigFile)
 readGlobalConfigFile = do
-  mHome <- tryJust (guard . isPotentialHomeDirError) getHomeDirectory
+  mHome <- tryJust (guard . unavailable) getHomeDirectory
   case mHome of
     Left _ -> return Nothing
     Right home -> readConfigFile (home </> ".hspec")
   where
-    isPotentialHomeDirError e =
-      isDoesNotExistError e || ioeGetErrorType e == UnsupportedOperation
+    unavailable :: IOError -> Bool
+    unavailable e = isDoesNotExistError e || isUnsupportedOperation e
 
 readLocalConfigFile :: IO (Maybe ConfigFile)
-readLocalConfigFile = do
-  mName <- tryJust (guard . isDoesNotExistError) (canonicalizePath ".hspec")
-  case mName of
-    Left _ -> return Nothing
-    Right name -> readConfigFile name
+readLocalConfigFile = return Nothing
 
 readConfigFile :: FilePath -> IO (Maybe ConfigFile)
 readConfigFile name = do

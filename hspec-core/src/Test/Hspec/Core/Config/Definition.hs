@@ -14,7 +14,6 @@ module Test.Hspec.Core.Config.Definition (
 , getExtensionOptions
 
 , getSeed
-, getFormatter
 
 , commandLineOnlyOptions
 , formatterOptions
@@ -33,17 +32,11 @@ module Test.Hspec.Core.Config.Definition (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           System.Directory (getTemporaryDirectory, removeFile)
-import           System.IO (openTempFile, hClose)
-import           System.Process (system)
-
 import           Test.Hspec.Core.Annotations (Annotations)
 import qualified Test.Hspec.Core.Annotations as Annotations
 
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
-import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
-import qualified Test.Hspec.Core.Formatters.V1.Internal as V1 (formatterToFormat)
 import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
@@ -64,9 +57,6 @@ setExtensionOptions = setConfigAnnotation . ExtensionOptions
 
 getExtensionOptions :: Config -> [(String, [Option Config])]
 getExtensionOptions = maybe [] unExtensionOptions . getConfigAnnotation
-
-getFormatter :: Config -> Maybe (FormatConfig -> IO Format)
-getFormatter config = configFormat config <|> V1.formatterToFormat <$> configFormatter config
 
 getSeed :: Config -> Maybe Integer
 getSeed config = configSeed config <|> configQuickCheckSeed config
@@ -125,12 +115,10 @@ data Config = Config {
 , configExpertMode :: Bool -- ^ @since 2.11.2
 , configAvailableFormatters :: [(String, FormatConfig -> IO Format)] -- ^ @since 2.9.0
 , configFormat :: Maybe (FormatConfig -> IO Format)
-, configFormatter :: Maybe V1.Formatter
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
 , configAnnotations :: Annotations
 }
-{-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
 {-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
 
 mkDefaultConfig :: [(String, FormatConfig -> IO Format)] -> Config
@@ -170,7 +158,6 @@ mkDefaultConfig formatters = Config {
 , configExpertMode = False
 , configAvailableFormatters = formatters
 , configFormat = Nothing
-, configFormatter = Nothing
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
 , configAnnotations = mempty
@@ -178,20 +165,6 @@ mkDefaultConfig formatters = Config {
 
 defaultDiffContext :: Int
 defaultDiffContext = 3
-
-externalDiff :: String -> String -> String -> IO ()
-externalDiff command expected actual = do
-  tmp <- getTemporaryDirectory
-  withTempFile tmp "hspec-expected" expected $ \ expectedFile -> do
-    withTempFile tmp "hspec-actual" actual $ \ actualFile -> do
-      void . system $ unwords [command, expectedFile, actualFile]
-
-withTempFile :: FilePath -> FilePath -> String -> (FilePath -> IO a) -> IO a
-withTempFile dir file contents action = do
-  bracket (openTempFile dir file) (removeFile . fst) $ \ (path, h) -> do
-    hClose h
-    writeFile path contents
-    action path
 
 option :: String -> OptionSetter config -> String -> Option config
 option name arg help = Option name Nothing arg help True
@@ -221,7 +194,6 @@ formatterOptions formatters = [
         "output N lines of diff context (default: " <> show defaultDiffContext <> ")"
       , "use a value of 'full' to see the full context"
       ]
-  , option "diff-command" (argument "CMD" return setDiffCommand) "use an external diff command\nexample: --diff-command=\"git diff\""
   , flag "pretty" setPretty "try to pretty-print diff values"
   , mkOptionNoArg "show-exceptions" Nothing setShowException "use `show` when formatting exceptions"
   , mkOptionNoArg "display-exceptions" Nothing setDisplayException "use `displayException` when formatting exceptions"
@@ -236,13 +208,6 @@ formatterOptions formatters = [
   , undocumented $ mkOptionNoArg "html" Nothing setHtml "produce HTML output"
   ]
   where
-    setDiffCommand :: String -> Config -> Config
-    setDiffCommand command config = config {
-      configExternalDiff = case strip command of
-        "" -> Nothing
-        _ -> Just $ \ _context -> externalDiff command
-    }
-
     setHtml config = config {configHtmlOutput = True}
 
     helpForFormat :: String

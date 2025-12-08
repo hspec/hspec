@@ -33,7 +33,7 @@ library
   hs-source-dirs:
       src
       vendor
-      vendor/async-2.2.5/
+  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
@@ -61,11 +61,8 @@ library
       Test.Hspec.Core.Extension.Option
       Test.Hspec.Core.Extension.Config
       Test.Hspec.Core.Spec
-      Test.Hspec.Core.Hooks
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Format
-      Test.Hspec.Core.Formatters
-      Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
@@ -90,9 +87,6 @@ library
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
-      Test.Hspec.Core.Formatters.V1.Free
-      Test.Hspec.Core.Formatters.V1.Internal
-      Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.JobQueue
@@ -103,17 +97,24 @@ library
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
       Data.Algorithm.Diff
-      Control.Concurrent.Async
       Paths_hspec_core
   default-language: Haskell2010
-  if impl(ghc >= 8.4.1)
-    build-depends:
-        stm >=2.2
-  else
+  if impl(ghc)
     other-modules:
-        Control.Concurrent.STM.TMVar
+        Control.Concurrent.Async
     hs-source-dirs:
-        vendor/stm-2.5.0.1/
+        vendor/async-2.2.5/
+    if impl(ghc >= 8.4.1)
+      build-depends:
+          stm >=2.2
+    else
+      other-modules:
+          Control.Concurrent.STM.TMVar
+      hs-source-dirs:
+          vendor/stm-2.5.0.1/
+  if !impl(mhs)
+    exposed-modules:
+        Test.Hspec.Core.Hooks
 
 test-suite spec
   type: exitcode-stdio-1.0
@@ -121,8 +122,8 @@ test-suite spec
   hs-source-dirs:
       src
       vendor
-      vendor/async-2.2.5/
       test
+  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   cpp-options: -DTEST
   build-depends:
@@ -172,16 +173,11 @@ test-suite spec
       Test.Hspec.Core.Extension.Tree
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
-      Test.Hspec.Core.Formatters
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
-      Test.Hspec.Core.Formatters.V1
-      Test.Hspec.Core.Formatters.V1.Free
-      Test.Hspec.Core.Formatters.V1.Internal
-      Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
@@ -198,7 +194,6 @@ test-suite spec
       Test.Hspec.Core.Tree
       Test.Hspec.Core.Util
       Data.Algorithm.Diff
-      Control.Concurrent.Async
       GetOpt.Declarative.EnvironmentSpec
       GetOpt.Declarative.UtilSpec
       Helper
@@ -219,9 +214,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.Pretty.ParserSpec
       Test.Hspec.Core.Formatters.Pretty.UnicodeSpec
       Test.Hspec.Core.Formatters.PrettySpec
-      Test.Hspec.Core.Formatters.V1Spec
       Test.Hspec.Core.Formatters.V2Spec
-      Test.Hspec.Core.HooksSpec
       Test.Hspec.Core.QuickCheck.UtilSpec
       Test.Hspec.Core.Runner.EvalSpec
       Test.Hspec.Core.Runner.JobQueueSpec
@@ -235,11 +228,16 @@ test-suite spec
       Test.Hspec.Core.UtilSpec
       Paths_hspec_core
   default-language: Haskell2010
-  if impl(ghc >= 8.4.1)
-    build-depends:
-        stm >=2.2
-  else
+  if impl(ghc)
     other-modules:
-        Control.Concurrent.STM.TMVar
+        Control.Concurrent.Async
     hs-source-dirs:
-        vendor/stm-2.5.0.1/
+        vendor/async-2.2.5/
+    if impl(ghc >= 8.4.1)
+      build-depends:
+          stm >=2.2
+    else
+      other-modules:
+          Control.Concurrent.STM.TMVar
+      hs-source-dirs:
+          vendor/stm-2.5.0.1/

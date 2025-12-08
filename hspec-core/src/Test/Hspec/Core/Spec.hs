@@ -92,7 +92,6 @@ import           Control.Monad.Trans.Reader (asks)
 import           Test.Hspec.Expectations (Expectation)
 
 import           Test.Hspec.Core.Example
-import           Test.Hspec.Core.Hooks
 import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
 import           Test.Hspec.Core.QuickCheck ()
@@ -112,7 +111,7 @@ context = describe
 --
 -- This can be used to temporarily disable spec items.
 xdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
-xdescribe label spec = before_ pending_ $ describe label spec
+xdescribe label spec = undefined -- before_ pending_ $ describe label spec
 
 -- | @xcontext@ is an alias for `xdescribe`.
 xcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
@@ -151,7 +150,7 @@ specify = it
 --
 -- This can be used to temporarily disable a spec item.
 xit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
-xit label action = before_ pending_ $ it label action
+xit label action = undefined -- before_ pending_ $ it label action
 
 -- | @xspecify@ is an alias for `xit`.
 xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)

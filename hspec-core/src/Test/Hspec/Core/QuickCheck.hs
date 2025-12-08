@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeFamilies #-}
 -- | Stability: provisional
 module Test.Hspec.Core.QuickCheck (
   modifyMaxSuccess
@@ -60,11 +59,9 @@ modifyArgs = modifyParams . modify
     modify f p = p {paramsQuickCheckArgs = f (paramsQuickCheckArgs p)}
 
 instance Example QC.Property where
-  type Arg QC.Property = ()
   evaluateExample e = evaluateExample (\() -> e)
 
-instance Example (a -> QC.Property) where
-  type Arg (a -> QC.Property) = a
+instance Example (() -> QC.Property) where
   evaluateExample p params hook progressCallback = do
     let args = paramsQuickCheckArgs params
     r <- QC.quickCheckWithResult args {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty hook p)

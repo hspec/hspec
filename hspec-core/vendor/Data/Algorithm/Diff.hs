@@ -40,7 +40,12 @@ data DI = F | S | B deriving (Show, Eq)
 -- 'Both' contains both the left and right values, in case you are using a form
 -- of equality that doesn't check all data (for example, if you are using a
 -- newtype to only perform equality on side of a tuple).
-data Diff a = First a | Second a | Both a a deriving (Show, Eq, Functor)
+data Diff a = First a | Second a | Both a a deriving (Show, Eq)
+
+instance Functor Diff where
+  fmap f (First a) = First (f a)
+  fmap f (Second a) = Second (f a)
+  fmap f (Both a b) = Both (f a) (f b)
 
 data DL = DL {poi :: !Int, poj :: !Int, path::[DI]} deriving (Show, Eq)
 

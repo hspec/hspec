@@ -1,12 +1,12 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Test.Hspec.Core.Example (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
   Example (..)
+, Arg
 , Params (..)
 , defaultParams
 , ActionWith
@@ -40,25 +40,11 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.QuickCheck.Util (liftHook)
 import           Test.Hspec.Core.Example.Location
 
+type Arg e = ()
+
 -- | A type class for examples, that is to say, test bodies as used in
 -- `Test.Hspec.Core.Spec.it` and similar functions.
 class Example e where
-  -- | The argument type that is needed to run this `Example`.
-  -- If `Arg` is @()@, no argument is required and the `Example` can be run
-  -- as-is.
-  --
-  -- The value of `Arg` is the difference between `Test.Hspec.Core.Spec.Spec`
-  -- (aka @`Test.Hspec.Core.Hspec.SpecWith` ()@), which can be executed, and
-  -- @`Test.Hspec.Core.Spec.SpecWith` a@, which cannot be executed without
-  -- turning it into `Test.Hspec.Core.Spec.Spec` first.
-  --
-  -- To supply an argument to examples, use the functions in
-  -- "Test.Hspec.Core.Hooks" such as `Test.Hspec.Core.Hooks.around',
-  -- `Test.Hspec.Core.Hooks.before', `Test.Hspec.Core.Hooks.mapSubject' and
-  -- similar.
-  type Arg e
-  type Arg e = ()
-
   -- | Evaluates an example.
   --
   -- `evaluateExample` is expected to execute the test body inside the IO action
@@ -190,20 +176,16 @@ exceptionToResultStatus = safeEvaluateResultStatus . pure . toResultStatus
       | otherwise = Failure Nothing $ Error Nothing e
 
 instance Example Result where
-  type Arg Result = ()
   evaluateExample e = evaluateExample (\() -> e)
 
-instance Example (a -> Result) where
-  type Arg (a -> Result) = a
+instance Example (() -> Result) where
   evaluateExample example _params hook _callback = do
     liftHook (Result "" Success) hook (evaluate . example)
 
 instance Example Bool where
-  type Arg Bool = ()
   evaluateExample e = evaluateExample (\() -> e)
 
-instance Example (a -> Bool) where
-  type Arg (a -> Bool) = a
+instance Example (() -> Bool) where
   evaluateExample p _params hook _callback = do
     liftHook (Result "" Success) hook (evaluate . example)
     where
@@ -212,7 +194,6 @@ instance Example (a -> Bool) where
         | otherwise = Result "" $ Failure Nothing NoReason
 
 instance Example Expectation where
-  type Arg Expectation = ()
   evaluateExample e = evaluateExample (\() -> e)
 
 hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> ResultStatus
@@ -239,6 +220,5 @@ hunitFailureToResult pre e = case e of
 toLocation :: SrcLoc -> Location
 toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
 
-instance Example (a -> Expectation) where
-  type Arg (a -> Expectation) = a
+instance Example (() -> Expectation) where
   evaluateExample e _params hook _ = hook e >> return (Result "" Success)

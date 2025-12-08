@@ -1,4 +1,6 @@
-{-# LANGUAGE  ViewPatterns #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns #-}
 -- | Stability: unstable
 module Test.Hspec.Core.Util (
 -- * String functions
@@ -23,7 +25,11 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (join)
 
 import           Data.Char (isSpace)
+#ifndef __MHS__
 import           GHC.IO.Exception
+#else
+import           System.IO.Error
+#endif
 import           Control.Concurrent.Async
 
 -- |
@@ -80,7 +86,7 @@ stripAnsi :: String -> String
 stripAnsi = go
   where
     go input = case input of
-      '\ESC' : '[' : (dropWhile (`elem` "0123456789;") -> 'm' : xs) -> go xs
+      '\ESC' : '[' : (dropWhile (`elem` ("0123456789;"::String)) -> 'm' : xs) -> go xs
       x : xs -> x : go xs
       [] -> []
 
@@ -120,9 +126,9 @@ formatRequirement (groups, requirement) = groups_ ++ requirement
 --
 -- @since 2.0.0
 filterPredicate :: String -> Path -> Bool
-filterPredicate pattern path =
-     pattern `isInfixOf` plain
-  || pattern `isInfixOf` formatted
+filterPredicate pattern_ path =
+     pattern_ `isInfixOf` plain
+  || pattern_ `isInfixOf` formatted
   where
     plain = joinPath path
     formatted = formatRequirement path
@@ -142,9 +148,15 @@ formatException = formatExceptionWith show
 
 -- | @since 2.11.5
 formatExceptionWith :: (SomeException -> String) -> SomeException -> String
+#if defined(__MHS__)
+-- MicroHs does not allow you to dig into the implementation of SomeException; it is private.
+formatExceptionWith showException err = case fromException err of
+  Nothing  -> {- showType e ++ "\n" ++ -} showException err
+#else
 formatExceptionWith showException err@(SomeException e) = case fromException err of
-  Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ "\n" ++ showException (toException ioe)
   Nothing  -> showType e ++ "\n" ++ showException (SomeException e)
+#endif
+  Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ "\n" ++ showException (toException ioe)
   where
     showIOErrorType :: IOException -> String
     showIOErrorType ioe = case ioe_type ioe of

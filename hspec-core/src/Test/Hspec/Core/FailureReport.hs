@@ -9,8 +9,10 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 #ifndef __GHCJS__
+#ifndef __MHS__
 import           System.Environment (setEnv)
 import           Test.Hspec.Core.Util (safeTry)
+#endif
 #endif
 import           System.IO
 import           System.Directory
@@ -29,7 +31,7 @@ writeFailureReport :: Config -> FailureReport -> IO ()
 writeFailureReport config report = case configFailureReport config of
   Just file -> writeFile file (show report)
   Nothing -> do
-#ifdef __GHCJS__
+#if defined(__GHCJS__) || defined (__MHS__)
     -- ghcjs currently does not support setting environment variables
     -- (https://github.com/ghcjs/ghcjs/issues/263). Since writing a failure report
     -- into the environment is a non-essential feature we just disable this to be

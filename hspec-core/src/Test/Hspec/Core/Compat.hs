@@ -4,6 +4,11 @@ module Test.Hspec.Core.Compat (
 , module Test.Hspec.Core.Compat
 ) where
 
+#if !defined(__MHS__)
+#define HAS_IO_ERROR_TYPE
+#endif
+
+
 import           Control.Exception as Imports
 import           Control.Arrow as Imports ((>>>), (&&&), first, second)
 import           Control.Applicative as Imports
@@ -30,7 +35,7 @@ import           Data.Functor as Imports ((<&>))
 #endif
 
 import           Data.Traversable as Imports
-import           Data.Monoid as Imports
+import           Data.Monoid as Imports (Endo(..), Sum(..))
 import           Data.List as Imports (
     stripPrefix
   , isPrefixOf
@@ -64,6 +69,8 @@ import           Prelude as Imports hiding (
   , sequence
   , sequence_
   , sum
+  , length
+  , null
   )
 
 import           Data.Typeable (typeOf, typeRepTyCon, tyConModule, tyConName)
@@ -82,6 +89,15 @@ import           System.Environment as Imports (lookupEnv)
 import           Data.Bool as Imports (bool)
 
 import           Control.Concurrent
+
+
+#ifdef HAS_IO_ERROR_TYPE
+import           GHC.IO.Exception
+isUnsupportedOperation e = ioe_type e == UnsupportedOperation
+#else
+isUnsupportedOperation _ = False
+#endif
+isUnsupportedOperation :: IOError -> Bool
 
 showType :: Typeable a => a -> String
 showType a = let t = typeRepTyCon (typeOf a) in

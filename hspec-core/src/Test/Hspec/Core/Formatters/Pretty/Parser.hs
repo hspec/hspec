@@ -31,7 +31,12 @@ type TokenType = Lexer.Token
 
 newtype Parser a = Parser {
   runParser :: [Token] -> Maybe (a, [Token])
-} deriving Functor
+}
+
+instance Functor Parser where
+  fmap f (Parser p) = Parser $ \tokens -> do
+    (a, rest) <- p tokens
+    return (f a, rest)
 
 instance Applicative Parser where
   pure a = Parser $ \ input -> Just (a, input)

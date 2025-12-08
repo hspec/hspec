@@ -41,7 +41,30 @@ data Tree c a =
     Node String (NonEmpty (Tree c a))
   | NodeWithCleanup (Maybe (String, Location)) c (NonEmpty (Tree c a))
   | Leaf a
-  deriving (Eq, Show, Functor, Foldable, Traversable)
+  deriving (Eq, Show)
+
+instance Functor (Tree c) where
+  fmap f (Leaf a) = Leaf (f a)
+  fmap f (Node label children) = Node label (fmap (fmap f) children)
+  fmap f (NodeWithCleanup cleanupInfo c children) = 
+    NodeWithCleanup cleanupInfo c (fmap (fmap f) children)
+
+instance Foldable (Tree c) where
+  foldMap f (Leaf a) = f a
+  foldMap f (Node _ children) = foldMap (foldMap f) children
+  foldMap f (NodeWithCleanup _ _ children) = foldMap (foldMap f) children
+
+  foldr f acc (Leaf a) = f a acc
+  foldr f acc (Node _ children) = foldr (\t r -> foldr f r t) acc children
+  foldr f acc (NodeWithCleanup _ _ children) = 
+    foldr (\t r -> foldr f r t) acc children
+
+instance Traversable (Tree c) where
+  traverse f (Leaf a) = Leaf <$> f a
+  traverse f (Node label children) = 
+    Node label <$> traverse (traverse f) children
+  traverse f (NodeWithCleanup cleanupInfo c children) = 
+    NodeWithCleanup cleanupInfo c <$> traverse (traverse f) children
 
 data EvalConfig = EvalConfig {
   evalConfigFormat :: Format
@@ -180,7 +203,10 @@ data Item a = Item {
   itemDescription :: String
 , itemLocation :: Maybe Location
 , itemAction :: a
-} deriving Functor
+} 
+
+instance Functor Item where
+  fmap f (Item description location action) = Item description location (f action)
 
 type RunningItem m = Item (Path -> m (Seconds, Result))
 type RunningTree c m = Tree c (RunningItem m)

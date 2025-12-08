@@ -1,3 +1,3 @@
-:set -DTEST -isrc -ivendor -itest
+:set -DTEST -isrc -ivendor -itest -ivendor/async-2.2.5
 :set -fwarn-implicit-prelude
 :set -XHaskell2010

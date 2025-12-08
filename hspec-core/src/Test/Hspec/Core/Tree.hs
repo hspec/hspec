@@ -45,7 +45,30 @@ data Tree c a =
     Node String [Tree c a]
   | NodeWithCleanup (Maybe (String, Location)) c [Tree c a]
   | Leaf a
-  deriving (Eq, Show, Functor, Foldable, Traversable)
+  deriving (Eq, Show)
+
+instance Functor (Tree c) where
+  fmap f (Leaf a) = Leaf (f a)
+  fmap f (Node label children) = Node label (map (fmap f) children)
+  fmap f (NodeWithCleanup cleanupInfo c children) =
+    NodeWithCleanup cleanupInfo c (map (fmap f) children)
+
+instance Foldable (Tree c) where
+  foldMap f (Leaf a) = f a
+  foldMap f (Node _ children) = mconcat (map (foldMap f) children)
+  foldMap f (NodeWithCleanup _ _ children) = mconcat (map (foldMap f) children)
+
+  foldr f acc (Leaf a) = f a acc
+  foldr f acc (Node _ children) = foldr (\t r -> foldr f r t) acc children
+  foldr f acc (NodeWithCleanup _ _ children) =
+    foldr (\t r -> foldr f r t) acc children
+
+instance Traversable (Tree c) where
+  traverse f (Leaf a) = Leaf <$> f a
+  traverse f (Node label children) =
+    Node label <$> traverse (traverse f) children
+  traverse f (NodeWithCleanup cleanupInfo c children) =
+    NodeWithCleanup cleanupInfo c <$> traverse (traverse f) children
 
 -- | A tree is used to represent a spec internally.  The tree is parameterized
 -- over the type of cleanup actions and the type of the actual spec items.

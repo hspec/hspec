@@ -117,7 +117,7 @@ import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Tree (formatDefaultDescription)
 import           Test.Hspec.Core.Config
-import           Test.Hspec.Core.Config.Definition as Config (getSeed, getFormatter)
+import           Test.Hspec.Core.Config.Definition as Config (getSeed)
 import           Test.Hspec.Core.Extension.Config.Type as Extension (applySpecTransformation)
 import           Test.Hspec.Core.Format (Format, FormatConfig(..))
 import qualified Test.Hspec.Core.Formatters.V2 as V2
@@ -392,7 +392,8 @@ runSpecForest_ oldFailureReport spec c_ = do
       , formatConfigExpertMode = configExpertMode config
       }
 
-      formatter = fromMaybe (V2.formatterToFormat V2.checks) (Config.getFormatter config)
+      formatter :: FormatConfig -> IO Format
+      formatter = V2.formatterToFormat V2.checks
 
     format <- maybe id printSlowSpecItems (configPrintSlowItems config) <$> formatter formatConfig
 
@@ -523,10 +524,7 @@ colorOutputSupported mode isTerminalDevice = do
     noColor = lookupEnv "NO_COLOR" <&> (/= Nothing)
 
 unicodeOutputSupported :: UnicodeMode -> Handle -> IO Bool
-unicodeOutputSupported mode h = case mode of
-  UnicodeAuto -> (== Just "UTF-8") . fmap show <$> hGetEncoding h
-  UnicodeNever -> return False
-  UnicodeAlways -> return True
+unicodeOutputSupported mode h = return True
 
 rerunAll :: Config -> Maybe FailureReport -> SpecResult -> Bool
 rerunAll config mOldFailureReport result = case mOldFailureReport of

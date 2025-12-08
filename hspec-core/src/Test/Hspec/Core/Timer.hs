@@ -17,4 +17,4 @@ worker :: Seconds -> IORef Bool -> IO ()
 worker delay ref = do
   forever $ do
     sleep delay
-    atomicWriteIORef ref True
+    writeIORef ref True

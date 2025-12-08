@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
 module Test.Hspec.Core.RunnerSpec (spec) where
@@ -25,7 +24,7 @@ import           Test.Hspec.Core.Runner.Result
 import qualified Test.Hspec.Core.QuickCheck as H
 
 import qualified Test.QuickCheck as QC
-import qualified Test.Hspec.Core.Hooks as H
+-- import qualified Test.Hspec.Core.Hooks as H
 
 import           Test.Hspec.Core.Formatters.Pretty.ParserSpec (Person(..))
 import           Test.Hspec.Core.Extension ()
@@ -285,13 +284,6 @@ spec = do
           H.it "bar" False
         mockCounter e `shouldReturn` 0
 
-      it "ignores afterAll-hooks" $ do
-        ref <- newIORef False
-        _ <- withDryRun $ do
-          H.afterAll_ (writeIORef ref True) $ do
-            H.it "bar" True
-        readIORef ref `shouldReturn` False
-
     context "with --focused-only" $ do
       let run = hspecCapture ["--focused-only"]
       context "when there aren't any focused spec items" $ do
@@ -451,26 +443,6 @@ spec = do
           , "Finished in 0.0000 seconds"
           , "1 example, 1 failure"
           ]
-
-      context "with a cleanup action" $ do
-        it "runs cleanup action" $ do
-          ref <- newIORef 0
-          ignoreExitCode $ hspec ["--fail-fast"] $ do
-            H.afterAll_ (modifyIORef ref succ) $ do
-              H.it "foo" True
-              H.it "bar" False
-              H.it "baz" True
-          readIORef ref `shouldReturn` (1 :: Int)
-
-        context "when last leaf fails" $ do
-          it "runs cleanup action exactly once" $ do
-            ref <- newIORef 0
-            ignoreExitCode $ hspec ["--fail-fast"] $ do
-              H.afterAll_ (modifyIORef ref succ) $ do
-                H.it "foo" True
-                H.it "bar" True
-                H.it "baz" False
-            readIORef ref `shouldReturn` (1 :: Int)
 
     context "with --match" $ do
       it "only runs examples that match a given pattern" $ do
