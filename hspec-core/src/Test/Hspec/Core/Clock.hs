@@ -10,6 +10,10 @@ module Test.Hspec.Core.Clock (
 , timeout
 ) where
 
+#if MIN_VERSION_base(4,11,0) && !defined(__MHS__)
+#define HAS_GET_MONOTONIC_TIME
+#endif
+
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
@@ -17,7 +21,7 @@ import           Text.Printf
 import           Control.Concurrent
 import qualified System.Timeout as System
 
-#if MIN_VERSION_base(4,11,0)
+#ifdef HAS_GET_MONOTONIC_TIME
 import qualified GHC.Clock as GHC
 #else
 import           Data.Time.Clock.POSIX
@@ -33,7 +37,7 @@ toMicroseconds :: Seconds -> Int
 toMicroseconds (Seconds s) = floor (s * 1000000)
 
 getMonotonicTime :: IO Seconds
-#if MIN_VERSION_base(4,11,0)
+#ifdef HAS_GET_MONOTONIC_TIME
 getMonotonicTime = Seconds <$> GHC.getMonotonicTime
 #else
 getMonotonicTime = do

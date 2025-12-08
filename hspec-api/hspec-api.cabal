@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.3.
+-- This file has been generated from package.yaml by hpack version 0.39.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hspec-api
-version:        2.11.15
+version:        2.11.16
 synopsis:       A Testing Framework for Haskell
 description:    This package provides a stable API that can be used to extend Hspec's functionality.
 category:       Testing
@@ -41,7 +41,7 @@ library
   ghc-options: -Wall
   build-depends:
       base ==4.*
-    , hspec-core ==2.11.15
+    , hspec-core ==2.11.16
     , transformers
   default-language: Haskell2010
 
@@ -64,6 +64,6 @@ test-suite spec
       base ==4.*
     , hspec ==2.*
     , hspec-api
-    , hspec-core ==2.11.15
+    , hspec-core ==2.11.16
     , transformers
   default-language: Haskell2010

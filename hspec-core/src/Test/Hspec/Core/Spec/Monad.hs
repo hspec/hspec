@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Test.Hspec.Core.Spec.Monad (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
@@ -64,8 +65,20 @@ modifyConfig f = SpecM $ tell (Endo f, mempty)
 --
 -- It allows for dynamically generated spec trees, for example, by using data
 -- obtained by performing IO actions with 'runIO'.
+#ifndef __MHS__
 newtype SpecM a r = SpecM { unSpecM :: WriterT (Endo Config, [SpecTree a]) (ReaderT Env IO) r }
   deriving (Functor, Applicative, Monad)
+#else
+data SpecM a r = SpecM { unSpecM :: WriterT (Endo Config, [SpecTree a]) (ReaderT Env IO) r }
+  deriving Functor
+
+instance Applicative (SpecM a) where
+  pure x = SpecM $ pure x
+  SpecM f <*> SpecM x = SpecM $ f <*> x
+
+instance Monad (SpecM a) where
+  SpecM m >>= k = SpecM $ m >>= unSpecM . k
+#endif
 
 -- | Convert a `Spec` to a forest of `SpecTree`s.
 runSpecM :: SpecWith a -> IO (Endo Config, [SpecTree a])

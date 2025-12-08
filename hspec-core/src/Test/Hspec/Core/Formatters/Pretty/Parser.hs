@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -29,7 +30,11 @@ type Token = (TokenType, String)
 
 type TokenType = Lexer.Token
 
+#ifndef __MHS__
 newtype Parser a = Parser {
+#else
+data Parser a = Parser {
+#endif
   runParser :: [Token] -> Maybe (a, [Token])
 } deriving Functor
 
