@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           hspec-meta
-version:        2.11.15
+version:        2.11.16
 synopsis:       A version of Hspec which is used to test Hspec itself
 description:    A stable version of Hspec which is used to test the
                 in-development version of Hspec.
@@ -92,6 +92,7 @@ library
       vendor/async-2.2.5/
       hspec/src
       hspec-core/src
+  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
@@ -112,14 +113,18 @@ library
     , time
     , transformers >=0.2.2.0
   default-language: Haskell2010
-  if impl(ghc >= 8.4.1)
-    build-depends:
-        stm >=2.2
-  else
-    other-modules:
-        Control.Concurrent.STM.TMVar
+  if impl(ghc)
     hs-source-dirs:
-        vendor/stm-2.5.0.1/
+        vendor/async-2.2.5/
+    cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    if impl(ghc >= 8.4.1)
+      build-depends:
+          stm >=2.2
+    else
+      other-modules:
+          Control.Concurrent.STM.TMVar
+      hs-source-dirs:
+          vendor/stm-2.5.0.1/
 
 executable hspec-meta-discover
   main-is: hspec-discover.hs
@@ -131,6 +136,7 @@ executable hspec-meta-discover
   hs-source-dirs:
       hspec-discover/src
       hspec-discover/driver
+  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
@@ -151,11 +157,17 @@ executable hspec-meta-discover
     , time
     , transformers >=0.2.2.0
   default-language: Haskell2010
-  if impl(ghc >= 8.4.1)
-    build-depends:
-        stm >=2.2
-  else
+  if impl(ghc)
     other-modules:
-        Control.Concurrent.STM.TMVar
+        Control.Concurrent.Async
     hs-source-dirs:
-        vendor/stm-2.5.0.1/
+        vendor/async-2.2.5/
+    cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    if impl(ghc >= 8.4.1)
+      build-depends:
+          stm >=2.2
+    else
+      other-modules:
+          Control.Concurrent.STM.TMVar
+      hs-source-dirs:
+          vendor/stm-2.5.0.1/

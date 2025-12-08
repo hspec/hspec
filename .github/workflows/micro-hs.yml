@@ -1,0 +1,20 @@
+name: MicroHs
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sol/setup-MicroHs@nightly
+      - run: find ~/.mcabal/ -name "hspec-core-*.pkg" -delete
+      - run: cd hspec-core && mcabal -r install
+      - run: mcabal -r build

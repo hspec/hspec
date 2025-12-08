@@ -38,6 +38,11 @@ library:
   exposed-modules:
     - Test.Hspec
     - Test.Hspec.Discover
-    - Test.Hspec.Formatters
     - Test.Hspec.QuickCheck
     - Test.Hspec.Runner
+
+  when:
+    condition: "impl(ghc)"
+    cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    exposed-modules:
+      - Test.Hspec.Formatters

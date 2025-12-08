@@ -14,6 +14,7 @@ extra-source-files:
   - version.yaml
   - help.txt
 
+mhs-options: +RTS -K1M -RTS
 ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
 dependencies:
@@ -39,14 +40,17 @@ dependencies:
 source-dirs:
   - src
   - vendor
-  - vendor/async-2.2.5/
 
 when:
-  condition: impl(ghc >= 8.4.1)
-  then:
-    dependencies: stm >= 2.2
-  else:
-    source-dirs: vendor/stm-2.5.0.1/
+  condition: impl(ghc)
+  cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+  source-dirs: vendor/async-2.2.5/
+  when:
+    condition: impl(ghc >= 8.4.1)
+    then:
+      dependencies: stm >= 2.2
+    else:
+      source-dirs: vendor/stm-2.5.0.1/
 
 library:
   exposed-modules:
@@ -57,14 +61,21 @@ library:
     - Test.Hspec.Core.Extension.Option
     - Test.Hspec.Core.Extension.Config
     - Test.Hspec.Core.Spec
-    - Test.Hspec.Core.Hooks
     - Test.Hspec.Core.Runner
     - Test.Hspec.Core.Format
-    - Test.Hspec.Core.Formatters
-    - Test.Hspec.Core.Formatters.V1
     - Test.Hspec.Core.Formatters.V2
     - Test.Hspec.Core.QuickCheck
     - Test.Hspec.Core.Util
+  when:
+    condition: "impl(ghc)"
+    exposed-modules:
+      - Test.Hspec.Core.Hooks
+      - Test.Hspec.Core.Formatters
+      - Test.Hspec.Core.Formatters.V1
+    other-modules:
+      - Test.Hspec.Core.Formatters.V1.Free
+      - Test.Hspec.Core.Formatters.V1.Internal
+      - Test.Hspec.Core.Formatters.V1.Monad
 
 tests:
   spec:
@@ -80,3 +91,13 @@ tests:
       temporary:
       base-orphans:
     build-tools: hspec-meta:hspec-meta-discover
+
+    when:
+      condition: "impl(ghc)"
+      other-modules:
+        - Test.Hspec.Core.Hooks
+        - Test.Hspec.Core.Formatters
+        - Test.Hspec.Core.Formatters.V1
+        - Test.Hspec.Core.Formatters.V1.Free
+        - Test.Hspec.Core.Formatters.V1.Internal
+        - Test.Hspec.Core.Formatters.V1.Monad

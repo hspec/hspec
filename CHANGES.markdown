@@ -1,3 +1,6 @@
+## Changes in 2.11.16 (2025-12-12)
+  - Add support for MicroHs
+
 ## Changes in 2.11.15 (2025-12-08)
   - Remove redundant `tf-random` dependency
 

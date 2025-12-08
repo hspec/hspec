@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ViewPatterns #-}
 -- | Stability: unstable
 module Test.Hspec.Core.Util (
@@ -23,7 +24,13 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat hiding (join)
 
 import           Data.Char (isSpace)
+
+#ifndef __MHS__
 import           GHC.IO.Exception
+#else
+import           System.IO.Error
+#endif
+
 import           Control.Concurrent.Async
 
 -- |

@@ -30,7 +30,11 @@ import           Data.Functor as Imports ((<&>))
 #endif
 
 import           Data.Traversable as Imports
+#ifndef __MHS__
 import           Data.Monoid as Imports hiding (First)
+#else
+import           Data.Monoid as Imports (Endo(..), Sum(..))
+#endif
 import           Data.List as Imports (
     stripPrefix
   , isPrefixOf
@@ -64,6 +68,8 @@ import           Prelude as Imports hiding (
   , sequence
   , sequence_
   , sum
+  , length
+  , null
   )
 
 import           Data.Typeable
@@ -83,7 +89,11 @@ import           Data.Bool as Imports (bool)
 
 import           Control.Concurrent
 
+#ifndef __MHS__
 import           GHC.IO.Exception
+#else
+import           System.IO.Error
+#endif
   ( ioe_type, IOErrorType(..) )
 
 isUnsupportedOperation :: IOError -> Bool
@@ -151,4 +161,11 @@ unescape args = reverse . map reverse $ go args NoneQ False [] []
 
 unicodeOutputSupported :: Handle -> IO Bool
 unicodeOutputSupported _h = do
+#ifndef __MHS__
   (== Just "UTF-8") . fmap show <$> hGetEncoding _h
+#else
+  return True
+
+canonicalizePath :: FilePath -> IO FilePath
+canonicalizePath = return
+#endif
