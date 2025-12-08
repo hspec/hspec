@@ -1,3 +1,6 @@
+## Changes in 2.11.15 (2025-12-08)
+  - Remove redundant `tf-random` dependency
+
 ## Changes in 2.11.14 (2025-09-30)
   - Make sure that `--pretty` completes in *O(n)* time
 

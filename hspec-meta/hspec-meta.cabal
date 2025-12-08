@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.1.
+-- This file has been generated from package.yaml by hpack version 0.38.3.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hspec-meta
-version:        2.11.14
+version:        2.11.15
 synopsis:       A version of Hspec which is used to test Hspec itself
 description:    A stable version of Hspec which is used to test the
                 in-development version of Hspec.
@@ -109,7 +109,6 @@ library
     , process
     , quickcheck-io >=0.2.0
     , random
-    , tf-random
     , time
     , transformers >=0.2.2.0
   default-language: Haskell2010
@@ -149,7 +148,6 @@ executable hspec-meta-discover
     , process
     , quickcheck-io >=0.2.0
     , random
-    , tf-random
     , time
     , transformers >=0.2.2.0
   default-language: Haskell2010
