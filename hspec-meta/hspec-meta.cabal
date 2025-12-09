@@ -32,8 +32,8 @@ library
       Test.Hspec.Meta
       Test.Hspec.Discover
   other-modules:
-      Control.Concurrent.Async
       Data.Algorithm.Diff
+      Control.Concurrent.Async
       Test.Hspec
       Test.Hspec.Formatters
       Test.Hspec.QuickCheck
@@ -89,6 +89,7 @@ library
   hs-source-dirs:
       src
       vendor
+      vendor/async-2.2.5/
       hspec/src
       hspec-core/src
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns

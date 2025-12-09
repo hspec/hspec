@@ -15,6 +15,7 @@ library:
   source-dirs:
     - src
     - vendor
+    - vendor/async-2.2.5/
     - hspec/src
     - hspec-core/src
   exposed-modules:
