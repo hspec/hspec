@@ -4,7 +4,7 @@ module Test.Hspec.Core.Runner.EvalSpec (spec) where
 import           Prelude ()
 import           Helper
 
-import           NonEmpty (fromList)
+import           Data.List.NonEmpty (fromList)
 
 import           Test.Hspec.Core.Spec (FailureReason(..), Result(..), ResultStatus(..), Location(..))
 

@@ -101,7 +101,7 @@ or `hspecWithResult`.
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           NonEmpty (nonEmpty)
+import           Data.List.NonEmpty (nonEmpty)
 import           System.IO
 import           System.Environment (getArgs, withArgs)
 import           System.Exit (exitFailure)
