@@ -39,6 +39,7 @@ dependencies:
 source-dirs:
   - src
   - vendor
+  - vendor/async-2.2.5/
 
 when:
   condition: impl(ghc >= 8.4.1)
