@@ -32,8 +32,8 @@ import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
 import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToResultStatus)
 
-import qualified NonEmpty
-import           NonEmpty (NonEmpty(..))
+import qualified Data.List.NonEmpty as NonEmpty
+import           Data.List.NonEmpty (NonEmpty(..))
 
 import           Test.Hspec.Core.Runner.JobQueue
 

@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.3.
+-- This file has been generated from package.yaml by hpack version 0.39.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -43,7 +43,6 @@ library
       GetOpt.Declarative.Interpret
       GetOpt.Declarative.Types
       GetOpt.Declarative.Util
-      NonEmpty
       Test.Hspec.Core.Annotations
       Test.Hspec.Core.Clock
       Test.Hspec.Core.Compat
