@@ -16,7 +16,7 @@ import           Test.Hspec.Core.Compat hiding (Monad)
 import qualified Test.Hspec.Core.Compat as M
 
 import           Control.Concurrent
-import           Control.Concurrent.Async (Async, AsyncCancelled(..), async, waitCatch, asyncThreadId)
+import           Control.Concurrent.Async (Async, async, waitCatch, cancelMany)
 
 import           Control.Monad.IO.Class (liftIO)
 import qualified Control.Monad.IO.Class as M
@@ -49,14 +49,6 @@ withJobQueue concurrency = bracket new cancelAll
 
     cancelAll :: JobQueue -> IO ()
     cancelAll (JobQueue _ cancelQueue) = readIORef cancelQueue >>= cancelMany
-
-    cancelMany :: [Async a] -> IO ()
-    cancelMany jobs = do
-      mapM_ notifyCancel jobs
-      mapM_ waitCatch jobs
-
-    notifyCancel :: Async a -> IO ()
-    notifyCancel = flip throwTo AsyncCancelled . asyncThreadId
 
 newSemaphore :: Int -> IO Semaphore
 newSemaphore capacity = do
