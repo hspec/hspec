@@ -24,7 +24,7 @@ jobs:
 
       - uses: actions/cache@v3
         with:
-          path: ~/.cabal/store
+          path: ~/.local/state/cabal/store
           key: api-check-${{ github.run_id }}
           restore-keys: api-check-
 
