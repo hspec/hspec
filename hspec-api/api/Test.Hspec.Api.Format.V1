@@ -25,7 +25,7 @@ data FormatConfig = FormatConfig
   formatConfigUsedSeed :: Integer
   formatConfigExpectedTotalCount :: Int
 liftFormatter :: (String, FormatConfig -> IO Format) -> (String, Test.Hspec.Core.Format.FormatConfig -> IO Test.Hspec.Core.Format.Format)
-monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
+monadic :: GHC.Internal.Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
 registerFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 useFormatter :: (String, FormatConfig -> IO Format) -> Config -> Config
 type Config :: *
