@@ -38,7 +38,7 @@ data Result
   | Pending (Maybe Location) (Maybe String)
   | Failure (Maybe Location) FailureReason
 defaultFormatConfig :: FormatConfig
-monadic :: Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
+monadic :: GHC.Internal.Control.Monad.IO.Class.MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
 type FailureReason :: *
 data FailureReason
   | NoReason
