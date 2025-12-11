@@ -79,7 +79,11 @@ jobs:
       - run: |
           src=https://github.com/hspec/setup-haskell/releases/download/nightly/ghc-9.10.1-$RUNNER_OS-$ImageOS-$RUNNER_ARCH.tar.gz
           curl -sSL "$src" | sudo tar -xzp -C /
- 
+   
+      - uses: hspec/setup-haskell/fast.yml@fast-test
+        with:
+          ghc-version: ${{ matrix.ghc }}
+      
       - uses: sol/run-haskell-tests@v1
 
       - name: Run regression tests
