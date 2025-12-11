@@ -74,7 +74,7 @@ jobs:
           - 9.10.1
           - 9.12.1
         include:
-          - os: macos-latest
+          - os: macos-15
             ghc: 9.12.2
           - os: windows-latest
             ghc: system
