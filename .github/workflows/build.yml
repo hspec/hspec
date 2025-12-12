@@ -81,7 +81,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: hspec/setup-haskell/fast@fast-test
+      - uses: hspec/setup-haskell/fast@nightly
         with:
           ghc-version: ${{ matrix.ghc }}
         if: runner.os != 'Windows'
