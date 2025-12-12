@@ -55,7 +55,7 @@ module Test.Hspec.Core.Formatters.V1.Internal (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat hiding (First)
+import           Test.Hspec.Core.Compat
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Clock

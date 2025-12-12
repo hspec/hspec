@@ -99,7 +99,8 @@ or `hspecWithResult`.
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat
+import           Test.Hspec.Core.Compat hiding (unicodeOutputSupported)
+import qualified Test.Hspec.Core.Compat as Compat
 
 import           Data.List.NonEmpty (nonEmpty)
 import           System.IO
@@ -524,7 +525,7 @@ colorOutputSupported mode isTerminalDevice = do
 
 unicodeOutputSupported :: UnicodeMode -> Handle -> IO Bool
 unicodeOutputSupported mode h = case mode of
-  UnicodeAuto -> (== Just "UTF-8") . fmap show <$> hGetEncoding h
+  UnicodeAuto -> Compat.unicodeOutputSupported h
   UnicodeNever -> return False
   UnicodeAlways -> return True
 

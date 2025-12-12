@@ -2,7 +2,7 @@
 module Test.Hspec.Core.Formatters.DiffSpec (spec) where
 
 import           Prelude ()
-import           Helper hiding (First)
+import           Helper
 import           Data.Char
 
 import           Test.Hspec.Core.Formatters.Diff as Diff

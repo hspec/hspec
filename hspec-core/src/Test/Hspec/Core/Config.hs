@@ -18,7 +18,6 @@ module Test.Hspec.Core.Config (
 import           Prelude ()
 import           Test.Hspec.Core.Compat
 
-import           GHC.IO.Exception (IOErrorType(UnsupportedOperation))
 import           System.IO
 import           System.IO.Error
 import           System.Exit
@@ -149,13 +148,13 @@ readConfigFiles = do
 
 readGlobalConfigFile :: IO (Maybe ConfigFile)
 readGlobalConfigFile = do
-  mHome <- tryJust (guard . isPotentialHomeDirError) getHomeDirectory
+  mHome <- tryJust (guard . unavailable) getHomeDirectory
   case mHome of
     Left _ -> return Nothing
     Right home -> readConfigFile (home </> ".hspec")
   where
-    isPotentialHomeDirError e =
-      isDoesNotExistError e || ioeGetErrorType e == UnsupportedOperation
+    unavailable :: IOError -> Bool
+    unavailable e = isDoesNotExistError e || isUnsupportedOperation e
 
 readLocalConfigFile :: IO (Maybe ConfigFile)
 readLocalConfigFile = do

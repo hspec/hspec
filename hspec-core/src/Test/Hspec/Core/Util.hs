@@ -1,4 +1,4 @@
-{-# LANGUAGE  ViewPatterns #-}
+{-# LANGUAGE ViewPatterns #-}
 -- | Stability: unstable
 module Test.Hspec.Core.Util (
 -- * String functions
@@ -79,10 +79,17 @@ lineBreaksAt n = concatMap f . lines
 stripAnsi :: String -> String
 stripAnsi = go
   where
+    go :: String -> String
     go input = case input of
-      '\ESC' : '[' : (dropWhile (`elem` "0123456789;") -> 'm' : xs) -> go xs
+      '\ESC' : '[' : (parameters -> 'm' : xs) -> go xs
       x : xs -> x : go xs
       [] -> []
+
+    parameters :: String -> String
+    parameters = dropWhile p
+      where
+        p :: Char -> Bool
+        p c = c >= '0' && c <= '9' || c == ';'
 
 -- |
 -- A `Path` describes the location of a spec item within a spec tree.
@@ -120,9 +127,9 @@ formatRequirement (groups, requirement) = groups_ ++ requirement
 --
 -- @since 2.0.0
 filterPredicate :: String -> Path -> Bool
-filterPredicate pattern path =
-     pattern `isInfixOf` plain
-  || pattern `isInfixOf` formatted
+filterPredicate pattern_ path =
+     pattern_ `isInfixOf` plain
+  || pattern_ `isInfixOf` formatted
   where
     plain = joinPath path
     formatted = formatRequirement path
@@ -142,9 +149,9 @@ formatException = formatExceptionWith show
 
 -- | @since 2.11.5
 formatExceptionWith :: (SomeException -> String) -> SomeException -> String
-formatExceptionWith showException err@(SomeException e) = case fromException err of
+formatExceptionWith showException err = case fromException err of
+  Nothing  -> showExceptionType err ++ "\n" ++ showException err
   Just ioe -> showType ioe ++ " of type " ++ showIOErrorType ioe ++ "\n" ++ showException (toException ioe)
-  Nothing  -> showType e ++ "\n" ++ showException (SomeException e)
   where
     showIOErrorType :: IOException -> String
     showIOErrorType ioe = case ioe_type ioe of
@@ -167,6 +174,9 @@ formatExceptionWith showException err@(SomeException e) = case fromException err
       TimeExpired -> "TimeExpired"
       ResourceVanished -> "ResourceVanished"
       Interrupted -> "Interrupted"
+
+showExceptionType :: SomeException -> String
+showExceptionType (SomeException e) = showType e
 
 -- | @safeTry@ evaluates given action and returns its result.  If an exception
 -- occurs, the exception is returned instead.  Unlike `try` it is agnostic to

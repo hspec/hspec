@@ -90,7 +90,7 @@ module Test.Hspec.Core.Formatters.V2
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat hiding (First)
+import           Test.Hspec.Core.Compat
 import           System.IO (hFlush, stdout)
 
 import           Test.Hspec.Core.Util hiding (formatException)
