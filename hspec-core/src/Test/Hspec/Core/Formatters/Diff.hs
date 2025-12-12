@@ -17,7 +17,7 @@ module Test.Hspec.Core.Formatters.Diff (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat hiding (First)
+import           Test.Hspec.Core.Compat
 
 import           Data.Char
 import qualified Data.Algorithm.Diff as Diff

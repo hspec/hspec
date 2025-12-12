@@ -14,10 +14,6 @@ spec = do
     it "shows unqualified name of type" $ do
       showType SomeType `shouldBe` "SomeType"
 
-  describe "showFullType (currently unused)" $ do
-    it "shows fully qualified name of type" $ do
-      showFullType SomeType `shouldBe` "Test.Hspec.Core.CompatSpec.SomeType"
-
   describe "lookupEnv" $ do
     it "returns value of specified environment variable" $ do
       setEnv "FOO" "bar"

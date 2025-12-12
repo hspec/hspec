@@ -2,6 +2,7 @@
 module Test.Hspec.Core.Compat (
   module Imports
 , module Test.Hspec.Core.Compat
+, Typeable
 ) where
 
 import           Control.Exception as Imports
@@ -19,7 +20,6 @@ import           Control.Monad as Imports hiding (
 import           Data.Maybe as Imports
 import           Data.Foldable as Imports
 import           GHC.Stack as Imports (HasCallStack, withFrozenCallStack)
-import           Data.Typeable as Imports (Typeable)
 
 import           System.IO
 import           System.Exit
@@ -30,7 +30,7 @@ import           Data.Functor as Imports ((<&>))
 #endif
 
 import           Data.Traversable as Imports
-import           Data.Monoid as Imports
+import           Data.Monoid as Imports hiding (First)
 import           Data.List as Imports (
     stripPrefix
   , isPrefixOf
@@ -66,7 +66,7 @@ import           Prelude as Imports hiding (
   , sum
   )
 
-import           Data.Typeable (typeOf, typeRepTyCon, tyConModule, tyConName)
+import           Data.Typeable
 import           Data.IORef as Imports
 
 #if MIN_VERSION_base(4,12,0)
@@ -83,13 +83,14 @@ import           Data.Bool as Imports (bool)
 
 import           Control.Concurrent
 
-showType :: Typeable a => a -> String
-showType a = let t = typeRepTyCon (typeOf a) in
-  show t
+import           GHC.IO.Exception
+  ( ioe_type, IOErrorType(..) )
 
-showFullType :: Typeable a => a -> String
-showFullType a = let t = typeRepTyCon (typeOf a) in
-  tyConModule t ++ "." ++ tyConName t
+isUnsupportedOperation :: IOError -> Bool
+isUnsupportedOperation e = ioe_type e == UnsupportedOperation
+
+showType :: Typeable a => a -> String
+showType = show . typeRepTyCon . typeOf
 
 getDefaultConcurrentJobs :: IO Int
 getDefaultConcurrentJobs = getNumCapabilities
@@ -147,3 +148,7 @@ unescape args = reverse . map reverse $ go args NoneQ False [] []
         | '"'  == c              = go cs DblQ  False a     as
         | otherwise              = go cs NoneQ False (c:a) as
 #endif
+
+unicodeOutputSupported :: Handle -> IO Bool
+unicodeOutputSupported _h = do
+  (== Just "UTF-8") . fmap show <$> hGetEncoding _h
