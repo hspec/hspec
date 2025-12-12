@@ -75,15 +75,16 @@ jobs:
           - 9.12.1
         include:
           - os: macos-15
-            ghc: system
+            ghc: 9.12.2
           - os: windows-latest
             ghc: system
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: hspec/setup-haskell@v1
+      - uses: actions/checkout@v4
+      - uses: hspec/setup-haskell/fast@fast-test
         with:
           ghc-version: ${{ matrix.ghc }}
+        if: runner.os != 'Windows'
 
       - uses: sol/run-haskell-tests@v1
 
