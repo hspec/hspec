@@ -14,9 +14,7 @@ module Test.Hspec.Core.Config.Definition (
 , getExtensionOptions
 
 , getSeed
-#ifdef ENABLE_LEGACY_V1_FORMATTERS
 , getFormatter
-#endif
 
 , commandLineOnlyOptions
 , formatterOptions
@@ -44,10 +42,8 @@ import qualified Test.Hspec.Core.Annotations as Annotations
 
 import           Test.Hspec.Core.Format (Format, FormatConfig)
 import           Test.Hspec.Core.Formatters.Pretty (pretty2)
-#ifdef ENABLE_LEGACY_V1_FORMATTERS
 import qualified Test.Hspec.Core.Formatters.V1.Monad as V1
 import qualified Test.Hspec.Core.Formatters.V1.Internal as V1 (formatterToFormat)
-#endif
 import           Test.Hspec.Core.Util
 
 import           GetOpt.Declarative
@@ -69,10 +65,8 @@ setExtensionOptions = setConfigAnnotation . ExtensionOptions
 getExtensionOptions :: Config -> [(String, [Option Config])]
 getExtensionOptions = maybe [] unExtensionOptions . getConfigAnnotation
 
-#ifdef ENABLE_LEGACY_V1_FORMATTERS
 getFormatter :: Config -> Maybe (FormatConfig -> IO Format)
 getFormatter config = configFormat config <|> V1.formatterToFormat <$> configFormatter config
-#endif
 
 getSeed :: Config -> Maybe Integer
 getSeed config = configSeed config <|> configQuickCheckSeed config
@@ -131,16 +125,12 @@ data Config = Config {
 , configExpertMode :: Bool -- ^ @since 2.11.2
 , configAvailableFormatters :: [(String, FormatConfig -> IO Format)] -- ^ @since 2.9.0
 , configFormat :: Maybe (FormatConfig -> IO Format)
-#ifdef ENABLE_LEGACY_V1_FORMATTERS
 , configFormatter :: Maybe V1.Formatter
-#endif
 , configHtmlOutput :: Bool
 , configConcurrentJobs :: Maybe Int
 , configAnnotations :: Annotations
 }
-#ifdef ENABLE_LEGACY_V1_FORMATTERS
 {-# DEPRECATED configFormatter "Use [@useFormatter@](https://hackage.haskell.org/package/hspec-api/docs/Test-Hspec-Api-Formatters-V1.html#v:useFormatter) instead." #-}
-#endif
 {-# DEPRECATED configQuickCheckSeed "Use `configSeed` instead." #-}
 
 mkDefaultConfig :: [(String, FormatConfig -> IO Format)] -> Config
@@ -180,9 +170,7 @@ mkDefaultConfig formatters = Config {
 , configExpertMode = False
 , configAvailableFormatters = formatters
 , configFormat = Nothing
-#ifdef ENABLE_LEGACY_V1_FORMATTERS
 , configFormatter = Nothing
-#endif
 , configHtmlOutput = False
 , configConcurrentJobs = Nothing
 , configAnnotations = mempty

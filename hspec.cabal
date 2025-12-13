@@ -52,12 +52,11 @@ library
   exposed-modules:
       Test.Hspec
       Test.Hspec.Discover
+      Test.Hspec.Formatters
       Test.Hspec.QuickCheck
       Test.Hspec.Runner
   other-modules:
       Paths_hspec
   default-language: Haskell2010
   if impl(ghc)
-    exposed-modules:
-        Test.Hspec.Formatters
-    cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    cpp-options: -DENABLE_SPEC_HOOK_ARGS
