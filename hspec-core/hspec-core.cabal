@@ -61,6 +61,7 @@ library
       Test.Hspec.Core.Extension.Option
       Test.Hspec.Core.Extension.Config
       Test.Hspec.Core.Spec
+      Test.Hspec.Core.Hooks
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Format
       Test.Hspec.Core.Formatters.V2
@@ -104,7 +105,7 @@ library
         Control.Concurrent.Async
     hs-source-dirs:
         vendor/async-2.2.5/
-    cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
     if impl(ghc >= 8.4.1)
       build-depends:
           stm >=2.2
@@ -115,7 +116,6 @@ library
           vendor/stm-2.5.0.1/
   if impl(ghc)
     exposed-modules:
-        Test.Hspec.Core.Hooks
         Test.Hspec.Core.Formatters
         Test.Hspec.Core.Formatters.V1
     other-modules:
@@ -186,6 +186,7 @@ test-suite spec
       Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
       Test.Hspec.Core.Formatters.V2
+      Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner
@@ -241,7 +242,7 @@ test-suite spec
         Control.Concurrent.Async
     hs-source-dirs:
         vendor/async-2.2.5/
-    cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
     if impl(ghc >= 8.4.1)
       build-depends:
           stm >=2.2
@@ -252,7 +253,6 @@ test-suite spec
           vendor/stm-2.5.0.1/
   if impl(ghc)
     other-modules:
-        Test.Hspec.Core.Hooks
         Test.Hspec.Core.Formatters
         Test.Hspec.Core.Formatters.V1
         Test.Hspec.Core.Formatters.V1.Free
