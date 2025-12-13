@@ -37,9 +37,6 @@ data Location = Location {
 } deriving (Eq, Show, Read)
 
 extractLocation :: SomeException -> Maybe Location
-#ifdef __MHS__
-extractLocation _ = Nothing
-#else
 extractLocation e =
       locationFromErrorCall e
   <|> locationFromPatternMatchFail e
@@ -157,5 +154,4 @@ workaroundForIssue19236 =
   joinPath . splitDirectories
 #else
   id
-#endif
 #endif

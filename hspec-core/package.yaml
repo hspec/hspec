@@ -14,7 +14,6 @@ extra-source-files:
   - version.yaml
   - help.txt
 
-mhs-options: +RTS -K1M -RTS
 ghc-options: -Wall -fno-warn-incomplete-uni-patterns
 
 dependencies:
@@ -40,17 +39,14 @@ dependencies:
 source-dirs:
   - src
   - vendor
+  - vendor/async-2.2.5/
 
 when:
-  condition: impl(ghc)
-  cpp-options: -DENABLE_SPEC_HOOK_ARGS
-  source-dirs: vendor/async-2.2.5/
-  when:
-    condition: impl(ghc >= 8.4.1)
-    then:
-      dependencies: stm >= 2.2
-    else:
-      source-dirs: vendor/stm-2.5.0.1/
+  condition: impl(ghc >= 8.4.1)
+  then:
+    dependencies: stm >= 2.2
+  else:
+    source-dirs: vendor/stm-2.5.0.1/
 
 library:
   exposed-modules:
