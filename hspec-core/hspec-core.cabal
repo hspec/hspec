@@ -33,7 +33,7 @@ library
   hs-source-dirs:
       src
       vendor
-  mhs-options: +RTS -K1M -RTS
+      vendor/async-2.2.5/
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
@@ -103,22 +103,17 @@ library
       Test.Hspec.Core.Timer
       Test.Hspec.Core.Tree
       Data.Algorithm.Diff
+      Control.Concurrent.Async
       Paths_hspec_core
   default-language: Haskell2010
-  if impl(ghc)
+  if impl(ghc >= 8.4.1)
+    build-depends:
+        stm >=2.2
+  else
     other-modules:
-        Control.Concurrent.Async
+        Control.Concurrent.STM.TMVar
     hs-source-dirs:
-        vendor/async-2.2.5/
-    cpp-options: -DENABLE_SPEC_HOOK_ARGS
-    if impl(ghc >= 8.4.1)
-      build-depends:
-          stm >=2.2
-    else
-      other-modules:
-          Control.Concurrent.STM.TMVar
-      hs-source-dirs:
-          vendor/stm-2.5.0.1/
+        vendor/stm-2.5.0.1/
 
 test-suite spec
   type: exitcode-stdio-1.0
@@ -126,8 +121,8 @@ test-suite spec
   hs-source-dirs:
       src
       vendor
+      vendor/async-2.2.5/
       test
-  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   cpp-options: -DTEST
   build-depends:
@@ -203,6 +198,7 @@ test-suite spec
       Test.Hspec.Core.Tree
       Test.Hspec.Core.Util
       Data.Algorithm.Diff
+      Control.Concurrent.Async
       GetOpt.Declarative.EnvironmentSpec
       GetOpt.Declarative.UtilSpec
       Helper
@@ -239,17 +235,11 @@ test-suite spec
       Test.Hspec.Core.UtilSpec
       Paths_hspec_core
   default-language: Haskell2010
-  if impl(ghc)
+  if impl(ghc >= 8.4.1)
+    build-depends:
+        stm >=2.2
+  else
     other-modules:
-        Control.Concurrent.Async
+        Control.Concurrent.STM.TMVar
     hs-source-dirs:
-        vendor/async-2.2.5/
-    cpp-options: -DENABLE_SPEC_HOOK_ARGS
-    if impl(ghc >= 8.4.1)
-      build-depends:
-          stm >=2.2
-    else
-      other-modules:
-          Control.Concurrent.STM.TMVar
-      hs-source-dirs:
-          vendor/stm-2.5.0.1/
+        vendor/stm-2.5.0.1/
