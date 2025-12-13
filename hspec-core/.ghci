@@ -1,3 +1,4 @@
 :set -DTEST -isrc -ivendor -itest -ivendor/async-2.2.5
+:set -DENABLE_SPEC_HOOK_ARGS
 :set -fwarn-implicit-prelude
 :set -XHaskell2010
