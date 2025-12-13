@@ -60,4 +60,4 @@ library
   if impl(ghc)
     exposed-modules:
         Test.Hspec.Formatters
-    cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS

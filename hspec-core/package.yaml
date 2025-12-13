@@ -43,7 +43,7 @@ source-dirs:
 
 when:
   condition: impl(ghc)
-  cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+  cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
   source-dirs: vendor/async-2.2.5/
   when:
     condition: impl(ghc >= 8.4.1)
@@ -61,6 +61,7 @@ library:
     - Test.Hspec.Core.Extension.Option
     - Test.Hspec.Core.Extension.Config
     - Test.Hspec.Core.Spec
+    - Test.Hspec.Core.Hooks
     - Test.Hspec.Core.Runner
     - Test.Hspec.Core.Format
     - Test.Hspec.Core.Formatters.V2
@@ -69,7 +70,6 @@ library:
   when:
     condition: "impl(ghc)"
     exposed-modules:
-      - Test.Hspec.Core.Hooks
       - Test.Hspec.Core.Formatters
       - Test.Hspec.Core.Formatters.V1
     other-modules:
@@ -95,7 +95,6 @@ tests:
     when:
       condition: "impl(ghc)"
       other-modules:
-        - Test.Hspec.Core.Hooks
         - Test.Hspec.Core.Formatters
         - Test.Hspec.Core.Formatters.V1
         - Test.Hspec.Core.Formatters.V1.Free

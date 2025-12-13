@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE RecordWildCards #-}
 -- | Stability: provisional
 module Test.Hspec.Core.Hooks (
 -- * Types
@@ -127,8 +128,9 @@ aroundWith :: (ActionWith a -> ActionWith b) -> SpecWith a -> SpecWith b
 aroundWith = mapSpecItem_ . modifyHook
 
 modifyHook :: (ActionWith a -> ActionWith b) -> Item a -> Item b
-modifyHook action item = item {
-    itemExample = \ params hook -> itemExample item params (hook . action)
+modifyHook action Item{..} = Item {
+    itemExample = \ params hook -> itemExample params (hook . action)
+  , ..
   }
 
 -- | Wrap an action around the given spec.

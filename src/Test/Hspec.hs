@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 -- |
 -- Stability: stable
 --
@@ -51,7 +50,6 @@ module Test.Hspec (
 , fdescribe
 , fcontext
 
-#ifdef ENABLE_SPEC_HOOKS
 -- * Hooks
 , ActionWith
 , before
@@ -72,16 +70,13 @@ module Test.Hspec (
 , aroundAllWith
 , mapSubject
 , ignoreSubject
-#endif
 
 -- * Running a spec
 , hspec
 ) where
 
 import           Test.Hspec.Core.Spec
-#ifdef ENABLE_SPEC_HOOKS
 import           Test.Hspec.Core.Hooks
-#endif
 import           Test.Hspec.Runner
 import           Test.Hspec.Expectations
 

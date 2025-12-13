@@ -96,9 +96,7 @@ import           Control.Monad.Trans.Reader (asks)
 import           Test.Hspec.Expectations (Expectation)
 
 import           Test.Hspec.Core.Example
-#ifdef ENABLE_SPEC_HOOKS
 import           Test.Hspec.Core.Hooks
-#endif
 import           Test.Hspec.Core.Tree
 import           Test.Hspec.Core.Spec.Monad
 import           Test.Hspec.Core.QuickCheck ()
@@ -118,11 +116,7 @@ context = describe
 --
 -- This can be used to temporarily disable spec items.
 xdescribe :: HasCallStack => String -> SpecWith a -> SpecWith a
-#ifdef ENABLE_SPEC_HOOKS
 xdescribe label spec = before_ pending_ $ describe label spec
-#else
-xdescribe = describe
-#endif
 
 -- | @xcontext@ is an alias for `xdescribe`.
 xcontext :: HasCallStack => String -> SpecWith a -> SpecWith a
@@ -161,11 +155,7 @@ specify = it
 --
 -- This can be used to temporarily disable a spec item.
 xit :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
-#ifdef ENABLE_SPEC_HOOKS
 xit label action = before_ pending_ $ it label action
-#else
-xit = it
-#endif
 
 -- | @xspecify@ is an alias for `xit`.
 xspecify :: (HasCallStack, Example a) => String -> a -> SpecWith (Arg a)
@@ -222,10 +212,8 @@ setParallelizable value item = item {itemIsParallelizable = itemIsParallelizable
 pending :: HasCallStack => Expectation
 pending = throwIO (Pending location Nothing)
 
-#ifdef ENABLE_SPEC_HOOKS
 pending_ :: Expectation
 pending_ = (throwIO (Pending Nothing Nothing))
-#endif
 
 -- |
 -- `pendingWith` is similar to `pending`, but it takes an additional string

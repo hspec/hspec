@@ -116,7 +116,7 @@ library
   if impl(ghc)
     hs-source-dirs:
         vendor/async-2.2.5/
-    cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
     if impl(ghc >= 8.4.1)
       build-depends:
           stm >=2.2
@@ -162,7 +162,7 @@ executable hspec-meta-discover
         Control.Concurrent.Async
     hs-source-dirs:
         vendor/async-2.2.5/
-    cpp-options: -DENABLE_SPEC_HOOKS -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
     if impl(ghc >= 8.4.1)
       build-depends:
           stm >=2.2
