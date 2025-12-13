@@ -64,6 +64,8 @@ library
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.Runner
       Test.Hspec.Core.Format
+      Test.Hspec.Core.Formatters
+      Test.Hspec.Core.Formatters.V1
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
@@ -88,6 +90,9 @@ library
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
+      Test.Hspec.Core.Formatters.V1.Free
+      Test.Hspec.Core.Formatters.V1.Internal
+      Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.QuickCheck.Util
       Test.Hspec.Core.Runner.Eval
       Test.Hspec.Core.Runner.JobQueue
@@ -105,7 +110,7 @@ library
         Control.Concurrent.Async
     hs-source-dirs:
         vendor/async-2.2.5/
-    cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    cpp-options: -DENABLE_SPEC_HOOK_ARGS
     if impl(ghc >= 8.4.1)
       build-depends:
           stm >=2.2
@@ -114,14 +119,6 @@ library
           Control.Concurrent.STM.TMVar
       hs-source-dirs:
           vendor/stm-2.5.0.1/
-  if impl(ghc)
-    exposed-modules:
-        Test.Hspec.Core.Formatters
-        Test.Hspec.Core.Formatters.V1
-    other-modules:
-        Test.Hspec.Core.Formatters.V1.Free
-        Test.Hspec.Core.Formatters.V1.Internal
-        Test.Hspec.Core.Formatters.V1.Monad
 
 test-suite spec
   type: exitcode-stdio-1.0
@@ -180,11 +177,16 @@ test-suite spec
       Test.Hspec.Core.Extension.Tree
       Test.Hspec.Core.FailureReport
       Test.Hspec.Core.Format
+      Test.Hspec.Core.Formatters
       Test.Hspec.Core.Formatters.Diff
       Test.Hspec.Core.Formatters.Internal
       Test.Hspec.Core.Formatters.Pretty
       Test.Hspec.Core.Formatters.Pretty.Parser
       Test.Hspec.Core.Formatters.Pretty.Unicode
+      Test.Hspec.Core.Formatters.V1
+      Test.Hspec.Core.Formatters.V1.Free
+      Test.Hspec.Core.Formatters.V1.Internal
+      Test.Hspec.Core.Formatters.V1.Monad
       Test.Hspec.Core.Formatters.V2
       Test.Hspec.Core.Hooks
       Test.Hspec.Core.QuickCheck
@@ -242,7 +244,7 @@ test-suite spec
         Control.Concurrent.Async
     hs-source-dirs:
         vendor/async-2.2.5/
-    cpp-options: -DENABLE_SPEC_HOOK_ARGS -DENABLE_LEGACY_V1_FORMATTERS
+    cpp-options: -DENABLE_SPEC_HOOK_ARGS
     if impl(ghc >= 8.4.1)
       build-depends:
           stm >=2.2
@@ -251,10 +253,3 @@ test-suite spec
           Control.Concurrent.STM.TMVar
       hs-source-dirs:
           vendor/stm-2.5.0.1/
-  if impl(ghc)
-    other-modules:
-        Test.Hspec.Core.Formatters
-        Test.Hspec.Core.Formatters.V1
-        Test.Hspec.Core.Formatters.V1.Free
-        Test.Hspec.Core.Formatters.V1.Internal
-        Test.Hspec.Core.Formatters.V1.Monad
