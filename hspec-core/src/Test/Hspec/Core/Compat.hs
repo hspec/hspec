@@ -89,11 +89,7 @@ import           Data.Bool as Imports (bool)
 
 import           Control.Concurrent
 
-#ifndef __MHS__
 import           GHC.IO.Exception
-#else
-import           System.IO.Error
-#endif
   ( ioe_type, IOErrorType(..) )
 
 #if MIN_VERSION_base(4,13,0)
