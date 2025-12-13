@@ -30,13 +30,13 @@ type Token = (TokenType, String)
 
 type TokenType = Lexer.Token
 
-#ifndef __MHS__
 newtype Parser a = Parser {
-#else
-data Parser a = Parser {
-#endif
   runParser :: [Token] -> Maybe (a, [Token])
+#ifndef __MHS__
 } deriving Functor
+#else
+} deriving stock Functor
+#endif
 
 instance Applicative Parser where
   pure a = Parser $ \ input -> Just (a, input)
