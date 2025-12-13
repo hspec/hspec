@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -61,17 +60,11 @@ modifyArgs = modifyParams . modify
     modify f p = p {paramsQuickCheckArgs = f (paramsQuickCheckArgs p)}
 
 instance Example QC.Property where
-#ifdef ENABLE_SPEC_HOOK_ARGS
   type Arg QC.Property = ()
-#endif
   evaluateExample e = evaluateExample (\() -> e)
 
-#ifdef ENABLE_SPEC_HOOK_ARGS
 instance Example (a -> QC.Property) where
   type Arg (a -> QC.Property) = a
-#else
-instance Example (() -> QC.Property) where
-#endif
   evaluateExample p params hook progressCallback = do
     let args = paramsQuickCheckArgs params
     r <- QC.quickCheckWithResult args {QC.chatty = False} (QCP.callback qcProgressCallback $ aroundProperty hook p)

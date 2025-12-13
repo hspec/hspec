@@ -7,9 +7,6 @@
 module Test.Hspec.Core.Example (
 -- RE-EXPORTED from Test.Hspec.Core.Spec
   Example (..)
-#ifndef ENABLE_SPEC_HOOK_ARGS
-, Arg
-#endif
 , Params (..)
 , defaultParams
 , ActionWith
@@ -43,7 +40,6 @@ import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.QuickCheck.Util (liftHook)
 import           Test.Hspec.Core.Example.Location
 
-#ifdef ENABLE_SPEC_HOOK_ARGS
 -- | A type class for examples, that is to say, test bodies as used in
 -- `Test.Hspec.Core.Spec.it` and similar functions.
 class Example e where
@@ -62,13 +58,6 @@ class Example e where
   -- similar.
   type Arg e
   type Arg e = ()
-#else
-type Arg e = ()
-
--- | A type class for examples, that is to say, test bodies as used in
--- `Test.Hspec.Core.Spec.it` and similar functions.
-class Example e where
-#endif
 
   -- | Evaluates an example.
   --
@@ -201,32 +190,20 @@ exceptionToResultStatus = safeEvaluateResultStatus . pure . toResultStatus
       | otherwise = Failure Nothing $ Error Nothing e
 
 instance Example Result where
-#ifdef ENABLE_SPEC_HOOK_ARGS
   type Arg Result = ()
-#endif
   evaluateExample e = evaluateExample (\() -> e)
 
-#ifdef ENABLE_SPEC_HOOK_ARGS
 instance Example (a -> Result) where
   type Arg (a -> Result) = a
-#else
-instance Example (() -> Result) where
-#endif
   evaluateExample example _params hook _callback = do
     liftHook (Result "" Success) hook (evaluate . example)
 
 instance Example Bool where
-#ifdef ENABLE_SPEC_HOOK_ARGS
   type Arg Bool = ()
-#endif
   evaluateExample e = evaluateExample (\() -> e)
 
-#ifdef ENABLE_SPEC_HOOK_ARGS
 instance Example (a -> Bool) where
   type Arg (a -> Bool) = a
-#else
-instance Example (() -> Bool) where
-#endif
   evaluateExample p _params hook _callback = do
     liftHook (Result "" Success) hook (evaluate . example)
     where
@@ -235,9 +212,7 @@ instance Example (() -> Bool) where
         | otherwise = Result "" $ Failure Nothing NoReason
 
 instance Example Expectation where
-#ifdef ENABLE_SPEC_HOOK_ARGS
   type Arg Expectation = ()
-#endif
   evaluateExample e = evaluateExample (\() -> e)
 
 hunitFailureToResult :: Maybe String -> HUnit.HUnitFailure -> ResultStatus
@@ -264,10 +239,6 @@ hunitFailureToResult pre e = case e of
 toLocation :: SrcLoc -> Location
 toLocation loc = Location (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
 
-#ifdef ENABLE_SPEC_HOOK_ARGS
 instance Example (a -> Expectation) where
   type Arg (a -> Expectation) = a
-#else
-instance Example (() -> Expectation) where
-#endif
   evaluateExample e _params hook _ = hook e >> return (Result "" Success)
