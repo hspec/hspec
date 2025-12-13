@@ -32,11 +32,7 @@ type TokenType = Lexer.Token
 
 newtype Parser a = Parser {
   runParser :: [Token] -> Maybe (a, [Token])
-#ifndef __MHS__
 } deriving Functor
-#else
-} deriving stock Functor
-#endif
 
 instance Applicative Parser where
   pure a = Parser $ \ input -> Just (a, input)
