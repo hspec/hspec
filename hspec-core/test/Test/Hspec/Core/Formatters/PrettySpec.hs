@@ -115,7 +115,7 @@ spec = do
         , "    addressPostalCode = 50000"
         , "  }"
         , "},"
-        , "  Nothing"
+        , "  Nothing,"
         , "]"
         ]
 
@@ -132,9 +132,12 @@ spec = do
         , "  6,"
         , "  7,"
         , "  8,"
-        , "  9"
+        , "  9,"
         , "]"
         ]
+
+    it "pretty-prints empty lists" $ do
+      pretty True "[]" `shouldBe` Just "[]"
 
     context "with --unicode" $ do
       it "retains unicode characters in record fields" $ do
@@ -151,7 +154,7 @@ spec = do
             "["
           , "  \"foo\","
           , "  \"λ\","
-          , "  \"bar\""
+          , "  \"bar\","
           , "]"
           ]
 
