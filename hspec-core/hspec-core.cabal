@@ -33,7 +33,6 @@ library
   hs-source-dirs:
       src
       vendor
-  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
@@ -127,7 +126,6 @@ test-suite spec
       src
       vendor
       test
-  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   cpp-options: -DTEST
   build-depends:
