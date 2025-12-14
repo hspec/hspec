@@ -90,7 +90,6 @@ import           Data.Bool as Imports (bool)
 import           Control.Concurrent
 
 import           GHC.IO.Exception
-  ( ioe_type, IOErrorType(..) )
 
 isUnsupportedOperation :: IOError -> Bool
 isUnsupportedOperation e = ioe_type e == UnsupportedOperation
