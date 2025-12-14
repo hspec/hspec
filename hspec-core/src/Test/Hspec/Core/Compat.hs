@@ -90,7 +90,6 @@ import           Data.Bool as Imports (bool)
 import           Control.Concurrent
 
 import           GHC.IO.Exception
-  ( ioe_type, IOErrorType(..) )
 
 #if MIN_VERSION_base(4,13,0)
 import           GHC.IORef as Imports (atomicSwapIORef)
