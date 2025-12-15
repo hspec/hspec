@@ -92,7 +92,6 @@ library
       vendor/async-2.2.5/
       hspec/src
       hspec-core/src
-  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
@@ -136,7 +135,6 @@ executable hspec-meta-discover
   hs-source-dirs:
       hspec-discover/src
       hspec-discover/driver
-  mhs-options: +RTS -K1M -RTS
   ghc-options: -Wall -fno-warn-incomplete-uni-patterns
   build-depends:
       HUnit ==1.6.*
