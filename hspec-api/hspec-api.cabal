@@ -14,7 +14,7 @@ homepage:       https://hspec.github.io/
 bug-reports:    https://github.com/hspec/hspec/issues
 author:         Simon Hengel <sol@typeful.net>
 maintainer:     Simon Hengel <sol@typeful.net>
-copyright:      (c) 2022-2025 Simon Hengel
+copyright:      (c) 2022-2026 Simon Hengel
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple

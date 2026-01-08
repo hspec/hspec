@@ -3,7 +3,7 @@
 name: hspec-core
 github: hspec/hspec/hspec-core
 copyright:
-  - (c) 2011-2025 Simon Hengel
+  - (c) 2011-2026 Simon Hengel
   - (c) 2011-2012 Trystan Spangler
   - (c) 2011 Greg Weber
 description: >

@@ -2,7 +2,7 @@
 
 name: hspec-discover
 github: hspec/hspec/hspec-discover
-copyright: (c) 2012-2025 Simon Hengel
+copyright: (c) 2012-2026 Simon Hengel
 author: Simon Hengel <sol@typeful.net>
 synopsis: Automatically discover and run Hspec tests
 description: |

@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.0.
+-- This file has been generated from package.yaml by hpack version 0.39.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -8,7 +8,7 @@ name:           hspec-contrib
 version:        0.5.2
 license:        MIT
 license-file:   LICENSE
-copyright:      (c) 2011-2025 Simon Hengel,
+copyright:      (c) 2011-2026 Simon Hengel,
                 (c) 2014 Junji Hashimoto
 maintainer:     Simon Hengel <sol@typeful.net>
 build-type:     Simple

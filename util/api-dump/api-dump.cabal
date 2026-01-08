@@ -6,7 +6,7 @@ cabal-version: 1.12
 
 name:           api-dump
 version:        0.0.0
-copyright:      (c) 2022-2025 Simon Hengel
+copyright:      (c) 2022-2026 Simon Hengel
 build-type:     Simple
 
 executable api-dump
