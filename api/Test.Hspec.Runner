@@ -65,8 +65,8 @@ type SpecWith :: * -> *
 type SpecWith a = hspec-core:Test.Hspec.Core.Spec.Monad.SpecM a ()
 type Summary :: *
 data Summary = Summary
-  summaryExamples :: {-# UNPACK #-}Int
-  summaryFailures :: {-# UNPACK #-}Int
+  summaryExamples :: {-# UNPACK #-} !Int
+  summaryFailures :: {-# UNPACK #-} !Int
 type UnicodeMode :: *
 data UnicodeMode
   | UnicodeAuto

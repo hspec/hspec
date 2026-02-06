@@ -36,7 +36,7 @@ data FailureReason
   | ExpectedButGot (Maybe String) String String
   | Error (Maybe String) GHC.Internal.Exception.Type.SomeException
 type HasCallStack :: Constraint
-type HasCallStack = ?callStack::GHC.Internal.Stack.Types.CallStack :: Constraint
+type HasCallStack = ?callStack::GHC.Internal.Stack.Types.CallStack
 type Item :: * -> *
 data Item a = Item
   itemRequirement :: String

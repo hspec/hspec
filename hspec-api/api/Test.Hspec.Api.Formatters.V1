@@ -52,7 +52,7 @@ data FailureRecord = FailureRecord
   failureRecordPath :: Test.Hspec.Core.Util.Path
   failureRecordMessage :: FailureReason
 type FormatM :: * -> *
-type FormatM = hspec-core:Test.Hspec.Core.Formatters.V1.Free.Free hspec-core:Test.Hspec.Core.Formatters.V1.Monad.FormatF :: * -> *
+type FormatM = hspec-core:Test.Hspec.Core.Formatters.V1.Free.Free hspec-core:Test.Hspec.Core.Formatters.V1.Monad.FormatF
 type Formatter :: *
 data Formatter = Formatter
   headerFormatter :: FormatM ()

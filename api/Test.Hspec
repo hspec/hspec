@@ -11,7 +11,7 @@ class Example e where
 type Expectation :: *
 type Expectation = Test.HUnit.Lang.Assertion
 type HasCallStack :: Constraint
-type HasCallStack = ?callStack::GHC.Internal.Stack.Types.CallStack :: Constraint
+type HasCallStack = ?callStack::GHC.Internal.Stack.Types.CallStack
 type Selector :: * -> *
 type Selector a = a -> Bool
 type Spec :: *
