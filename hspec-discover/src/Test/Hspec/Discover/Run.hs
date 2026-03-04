@@ -63,14 +63,17 @@ mkSpecModule src conf nodes =
   . showString "{-# LANGUAGE NoImplicitPrelude #-}\n"
   . showString "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}\n"
   . showString ("module " ++ moduleName src conf ++ " where\n")
-  . importList nodes
+  . importList prefix nodes
   . showString "import Test.Hspec.Discover\n"
   . maybe driver driverWithFormatter (configFormatter conf)
   . showString "spec :: Spec\n"
   . showString "spec = "
-  . formatSpecs nodes
+  . formatSpecs prefix nodes
   ) "\n"
   where
+    prefix = case configModuleName conf of
+      Just name | '.' `elem` name -> moduleNameFromId name
+      _ -> ""
     driver =
         case configNoMain conf of
           False ->
@@ -99,11 +102,11 @@ moduleNameFromId :: String -> String
 moduleNameFromId = reverse . dropWhile (== '.') . dropWhile (/= '.') . reverse
 
 -- | Generate imports for a list of specs.
-importList :: Maybe [Spec] -> ShowS
-importList = foldr (.) "" . map f . maybe [] moduleNames
+importList :: String -> Maybe [Spec] -> ShowS
+importList prefix = foldr (.) "" . map f . maybe [] moduleNames
   where
     f :: String -> ShowS
-    f spec = "import qualified " . showString spec . "\n"
+    f spec = "import qualified " . showString (addPrefix prefix spec) . "\n"
 
 moduleNames :: [Spec] -> [String]
 moduleNames = fromForest
@@ -120,16 +123,20 @@ moduleNames = fromForest
 sequenceS :: [ShowS] -> ShowS
 sequenceS = foldr (.) "" . intersperse " >> "
 
-formatSpecs :: Maybe [Spec] -> ShowS
-formatSpecs = maybe "return ()" fromForest
+formatSpecs :: String -> Maybe [Spec] -> ShowS
+formatSpecs prefix = maybe "return ()" fromForest
   where
     fromForest :: [Spec] -> ShowS
     fromForest = sequenceS . map fromTree
 
     fromTree :: Spec -> ShowS
     fromTree tree = case tree of
-      Spec name -> "describe " . shows name . " " . showString name . "Spec.spec"
-      Hook name forest -> "(" . showString name . ".hook $ " . fromForest forest . ")"
+      Spec name -> "describe " . shows (addPrefix prefix name) . " " . showString (addPrefix prefix name) . "Spec.spec"
+      Hook name forest -> "(" . showString (addPrefix prefix name) . ".hook $ " . fromForest forest . ")"
+
+addPrefix :: String -> String -> String
+addPrefix "" name = name
+addPrefix prefix name = prefix ++ "." ++ name
 
 findSpecs :: FilePath -> IO (Maybe [Spec])
 findSpecs = fmap (fmap toSpecs) . discover
