@@ -1,3 +1,6 @@
+## Changes in 2.11.17 (2026-03-04)
+  - Compatibility with QuickCheck 2.18
+
 ## Changes in 2.11.16 (2025-12-12)
   - Add support for MicroHs
 
