@@ -106,6 +106,7 @@ describe :: HasCallStack => String -> SpecWith a -> SpecWith a
 describe label = withEnv pushLabel . mapSpecForest (return . specGroup label)
   where
     pushLabel (Env labels) = Env $ label : labels
+{-# OPAQUE describe #-}
 
 -- | @context@ is an alias for `describe`.
 context :: HasCallStack => String -> SpecWith a -> SpecWith a

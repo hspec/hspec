@@ -116,20 +116,22 @@ moduleNames = fromForest
       Spec name -> [name ++ "Spec"]
       Hook name forest -> name : fromForest forest
 
--- | Combine a list of strings with (>>).
-sequenceS :: [ShowS] -> ShowS
-sequenceS = foldr (.) "" . intersperse " >> "
+doBlock :: Int -> [ShowS] -> ShowS
+doBlock nesting = ("do" .) . foldr (\ statement -> (indentation .) . (statement .)) ""
+  where
+    indentation :: ShowS
+    indentation = showString $ '\n' : replicate (nesting * 2) ' '
 
 formatSpecs :: Maybe [Spec] -> ShowS
-formatSpecs = maybe "return ()" fromForest
+formatSpecs = maybe "return ()" (fromForest 1)
   where
-    fromForest :: [Spec] -> ShowS
-    fromForest = sequenceS . map fromTree
-
-    fromTree :: Spec -> ShowS
-    fromTree tree = case tree of
-      Spec name -> "describe " . shows name . " " . showString name . "Spec.spec"
-      Hook name forest -> "(" . showString name . ".hook $ " . fromForest forest . ")"
+    fromForest :: Int -> [Spec] -> ShowS
+    fromForest nesting = doBlock nesting . map fromTree
+      where
+        fromTree :: Spec -> ShowS
+        fromTree tree = case tree of
+          Spec name -> "describe " . shows name . " " . showString name . "Spec.spec"
+          Hook name forest -> showString name . ".hook $ " . fromForest (succ nesting) forest
 
 findSpecs :: FilePath -> IO (Maybe [Spec])
 findSpecs = fmap (fmap toSpecs) . discover

@@ -26,11 +26,10 @@ spec = do
         , "main :: IO ()"
         , "main = hspec spec"
         , "spec :: Spec"
-        , "spec = " ++ unwords [
-               "describe \"Foo\" FooSpec.spec"
-          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
-          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
-          ]
+        , "spec = do"
+        , "  describe \"Foo\" FooSpec.spec"
+        , "  describe \"Foo.Bar\" Foo.BarSpec.spec"
+        , "  describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
         ]
 
     it "generates a test driver with no Main/main" $ do
@@ -48,11 +47,10 @@ spec = do
         , "import qualified Foo.Bar.BazSpec"
         , "import Test.Hspec.Discover"
         , "spec :: Spec"
-        , "spec = " ++ unwords [
-               "describe \"Foo\" FooSpec.spec"
-          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
-          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
-          ]
+        , "spec = do"
+        , "  describe \"Foo\" FooSpec.spec"
+        , "  describe \"Foo.Bar\" Foo.BarSpec.spec"
+        , "  describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
         ]
 
     it "generates a test driver with hooks" $ do
@@ -76,11 +74,12 @@ spec = do
         , "main :: IO ()"
         , "main = hspec spec"
         , "spec :: Spec"
-        , "spec = " ++ unwords [
-               "(SpecHook.hook $ describe \"Foo\" FooSpec.spec"
-          , ">> (Foo.SpecHook.hook $ describe \"Foo.Bar\" Foo.BarSpec.spec"
-          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec))"
-          ]
+        , "spec = do"
+        , "  SpecHook.hook $ do"
+        , "    describe \"Foo\" FooSpec.spec"
+        , "    Foo.SpecHook.hook $ do"
+        , "      describe \"Foo.Bar\" Foo.BarSpec.spec"
+        , "      describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
         ]
 
     it "generates a test driver for an empty directory" $ do
