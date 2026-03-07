@@ -116,9 +116,8 @@ moduleNames = fromForest
       Spec name -> [name ++ "Spec"]
       Hook name forest -> name : fromForest forest
 
--- | Combine a list of strings with (>>).
 sequenceS :: [ShowS] -> ShowS
-sequenceS = foldr (.) "" . intersperse " >> "
+sequenceS = ("sequence_ [" .) . foldr (.) "]" . intersperse ", "
 
 formatSpecs :: Maybe [Spec] -> ShowS
 formatSpecs = maybe "return ()" fromForest
@@ -129,7 +128,7 @@ formatSpecs = maybe "return ()" fromForest
     fromTree :: Spec -> ShowS
     fromTree tree = case tree of
       Spec name -> "describe " . shows name . " " . showString name . "Spec.spec"
-      Hook name forest -> "(" . showString name . ".hook $ " . fromForest forest . ")"
+      Hook name forest -> showString name . ".hook $ " . fromForest forest
 
 findSpecs :: FilePath -> IO (Maybe [Spec])
 findSpecs = fmap (fmap toSpecs) . discover
