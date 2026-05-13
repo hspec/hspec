@@ -15,7 +15,9 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Control.Concurrent
-import           Control.Concurrent.Async (Async, async, waitCatch, cancelMany)
+import           Control.Concurrent.Async (Async, async, asyncThreadId, cancel, waitCatch, cancelMany)
+import           Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 
 import           Control.Monad.IO.Class
 
@@ -33,16 +35,16 @@ data Semaphore = Semaphore {
 , _signal :: IO ()
 }
 
-type CancelQueue = IORef [Async ()]
+type CancelQueue = IORef (Map ThreadId (Async ()))
 
 withJobQueue :: Int -> (JobQueue -> IO a) -> IO a
 withJobQueue concurrency = bracket new cancelAll
   where
     new :: IO JobQueue
-    new = JobQueue <$> newSemaphore concurrency <*> newIORef []
+    new = JobQueue <$> newSemaphore concurrency <*> newIORef Map.empty
 
     cancelAll :: JobQueue -> IO ()
-    cancelAll (JobQueue _ cancelQueue) = readIORef cancelQueue >>= cancelMany
+    cancelAll (JobQueue _ cancelQueue) = readIORef cancelQueue >>= cancelMany . Map.elems
 
 newSemaphore :: Int -> IO Semaphore
 newSemaphore capacity = do
@@ -72,10 +74,20 @@ data Partial progress a = Partial progress | Done
 runConcurrently :: forall m progress a. MonadIO m => Semaphore -> CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
 runConcurrently (Semaphore wait signal) cancelQueue action = do
   result :: MVar (Partial progress a) <- newEmptyMVar
+  ready :: MVar () <- newEmptyMVar
   let
+    awaitWorkerStart :: IO ()
+    awaitWorkerStart = readMVar ready
+
+    signalWorkerStart :: IO ()
+    signalWorkerStart = putMVar ready ()
+
     worker :: IO a
-    worker = bracket_ wait signal $ do
-      interruptible (action partialResult) `finally` done
+    worker = (do
+        awaitWorkerStart
+        bracket_ wait signal $
+          interruptible (action partialResult) `finally` done
+      ) `finally` deregisterSelf
       where
         partialResult :: progress -> IO ()
         partialResult = replaceMVar result . Partial
@@ -83,10 +95,27 @@ runConcurrently (Semaphore wait signal) cancelQueue action = do
         done :: IO ()
         done = replaceMVar result Done
 
-    pushOnCancelQueue :: Async a -> IO ()
-    pushOnCancelQueue = (modifyIORef cancelQueue . (:) . void)
+        deregisterSelf :: IO ()
+        deregisterSelf = myThreadId >>= deregister
 
-  job <- bracket (async worker) pushOnCancelQueue return
+    modifyPending :: (Map ThreadId (Async ()) -> Map ThreadId (Async ())) -> IO ()
+    modifyPending f =
+      atomicModifyIORef' cancelQueue $ \ pending -> (f pending, ())
+
+    register :: Async () -> IO ThreadId
+    register workerAsync = do
+      let tid = asyncThreadId workerAsync
+      modifyPending (Map.insert tid workerAsync)
+      return tid
+
+    deregister :: ThreadId -> IO ()
+    deregister tid = modifyPending (Map.delete tid)
+
+  job <- mask_ $
+    bracketOnError (async worker) cancel $ \ workerAsync ->
+      bracketOnError (register (void workerAsync)) deregister $ \ _tid -> do
+        signalWorkerStart
+        return workerAsync
 
   let
     waitForResult :: (progress -> m ()) -> m (Either SomeException a)
