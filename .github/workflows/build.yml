@@ -103,7 +103,9 @@ jobs:
         run: |
           cabal install --lib base hspec --package-env test/regression/issue-961/
           test/regression/issue-961/run.sh
-        if: "!startsWith(matrix.ghc, '7.') && !startsWith(matrix.ghc, '8.0') && !startsWith(matrix.ghc, '8.2') && !startsWith(matrix.ghc, '8.4') && !startsWith(matrix.ghc, '8.6') && runner.os != 'Windows'"
+        # DEMO PR: skip filter relaxed so every GHC row runs the test and
+        # shows red. Real PR (#962) restricts to GHC 8.8+.
+        if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
 
   success:
     needs: build
