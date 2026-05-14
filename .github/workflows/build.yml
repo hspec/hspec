@@ -18,6 +18,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      # DEMO PR: keep every matrix row running so we can see all the red Xs.
+      fail-fast: false
       matrix:
         os:
           - ubuntu-22.04
