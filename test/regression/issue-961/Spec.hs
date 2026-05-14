@@ -6,12 +6,14 @@
 --
 -- Reproducer: a synthetic suite with nested describes (similar shape to a
 -- real test tree) where each leaf does a small amount of work. An
--- `afterAll_` hook performs GC and sleeps for a second, which keeps the
--- cancel queue alive (it lives until `withJobQueue`'s bracket fires) while
--- all worker threads have already completed — that is exactly the window
--- where a leaked queue is observable. Run with `+RTS -hT -RTS` to produce a
--- heap profile by closure type; the accompanying run.sh inspects Spec.hp to
--- validate that worker-state retention stays bounded.
+-- `afterAll_` hook fires after every spec item has finished while
+-- `withJobQueue`'s bracket is still open — that is the window where a
+-- leaked queue is observable. The hook forces a major GC and then reads
+-- live-heap size out of GHC.Stats, writing it to live-bytes.txt for
+-- run.sh to assert against.  Sampling via `+RTS -hT` is kept for
+-- diagnostic output but it turned out to be timing-sensitive across GHC
+-- versions and runner conditions (broken hspec sometimes looked passing
+-- in the last -hT sample), so it is not the decision basis.
 --
 -- GHC <= 8.6 caveat: empirically, on GHC 8.6.5 this benchmark's heap
 -- profile shows STACK retention climbing to ~663 MB across the run when
@@ -27,12 +29,16 @@
 -- still correct on 8.6, but the test doesn't distinguish broken from fixed
 -- there because both retain similar amounts of total state.
 
+{-# LANGUAGE CPP #-}
 module Main (main) where
 
 import           Control.Concurrent (threadDelay)
 import           Control.Monad (forM_)
 import           System.Mem (performGC)
 import           Test.Hspec
+#if MIN_VERSION_base(4,10,0)
+import           GHC.Stats (getRTSStats, getRTSStatsEnabled, gc, gcdetails_live_bytes)
+#endif
 
 outer, middle, leaf :: Int
 outer = 50
@@ -51,10 +57,22 @@ main = hspec $ afterAll_ settle $ describe "issue-961" $
               sum xs `shouldBe` sum xs
 
 -- Runs after every spec item has finished, while withJobQueue's bracket is
--- still open. We force a GC and pause so the heap profiler captures several
--- samples in this state; that's the window where a broken cancel queue is
--- still holding worker references and a fixed one is not.
+-- still open. We force a major GC and then read post-GC live bytes from
+-- GHC.Stats — the cancel queue, if broken, still references ~50k workers
+-- here; if fixed, it is empty. We also pause so the -hT heap profiler can
+-- emit a few samples in this state for human inspection.
 settle :: IO ()
 settle = do
   performGC
+  performGC
+#if MIN_VERSION_base(4,10,0)
+  enabled <- getRTSStatsEnabled
+  if enabled
+    then do
+      stats <- getRTSStats
+      writeFile "live-bytes.txt" (show (gcdetails_live_bytes (gc stats)))
+    else writeFile "live-bytes.txt" "DISABLED"
+#else
+  writeFile "live-bytes.txt" "UNAVAILABLE"
+#endif
   threadDelay 1000000
