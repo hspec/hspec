@@ -23,10 +23,10 @@ leaf = 50
 main :: IO ()
 main = hspec $ describe "issue-961" $
   forM_ [1 .. outer] $ \ i ->
-    describe ("group-" <> show i) $
+    describe ("group-" ++ show i) $
       forM_ [1 .. middle] $ \ j ->
-        describe ("subgroup-" <> show j) $
+        describe ("subgroup-" ++ show j) $
           forM_ [1 .. leaf] $ \ k ->
-            it ("test-" <> show i <> "-" <> show j <> "-" <> show k) $ do
+            it ("test-" ++ show i ++ "-" ++ show j ++ "-" ++ show k) $ do
               let xs = map (\ x -> x * x + i + j + k) [1 .. 200 :: Int]
               sum xs `shouldBe` sum xs
