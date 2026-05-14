@@ -13,14 +13,19 @@
 -- heap profile by closure type; the accompanying run.sh inspects Spec.hp to
 -- validate that worker-state retention stays bounded.
 --
--- GHC <= 8.6 caveat: the fix adds an MVar-based gate at worker startup so
--- the parent can register the worker's Async before the worker proceeds.
--- On GHC <= 8.6 the RTS retains the STACK closures saved for these blocked
--- threads well past the point where they resume and finish; the heap profile
--- shows STACK growing into the hundreds of MB across 50k workers regardless
--- of cancel-queue state. From GHC 8.8 onward STACK closures of resumed
--- threads are reclaimed promptly and the regression signal is clean. The
--- workflow therefore only runs this test on GHC 8.8 and later.
+-- GHC <= 8.6 caveat: empirically, on GHC 8.6.5 this benchmark's heap
+-- profile shows STACK retention climbing to ~663 MB across the run when
+-- the fix is applied, vs ~45 MB on the same GHC with the unfixed hspec
+-- (and ~35 KB on GHC 8.8.4 with the fix). Minimal reproducers with the
+-- same worker shape — `forkIO`/`async` + readMVar gate + bracket_ + finally,
+-- 50k threads — do *not* show this retention on GHC 8.6.5 (STACK climbs to
+-- ~40 MB and drops back to ~8 MB after `performGC`), so this is not a clean
+-- "GHC 8.6 fails to reclaim STACK closures" RTS issue.  Something in
+-- hspec-core's eval path keeps worker state alive on 8.6.5 in a way it
+-- doesn't on 8.8+, and we have not pinned it down. The workflow therefore
+-- only runs this regression test on GHC 8.8 and later; the fix itself is
+-- still correct on 8.6, but the test doesn't distinguish broken from fixed
+-- there because both retain similar amounts of total state.
 
 module Main (main) where
 
