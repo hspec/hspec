@@ -12,6 +12,15 @@
 -- where a leaked queue is observable. Run with `+RTS -hT -RTS` to produce a
 -- heap profile by closure type; the accompanying run.sh inspects Spec.hp to
 -- validate that worker-state retention stays bounded.
+--
+-- GHC <= 8.6 caveat: the fix adds an MVar-based gate at worker startup so
+-- the parent can register the worker's Async before the worker proceeds.
+-- On GHC <= 8.6 the RTS retains the STACK closures saved for these blocked
+-- threads well past the point where they resume and finish; the heap profile
+-- shows STACK growing into the hundreds of MB across 50k workers regardless
+-- of cancel-queue state. From GHC 8.8 onward STACK closures of resumed
+-- threads are reclaimed promptly and the regression signal is clean. The
+-- workflow therefore only runs this test on GHC 8.8 and later.
 
 module Main (main) where
 

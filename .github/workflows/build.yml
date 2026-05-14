@@ -94,9 +94,16 @@ jobs:
           test/regression/issue-169/run.sh
           cabal install --lib base hspec --package-env test/regression/issue-270/
           test/regression/issue-270/run.sh
+        if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
+
+      - name: Run issue-961 regression test
+        # On GHC <= 8.6 the RTS retains STACK closures for resumed threads
+        # well past completion, which dominates the heap profile and trips
+        # the threshold even with the fix applied. See test/regression/issue-961/Spec.hs.
+        run: |
           cabal install --lib base hspec --package-env test/regression/issue-961/
           test/regression/issue-961/run.sh
-        if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
+        if: "!startsWith(matrix.ghc, '7.') && !startsWith(matrix.ghc, '8.0') && !startsWith(matrix.ghc, '8.2') && !startsWith(matrix.ghc, '8.4') && !startsWith(matrix.ghc, '8.6') && runner.os != 'Windows'"
 
   success:
     needs: build
