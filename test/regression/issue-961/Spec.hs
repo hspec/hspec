@@ -4,63 +4,72 @@
 --   cases. After the fix, completed workers self-deregister, so the queue
 --   only holds in-flight jobs.
 --
--- Reproducer: a synthetic suite with nested describes (similar shape to a
--- real test tree) where each leaf does a small amount of work. An
--- `afterAll_` hook fires after every spec item has finished while
--- `withJobQueue`'s bracket is still open — that is the window where a
--- leaked queue is observable. The hook forces a major GC and then reads
--- live-heap size out of GHC.Stats, writing it to live-bytes.txt for
--- run.sh to assert against.  Sampling via `+RTS -hT` is kept for
--- diagnostic output but it turned out to be timing-sensitive across GHC
--- versions and runner conditions (broken hspec sometimes looked passing
--- in the last -hT sample), so it is not the decision basis.
+-- Detection strategy: run the synthetic suite at two sizes (small and
+-- large), measure post-GC live heap in each run, and assert that the
+-- per-test slope (bytes-per-spec-item, computed across the two sizes) is
+-- small. A leaking queue grows live heap linearly in the spec count, so
+-- the slope is the clean O(n)-vs-O(1) signal we want. A single-point
+-- measurement turns out to be unreliable: it conflates the leak with the
+-- fixed-cost overhead of the test harness itself (result tree, hspec
+-- internal state, base runtime), and the threshold for "broken" depends
+-- on GHC version / runner. Slope cancels that base out.
 --
--- GHC <= 8.6 caveat: empirically, on GHC 8.6.5 this benchmark's heap
--- profile shows STACK retention climbing to ~663 MB across the run when
--- the fix is applied, vs ~45 MB on the same GHC with the unfixed hspec
--- (and ~35 KB on GHC 8.8.4 with the fix). Minimal reproducers with the
--- same worker shape — `forkIO`/`async` + readMVar gate + bracket_ + finally,
--- 50k threads — do *not* show this retention on GHC 8.6.5 (STACK climbs to
--- ~40 MB and drops back to ~8 MB after `performGC`), so this is not a clean
--- "GHC 8.6 fails to reclaim STACK closures" RTS issue.  Something in
--- hspec-core's eval path keeps worker state alive on 8.6.5 in a way it
--- doesn't on 8.8+, and we have not pinned it down. The workflow therefore
--- only runs this regression test on GHC 8.8 and later; the fix itself is
--- still correct on 8.6, but the test doesn't distinguish broken from fixed
--- there because both retain similar amounts of total state.
+-- The suite is built with nested describes (outer/middle/leaf) to roughly
+-- mimic the shape of a real test tree. The leaf count scales with the
+-- chosen size N so the spec count = `outer * middle * leaf` = N exactly.
+-- N is taken from the ISSUE961_N environment variable, with a default
+-- that matches the original 50k-test reproducer.
+--
+-- An `afterAll_` hook fires after every spec item has finished while
+-- `withJobQueue`'s bracket is still open — that is the window where a
+-- leaked queue is observable. The hook forces a major GC, reads
+-- `gcdetails_live_bytes` from `GHC.Stats.getRTSStats`, and writes the
+-- number to `live-bytes.txt` for run.sh to consume. `+RTS -hT` heap
+-- profile output is preserved for diagnostic visibility but is not the
+-- decision basis.
 
 {-# LANGUAGE CPP #-}
 module Main (main) where
 
 import           Control.Concurrent (threadDelay)
 import           Control.Monad (forM_)
+import           Data.Maybe (fromMaybe)
+import           System.Environment (lookupEnv)
 import           System.Mem (performGC)
 import           Test.Hspec
+import           Text.Read (readMaybe)
 #if MIN_VERSION_base(4,10,0)
 import           GHC.Stats (getRTSStats, getRTSStatsEnabled, gc, gcdetails_live_bytes)
 #endif
 
-outer, middle, leaf :: Int
-outer = 50
+-- Fixed describe-tree depth: 50 outer groups, 20 middle subgroups. Leaf
+-- count is derived so that outer * middle * leaf = ISSUE961_N, which
+-- lets run.sh vary N to measure per-spec-item growth.
+outer, middle :: Int
+outer  = 50
 middle = 20
-leaf = 50
+
+defaultN :: Int
+defaultN = 50000
 
 main :: IO ()
-main = hspec $ afterAll_ settle $ describe "issue-961" $
-  forM_ [1 .. outer] $ \ i ->
-    describe ("group-" ++ show i) $
-      forM_ [1 .. middle] $ \ j ->
-        describe ("subgroup-" ++ show j) $
-          forM_ [1 .. leaf] $ \ k ->
-            it ("test-" ++ show i ++ "-" ++ show j ++ "-" ++ show k) $ do
-              let xs = map (\ x -> x * x + i + j + k) [1 .. 200 :: Int]
-              sum xs `shouldBe` sum xs
+main = do
+  n <- fromMaybe defaultN . (>>= readMaybe) <$> lookupEnv "ISSUE961_N"
+  let leaf = max 1 (n `div` (outer * middle))
+  hspec $ afterAll_ settle $ describe "issue-961" $
+    forM_ [1 .. outer] $ \ i ->
+      describe ("group-" ++ show i) $
+        forM_ [1 .. middle] $ \ j ->
+          describe ("subgroup-" ++ show j) $
+            forM_ [1 .. leaf] $ \ k ->
+              it ("test-" ++ show i ++ "-" ++ show j ++ "-" ++ show k) $ do
+                let xs = map (\ x -> x * x + i + j + k) [1 .. 200 :: Int]
+                sum xs `shouldBe` sum xs
 
 -- Runs after every spec item has finished, while withJobQueue's bracket is
 -- still open. We force a major GC and then read post-GC live bytes from
--- GHC.Stats — the cancel queue, if broken, still references ~50k workers
--- here; if fixed, it is empty. We also pause so the -hT heap profiler can
--- emit a few samples in this state for human inspection.
+-- GHC.Stats. The pause keeps the bracket open long enough for -hT to emit
+-- a few diagnostic samples in this state.
 settle :: IO ()
 settle = do
   performGC
