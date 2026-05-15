@@ -23,7 +23,7 @@ cd `dirname "$0"`
 
 N_SMALL=5000
 N_LARGE=50000
-BYTES_PER_TEST_THRESHOLD=1500
+BYTES_PER_TEST_THRESHOLD=1200
 
 ghc -threaded -rtsopts -fforce-recomp Spec.hs
 

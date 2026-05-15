@@ -99,14 +99,12 @@ jobs:
         if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
 
       - name: Run issue-961 regression test
-        # On GHC <= 8.6 the RTS retains STACK closures for resumed threads
-        # well past completion, which dominates the heap profile and trips
-        # the threshold even with the fix applied. See test/regression/issue-961/Spec.hs.
+        # Slope-based detection (see test/regression/issue-961/run.sh)
+        # is robust across GHC versions. GHC.Stats lives in base-4.10+
+        # (GHC 8.2+); on older GHCs the test self-skips.
         run: |
           cabal install --lib base hspec --package-env test/regression/issue-961/
           test/regression/issue-961/run.sh
-        # DEMO PR: skip filter relaxed so every GHC row runs the test and
-        # shows red. Real PR (#962) restricts to GHC 8.8+.
         if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
 
   success:
