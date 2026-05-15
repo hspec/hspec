@@ -15,7 +15,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           Control.Concurrent
-import           Control.Concurrent.Async (Async, async, asyncThreadId, cancel, waitCatch, cancelMany)
+import           Control.Concurrent.Async (Async, async, asyncThreadId, cancel, cancelMany)
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 
@@ -69,7 +69,7 @@ runSequentially cancelQueue action = do
   job <- runConcurrently (Semaphore wait pass) cancelQueue action
   return $ \ notifyPartial -> signal >> job notifyPartial
 
-data Partial progress a = Partial progress | Done
+data Partial progress a = Partial progress | Done (Either SomeException a)
 
 runConcurrently :: forall m progress a. MonadIO m => Semaphore -> CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
 runConcurrently (Semaphore wait signal) cancelQueue action = do
@@ -82,18 +82,15 @@ runConcurrently (Semaphore wait signal) cancelQueue action = do
     signalWorkerStart :: IO ()
     signalWorkerStart = putMVar ready ()
 
-    worker :: IO a
+    worker :: IO ()
     worker = (do
         awaitWorkerStart
-        bracket_ wait signal $
-          interruptible (action partialResult) `finally` done
+        r <- try (bracket_ wait signal (interruptible (action partialResult)))
+        replaceMVar result (Done r)
       ) `finally` deregisterSelf
       where
         partialResult :: progress -> IO ()
         partialResult = replaceMVar result . Partial
-
-        done :: IO ()
-        done = replaceMVar result Done
 
         deregisterSelf :: IO ()
         deregisterSelf = myThreadId >>= deregister
@@ -111,11 +108,10 @@ runConcurrently (Semaphore wait signal) cancelQueue action = do
     deregister :: ThreadId -> IO ()
     deregister tid = modifyPending (Map.delete tid)
 
-  job <- mask_ $
+  mask_ $
     bracketOnError (async worker) cancel $ \ workerAsync ->
-      bracketOnError (register (void workerAsync)) deregister $ \ _tid -> do
+      bracketOnError (register workerAsync) deregister $ \ _tid ->
         signalWorkerStart
-        return workerAsync
 
   let
     waitForResult :: (progress -> m ()) -> m (Either SomeException a)
@@ -123,7 +119,7 @@ runConcurrently (Semaphore wait signal) cancelQueue action = do
       r <- liftIO (takeMVar result)
       case r of
         Partial progress -> notifyPartial progress >> waitForResult notifyPartial
-        Done -> liftIO $ waitCatch job
+        Done finalResult -> return finalResult
 
   return waitForResult
 
