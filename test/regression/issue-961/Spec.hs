@@ -63,6 +63,10 @@ main = do
           describe ("subgroup-" ++ show j) $
             forM_ [1 .. leaf] $ \ k ->
               it ("test-" ++ show i ++ "-" ++ show j ++ "-" ++ show k) $ do
+                -- Synthetic CPU work so workers spend non-trivial time in
+                -- the action body (and therefore actually concurrently
+                -- occupy the cancel queue). The shouldBe is tautological;
+                -- the leak we measure is per-item, not per-failure.
                 let xs = map (\ x -> x * x + i + j + k) [1 .. 200 :: Int]
                 sum xs `shouldBe` sum xs
 
