@@ -34,6 +34,7 @@ library
   other-modules:
       Data.Algorithm.Diff
       Control.Concurrent.Async
+      Control.Concurrent.Async.Internal
       Test.Hspec
       Test.Hspec.Formatters
       Test.Hspec.QuickCheck
@@ -123,7 +124,7 @@ library
       other-modules:
           Control.Concurrent.STM.TMVar
       hs-source-dirs:
-          vendor/stm-2.5.0.1/
+          vendor/stm-2.5.3.1/
 
 executable hspec-meta-discover
   main-is: hspec-discover.hs
@@ -158,6 +159,7 @@ executable hspec-meta-discover
   if impl(ghc)
     other-modules:
         Control.Concurrent.Async
+        Control.Concurrent.Async.Internal
     hs-source-dirs:
         vendor/async-2.2.5/
     cpp-options: -DENABLE_SPEC_HOOK_ARGS
@@ -168,4 +170,4 @@ executable hspec-meta-discover
       other-modules:
           Control.Concurrent.STM.TMVar
       hs-source-dirs:
-          vendor/stm-2.5.0.1/
+          vendor/stm-2.5.3.1/

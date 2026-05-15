@@ -107,6 +107,7 @@ library
   if impl(ghc)
     other-modules:
         Control.Concurrent.Async
+        Control.Concurrent.Async.Internal
     hs-source-dirs:
         vendor/async-2.2.5/
     cpp-options: -DENABLE_SPEC_HOOK_ARGS
@@ -117,7 +118,7 @@ library
       other-modules:
           Control.Concurrent.STM.TMVar
       hs-source-dirs:
-          vendor/stm-2.5.0.1/
+          vendor/stm-2.5.3.1/
 
 test-suite spec
   type: exitcode-stdio-1.0
@@ -240,6 +241,7 @@ test-suite spec
   if impl(ghc)
     other-modules:
         Control.Concurrent.Async
+        Control.Concurrent.Async.Internal
     hs-source-dirs:
         vendor/async-2.2.5/
     cpp-options: -DENABLE_SPEC_HOOK_ARGS
@@ -250,4 +252,4 @@ test-suite spec
       other-modules:
           Control.Concurrent.STM.TMVar
       hs-source-dirs:
-          vendor/stm-2.5.0.1/
+          vendor/stm-2.5.3.1/
