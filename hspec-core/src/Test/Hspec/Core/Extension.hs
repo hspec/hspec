@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 -- | Stability: unstable
+-- @since 2.11.10
 module Test.Hspec.Core.Extension {-# WARNING "This API is experimental." #-} (
 -- * Lifecycle of a test run
 {- |
