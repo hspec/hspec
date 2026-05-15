@@ -1,3 +1,5 @@
+-- | Stability: unstable
+-- @since 2.11.10
 module Test.Hspec.Core.Extension.Tree {-# WARNING "This API is experimental." #-} (
   SpecTree
 , mapItems
