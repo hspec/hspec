@@ -1,5 +1,5 @@
-# Documentation
-Read the [User's Manual](https://hspec.github.io/)!
+> [!NOTE]
+> User documentation is provided in the [User's Manual](https://hspec.github.io/).
 
 # Development
 
