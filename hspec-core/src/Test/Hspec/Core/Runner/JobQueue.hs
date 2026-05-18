@@ -12,18 +12,12 @@ module Test.Hspec.Core.Runner.JobQueue (
 ) where
 
 import           Prelude ()
-import           Test.Hspec.Core.Compat hiding (Monad)
-import qualified Test.Hspec.Core.Compat as M
+import           Test.Hspec.Core.Compat
 
 import           Control.Concurrent
 import           Control.Concurrent.Async (Async, async, waitCatch, cancelMany)
 
-import           Control.Monad.IO.Class (liftIO)
-import qualified Control.Monad.IO.Class as M
-
--- for compatibility with GHC < 7.10.1
-type Monad m = (Functor m, Applicative m, M.Monad m)
-type MonadIO m = (Monad m, M.MonadIO m)
+import           Control.Monad.IO.Class
 
 type Job m progress a = (progress -> m ()) -> m a
 
