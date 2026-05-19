@@ -90,11 +90,18 @@ jobs:
 
       - name: Run regression tests
         run: |
+
           cabal install --lib base hspec --package-env test/regression/issue-169/
           test/regression/issue-169/run.sh
+
           cabal install --lib base hspec --package-env test/regression/issue-270/
           test/regression/issue-270/run.sh
-        if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
+
+          cabal install hspec-discover
+          cabal install --lib base hspec --package-env test/regression/issue-952/
+          test/regression/issue-952/run.sh
+
+        if: runner.os == 'Linux'
 
   success:
     needs: build
