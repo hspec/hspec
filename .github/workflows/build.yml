@@ -88,13 +88,17 @@ jobs:
 
       - uses: sol/run-haskell-tests@v1
 
-      - name: Run regression tests
+      - name: "Run regression tests for #169"
         run: |
           cabal install --lib base hspec --package-env test/regression/issue-169/
           test/regression/issue-169/run.sh
+        if: runner.os != 'Windows'
+
+      - name: "Run regression tes for #270"
+        run: |
           cabal install --lib base hspec --package-env test/regression/issue-270/
           test/regression/issue-270/run.sh
-        if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
+        if: runner.os != 'Windows'
 
   success:
     needs: build
