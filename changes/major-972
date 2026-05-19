@@ -1,0 +1,1 @@
+  - Strictly limit the number of concurrent threads (see #972)
