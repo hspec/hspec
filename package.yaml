@@ -28,6 +28,7 @@ ghc-options: -Wall
 
 dependencies:
   base: 4.*
+  ghc-prim: *
   hspec-core: *version
   hspec-discover: *version
   hspec-expectations: 0.8.4.*

@@ -74,7 +74,7 @@ mkSpecModule src conf nodes =
     driver =
         case configNoMain conf of
           False ->
-              showString "main :: IO ()\n"
+              showString "main :: IO Unit\n"
             . showString "main = hspec spec\n"
           True -> ""
 
@@ -91,7 +91,7 @@ pathToModule f = toUpper m:ms
 driverWithFormatter :: String -> ShowS
 driverWithFormatter f =
     showString "import qualified " . showString (moduleNameFromId f) . showString "\n"
-  . showString "main :: IO ()\n"
+  . showString "main :: IO Unit\n"
   . showString "main = hspecWithFormatter " . showString f . showString " spec\n"
 
 -- | Return module name of a fully qualified identifier.

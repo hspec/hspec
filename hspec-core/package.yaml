@@ -23,6 +23,7 @@ dependencies:
   - ansi-terminal >= 0.6.2
   - time
   - transformers >= 0.2.2.0
+  - ghc-prim
   - deepseq
   - HUnit == 1.6.*
   - QuickCheck >= 2.13.1 && < 2.19
