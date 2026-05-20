@@ -18,6 +18,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      # DEMO PR: keep every matrix row running so we can see all the red Xs.
+      fail-fast: false
       matrix:
         os:
           - ubuntu-22.04
@@ -99,6 +101,15 @@ jobs:
           cabal install --lib base hspec --package-env test/regression/issue-270/
           test/regression/issue-270/run.sh
         if: runner.os != 'Windows'
+
+      - name: Run issue-961 regression test
+        # Slope-based detection (see test/regression/issue-961/run.sh)
+        # is robust across GHC versions. GHC.Stats lives in base-4.10+
+        # (GHC 8.2+); on older GHCs the test self-skips.
+        run: |
+          cabal install --lib base hspec --package-env test/regression/issue-961/
+          test/regression/issue-961/run.sh
+        if: "!startsWith(matrix.ghc, '7.') && runner.os != 'Windows'"
 
   success:
     needs: build
