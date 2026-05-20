@@ -254,10 +254,10 @@ mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
       Just (name, _) -> Just $ "in " ++ name ++ "-hook:"
       Nothing -> Nothing
 
-enqueueItems :: MonadIO m => JobQueue -> [EvalTree] -> IO [RunningTree_ m]
+enqueueItems :: JobQueue (Int, Int) (Seconds, Result) -> [EvalTree] -> IO [RunningTree_ IO]
 enqueueItems queue = mapM (traverse $ enqueueItem queue)
 
-enqueueItem :: MonadIO m => JobQueue -> EvalItem -> IO (RunningItem_ m)
+enqueueItem :: JobQueue (Int, Int) (Seconds, Result) -> EvalItem -> IO (RunningItem_ IO)
 enqueueItem queue EvalItem{..} = do
   job <- enqueueJob queue evalItemConcurrency evalItemAction
   return Item {

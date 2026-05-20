@@ -1,7 +1,5 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ConstraintKinds #-}
-
 module Test.Hspec.Core.Runner.JobQueue (
   MonadIO
 , Job
@@ -12,10 +10,12 @@ module Test.Hspec.Core.Runner.JobQueue (
 ) where
 
 import           Prelude ()
+import           Data.Void (Void)
+import           Control.Concurrent.Async
 import           Test.Hspec.Core.Compat
+import           Test.Hspec.Core.Util (safeTry)
 
 import           Control.Concurrent
-import           Control.Concurrent.Async (Async, async, waitCatch, cancelMany)
 
 import           Control.Monad.IO.Class
 
@@ -23,81 +23,58 @@ type Job m progress a = (progress -> m ()) -> m a
 
 data Concurrency = Sequential | Concurrent
 
-data JobQueue = JobQueue {
-  _semaphore :: Semaphore
-, _cancelQueue :: CancelQueue
+newtype JobQueue progress a = JobQueue (Chan (QueuedJob progress a))
+
+withJobQueue :: Int -> (JobQueue progress a -> IO r) -> IO r
+withJobQueue concurrency action = do
+  chan <- newChan
+  let
+    worker :: IO Void
+    worker = forever $ readChan chan >>= run
+
+    startWorkers :: IO [Async Void]
+    startWorkers = replicateM concurrency $ async worker
+
+  bracket startWorkers cancelMany $ \ _ -> do
+    action $ JobQueue chan
+
+enqueueJob :: forall progress a. JobQueue progress a -> Concurrency -> Job IO progress a -> IO (Job IO progress (Either SomeException a))
+enqueueJob (JobQueue chan) concurrency action = do
+  result <- newEmptyMVar
+  let
+    job :: QueuedJob progress a
+    job = QueuedJob action result
+  case concurrency of
+    Sequential -> do
+      return $ safeTry . action
+    _ -> do
+      writeChan chan job
+      return $ waitForResult result
+
+data Result progress a = Partial progress | Final (Either SomeException a)
+
+data QueuedJob progress a = QueuedJob {
+  action :: Job IO progress a
+, result :: MVar (Result progress a)
 }
 
-data Semaphore = Semaphore {
-  _wait :: IO ()
-, _signal :: IO ()
-}
-
-type CancelQueue = IORef [Async ()]
-
-withJobQueue :: Int -> (JobQueue -> IO a) -> IO a
-withJobQueue concurrency = bracket new cancelAll
+run :: forall progress a. QueuedJob progress a -> IO ()
+run QueuedJob {..} = do
+  r <- safeTry (action partialResult)
+  replaceMVar result $ Final r
   where
-    new :: IO JobQueue
-    new = JobQueue <$> newSemaphore concurrency <*> newIORef []
+    partialResult :: progress -> IO ()
+    partialResult = replaceMVar result . Partial
 
-    cancelAll :: JobQueue -> IO ()
-    cancelAll (JobQueue _ cancelQueue) = readIORef cancelQueue >>= cancelMany
-
-newSemaphore :: Int -> IO Semaphore
-newSemaphore capacity = do
-  sem <- newQSem capacity
-  return $ Semaphore (waitQSem sem) (signalQSem sem)
-
-enqueueJob :: MonadIO m => JobQueue -> Concurrency -> Job IO progress a -> IO (Job m progress (Either SomeException a))
-enqueueJob (JobQueue sem cancelQueue) concurrency = case concurrency of
-  Sequential -> runSequentially cancelQueue
-  Concurrent -> runConcurrently sem cancelQueue
-
-runSequentially :: forall m progress a. MonadIO m => CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
-runSequentially cancelQueue action = do
-  barrier <- newEmptyMVar
-  let
-    wait :: IO ()
-    wait = takeMVar barrier
-
-    signal :: m ()
-    signal = liftIO $ putMVar barrier ()
-
-  job <- runConcurrently (Semaphore wait pass) cancelQueue action
-  return $ \ notifyPartial -> signal >> job notifyPartial
-
-data Partial progress a = Partial progress | Done
-
-runConcurrently :: forall m progress a. MonadIO m => Semaphore -> CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
-runConcurrently (Semaphore wait signal) cancelQueue action = do
-  result :: MVar (Partial progress a) <- newEmptyMVar
-  let
-    worker :: IO a
-    worker = bracket_ wait signal $ do
-      interruptible (action partialResult) `finally` done
-      where
-        partialResult :: progress -> IO ()
-        partialResult = replaceMVar result . Partial
-
-        done :: IO ()
-        done = replaceMVar result Done
-
-    pushOnCancelQueue :: Async a -> IO ()
-    pushOnCancelQueue = (modifyIORef cancelQueue . (:) . void)
-
-  job <- bracket (async worker) pushOnCancelQueue return
-
-  return $ waitForResult job result
-
-waitForResult :: MonadIO m => Async a -> MVar (Partial progress a) -> (progress -> m ()) -> m (Either SomeException a)
-waitForResult job result notifyPartial = loop
+waitForResult :: forall m progress a. MonadIO m => MVar (Result progress a) -> Job m progress (Either SomeException a)
+waitForResult result notifyPartial = loop
   where
+    loop :: m (Either SomeException a)
     loop = do
       r <- liftIO (takeMVar result)
       case r of
         Partial progress -> notifyPartial progress >> loop
-        Done -> liftIO $ waitCatch job
+        Final finalResult -> return finalResult
 
 replaceMVar :: MVar a -> a -> IO ()
 replaceMVar mvar p = tryTakeMVar mvar >> putMVar mvar p
