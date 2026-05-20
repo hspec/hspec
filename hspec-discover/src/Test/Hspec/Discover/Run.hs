@@ -64,7 +64,6 @@ mkSpecModule src conf nodes =
   . showString "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}\n"
   . showString ("module " ++ moduleName src conf ++ " where\n")
   . importList nodes
-  . showString "import GHC.Tuple (Unit)\n"
   . showString "import Test.Hspec.Discover\n"
   . maybe driver driverWithFormatter (configFormatter conf)
   . showString "spec :: Spec\n"
