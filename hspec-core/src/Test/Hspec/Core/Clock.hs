@@ -20,6 +20,7 @@ import           Test.Hspec.Core.Compat
 import           Text.Printf
 import           Control.Concurrent
 import qualified System.Timeout as System
+import           Control.Monad.IO.Class
 
 #ifdef HAS_GET_MONOTONIC_TIME
 import qualified GHC.Clock as GHC
@@ -45,11 +46,11 @@ getMonotonicTime = do
   return $ Seconds (realToFrac t)
 #endif
 
-measure :: IO a -> IO (Seconds, a)
+measure :: MonadIO m => m a -> m (Seconds, a)
 measure action = do
-  t0 <- getMonotonicTime
+  t0 <- liftIO getMonotonicTime
   a <- action
-  t1 <- getMonotonicTime
+  t1 <- liftIO getMonotonicTime
   return (t1 - t0, a)
 
 sleep :: Seconds -> IO ()
