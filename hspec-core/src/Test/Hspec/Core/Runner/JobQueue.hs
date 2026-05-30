@@ -67,11 +67,11 @@ runSequentially cancelQueue action = do
   job <- runConcurrently (Semaphore wait pass) cancelQueue action
   return $ \ notifyPartial -> signal >> job notifyPartial
 
-data Partial progress a = Partial progress | Done
+data Result progress a = Partial progress | Done
 
 runConcurrently :: forall m progress a. MonadIO m => Semaphore -> CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
 runConcurrently (Semaphore wait signal) cancelQueue action = do
-  result :: MVar (Partial progress a) <- newEmptyMVar
+  result :: MVar (Result progress a) <- newEmptyMVar
   let
     worker :: IO a
     worker = bracket_ wait signal $ do
@@ -90,9 +90,10 @@ runConcurrently (Semaphore wait signal) cancelQueue action = do
 
   return $ waitForResult job result
 
-waitForResult :: MonadIO m => Async a -> MVar (Partial progress a) -> (progress -> m ()) -> m (Either SomeException a)
+waitForResult :: forall m progress a. MonadIO m => Async a -> MVar (Result progress a) -> Job m progress (Either SomeException a)
 waitForResult job result notifyPartial = loop
   where
+    loop :: m (Either SomeException a)
     loop = do
       r <- liftIO (takeMVar result)
       case r of
