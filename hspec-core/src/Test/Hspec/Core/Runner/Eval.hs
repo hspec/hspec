@@ -142,8 +142,8 @@ runFormatter config specs = do
       runningSpecs_ <- enqueueItems queue specs
 
       let
-        applyReportProgress :: RunningItem_ IO -> RunningItem IO
-        applyReportProgress item = fmap (. reportProgress timer) item
+        applyReportProgress :: RunningItem_ -> RunningItem IO
+        applyReportProgress = fmap (. reportProgress timer)
 
         runningSpecs :: [RunningTree () EvalM]
         runningSpecs = applyCleanup abortEarly $ map (fmap applyReportProgress) runningSpecs_
@@ -185,8 +185,8 @@ data Item a = Item {
 type RunningItem m = Item (Path -> m (Seconds, Result))
 type RunningTree c m = Tree c (RunningItem m)
 
-type RunningItem_ m = Item (Job m Progress (Seconds, Result))
-type RunningTree_ m = Tree (IO ()) (RunningItem_ m)
+type RunningItem_ = Item (Job Progress (Seconds, Result))
+type RunningTree_ = Tree (IO ()) RunningItem_
 
 applyFailFast :: (Result -> Bool) -> RunningTree () IO -> RunningTree () EvalM
 applyFailFast = fmap . fmap . fmap . applyToItem
@@ -254,10 +254,10 @@ mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
       Just (name, _) -> Just $ "in " ++ name ++ "-hook:"
       Nothing -> Nothing
 
-enqueueItems :: JobQueue (Int, Int) (Seconds, Result) -> [EvalTree] -> IO [RunningTree_ IO]
+enqueueItems :: JobQueue -> [EvalTree] -> IO [RunningTree_]
 enqueueItems queue = mapM (traverse $ enqueueItem queue)
 
-enqueueItem :: JobQueue (Int, Int) (Seconds, Result) -> EvalItem -> IO (RunningItem_ IO)
+enqueueItem :: JobQueue -> EvalItem -> IO RunningItem_
 enqueueItem queue EvalItem{..} = do
   job <- enqueueJob queue evalItemConcurrency evalItemAction
   return Item {
