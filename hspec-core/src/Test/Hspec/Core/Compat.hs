@@ -96,6 +96,13 @@ import           System.IO.Error
 #endif
   ( ioe_type, IOErrorType(..) )
 
+#if MIN_VERSION_base(4,13,0)
+import           GHC.IORef as Imports (atomicSwapIORef)
+#else
+atomicSwapIORef :: IORef a -> a -> IO a
+atomicSwapIORef ref new = atomicModifyIORef ref $ \ old -> (new, old)
+#endif
+
 isUnsupportedOperation :: IOError -> Bool
 isUnsupportedOperation e = ioe_type e == UnsupportedOperation
 

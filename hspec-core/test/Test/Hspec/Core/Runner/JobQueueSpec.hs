@@ -5,7 +5,7 @@ import           Helper
 
 import           Control.Concurrent
 
-import           Test.Hspec.Core.Runner.JobQueue
+import           Test.Hspec.Core.Runner.JobQueue as JobQueue
 
 spec :: Spec
 spec = do
@@ -15,10 +15,15 @@ spec = do
 
     context "with Sequential" $ do
       it "runs actions sequentially" $ do
-        withJobQueue 10 $ \ queue -> do
-          ref <- newIORef []
-          jobA <- enqueueJob queue Sequential $ \ _ -> modifyIORef ref (23 :)
-          jobB <- enqueueJob queue Sequential $ \ _ -> modifyIORef ref (42 :)
+        queue <- JobQueue.new
+
+        ref <- newIORef []
+        jobA <- JobQueue.enqueue queue Sequential $ \ _ -> modifyIORef ref (23 :)
+        jobB <- JobQueue.enqueue queue Sequential $ \ _ -> modifyIORef ref (42 :)
+
+        jobs <- JobQueue.finalize queue
+
+        JobQueue.run 10 jobs $ do
           waitFor jobB
           readIORef ref `shouldReturn` [42 :: Int]
           waitFor jobA
@@ -26,18 +31,20 @@ spec = do
 
     context "with Concurrent" $ do
       it "runs actions concurrently" $ do
-        withJobQueue 10 $ \ queue -> do
-          barrierA <- newEmptyMVar
-          barrierB <- newEmptyMVar
+        queue <- JobQueue.new
 
-          jobA <- enqueueJob queue Concurrent $ \ _ -> do
-            putMVar barrierB ()
-            takeMVar barrierA
+        barrierA <- newEmptyMVar
+        barrierB <- newEmptyMVar
+        jobA <- JobQueue.enqueue queue Concurrent $ \ _ -> do
+          putMVar barrierB ()
+          takeMVar barrierA
+        jobB <- JobQueue.enqueue queue Concurrent $ \ _ -> do
+          putMVar barrierA ()
+          takeMVar barrierB
 
-          jobB <- enqueueJob queue Concurrent $ \ _ -> do
-            putMVar barrierA ()
-            takeMVar barrierB
+        jobs <- JobQueue.finalize queue
 
+        JobQueue.run 10 jobs $ do
           timeout (0.1 :: Seconds) $ do
             waitFor jobA
             waitFor jobB
