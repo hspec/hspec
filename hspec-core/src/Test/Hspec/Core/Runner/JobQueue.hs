@@ -1,7 +1,5 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ConstraintKinds #-}
-
 module Test.Hspec.Core.Runner.JobQueue (
   MonadIO
 , Job
@@ -50,12 +48,12 @@ newSemaphore capacity = do
   return $ Semaphore (waitQSem sem) (signalQSem sem)
 
 enqueueJob :: MonadIO m => JobQueue -> Concurrency -> Job IO progress a -> IO (Job m progress (Either SomeException a))
-enqueueJob (JobQueue sem cancelQueue) concurrency = case concurrency of
-  Sequential -> runSequentially cancelQueue
-  Concurrent -> runConcurrently sem cancelQueue
+enqueueJob (JobQueue sem cancelQueue) = \ case
+  Sequential -> runSequential cancelQueue
+  Concurrent -> runConcurrent sem cancelQueue
 
-runSequentially :: forall m progress a. MonadIO m => CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
-runSequentially cancelQueue action = do
+runSequential :: forall m progress a. MonadIO m => CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
+runSequential cancelQueue action = do
   barrier <- newEmptyMVar
   let
     wait :: IO ()
@@ -64,13 +62,13 @@ runSequentially cancelQueue action = do
     signal :: m ()
     signal = liftIO $ putMVar barrier ()
 
-  job <- runConcurrently (Semaphore wait pass) cancelQueue action
+  job <- runConcurrent (Semaphore wait pass) cancelQueue action
   return $ \ notifyPartial -> signal >> job notifyPartial
 
 data Result progress a = Partial progress | Done
 
-runConcurrently :: forall m progress a. MonadIO m => Semaphore -> CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
-runConcurrently (Semaphore wait signal) cancelQueue action = do
+runConcurrent :: forall m progress a. MonadIO m => Semaphore -> CancelQueue -> Job IO progress a -> IO (Job m progress (Either SomeException a))
+runConcurrent (Semaphore wait signal) cancelQueue action = do
   result :: MVar (Result progress a) <- newEmptyMVar
   let
     worker :: IO a
@@ -84,7 +82,7 @@ runConcurrently (Semaphore wait signal) cancelQueue action = do
         done = replaceMVar result Done
 
     pushOnCancelQueue :: Async a -> IO ()
-    pushOnCancelQueue = (modifyIORef cancelQueue . (:) . void)
+    pushOnCancelQueue = modifyIORef cancelQueue . (:) . void
 
   job <- bracket (async worker) pushOnCancelQueue return
 
