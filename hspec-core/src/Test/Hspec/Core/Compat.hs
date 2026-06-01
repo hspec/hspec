@@ -103,6 +103,9 @@ atomicSwapIORef :: IORef a -> a -> IO a
 atomicSwapIORef ref new = atomicModifyIORef ref $ \ old -> (new, old)
 #endif
 
+atomicReadIORef :: IORef b -> IO b
+atomicReadIORef ref = atomicModifyIORef' ref $ \ a -> (a, a)
+
 isUnsupportedOperation :: IOError -> Bool
 isUnsupportedOperation e = ioe_type e == UnsupportedOperation
 
