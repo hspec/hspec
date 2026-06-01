@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.Runner.Eval (
   EvalConfig(..)
 , ColorMode(..)
@@ -21,7 +23,6 @@ import           Test.Hspec.Core.Compat hiding (Monad)
 
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Trans.Reader
-import           Control.Monad.Trans.Class
 
 import           Test.Hspec.Core.Util
 import           Test.Hspec.Core.Spec (Progress, FailureReason(..), Result(..), ResultStatus(..), ProgressCallback)
@@ -35,7 +36,7 @@ import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToR
 import qualified Data.List.NonEmpty as NonEmpty
 import           Data.List.NonEmpty (NonEmpty(..))
 
-import           Test.Hspec.Core.Runner.JobQueue (JobQueue, Open, Concurrency(..), Job)
+import           Test.Hspec.Core.Runner.JobQueue (JobQueue, Open, Concurrency(..), AbortEarly(..), Report(..))
 import qualified Test.Hspec.Core.Runner.JobQueue as JobQueue
 
 data Tree c a =
@@ -55,7 +56,6 @@ data ColorMode = ColorDisabled | ColorEnabled
 
 data Env = Env {
   envConfig :: EvalConfig
-, envAbort :: IORef Bool
 , envResults :: IORef [(Path, Format.Item)]
 }
 
@@ -66,28 +66,10 @@ formatEvent event = do
 
 type EvalM = ReaderT Env IO
 
-abort :: EvalM ()
-abort = do
-  ref <- asks envAbort
-  liftIO $ writeIORef ref True
-
-shouldAbort :: EvalM Bool
-shouldAbort = do
-  ref <- asks envAbort
-  liftIO $ readIORef ref
-
 addResult :: Path -> Format.Item -> EvalM ()
 addResult path item = do
   ref <- asks envResults
   liftIO $ modifyIORef ref ((path, item) :)
-
-reportItem :: Path -> Maybe Location -> EvalM (Seconds, Result) -> EvalM ()
-reportItem path loc action = do
-  reportItemStarted path
-  action >>= formatResult path loc
-
-reportItemStarted :: Path -> EvalM ()
-reportItemStarted = formatEvent . Format.ItemStarted
 
 reportItemDone :: Path -> Format.Item -> EvalM ()
 reportItemDone path item = do
@@ -119,12 +101,6 @@ formatResult path loc (duration, result) = do
           Error _ _ -> err
 #endif
 
-groupStarted :: Path -> EvalM ()
-groupStarted = formatEvent . Format.GroupStarted
-
-groupDone :: Path -> EvalM ()
-groupDone = formatEvent . Format.GroupDone
-
 data EvalItem = EvalItem {
   evalItemDescription :: String
 , evalItemLocation :: Maybe Location
@@ -140,14 +116,58 @@ runFormatter config specs = do
   queue <- JobQueue.new
   enqueuedSpecs <- enqueueItems queue specs
   jobs <- JobQueue.finalize queue
-  JobQueue.run (evalConfigConcurrentJobs config) jobs $ withTimer 0.05 $ \ timer -> do
+  withTimer 0.05 $ \ timer -> do
     env <- mkEnv
     let
-      applyReportProgress :: RunningItem_ -> RunningItem IO
-      applyReportProgress = fmap (. reportProgress timer)
+      applyReportResult :: Item -> WithReportResult () Item
+      applyReportResult =  WithReportResult formatResult
 
-      runningSpecs :: [RunningTree () EvalM]
-      runningSpecs = applyCleanup abortEarly $ map (fmap applyReportProgress) enqueuedSpecs
+      runningSpecs :: [Tree () (WithReportResult_ Item)]
+      runningSpecs = applyCleanup abortEarly $ map (fmap applyReportResult) enqueuedSpecs
+
+      runEvalM :: EvalM a -> IO a
+      runEvalM = flip runReaderT env
+
+      eval :: forall item progress a. ([String] -> item -> [Report progress a]) -> [(Tree () item)] -> [Report progress a]
+      eval evalItem = concat . concatMap foldSpec
+        where
+          foldSpec :: Tree () item -> [[Report progress a]]
+          foldSpec = foldTree FoldTree {
+            onGroupStarted = return . Report . groupStarted
+          , onGroupDone = return . Report . groupDone
+          , onCleanup
+          , onLeaf = evalItem
+          }
+
+          groupStarted :: Path -> IO ()
+          groupStarted = format . Format.GroupStarted
+
+          groupDone :: Path -> IO ()
+          groupDone = format . Format.GroupDone
+
+          onCleanup :: Maybe (String, Location) -> [String] -> () -> [Report progress a]
+          onCleanup _loc _groups () = []
+
+      items :: [Report Progress (Seconds, Result)]
+      items = eval evalItem runningSpecs
+        where
+          evalItem :: [String] -> WithReportResult_ Item -> [Report Progress (Seconds, Result)]
+          evalItem groups (WithReportResult reportResult (Item requirement loc action)) = [
+              Report (reportItemStarted path)
+            , ReportResult action progress result
+            ]
+            where
+              path :: Path
+              path = (groups, requirement)
+
+              progress :: ProgressCallback
+              progress = reportProgress timer path
+
+              result :: Either SomeException (Seconds, Result) -> IO AbortEarly
+              result r = either exceptionToResult return r >>= runEvalM . reportResult path loc
+
+          reportItemStarted :: Path -> IO ()
+          reportItemStarted = format . Format.ItemStarted
 
       abortEarly :: Result -> Bool
       abortEarly result = evalConfigFailFast config && isFailure result
@@ -156,7 +176,7 @@ runFormatter config specs = do
       getResults = reverse <$> readIORef (envResults env)
 
       formatItems :: IO ()
-      formatItems = runReaderT (eval runningSpecs) env
+      formatItems = JobQueue.run (evalConfigConcurrentJobs config) jobs items
 
       formatDone :: IO ()
       formatDone = getResults >>= format . Format.Done
@@ -166,7 +186,7 @@ runFormatter config specs = do
     getResults
   where
     mkEnv :: IO Env
-    mkEnv = Env config <$> newIORef False <*> newIORef []
+    mkEnv = Env config <$> newIORef []
 
     format :: Format
     format = evalConfigFormat config
@@ -177,68 +197,74 @@ runFormatter config specs = do
       when r $ do
         format (Format.Progress path progress)
 
-data Item a = Item {
+type ReportResult abort = Path -> Maybe Location -> (Seconds, Result) -> EvalM abort
+
+data WithReportResult abort a = WithReportResult {
+  _reportResult :: ReportResult abort
+, _item :: a
+}
+
+type WithReportResult_ = WithReportResult AbortEarly
+
+data Item = Item {
   itemDescription :: String
 , itemLocation :: Maybe Location
-, itemAction :: a
-} deriving Functor
+, itemAction :: JobQueue.Result Progress (Seconds, Result)
+}
 
-type RunningItem m = Item (Path -> m (Seconds, Result))
-type RunningTree c m = Tree c (RunningItem m)
-
-type RunningItem_ = Item (Job Progress (Seconds, Result))
-type RunningTree_ = Tree (IO ()) RunningItem_
-
-applyFailFast :: (Result -> Bool) -> RunningTree () IO -> RunningTree () EvalM
-applyFailFast = fmap . fmap . fmap . applyToItem
+applyFailFast :: (Result -> Bool) -> Tree c (WithReportResult () a) -> Tree c (WithReportResult_ a)
+applyFailFast abortEarly = fmap applyToWithReportResult
   where
-    applyToItem abortEarly action = do
-      result@(_, r) <- lift action
-      when (abortEarly r) abort
-      return result
+    applyToWithReportResult :: WithReportResult () a -> WithReportResult_ a
+    applyToWithReportResult (WithReportResult report a) = WithReportResult (applyToReportResult report) a
 
-applyCleanup :: (Result -> Bool) -> [RunningTree (IO ()) IO] -> [RunningTree () EvalM]
-applyCleanup abortEarly = map (applyFailFast abortEarly . go)
+    applyToReportResult :: ReportResult () -> ReportResult AbortEarly
+    applyToReportResult report path loc result@(_, r) = do
+      report path loc result
+      return $ if abortEarly r then AbortEarly else NoAbortEarly
+
+type Children c a = NonEmpty (Tree c (WithReportResult_ a))
+
+applyCleanup :: (Result -> Bool) -> [Tree (IO ()) (WithReportResult () a)] -> [Tree () (WithReportResult_ a)]
+applyCleanup abortEarly = map (go . applyFailFast abortEarly)
   where
-    go :: RunningTree (IO ()) IO -> RunningTree () IO
+    go :: Tree (IO ()) (WithReportResult_ a) -> Tree () (WithReportResult_ a)
     go t = case t of
       Node label xs -> Node label (go <$> xs)
-      NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc () (applyCleanupAction abortEarly loc cleanup $ go <$> xs)
+      NodeWithCleanup loc cleanup xs -> NodeWithCleanup loc () (go <$> apply loc cleanup xs)
       Leaf a -> Leaf a
 
-applyCleanupAction :: (Result -> Bool) -> Maybe (String, Location) -> IO () -> NonEmpty (RunningTree () IO) -> NonEmpty (RunningTree () IO)
-applyCleanupAction abortEarly loc cleanup = forLastLeaf (addCleanupOn (not . abortEarly)) . forEachLeaf (addCleanupOn abortEarly)
-  where
-    addCleanupOn p = addCleanupToItem p loc cleanup
+    apply :: Maybe (String, Location) -> IO () -> Children c a -> Children c a
+    apply loc cleanup = forLastLeaf (addCleanupOn (not . abortEarly)) . forEachLeaf (addCleanupOn abortEarly)
+      where
+        addCleanupOn :: (Result -> Bool) -> WithReportResult abort a -> WithReportResult abort a
+        addCleanupOn p (WithReportResult report item) = WithReportResult (addCleanup p loc cleanup report) item
 
-forEachLeaf :: (a -> b) -> NonEmpty (Tree () a) -> NonEmpty (Tree () b)
+forEachLeaf :: (a -> b) -> NonEmpty (Tree c a) -> NonEmpty (Tree c b)
 forEachLeaf f = fmap (fmap f)
 
-forLastLeaf :: (a -> a) -> NonEmpty (Tree () a) -> NonEmpty (Tree () a)
+forLastLeaf :: (a -> a) -> NonEmpty (Tree c a) -> NonEmpty (Tree c a)
 forLastLeaf p = go
   where
     go = NonEmpty.reverse . mapHead goNode . NonEmpty.reverse
 
     goNode node = case node of
       Node description xs -> Node description (go xs)
-      NodeWithCleanup loc_ () xs -> NodeWithCleanup loc_ () (go xs)
+      NodeWithCleanup loc_ c xs -> NodeWithCleanup loc_ c (go xs)
       Leaf item -> Leaf (p item)
 
 mapHead :: (a -> a) -> NonEmpty a -> NonEmpty a
 mapHead f xs = case xs of
   y :| ys -> f y :| ys
 
-addCleanupToItem :: (Result -> Bool) -> Maybe (String, Location) -> IO () -> RunningItem IO -> RunningItem IO
-addCleanupToItem shouldRunCleanup loc cleanup item = item {
-  itemAction = \ path -> do
-    result@(t1, r1) <- itemAction item path
-    if shouldRunCleanup r1 then do
-      (t2, r2) <- measure $ safeEvaluateResultStatus (cleanup >> return Success)
-      let t = t1 + t2
-      return (t, mergeResults loc r1 r2)
-    else do
-      return result
-}
+addCleanup :: (Result -> Bool) -> Maybe (String, Location) -> IO () -> ReportResult abort -> ReportResult abort
+addCleanup shouldRunCleanup loc cleanup reportProgress path l result@(t1, r1) = do
+  if shouldRunCleanup r1 then do
+    (t2, r2) <- liftIO $ measure $ safeEvaluateResultStatus (cleanup >> return Success)
+    let t = t1 + t2
+    reportProgress path l $ (t, mergeResults loc r1 r2)
+  else do
+    reportProgress path l result
 
 mergeResults :: Maybe (String, Location) -> Result -> ResultStatus -> Result
 mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
@@ -255,42 +281,20 @@ mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
       Just (name, _) -> Just $ "in " ++ name ++ "-hook:"
       Nothing -> Nothing
 
-enqueueItems :: JobQueue Open Progress (Seconds, Result) -> [EvalTree] -> IO [RunningTree_]
+enqueueItems :: JobQueue Open Progress (Seconds, Result) -> [Tree c EvalItem] -> IO [Tree c Item]
 enqueueItems queue = mapM (traverse $ enqueueItem queue)
 
-enqueueItem :: JobQueue Open Progress (Seconds, Result) -> EvalItem -> IO RunningItem_
+enqueueItem :: JobQueue Open Progress (Seconds, Result) -> EvalItem -> IO Item
 enqueueItem queue EvalItem{..} = do
   job <- JobQueue.enqueue queue evalItemConcurrency evalItemAction
   return Item {
     itemDescription = evalItemDescription
   , itemLocation = evalItemLocation
-  , itemAction = job >=> liftIO . either exceptionToResult return
+  , itemAction = job
   }
-  where
-    exceptionToResult :: SomeException -> IO (Seconds, Result)
-    exceptionToResult err = (,) 0 . Result "" <$> exceptionToResultStatus err
 
-eval :: [RunningTree () EvalM] -> EvalM ()
-eval specs = do
-  sequenceActions (concatMap foldSpec specs)
-  where
-    foldSpec :: RunningTree () EvalM -> [EvalM ()]
-    foldSpec = foldTree FoldTree {
-      onGroupStarted = groupStarted
-    , onGroupDone = groupDone
-    , onCleanup = runCleanup
-    , onLeaf = evalItem
-    }
-
-    runCleanup :: Maybe (String, Location) -> [String] -> () -> EvalM ()
-    runCleanup _loc _groups = return
-
-    evalItem :: [String] -> RunningItem EvalM -> EvalM ()
-    evalItem groups (Item requirement loc action) = do
-      reportItem path loc $ action path
-      where
-        path :: Path
-        path = (groups, requirement)
+exceptionToResult :: SomeException -> IO (Seconds, Result)
+exceptionToResult err = (,) 0 . Result "" <$> exceptionToResultStatus err
 
 data FoldTree c a r = FoldTree {
   onGroupStarted :: Path -> r
@@ -313,14 +317,3 @@ foldTree FoldTree{..} = go []
         children = concatMap (go rGroups) xs
         cleanup = onCleanup loc (reverse rGroups) action
     go rGroups (Leaf a) = [onLeaf (reverse rGroups) a]
-
-sequenceActions :: [EvalM ()] -> EvalM ()
-sequenceActions = go
-  where
-    go :: [EvalM ()] -> EvalM ()
-    go [] = pass
-    go (action : actions) = do
-      action
-      shouldAbort >>= \ case
-        False -> go actions
-        True -> pass
