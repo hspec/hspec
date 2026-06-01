@@ -35,7 +35,8 @@ import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToR
 import qualified Data.List.NonEmpty as NonEmpty
 import           Data.List.NonEmpty (NonEmpty(..))
 
-import           Test.Hspec.Core.Runner.JobQueue
+import           Test.Hspec.Core.Runner.JobQueue (JobQueue, Open, Concurrency(..), Job)
+import qualified Test.Hspec.Core.Runner.JobQueue as JobQueue
 
 data Tree c a =
     Node !String !(NonEmpty (Tree c a))
@@ -83,7 +84,7 @@ addResult path item = do
 reportItem :: Path -> Maybe Location -> EvalM (Seconds, Result) -> EvalM ()
 reportItem path loc action = do
   reportItemStarted path
-  action >>= reportResult path loc
+  action >>= formatResult path loc
 
 reportItemStarted :: Path -> EvalM ()
 reportItemStarted = formatEvent . Format.ItemStarted
@@ -99,8 +100,8 @@ isFailure r = case resultStatus r of
   Pending{} -> False
   Failure{} -> True
 
-reportResult :: Path -> Maybe Location -> (Seconds, Result) -> EvalM ()
-reportResult path loc (duration, result) = do
+formatResult :: Path -> Maybe Location -> (Seconds, Result) -> EvalM ()
+formatResult path loc (duration, result) = do
   mode <- asks (evalConfigColorMode . envConfig)
   case result of
     Result info status -> reportItemDone path $ Format.Item loc duration info $ case status of
@@ -136,33 +137,33 @@ type EvalTree = Tree (IO ()) EvalItem
 -- | Evaluate all examples of a given spec and produce a report.
 runFormatter :: EvalConfig -> [EvalTree] -> IO [(Path, Format.Item)]
 runFormatter config specs = do
-  withJobQueue (evalConfigConcurrentJobs config) $ \ queue -> do
-    withTimer 0.05 $ \ timer -> do
-      env <- mkEnv
-      runningSpecs_ <- enqueueItems queue specs
+  queue <- JobQueue.new
+  enqueuedSpecs <- enqueueItems queue specs
+  jobs <- JobQueue.finalize queue
+  JobQueue.run (evalConfigConcurrentJobs config) jobs $ withTimer 0.05 $ \ timer -> do
+    env <- mkEnv
+    let
+      applyReportProgress :: RunningItem_ -> RunningItem IO
+      applyReportProgress = fmap (. reportProgress timer)
 
-      let
-        applyReportProgress :: RunningItem_ -> RunningItem IO
-        applyReportProgress = fmap (. reportProgress timer)
+      runningSpecs :: [RunningTree () EvalM]
+      runningSpecs = applyCleanup abortEarly $ map (fmap applyReportProgress) enqueuedSpecs
 
-        runningSpecs :: [RunningTree () EvalM]
-        runningSpecs = applyCleanup abortEarly $ map (fmap applyReportProgress) runningSpecs_
+      abortEarly :: Result -> Bool
+      abortEarly result = evalConfigFailFast config && isFailure result
 
-        abortEarly :: Result -> Bool
-        abortEarly result = evalConfigFailFast config && isFailure result
+      getResults :: IO [(Path, Format.Item)]
+      getResults = reverse <$> readIORef (envResults env)
 
-        getResults :: IO [(Path, Format.Item)]
-        getResults = reverse <$> readIORef (envResults env)
+      formatItems :: IO ()
+      formatItems = runReaderT (eval runningSpecs) env
 
-        formatItems :: IO ()
-        formatItems = runReaderT (eval runningSpecs) env
+      formatDone :: IO ()
+      formatDone = getResults >>= format . Format.Done
 
-        formatDone :: IO ()
-        formatDone = getResults >>= format . Format.Done
-
-      format Format.Started
-      formatItems `finally` formatDone
-      getResults
+    format Format.Started
+    formatItems `finally` formatDone
+    getResults
   where
     mkEnv :: IO Env
     mkEnv = Env config <$> newIORef False <*> newIORef []
@@ -254,12 +255,12 @@ mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
       Just (name, _) -> Just $ "in " ++ name ++ "-hook:"
       Nothing -> Nothing
 
-enqueueItems :: JobQueue -> [EvalTree] -> IO [RunningTree_]
+enqueueItems :: JobQueue Open Progress (Seconds, Result) -> [EvalTree] -> IO [RunningTree_]
 enqueueItems queue = mapM (traverse $ enqueueItem queue)
 
-enqueueItem :: JobQueue -> EvalItem -> IO RunningItem_
+enqueueItem :: JobQueue Open Progress (Seconds, Result) -> EvalItem -> IO RunningItem_
 enqueueItem queue EvalItem{..} = do
-  job <- enqueueJob queue evalItemConcurrency evalItemAction
+  job <- JobQueue.enqueue queue evalItemConcurrency evalItemAction
   return Item {
     itemDescription = evalItemDescription
   , itemLocation = evalItemLocation

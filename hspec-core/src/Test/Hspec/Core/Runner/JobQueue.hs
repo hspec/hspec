@@ -1,17 +1,19 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Test.Hspec.Core.Runner.JobQueue (
-  Job
+  JobQueue
+, Open
+, Final
 , Concurrency(..)
-, JobQueue
-, withJobQueue
-, enqueueJob
+, Job
+, new
+, finalize
+, run
+, enqueue
 ) where
 
 import           Prelude ()
 import           Test.Hspec.Core.Compat
-
-import           Data.Void (Void)
 
 import           Control.Concurrent
 import           Control.Concurrent.Async (Async, async, cancelMany)
@@ -20,41 +22,63 @@ import           Control.Monad.IO.Class
 
 import           Test.Hspec.Core.Util (safeTry)
 
-type Job progress a = (progress -> IO ()) -> IO a
-
 data Concurrency = Sequential | Concurrent
 
-newtype JobQueue = JobQueue (Chan (IO ()))
+data Open
+data Final
 
-data Result progress a = Partial progress | Final (Either SomeException a)
+type QueuedJob progress a = IO ()
 
-withJobQueue :: Int -> (JobQueue -> IO r) -> IO r
-withJobQueue concurrency action = do
-  chan <- newChan
+newtype JobQueue final progress a = JobQueue (IORef [IO ()])
+
+new :: IO (JobQueue Open progress a)
+new = JobQueue <$> newIORef []
+
+enqueueJob :: JobQueue Open progress a -> QueuedJob progress a -> IO ()
+enqueueJob (JobQueue ref) job = modifyIORef' ref (job :)
+
+finalize :: JobQueue Open progress a -> IO (JobQueue Final progress a)
+finalize (JobQueue ref) = do
+  jobs <- reverse <$> atomicSwapIORef ref []
+  JobQueue <$> newIORef jobs
+
+dequeue :: JobQueue Final progress a -> IO (Maybe (QueuedJob progress a))
+dequeue (JobQueue ref) = atomicModifyIORef ref $ \ case
+  job : jobs -> (jobs, Just job)
+  [] -> ([], Nothing)
+
+run :: Int -> JobQueue Final progress a -> IO r -> IO r
+run concurrency jobs action = do
   let
-    worker :: IO Void
-    worker = forever $ join (readChan chan)
+    worker :: IO ()
+    worker = dequeue jobs >>= \ case
+      Nothing -> pass
+      Just item -> item >> worker
 
-    startWorkers :: IO [Async Void]
+    startWorkers :: IO [Async ()]
     startWorkers = replicateM concurrency $ async worker
 
   bracket startWorkers cancelMany $ \ _ -> do
-    action $ JobQueue chan
+    action
 
-enqueueJob :: JobQueue -> Concurrency -> Job progress a -> IO (Job progress (Either SomeException a))
-enqueueJob queue = \ case
+type Job progress a = (progress -> IO ()) -> IO a
+
+data Result progress a = Partial progress | Final (Either SomeException a)
+
+enqueue :: JobQueue Open progress a -> Concurrency -> Job progress a -> IO (Job progress (Either SomeException a))
+enqueue queue = \ case
   Sequential -> runSequential
   Concurrent -> runConcurrent queue
 
 runSequential :: Job progress a -> IO (Job progress (Either SomeException a))
 runSequential action = return $ safeTry . action
 
-runConcurrent :: JobQueue -> Job progress a -> IO (Job progress (Either SomeException a))
-runConcurrent (JobQueue chan) action = do
+runConcurrent :: JobQueue Open progress a -> Job progress a -> IO (Job progress (Either SomeException a))
+runConcurrent queue action = do
   result <- newEmptyMVar
   let
     partialResult = replaceMVar result . Partial
-  writeChan chan $ do
+  enqueueJob queue $ do
     safeTry (action partialResult) >>= replaceMVar result . Final
   return $ waitForResult result
 
