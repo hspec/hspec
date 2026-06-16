@@ -16,6 +16,9 @@ formatConfig = defaultFormatConfig {
 , formatConfigDiffContext = Just 3
 }
 
+runFormat :: FormatM a -> IO a
+runFormat action = withFormatterState formatConfig $ \ ref -> runFormatM ref action
+
 spec :: Spec
 spec = do
   forM_ [
@@ -25,19 +28,19 @@ spec = do
 
     describe name $ do
       it "colorizes chunks" $ do
-        capture_ $ runFormatM formatConfig $ do
+        capture_ $ runFormat $ do
           chunk "foo"
         `shouldReturn` colorize Foreground color "foo"
 
       context "with an all-spaces chunk" $ do
         it "colorizes background" $ do
-          capture_ $ runFormatM formatConfig $ do
+          capture_ $ runFormat $ do
             chunk "  "
           `shouldReturn` colorize Background color "  "
 
       context "with an all-newlines chunk" $ do
         it "colorizes background" $ do
-          capture_ $ runFormatM formatConfig $ do
+          capture_ $ runFormat $ do
             chunk "\n\n\n"
           `shouldReturn` colorize Background color "\n\n\n"
 
@@ -47,7 +50,7 @@ spec = do
       -- This helps with output on Jenkins and Buildkite:
       -- https://github.com/hspec/hspec/issues/346
 
-      capture_ $ runFormatM formatConfig $ do
+      capture_ $ runFormat $ do
         withSuccessColor $ write "foo\nbar\nbaz\n"
       `shouldReturn` unlines [green "foo", green "bar", green "baz"]
 
