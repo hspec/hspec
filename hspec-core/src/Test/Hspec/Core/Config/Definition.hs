@@ -34,7 +34,7 @@ import           Prelude ()
 import           Test.Hspec.Core.Compat
 
 import           System.Directory (getTemporaryDirectory, removeFile)
-import           System.IO (openTempFile, hClose)
+import           System.IO (openTempFile, hClose, hFlush, stdout)
 import           System.Process (system)
 
 import           Test.Hspec.Core.Annotations (Annotations)
@@ -184,6 +184,7 @@ externalDiff command expected actual = do
   tmp <- getTemporaryDirectory
   withTempFile tmp "hspec-expected" expected $ \ expectedFile -> do
     withTempFile tmp "hspec-actual" actual $ \ actualFile -> do
+      hFlush stdout
       void . system $ unwords [command, expectedFile, actualFile]
 
 withTempFile :: FilePath -> FilePath -> String -> (FilePath -> IO a) -> IO a

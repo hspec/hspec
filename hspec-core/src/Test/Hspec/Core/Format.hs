@@ -103,6 +103,8 @@ defaultFormatConfig = FormatConfig {
 data Signal = Ok | NotOk SomeException
 
 monadic :: MonadIO m => (m () -> IO ()) -> (Event -> m ()) -> IO Format
+-- `monadic` is not used internally anymore; we may want to deprecate it
+-- eventually
 monadic run format = do
   mvar <- newEmptyMVar
   done <- newEmptyMVar
