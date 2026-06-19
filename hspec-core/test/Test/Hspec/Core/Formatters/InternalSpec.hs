@@ -17,7 +17,9 @@ formatConfig = defaultFormatConfig {
 }
 
 runFormat :: FormatM a -> IO a
-runFormat action = withFormatterState formatConfig $ \ ref -> runFormatM ref action
+runFormat action = do
+  ref <- newFormatterState formatConfig >>= newIORef
+  runFormatM ref action
 
 spec :: Spec
 spec = do
