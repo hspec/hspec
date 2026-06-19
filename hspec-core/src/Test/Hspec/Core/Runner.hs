@@ -373,7 +373,7 @@ runSpecForest_ oldFailureReport spec c_ = do
 
   concurrentJobs <- maybe getDefaultConcurrentJobs return $ configConcurrentJobs config
 
-  results <- fmap toSpecResult . withHiddenCursor (progressReporting colorMode) stdout $ do
+  results <- fmap toSpecResult . withLineBuffering . withHiddenCursor (progressReporting colorMode) stdout $ do
     let
       formatConfig = FormatConfig {
         formatConfigUseColor = shouldUseColor colorMode
@@ -476,6 +476,10 @@ dumpFailureReport config seed qcArgs xs = do
 
 doNotLeakCommandLineArgumentsToExamples :: IO a -> IO a
 doNotLeakCommandLineArgumentsToExamples = withArgs []
+
+withLineBuffering :: IO a -> IO a
+withLineBuffering action = bracket (hGetBuffering stdout) (hSetBuffering stdout) $ \ _ -> do
+  hSetBuffering stdout LineBuffering >> action
 
 withHiddenCursor :: ProgressReporting -> Handle -> IO a -> IO a
 withHiddenCursor progress h = case progress of

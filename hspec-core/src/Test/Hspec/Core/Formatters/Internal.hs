@@ -51,7 +51,7 @@ module Test.Hspec.Core.Formatters.Internal (
 
 #ifdef TEST
 , runFormatM
-, withFormatterState
+, newFormatterState
 , splitLines
 #endif
 ) where
@@ -101,22 +101,24 @@ data FailureRecord = FailureRecord {
 }
 
 formatterToFormat :: Formatter -> FormatConfig -> IO Format
-formatterToFormat Formatter{..} config = withFormatterState config $ \ ref -> return $ runFormatM ref . \ case
-  Started -> formatterStarted
-  GroupStarted path -> formatterGroupStarted path
-  GroupDone path -> formatterGroupDone path
-  Progress path progress -> formatterProgress path progress
-  ItemStarted path -> formatterItemStarted path
-  ItemDone path item -> do
-    case itemResult item of
-      Success {} -> increaseSuccessCount
-      Pending {} -> increasePendingCount
-      Failure loc err -> addFailure $ FailureRecord (loc <|> itemLocation item) path err
-    formatterItemDone path item
-  Done _ -> formatterDone
-  where
-    addFailure :: FailureRecord -> FormatM ()
-    addFailure r = modify $ \ s -> s { stateFailMessages = r : stateFailMessages s }
+formatterToFormat Formatter{..} config = do
+  ref <- newFormatterState config >>= newIORef
+  return $ runFormatM ref . \ case
+    Started -> formatterStarted
+    GroupStarted path -> formatterGroupStarted path
+    GroupDone path -> formatterGroupDone path
+    Progress path progress -> formatterProgress path progress
+    ItemStarted path -> formatterItemStarted path
+    ItemDone path item -> do
+      case itemResult item of
+        Success {} -> increaseSuccessCount
+        Pending {} -> increasePendingCount
+        Failure loc err -> addFailure $ FailureRecord (loc <|> itemLocation item) path err
+      formatterItemDone path item
+    Done _ -> formatterDone
+    where
+      addFailure :: FailureRecord -> FormatM ()
+      addFailure r = modify $ \ s -> s { stateFailMessages = r : stateFailMessages s }
 
 -- | Get the number of failed examples encountered so far.
 getFailCount :: FormatM Int
@@ -224,11 +226,10 @@ newtype FormatM a = FormatM { unFormatM :: ReaderT (IORef FormatterState) IO a }
 runFormatM :: IORef FormatterState -> FormatM a -> IO a
 runFormatM ref action = runReaderT (unFormatM action) ref
 
-withFormatterState :: FormatConfig -> (IORef FormatterState -> IO a) -> IO a
-withFormatterState config action = withLineBuffering $ do
+newFormatterState :: FormatConfig -> IO FormatterState
+newFormatterState config = do
   time <- getMonotonicTime
   cpuTime <- if formatConfigPrintCpuTime config then Just <$> CPUTime.getCPUTime else pure Nothing
-
   let
     progress = formatConfigReportProgress config && not (formatConfigHtmlOutput config)
     state = FormatterState {
@@ -240,11 +241,7 @@ withFormatterState config action = withLineBuffering $ do
     , stateConfig = config { formatConfigReportProgress = progress }
     , stateColor = Nothing
     }
-  newIORef state >>= action
-
-withLineBuffering :: IO a -> IO a
-withLineBuffering action = bracket (IO.hGetBuffering stdout) (IO.hSetBuffering stdout) $ \ _ -> do
-  IO.hSetBuffering stdout IO.LineBuffering >> action
+  return state
 
 -- | Increase the counter for successful examples
 increaseSuccessCount :: FormatM ()
