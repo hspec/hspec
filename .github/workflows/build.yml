@@ -96,7 +96,6 @@ jobs:
 
       - name: "Run regression tests for #169"
         run: |
-
           cabal install --lib base hspec --package-env test/regression/issue-169/
           test/regression/issue-169/run.sh
         if: runner.os != 'Windows'
