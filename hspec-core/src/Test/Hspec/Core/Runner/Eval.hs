@@ -80,7 +80,7 @@ addResult path item = do
   ref <- asks envResults
   liftIO $ modifyIORef ref ((path, item) :)
 
-reportItem :: Path -> Maybe Location -> EvalM (Seconds, Result)  -> EvalM ()
+reportItem :: Path -> Maybe Location -> EvalM (Seconds, Result) -> EvalM ()
 reportItem path loc action = do
   reportItemStarted path
   action >>= reportResult path loc
@@ -278,7 +278,7 @@ eval specs = do
       onGroupStarted = groupStarted
     , onGroupDone = groupDone
     , onCleanup = runCleanup
-    , onLeafe = evalItem
+    , onLeaf = evalItem
     }
 
     runCleanup :: Maybe (String, Location) -> [String] -> () -> EvalM ()
@@ -295,7 +295,7 @@ data FoldTree c a r = FoldTree {
   onGroupStarted :: Path -> r
 , onGroupDone :: Path -> r
 , onCleanup :: Maybe (String, Location) -> [String] -> c -> r
-, onLeafe :: [String] -> a -> r
+, onLeaf :: [String] -> a -> r
 }
 
 foldTree :: FoldTree c a r -> Tree c a -> [r]
@@ -311,7 +311,7 @@ foldTree FoldTree{..} = go []
       where
         children = concatMap (go rGroups) xs
         cleanup = onCleanup loc (reverse rGroups) action
-    go rGroups (Leaf a) = [onLeafe (reverse rGroups) a]
+    go rGroups (Leaf a) = [onLeaf (reverse rGroups) a]
 
 sequenceActions :: [EvalM ()] -> EvalM ()
 sequenceActions = go
