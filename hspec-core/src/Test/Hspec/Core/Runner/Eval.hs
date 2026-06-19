@@ -36,6 +36,9 @@ import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToR
 import qualified Data.List.NonEmpty as NonEmpty
 import           Data.List.NonEmpty (NonEmpty(..))
 
+import           DList (DList(..))
+import qualified DList
+
 import           Test.Hspec.Core.Runner.JobQueue (JobQueue, Open, Concurrency(..), AbortEarly(..), Report(..))
 import qualified Test.Hspec.Core.Runner.JobQueue as JobQueue
 
@@ -128,13 +131,13 @@ runFormatter config specs = do
       runEvalM :: EvalM a -> IO a
       runEvalM = flip runReaderT env
 
-      eval :: forall item progress a. ([String] -> item -> [Report progress a]) -> [(Tree () item)] -> [Report progress a]
-      eval evalItem = concat . concatMap foldSpec
+      eval :: forall item progress a. ([String] -> item -> DList (Report progress a)) -> [(Tree () item)] -> [Report progress a]
+      eval evalItem = DList.toList . foldMap foldSpec
         where
-          foldSpec :: Tree () item -> [[Report progress a]]
+          foldSpec :: Tree () item -> DList (Report progress a)
           foldSpec = foldTree FoldTree {
-            onGroupStarted = return . Report . groupStarted
-          , onGroupDone = return . Report . groupDone
+            onGroupStarted = DList.singleton . Report . groupStarted
+          , onGroupDone = DList.singleton . Report . groupDone
           , onCleanup
           , onLeaf = evalItem
           }
@@ -145,17 +148,16 @@ runFormatter config specs = do
           groupDone :: Path -> IO ()
           groupDone = format . Format.GroupDone
 
-          onCleanup :: Maybe (String, Location) -> [String] -> () -> [Report progress a]
-          onCleanup _loc _groups () = []
+          onCleanup :: Maybe (String, Location) -> [String] -> () -> DList (Report progress a)
+          onCleanup _loc _groups () = mempty
 
       items :: [Report Progress Result]
       items = eval evalItem runningSpecs
         where
-          evalItem :: [String] -> WithReportResult_ Item -> [Report Progress Result]
-          evalItem groups (WithReportResult reportResult (Item requirement loc action)) = [
-              Report (reportItemStarted path)
-            , ReportResult action progress result
-            ]
+          evalItem :: [String] -> WithReportResult_ Item -> DList (Report Progress Result)
+          evalItem groups (WithReportResult reportResult (Item requirement loc action)) = DList $
+              (Report (reportItemStarted path) :)
+            . (ReportResult action progress result :)
             where
               path :: Path
               path = (groups, requirement)
@@ -303,17 +305,17 @@ data FoldTree c a r = FoldTree {
 , onLeaf :: [String] -> a -> r
 }
 
-foldTree :: FoldTree c a r -> Tree c a -> [r]
+foldTree :: Monoid r => FoldTree c a r -> Tree c a -> r
 foldTree FoldTree{..} = go []
   where
-    go rGroups (Node group xs) = start : children ++ [done]
+    go rGroups (Node group xs) = start <> children <> done
       where
         path = (reverse rGroups, group)
         start = onGroupStarted path
-        children = concatMap (go (group : rGroups)) xs
+        children = foldMap (go (group : rGroups)) xs
         done =  onGroupDone path
-    go rGroups (NodeWithCleanup loc action xs) = children ++ [cleanup]
+    go rGroups (NodeWithCleanup loc action xs) = children <> cleanup
       where
-        children = concatMap (go rGroups) xs
+        children = foldMap (go rGroups) xs
         cleanup = onCleanup loc (reverse rGroups) action
-    go rGroups (Leaf a) = [onLeaf (reverse rGroups) a]
+    go rGroups (Leaf a) = onLeaf (reverse rGroups) a
