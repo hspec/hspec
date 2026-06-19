@@ -105,7 +105,7 @@ data EvalItem = EvalItem {
   evalItemDescription :: String
 , evalItemLocation :: Maybe Location
 , evalItemConcurrency :: Concurrency
-, evalItemAction :: ProgressCallback -> IO (Seconds, Result)
+, evalItemAction :: ProgressCallback -> IO Result
 }
 
 type EvalTree = Tree (IO ()) EvalItem
@@ -148,10 +148,10 @@ runFormatter config specs = do
           onCleanup :: Maybe (String, Location) -> [String] -> () -> [Report progress a]
           onCleanup _loc _groups () = []
 
-      items :: [Report Progress (Seconds, Result)]
+      items :: [Report Progress Result]
       items = eval evalItem runningSpecs
         where
-          evalItem :: [String] -> WithReportResult_ Item -> [Report Progress (Seconds, Result)]
+          evalItem :: [String] -> WithReportResult_ Item -> [Report Progress Result]
           evalItem groups (WithReportResult reportResult (Item requirement loc action)) = [
               Report (reportItemStarted path)
             , ReportResult action progress result
@@ -163,8 +163,8 @@ runFormatter config specs = do
               progress :: ProgressCallback
               progress = reportProgress timer path
 
-              result :: Either SomeException (Seconds, Result) -> IO AbortEarly
-              result r = either exceptionToResult return r >>= runEvalM . reportResult path loc
+              result :: (Seconds, Either SomeException Result) -> IO AbortEarly
+              result = traverse (either exceptionToResult return) >=> runEvalM . reportResult path loc
 
           reportItemStarted :: Path -> IO ()
           reportItemStarted = format . Format.ItemStarted
@@ -209,7 +209,7 @@ type WithReportResult_ = WithReportResult AbortEarly
 data Item = Item {
   itemDescription :: String
 , itemLocation :: Maybe Location
-, itemAction :: JobQueue.Result Progress (Seconds, Result)
+, itemAction :: JobQueue.Result Progress Result
 }
 
 applyFailFast :: (Result -> Bool) -> Tree c (WithReportResult () a) -> Tree c (WithReportResult_ a)
@@ -281,10 +281,10 @@ mergeResults mCallSite (Result info r1) r2 = Result info $ case (r1, r2) of
       Just (name, _) -> Just $ "in " ++ name ++ "-hook:"
       Nothing -> Nothing
 
-enqueueItems :: JobQueue Open Progress (Seconds, Result) -> [Tree c EvalItem] -> IO [Tree c Item]
+enqueueItems :: JobQueue Open Progress Result -> [Tree c EvalItem] -> IO [Tree c Item]
 enqueueItems queue = mapM (traverse $ enqueueItem queue)
 
-enqueueItem :: JobQueue Open Progress (Seconds, Result) -> EvalItem -> IO Item
+enqueueItem :: JobQueue Open Progress Result -> EvalItem -> IO Item
 enqueueItem queue EvalItem{..} = do
   job <- JobQueue.enqueue queue evalItemConcurrency evalItemAction
   return Item {
@@ -293,8 +293,8 @@ enqueueItem queue EvalItem{..} = do
   , itemAction = job
   }
 
-exceptionToResult :: SomeException -> IO (Seconds, Result)
-exceptionToResult err = (,) 0 . Result "" <$> exceptionToResultStatus err
+exceptionToResult :: SomeException -> IO Result
+exceptionToResult err = Result "" <$> exceptionToResultStatus err
 
 data FoldTree c a r = FoldTree {
   onGroupStarted :: Path -> r
