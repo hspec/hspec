@@ -69,6 +69,7 @@ library
       Test.Hspec.Core.QuickCheck
       Test.Hspec.Core.Util
   other-modules:
+      DList
       GetOpt.Declarative
       GetOpt.Declarative.Environment
       GetOpt.Declarative.Interpret
@@ -154,6 +155,7 @@ test-suite spec
   build-tool-depends:
       hspec-meta:hspec-meta-discover
   other-modules:
+      DList
       GetOpt.Declarative
       GetOpt.Declarative.Environment
       GetOpt.Declarative.Interpret

@@ -39,6 +39,7 @@ library
       Test.Hspec.Formatters
       Test.Hspec.QuickCheck
       Test.Hspec.Runner
+      DList
       GetOpt.Declarative
       GetOpt.Declarative.Environment
       GetOpt.Declarative.Interpret
