@@ -16,16 +16,20 @@ import qualified Test.Hspec.Core.Hooks as H
 evalSpec_ :: H.Spec -> IO ()
 evalSpec_ = void . evalSpec
 
+defaultConfig :: EvalConfig
+defaultConfig = EvalConfig {
+  evalConfigFormat = \ _ -> pass
+, evalConfigConcurrentJobs = 1
+, evalConfigFailFast = False
+, evalConfigColorMode = ColorEnabled
+}
 
 evalSpec :: H.Spec -> IO [([String], Item)]
-evalSpec = fmap normalize . (toEvalForest >=> runFormatter config)
+evalSpec = evalSpecWith defaultConfig
+
+evalSpecWith :: EvalConfig -> H.Spec -> IO [([String], Item)]
+evalSpecWith config = fmap normalize . (toEvalForest >=> runFormatter config)
   where
-    config = EvalConfig {
-      evalConfigFormat = \ _ -> pass
-    , evalConfigConcurrentJobs = 1
-    , evalConfigFailFast = False
-    , evalConfigColorMode = ColorEnabled
-    }
     normalize = map $ \ (path, item) -> (pathToList path, normalizeItem item)
     normalizeItem item = item {
       itemLocation = Nothing
@@ -396,6 +400,22 @@ spec = do
           item ["foo"] Success
         , item ["bar"] $ divideByZeroIn "afterAll_"
         ]
+
+      context "with --fail-fast" $ do
+        it "runs the action exactly once" $ do
+          mock <- newMock
+          _ <- evalSpecWith defaultConfig { evalConfigFailFast = True } $ do
+            H.afterAll_ (mockAction mock) $ do
+              H.it "foo" True
+          mockCounter mock `shouldReturn` 1
+
+        context "when action throws an exception" $ do
+          it "runs the action exactly once" $ do
+            mock <- newMock
+            _ <- evalSpecWith defaultConfig { evalConfigFailFast = True } $ do
+              H.afterAll_ (mockAction mock >> throwException) $ do
+                H.it "foo" True
+            mockCounter mock `shouldReturn` 1
 
     context "when action is successful" $ do
       it "does not report anything" $ do

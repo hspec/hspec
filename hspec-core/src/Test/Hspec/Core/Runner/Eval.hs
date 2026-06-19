@@ -235,7 +235,7 @@ applyCleanup abortEarly = map (go . applyFailFast abortEarly)
       Leaf a -> Leaf a
 
     apply :: Maybe (String, Location) -> IO () -> Children c a -> Children c a
-    apply loc cleanup = forLastLeaf (addCleanupOn (not . abortEarly)) . forEachLeaf (addCleanupOn abortEarly)
+    apply loc cleanup = forEachLeaf (addCleanupOn abortEarly) . forLastLeaf (addCleanupOn (not . abortEarly))
       where
         addCleanupOn :: (Result -> Bool) -> WithReportResult abort a -> WithReportResult abort a
         addCleanupOn p (WithReportResult report item) = WithReportResult (addCleanup p loc cleanup report) item
