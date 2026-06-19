@@ -23,7 +23,7 @@ module Test.Hspec.Core.Example (
 , safeEvaluateExample
 -- END RE-EXPORTED from Test.Hspec.Core.Spec
 , safeEvaluateResultStatus
-, exceptionToResultStatus
+, exceptionToResult
 , toLocation
 , hunitFailureToResult
 ) where
@@ -179,10 +179,13 @@ safeEvaluateExample example params around = safeEvaluate . evaluateExample examp
 
 safeEvaluate :: IO Result -> IO Result
 safeEvaluate action = do
-  r <- safeTry $ forceResult <$> action
+  r <- try $ fmap forceResult action >>= evaluate
   case r of
-    Left e -> Result "" <$> exceptionToResultStatus e
+    Left e -> exceptionToResult e
     Right result -> return result
+
+exceptionToResult :: SomeException -> IO Result
+exceptionToResult err = Result "" <$> exceptionToResultStatus err
 
 safeEvaluateResultStatus :: IO ResultStatus -> IO ResultStatus
 safeEvaluateResultStatus action = do
