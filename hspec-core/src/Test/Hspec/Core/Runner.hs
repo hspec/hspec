@@ -114,7 +114,6 @@ import           System.Console.ANSI (hSupportsANSI, hHideCursor, hShowCursor)
 import qualified Test.QuickCheck as QC
 
 import           Test.Hspec.Core.Util (Path)
-import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Spec hiding (pruneTree, pruneForest)
 import           Test.Hspec.Core.Tree (formatDefaultDescription)
 import           Test.Hspec.Core.Config
@@ -170,7 +169,7 @@ applyDryRun c
     removeCleanup _ = pass
 
     markSuccess :: EvalItem -> EvalItem
-    markSuccess item = item {evalItemAction = \ _ -> return (0, Result "" Success)}
+    markSuccess item = item {evalItemAction = \ _ -> return (Result "" Success)}
 
 -- | Run a given spec and write a report to `stdout`.
 -- Exit with `exitFailure` if at least one spec item fails.
@@ -458,7 +457,7 @@ toEvalItemForest params = bimapForest id toEvalItem . filterForest itemIsFocused
       evalItemDescription = requirement
     , evalItemLocation = loc
     , evalItemConcurrency = if isParallelizable == Just True then Concurrent else Sequential
-    , evalItemAction = \ progress -> measure $ e params withUnit progress
+    , evalItemAction = \ progress -> e params withUnit progress
     }
 
     withUnit :: ActionWith () -> IO ()

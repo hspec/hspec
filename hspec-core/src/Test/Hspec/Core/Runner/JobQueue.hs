@@ -23,6 +23,7 @@ import           Control.Concurrent
 import           Control.Concurrent.Async (Async, withAsync, link, wait, cancelMany)
 
 import           Test.Hspec.Core.Util (safeTry)
+import           Test.Hspec.Core.Clock (Seconds, measure)
 
 data Concurrency = Sequential | Concurrent
 
@@ -81,7 +82,7 @@ enqueue queue concurrency job = case concurrency of
 data ConcurrentJobState progress a =
     Running
   | Reporting [Report progress a] (progress -> IO ())
-  | Completed (Either SomeException a)
+  | Completed (Seconds, Either SomeException a)
 
 enqueueConcurrent :: forall progress a. JobQueue Open progress a -> Job progress a -> IO (Result progress a)
 enqueueConcurrent queue job = do
@@ -93,14 +94,14 @@ enqueueConcurrent queue job = do
       Reporting _ report -> report progress
       _ -> pass
 
-    reportResult :: Either SomeException a -> IO (Continuation progress a)
+    reportResult :: (Seconds, Either SomeException a) -> IO (Continuation progress a)
     reportResult result = atomicSwapIORef ref (Completed result) >>= \ case
       Running -> return WorkerThread
       Reporting items _ -> return $ ReportingThread items
       Completed _ -> thisCanNeverHappen "job completed twice"
 
   enqueueJob queue $ do
-    safeTry (job reportProgress) >>= reportResult
+    eval (job reportProgress) >>= reportResult
 
   return $ ConcurrentResult ref
 
@@ -109,7 +110,7 @@ data Report progress a =
   | ReportResult {
       _resultAction :: Result progress a
     , _reportProgress :: progress -> IO ()
-    , _reportResult :: Either SomeException a -> IO AbortEarly
+    , _reportResult :: (Seconds, Either SomeException a) -> IO AbortEarly
     }
 
 data AbortEarly = NoAbortEarly | AbortEarly
@@ -130,7 +131,7 @@ workerThread parent jobs = loop
           action >> keepReporting
         ReportResult result reportProgress (checkAbort -> reportResult) -> case result of
           SequentialResult action -> do
-            r <- safeTry (action reportProgress)
+            r <- eval (action reportProgress)
             reportResult r keepReporting
           ConcurrentResult ref -> passReportingResponsibility ref (Reporting all reportProgress) >>= \ case
             Running -> continueAsWorkerThread
@@ -156,6 +157,9 @@ workerThread parent jobs = loop
 
     done :: IO ()
     done = putMVar parent Done
+
+eval :: IO a -> IO (Seconds, Either SomeException a)
+eval = measure . safeTry
 
 withAsyncs :: forall a r. [IO a] -> ([Async a] -> IO r) -> IO r
 withAsyncs = withMany withAsync

@@ -17,7 +17,7 @@ spec = do
       waitFor = waitForWith NoAbortEarly
 
       waitForWith :: AbortEarly -> Result () () -> Report () ()
-      waitForWith abort job = ReportResult job return (either throwIO $ \ () -> return abort)
+      waitForWith abort job = ReportResult job return (either throwIO (\ () -> return abort) . snd)
 
     context "with Sequential" $ do
       it "runs actions sequentially" $ do
