@@ -31,7 +31,7 @@ import           Test.Hspec.Core.Format (Format)
 import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Clock
 import           Test.Hspec.Core.Example.Location
-import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToResultStatus)
+import           Test.Hspec.Core.Example (safeEvaluateResultStatus, exceptionToResult)
 
 import qualified Data.List.NonEmpty as NonEmpty
 import           Data.List.NonEmpty (NonEmpty(..))
@@ -294,9 +294,6 @@ enqueueItem queue EvalItem{..} = do
   , itemLocation = evalItemLocation
   , itemAction = job
   }
-
-exceptionToResult :: SomeException -> IO Result
-exceptionToResult err = Result "" <$> exceptionToResultStatus err
 
 data FoldTree c a r = FoldTree {
   onGroupStarted :: Path -> r
