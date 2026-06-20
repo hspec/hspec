@@ -101,6 +101,7 @@ library
     , ansi-terminal >=0.6.2
     , array
     , base >=4.9.0.0 && <5
+    , ghc-prim
     , call-stack >=0.2.0
     , containers
     , deepseq
