@@ -10,8 +10,7 @@ module Test.Hspec (
 -- * Types
   Spec
 , SpecWith
-, Example
-, Arg
+, Example(Arg)
 
 -- * Setting expectations
 , module Test.Hspec.Expectations

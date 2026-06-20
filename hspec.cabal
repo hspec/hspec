@@ -58,5 +58,3 @@ library
   other-modules:
       Paths_hspec
   default-language: Haskell2010
-  if impl(ghc)
-    cpp-options: -DENABLE_SPEC_HOOK_ARGS
