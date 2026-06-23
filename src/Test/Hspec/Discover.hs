@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide, not-home #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE FlexibleInstances #-}
