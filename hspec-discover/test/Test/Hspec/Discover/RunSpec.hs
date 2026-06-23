@@ -83,6 +83,48 @@ spec = do
           ]
         ]
 
+    it "prefixes discovered modules when --module-name is qualified" $ do
+      touch "test/Generate/GenerateSpec.hs"
+      touch "test/Generate/Foo/BarSpec.hs"
+      run ["test/Generate/Spec.hs", "", "out", "--module-name=Generate.Spec"]
+      readFile "out" `shouldReturn` unlines [
+          "{-# LINE 1 \"test/Generate/Spec.hs\" #-}"
+        , "{-# LANGUAGE NoImplicitPrelude #-}"
+        , "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}"
+        , "module Generate.Spec where"
+        , "import qualified Generate.Foo.BarSpec"
+        , "import qualified Generate.GenerateSpec"
+        , "import Test.Hspec.Discover"
+        , "main :: IO ()"
+        , "main = hspec spec"
+        , "spec :: Spec"
+        , "spec = " ++ unwords [
+               "describe \"Generate.Foo.Bar\" Generate.Foo.BarSpec.spec"
+          , ">> describe \"Generate.Generate\" Generate.GenerateSpec.spec"
+          ]
+        ]
+
+    it "prefixes discovered modules when --module-name has multiple qualifiers" $ do
+      touch "test/Foo/Bar/BazSpec.hs"
+      touch "test/Foo/Bar/Qux/QuuxSpec.hs"
+      run ["test/Foo/Bar/Spec.hs", "", "out", "--module-name=Foo.Bar.Spec"]
+      readFile "out" `shouldReturn` unlines [
+          "{-# LINE 1 \"test/Foo/Bar/Spec.hs\" #-}"
+        , "{-# LANGUAGE NoImplicitPrelude #-}"
+        , "{-# OPTIONS_GHC -w -Wall -fno-warn-warnings-deprecations #-}"
+        , "module Foo.Bar.Spec where"
+        , "import qualified Foo.Bar.BazSpec"
+        , "import qualified Foo.Bar.Qux.QuuxSpec"
+        , "import Test.Hspec.Discover"
+        , "main :: IO ()"
+        , "main = hspec spec"
+        , "spec :: Spec"
+        , "spec = " ++ unwords [
+               "describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
+          , ">> describe \"Foo.Bar.Qux.Quux\" Foo.Bar.Qux.QuuxSpec.spec"
+          ]
+        ]
+
     it "generates a test driver for an empty directory" $ do
       touch "test/Foo/Bar/Baz/.placeholder"
       run ["test/Spec.hs", "", "out"]
@@ -116,9 +158,15 @@ spec = do
 
   describe "importList" $ do
     it "generates imports for a list of specs" $ do
-      importList (Just [Run.Spec "Foo", Run.Spec "Bar"]) "" `shouldBe` unlines [
+      importList "" (Just [Run.Spec "Foo", Run.Spec "Bar"]) "" `shouldBe` unlines [
           "import qualified FooSpec"
         , "import qualified BarSpec"
+        ]
+
+    it "generates imports with module prefix" $ do
+      importList "Generate" (Just [Run.Spec "Foo", Run.Spec "Bar"]) "" `shouldBe` unlines [
+          "import qualified Generate.FooSpec"
+        , "import qualified Generate.BarSpec"
         ]
 
   describe "discover" $ do
