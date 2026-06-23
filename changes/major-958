@@ -1,0 +1,1 @@
+  - hspec-discover: Prevent GHC from overeagerly simplifying the generated code.  This works around https://gitlab.haskell.org/ghc/ghc/-/issues/26989.
