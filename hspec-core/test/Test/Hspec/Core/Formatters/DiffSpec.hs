@@ -12,6 +12,15 @@ dropQuotes = init . drop 1
 
 spec :: Spec
 spec = do
+  describe "diff" $ do
+    let large = show $ map (\ i -> "/some/long/path/dir_" ++ show i) [1 .. 4000 :: Int]
+
+    it "handles large deletions with a common prefix and suffix" $ do
+      diff large "[]" `shouldBe` [Both "[", First (init $ tail large), Both "]"]
+
+    it "handles large insertions with a common prefix and suffix" $ do
+      diff "[]" large `shouldBe` [Both "[", Second (init $ tail large), Both "]"]
+
   describe "lineDiff" $ do
     let
       enumerate name n = map ((name ++) . show) [1 .. n :: Int]

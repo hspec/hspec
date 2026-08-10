@@ -123,7 +123,12 @@ keep xs
   | otherwise = (LinesBoth xs :)
 
 diff :: String -> String -> [Diff]
-diff expected actual = diffs
+diff expected actual = case stripCommon expectedChunks actualChunks of
+    -- Avoid the general diff algorithm when the only change is an insertion or
+    -- deletion between common boundaries.  This case can contain many chunks.
+    (prefix, middle, [], suffix) -> chunk Both prefix ++ chunk First middle ++ chunk Both suffix
+    (prefix, [], middle, suffix) -> chunk Both prefix ++ chunk Second middle ++ chunk Both suffix
+    _ -> diffs
   where
     diffs :: [Diff]
     diffs = map (toDiff . fmap concat) $ Diff.getGroupedDiff expectedChunks actualChunks
@@ -133,6 +138,27 @@ diff expected actual = diffs
 
     actualChunks :: [String]
     actualChunks = partition actual
+
+    chunk :: (String -> Diff) -> [String] -> [Diff]
+    chunk constructor = \ case
+      [] -> []
+      xs -> [constructor (concat xs)]
+
+stripCommon :: Eq a => [a] -> [a] -> ([a], [a], [a], [a])
+stripCommon expected actual = (prefix, expectedMiddle, actualMiddle, suffix)
+  where
+    (prefix, expectedRest, actualRest) = stripEqualPrefix expected actual
+    (reversedSuffix, reversedExpectedMiddle, reversedActualMiddle) = stripEqualPrefix (reverse expectedRest) (reverse actualRest)
+
+    expectedMiddle = reverse reversedExpectedMiddle
+    actualMiddle = reverse reversedActualMiddle
+    suffix = reverse reversedSuffix
+
+    stripEqualPrefix :: Eq a => [a] -> [a] -> ([a], [a], [a])
+    stripEqualPrefix = go []
+      where
+        go acc (x : xs) (y : ys) | x == y = go (x : acc) xs ys
+        go acc xs ys = (reverse acc, xs, ys)
 
 toDiff :: Diff.Diff String -> Diff
 toDiff d = case d of
