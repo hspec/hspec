@@ -19,7 +19,7 @@ spec = do
       diff large "[]" `shouldBe` [Both "[", First (init $ tail large), Both "]"]
 
     it "handles large insertions with a common prefix and suffix" $ do
-      diff "[]" large `shouldBe` [Both "[", Second (init $ tail large), Both "]"]
+      diff "[]" large `shouldBe` [Both "[", Second (init $ drop 1 large), Both "]"]
 
   describe "lineDiff" $ do
     let
