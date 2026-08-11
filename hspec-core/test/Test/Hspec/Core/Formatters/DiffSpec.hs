@@ -16,7 +16,7 @@ spec = do
     let large = show $ map (\ i -> "/some/long/path/dir_" ++ show i) [1 .. 4000 :: Int]
 
     it "handles large deletions with a common prefix and suffix" $ do
-      diff large "[]" `shouldBe` [Both "[", First (init $ tail large), Both "]"]
+      diff large "[]" `shouldBe` [Both "[", First (init $ drop 1 large), Both "]"]
 
     it "handles large insertions with a common prefix and suffix" $ do
       diff "[]" large `shouldBe` [Both "[", Second (init $ drop 1 large), Both "]"]
