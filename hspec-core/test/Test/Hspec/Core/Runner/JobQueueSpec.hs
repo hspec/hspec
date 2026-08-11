@@ -68,7 +68,6 @@ spec = do
             , Report $ throwIO DivideByZero
             ]
           `shouldThrow` \ (ExceptionInLinkedThread _ _) -> True
-        `shouldReturn` Just ()
 
     context "with Concurrent" $ do
       it "runs actions concurrently" $ do
@@ -98,4 +97,3 @@ spec = do
             ]
           takeMVar doneA
           takeMVar doneB
-        `shouldReturn` Just ()

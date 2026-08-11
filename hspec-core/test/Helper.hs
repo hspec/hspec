@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -63,7 +64,8 @@ import qualified Test.HUnit.Lang as HUnit
 import qualified Test.Hspec.Core.Spec as H
 import qualified Test.Hspec.Core.Runner as H
 import           Test.Hspec.Core.QuickCheck.Util (mkGen)
-import           Test.Hspec.Core.Clock
+import           Test.Hspec.Core.Clock hiding (timeout)
+import qualified Test.Hspec.Core.Clock as Clock
 import           Test.Hspec.Core.Example (Result(..), ResultStatus(..), FailureReason(..), Location(..))
 import           Test.Hspec.Core.Example.Location (workaroundForIssue19236)
 import           Test.Hspec.Core.Util
@@ -71,6 +73,11 @@ import qualified Test.Hspec.Core.Format as Format
 import           Test.Hspec.Core.Formatters.V2 (formatterToFormat, silent)
 
 import           Data.Orphans ()
+
+timeout :: Seconds -> IO a -> IO a
+timeout t action = Clock.timeout t action >>= \ case
+  Nothing -> HUnit.assertFailure "timeout exceeded"
+  Just a -> return a
 
 exceptionEq :: SomeException -> SomeException -> Bool
 exceptionEq a b

@@ -924,7 +924,7 @@ spec = do
           dt = t * (fromIntegral n / 2)
       r <- timeout dt . hspecResult ["-j", show n] . H.parallel $ do
         replicateM_ n (H.it "foo" $ sleep t)
-      r `shouldBe` Just (H.Summary n 0)
+      r `shouldBe` H.Summary n 0
 
     context "with -j" $ do
       it "limits parallelism" $ do

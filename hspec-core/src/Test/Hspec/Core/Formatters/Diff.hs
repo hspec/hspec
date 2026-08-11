@@ -123,15 +123,15 @@ keep xs
   | otherwise = (LinesBoth xs :)
 
 diff :: String -> String -> [Diff]
-diff expected actual = case stripCommon expectedChunks actualChunks of
-    -- Avoid the general diff algorithm when the only change is an insertion or
-    -- deletion between common boundaries.  This case can contain many chunks.
-    (prefix, middle, [], suffix) -> chunk Both prefix ++ chunk First middle ++ chunk Both suffix
-    (prefix, [], middle, suffix) -> chunk Both prefix ++ chunk Second middle ++ chunk Both suffix
-    _ -> diffs
+diff expected actual = case commonPrefixAndSuffix expectedChunks actualChunks of
+  -- Avoid the general diff algorithm when the only change is an insertion or
+  -- deletion between common boundaries.  This case can contain many chunks.
+  (prefix, [], insertion, suffix) -> chunk Both prefix ++ chunk Second insertion ++ chunk Both suffix
+  (prefix, deletion, [], suffix) -> chunk Both prefix ++ chunk First deletion ++ chunk Both suffix
+  (prefix, xs, ys, suffix) -> chunk Both prefix ++ diffs xs ys ++ chunk Both suffix
   where
-    diffs :: [Diff]
-    diffs = map (toDiff . fmap concat) $ Diff.getGroupedDiff expectedChunks actualChunks
+    diffs :: [String] -> [String] -> [Diff]
+    diffs xs ys = map (toDiff . fmap concat) $ Diff.getGroupedDiff xs ys
 
     expectedChunks :: [String]
     expectedChunks = partition expected
@@ -144,21 +144,21 @@ diff expected actual = case stripCommon expectedChunks actualChunks of
       [] -> []
       xs -> [constructor (concat xs)]
 
-stripCommon :: Eq a => [a] -> [a] -> ([a], [a], [a], [a])
-stripCommon expected actual = (prefix, expectedMiddle, actualMiddle, suffix)
+commonPrefixAndSuffix :: Eq a => [a] -> [a] -> ([a], [a], [a], [a])
+commonPrefixAndSuffix expected actual = (prefix, expectedMiddle, actualMiddle, suffix)
   where
-    (prefix, expectedRest, actualRest) = stripEqualPrefix expected actual
-    (reversedSuffix, reversedExpectedMiddle, reversedActualMiddle) = stripEqualPrefix (reverse expectedRest) (reverse actualRest)
+    (prefix, expectedSuffix, actualSuffix) = commonPrefix expected actual
+    (suffix, expectedMiddle, actualMiddle) = commonSuffix expectedSuffix actualSuffix
 
-    expectedMiddle = reverse reversedExpectedMiddle
-    actualMiddle = reverse reversedActualMiddle
-    suffix = reverse reversedSuffix
-
-    stripEqualPrefix :: Eq a => [a] -> [a] -> ([a], [a], [a])
-    stripEqualPrefix = go []
+    commonPrefix :: Eq a => [a] -> [a] -> ([a], [a], [a])
+    commonPrefix = go []
       where
         go acc (x : xs) (y : ys) | x == y = go (x : acc) xs ys
         go acc xs ys = (reverse acc, xs, ys)
+
+    commonSuffix :: Eq a => [a] -> [a] -> ([a], [a], [a])
+    commonSuffix xs ys = case commonPrefix (reverse xs) (reverse ys) of
+      (s, e, a) -> (reverse s, reverse e, reverse a)
 
 toDiff :: Diff.Diff String -> Diff
 toDiff d = case d of

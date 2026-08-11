@@ -13,13 +13,23 @@ dropQuotes = init . drop 1
 spec :: Spec
 spec = do
   describe "diff" $ do
-    let large = show $ map (\ i -> "/some/long/path/dir_" ++ show i) [1 .. 4000 :: Int]
+    let
+      xs :: String
+      xs = "[]"
 
-    it "handles large deletions with a common prefix and suffix" $ do
-      diff large "[]" `shouldBe` [Both "[", First (init $ drop 1 large), Both "]"]
+      ys :: String
+      ys = show $ map show [1 .. 10000 :: Int]
 
-    it "handles large insertions with a common prefix and suffix" $ do
-      diff "[]" large `shouldBe` [Both "[", Second (init $ drop 1 large), Both "]"]
+      difference :: String
+      difference = init $ drop 1 ys
+
+    it "efficiently handles large insertions with a common prefix and suffix" $ do
+      timeout 1 $ do
+        diff xs ys `shouldBe` [Both "[", Second difference, Both "]"]
+
+    it "efficiently handles large deletions with a common prefix and suffix" $ do
+      timeout 1 $ do
+        diff ys xs `shouldBe` [Both "[", First difference, Both "]"]
 
   describe "lineDiff" $ do
     let
