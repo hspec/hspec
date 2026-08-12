@@ -10,9 +10,11 @@ module Test.Hspec.Discover {-# WARNING
 , hspecWithFormatter
 , postProcessSpec
 , describe
+, Unit
 , module Prelude
 ) where
 
+import           GHC.Tuple (Unit)
 import           Test.Hspec.Core.Spec
 import           Test.Hspec.Core.Runner
 import           Test.Hspec.Core.Formatters.V1
