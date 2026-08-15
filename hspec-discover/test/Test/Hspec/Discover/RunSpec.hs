@@ -26,10 +26,10 @@ spec = do
         , "main :: IO ()"
         , "main = hspec spec"
         , "spec :: Spec"
-        , "spec = " ++ unwords [
-               "describe \"Foo\" FooSpec.spec"
-          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
-          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
+        , "spec = sequence_ [" ++ unwords [
+            "describe \"Foo\" FooSpec.spec,"
+          , "describe \"Foo.Bar\" Foo.BarSpec.spec,"
+          , "describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec]"
           ]
         ]
 
@@ -48,10 +48,10 @@ spec = do
         , "import qualified Foo.Bar.BazSpec"
         , "import Test.Hspec.Discover"
         , "spec :: Spec"
-        , "spec = " ++ unwords [
-               "describe \"Foo\" FooSpec.spec"
-          , ">> describe \"Foo.Bar\" Foo.BarSpec.spec"
-          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec"
+        , "spec = sequence_ [" ++ unwords [
+            "describe \"Foo\" FooSpec.spec,"
+          , "describe \"Foo.Bar\" Foo.BarSpec.spec,"
+          , "describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec]"
           ]
         ]
 
@@ -76,10 +76,10 @@ spec = do
         , "main :: IO ()"
         , "main = hspec spec"
         , "spec :: Spec"
-        , "spec = " ++ unwords [
-               "(SpecHook.hook $ describe \"Foo\" FooSpec.spec"
-          , ">> (Foo.SpecHook.hook $ describe \"Foo.Bar\" Foo.BarSpec.spec"
-          , ">> describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec))"
+        , "spec = sequence_ [" ++ unwords [
+            "SpecHook.hook $ sequence_ [describe \"Foo\" FooSpec.spec,"
+          , "Foo.SpecHook.hook $ sequence_ [describe \"Foo.Bar\" Foo.BarSpec.spec,"
+          , "describe \"Foo.Bar.Baz\" Foo.Bar.BazSpec.spec]]]"
           ]
         ]
 
