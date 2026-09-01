@@ -7,9 +7,6 @@ module Test.Hspec.Core.Config.Definition (
 
 , filterOr
 
-, setConfigAnnotation
-, getConfigAnnotation
-
 , addExtensionOptions
 , getExtensionOptions
 
