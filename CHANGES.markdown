@@ -1,3 +1,6 @@
+## Changes in 2.11.18 (2026-09-30)
+  - Compatibility with QuickCheck 2.19
+
 ## Changes in 2.11.17 (2026-03-04)
   - Compatibility with QuickCheck 2.18
 
