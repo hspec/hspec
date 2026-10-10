@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
 -- |
@@ -49,9 +48,6 @@ module Test.Hspec.Core.Spec (
 
 -- * A type class for examples
 , Test.Hspec.Core.Example.Example (..)
-#ifndef ENABLE_SPEC_HOOK_ARGS
-, Test.Hspec.Core.Example.Arg
-#endif
 , Test.Hspec.Core.Example.Params (..)
 , Test.Hspec.Core.Example.defaultParams
 , Test.Hspec.Core.Example.ActionWith
